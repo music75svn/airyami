@@ -1,0 +1,48 @@
+#*************************************************************************
+* CLASS 명      : excRptList_xml.vm
+* 작 업 자      : 안요한
+* 작 업 일      : 2013년 07월 17일 
+* 기    능      : 사업추진실적보고서 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      안요한     2013년 07월 17일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 	: "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"EVAL_DEGREE_ID"       	: "$!{CS_HTML.txt2html($list.EVAL_DEGREE_ID)}", 
+		"EXC_EVAL_TARGET"       : "$!{CS_HTML.txt2html($list.EXC_EVAL_TARGET)}", 
+		"EXC_EVAL_TARGET_NM"	: "$!{CS_HTML.txt2html($list.EXC_EVAL_TARGET_NM)}", 
+		"BSC_EXC_RPT_ID"		: "$!{CS_HTML.txt2html($list.BSC_EXC_RPT_ID)}",
+		#if($!{CS_HTML.txt2html($list.RPT_YN)} == "N" && $!{CS_HTML.txt2html($list.SUBMIT_YN)} == "")
+		"SUBMIT_YN_NM"			: "-",
+		#elseif ($!{CS_HTML.txt2html($list.RPT_YN)} == "Y" && $!{CS_HTML.txt2html($list.SUBMIT_YN)} == "") 
+		"SUBMIT_YN_NM"			: "미작성",
+		#else
+		"SUBMIT_YN_NM"			: "$!{CS_HTML.txt2html($list.SUBMIT_YN_NM)}",
+		#end
+		
+		#if ($!{CS_HTML.txt2html($list.RPT_YN)} == "Y")
+		"RPT_YN"    			: "대상"
+		#else
+		"RPT_YN"    			: "비대상"
+		#end
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

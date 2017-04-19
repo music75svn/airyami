@@ -1,0 +1,37 @@
+#*************************************************************************
+* CLASS 명      : disasterMngList_xml
+* 작 업 자      : 안요한
+* 작 업 일      : 2013년 8월 13일
+* 기    능      : 재난관리시설 안전점검 건수 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      안요한     2012년 8월 13일            최 초 작 업
+**************************************************************************#
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)  
+	{
+		"CO_NO"           : "$!{CS_HTML.txt2html($list.CO_NO)}",
+		"EQUI_NO"     	 	: "$!{CS_HTML.txt2html($list.EQUI_NO)}",
+		"CO_NM"     	 	: "$!{CS_HTML.txt2html($list.CO_NM)}",
+		"INSP_DATE"     	 	: "$!{CS_HTML.txt2html($list.INSP_DATE)}",
+		"KOR_NM"     	: "$!{CS_HTML.txt2html($list.KOR_NM)}",
+		"DANG_GRDE_TC"     	: "$!{CS_HTML.txt2html($list.DANG_GRDE_TC)}"
+	}
+	
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

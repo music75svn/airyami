@@ -1,0 +1,670 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.result.evalMngRpt">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+	<!--
+	==================================================================
+	  # 설명	: 평가결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_EVAL_FINAL_RESULT
+	==================================================================
+	-->
+	<select id="getObjectionSchedule" parameterClass="hashMap" resultClass="hashMap">
+        SELECT MNG_OBJ_START_DT, MNG_OBJ_END_DT
+             , CASE WHEN SYSDATE BETWEEN TO_DATE(MNG_OBJ_START_DT, 'rrrr-mm-dd') AND TO_DATE(MNG_OBJ_END_DT || '23:59:59', 'rrrr-mm-dd hh24:mi:ss') THEN 'T'
+                    ELSE 'N' END OBJECTION_YN
+          FROM PRS_EVAL_SCHEDULE
+         WHERE 1 = 1
+		<isNotEmpty property="findYear" prepend="AND">
+           	   YEAR = #findYear#
+		</isNotEmpty>
+		<isNotEmpty property="year" prepend="AND">
+           	   YEAR = #year#
+		</isNotEmpty>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 인사부부장 사번 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_EVAL_FINAL_RESULT
+	==================================================================
+	-->
+	<select id="getInsaLdId" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT A.EMPN
+	  	  FROM BSC_INSA A
+		 WHERE A.YEAR = #findYear#
+	       AND A.DEPT_CD = (SELECT DISTINCT DEPT_ID
+                              FROM BSC_ADMIN
+                             WHERE ADMIN_GUBUN = '84')
+	    AND A.CAST_TC = '20'
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 평가결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_EVAL_FINAL_RESULT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT * FROM (
+		SELECT A.YEAR
+			 , A.EMPN
+			 , A.KOR_NM
+			 , A.DEPT_CD
+			 , D.DEPT_KOR_NM
+             , F_DEPT_FULL_NM(#findYear#, A.DEPT_CD, 'BSC_INSA_DEPT') DEPT_FULL_NM
+	         , A.EVAL_GRP_ID
+	         , (SELECT EVAL_GRP_NM FROM PRS_EVAL_GRP WHERE YEAR = A.YEAR AND EVAL_GRP_ID = A.EVAL_GRP_ID) EVAL_GRP_NM
+			 , A.CAST_TC
+			 , B.CODE_NM AS CAST_TC_NM
+			<isEqual prepend="," property="flag" compareValue="2">
+				DECODE(A.EMPN, #empn#, A.GRADE, '-') GRADE
+         	</isEqual>
+         	<isNotEqual	prepend="," property="flag" compareValue="2">
+         		A.GRADE
+         	</isNotEqual>
+			 , A.CUR_CAST_TC
+			 , A.CUR_DEPT_CD 
+			 , A.CUR_POS_TC
+			 , C.CODE_NM AS POS_TC_NM
+             , DECODE(( SELECT COUNT(*) FROM PRS_MNG_EVAL_OBJECTION WHERE YEAR  = A.YEAR AND EMPN = A.EMPN AND CAST_TC = A.CAST_TC),0,'N','Y') AS OBJECTION_YN
+      <!--   , DECODE(( SELECT COUNT(*) FROM PRS_MNG_EVAL_OBJECTION WHERE YEAR  = A.YEAR AND EMPN = A.EMPN AND CAST_TC = A.CAST_TC AND OBJ_ANSWER  IS NOT NULL ),0,'N','Y') AS OBJECTION_ANS_YN
+       -->   
+       		 , CASE WHEN (SELECT COUNT(OBJ_TYPE_ANSWER_DT)
+                                        FROM PRS_MNG_EVAL_OBJECTION_TYPE
+                                        WHERE     YEAR = A.YEAR
+                                            AND EMPN = A.EMPN
+                                            AND EVAL_GRP_ID = A.EVAL_GRP_ID
+                                            AND OBJ_TYPE_ANSWER_DT IS NOT NULL
+                                            <isNotEmpty property="flag">
+									         	<isEqual prepend="AND" property="flag" compareValue="1">
+									         		OBJ_TYPE IN ('01', '02', '04')
+									         	</isEqual>
+									         	<isEqual prepend="AND" property="flag" compareValue="2">
+									         		OBJ_TYPE IN ('03')
+									         	</isEqual>
+									         </isNotEmpty>) <![CDATA[ < ]]>
+                                    (SELECT COUNT (*)
+                                       FROM PRS_MNG_EVAL_OBJECTION_TYPE
+                                      WHERE     YEAR = A.YEAR
+                                            AND EMPN = A.EMPN
+                                            AND EVAL_GRP_ID = A.EVAL_GRP_ID
+                                            <isNotEmpty property="flag">
+									         	<isEqual prepend="AND" property="flag" compareValue="1">
+									         		OBJ_TYPE IN ('01', '02', '04')
+									         	</isEqual>
+									         	<isEqual prepend="AND" property="flag" compareValue="2">
+									         		OBJ_TYPE IN ('03')
+									         	</isEqual>
+									         </isNotEmpty>) THEN 'C'
+                            WHEN  (SELECT COUNT(OBJ_TYPE_ANSWER_DT)
+                                        FROM PRS_MNG_EVAL_OBJECTION_TYPE
+                                        WHERE     YEAR = A.YEAR
+                                            AND EMPN = A.EMPN
+                                            AND EVAL_GRP_ID = A.EVAL_GRP_ID
+                                            AND OBJ_TYPE_ANSWER_DT IS NOT NULL
+                                            <isNotEmpty property="flag">
+									         	<isEqual prepend="AND" property="flag" compareValue="1">
+									         		OBJ_TYPE IN ('01', '02', '04')
+									         	</isEqual>
+									         	<isEqual prepend="AND" property="flag" compareValue="2">
+									         		OBJ_TYPE IN ('03')
+									         	</isEqual>
+									         </isNotEmpty>) > 0
+                                            AND
+                             		 (SELECT COUNT(OBJ_TYPE_ANSWER_DT)
+                                        FROM PRS_MNG_EVAL_OBJECTION_TYPE
+                                        WHERE     YEAR = A.YEAR
+                                            AND EMPN = A.EMPN
+                                            AND EVAL_GRP_ID = A.EVAL_GRP_ID
+                                            AND OBJ_TYPE_ANSWER_DT IS NOT NULL
+                                            <isNotEmpty property="flag">
+									         	<isEqual prepend="AND" property="flag" compareValue="1">
+									         		OBJ_TYPE IN ('01', '02', '04')
+									         	</isEqual>
+									         	<isEqual prepend="AND" property="flag" compareValue="2">
+									         		OBJ_TYPE IN ('03')
+									         	</isEqual>
+									         </isNotEmpty>) =
+                                    (SELECT COUNT (*)
+                                       FROM PRS_MNG_EVAL_OBJECTION_TYPE
+                                      WHERE     YEAR = A.YEAR
+                                            AND EMPN = A.EMPN
+                                            AND EVAL_GRP_ID = A.EVAL_GRP_ID
+                                            <isNotEmpty property="flag">
+									         	<isEqual prepend="AND" property="flag" compareValue="1">
+									         		OBJ_TYPE IN ('01', '02', '04')
+									         	</isEqual>
+									         	<isEqual prepend="AND" property="flag" compareValue="2">
+									         		OBJ_TYPE IN ('03')
+									         	</isEqual>
+									         </isNotEmpty>) THEN 'Y'
+                             WHEN (SELECT COUNT(OBJ_TYPE_ANSWER_DT)
+                                        FROM PRS_MNG_EVAL_OBJECTION_TYPE
+                                        WHERE     YEAR = A.YEAR
+                                            AND EMPN = A.EMPN
+                                            AND EVAL_GRP_ID = A.EVAL_GRP_ID
+                                            AND OBJ_TYPE_ANSWER_DT IS NOT NULL
+                                            <isNotEmpty property="flag">
+									         	<isEqual prepend="AND" property="flag" compareValue="1">
+									         		OBJ_TYPE IN ('01', '02', '04')
+									         	</isEqual>
+									         	<isEqual prepend="AND" property="flag" compareValue="2">
+									         		OBJ_TYPE IN ('03')
+									         	</isEqual>
+									         </isNotEmpty>) = 0
+                                            THEN 'N'
+                    END
+                    AS OBJECTION_ANS_YN   
+             , DECODE(NVL(A.GRADE,'E'),'S','0','A','1','B','2','C','3','D','4','E','5') ORDER_GRADE
+          FROM PRS_MNG_EVAL_FINAL_RESULT A
+          LEFT OUTER JOIN BSC_CODE B
+                       ON A.YEAR = B.YEAR
+                      AND B.CODE_GRP_ID = '170'
+                      AND B.CODE_ID = A.CAST_TC
+          LEFT OUTER JOIN BSC_CODE C
+                       ON A.YEAR = C.YEAR
+                      AND C.CODE_GRP_ID = '171'
+                      AND C.CODE_ID = A.POS_TC                      
+		  LEFT OUTER JOIN BSC_INSA_DEPT D
+            		   ON A.YEAR = D.YEAR
+          			  AND A.CUR_DEPT_CD = D.DEPT_CD
+          WHERE A.YEAR=#findYear#
+			<isNotEmpty prepend="AND" property="findKorNm">
+	            UPPER(A.KOR_NM) LIKE  '%' || TRIM(UPPER(#findKorNm#)) ||'%'
+		   	</isNotEmpty>
+		   	<isNotEmpty prepend="AND" property="findCastTc">
+		   		A.CAST_TC = #findCastTc#
+		   	</isNotEmpty>
+		   	<isNotEmpty prepend="AND" property="findEvalGrpId">
+                A.EVAL_GRP_ID = #findEvalGrpId#
+            </isNotEmpty>
+		   	<isNotEmpty prepend="AND" property="findEmpn">
+		   		A.EMPN = #findEmpn#
+		   	</isNotEmpty>
+		   	<isEqual prepend="AND" property="flag" compareValue="2">
+				DECODE(( SELECT COUNT(*) FROM PRS_MNG_EVAL_OBJECTION 
+						  WHERE YEAR  = A.YEAR 
+							AND EMPN = A.EMPN 
+							AND CAST_TC = A.CAST_TC),0,'N','Y') = 'Y'
+				AND EMPN IN (SELECT B.EMPN FROM PRS_MNG_EVAL_OBJECTION  A   
+    	 LEFT OUTER JOIN PRS_MNG_EVAL_OBJECTION_TYPE B    
+            	 ON A.YEAR = B.YEAR      
+				AND A.EMPN = B.EMPN      
+				AND A.EVAL_GRP_ID = B.EVAL_GRP_ID
+			  WHERE A.YEAR =  #findYear#           
+				AND B.OBJ_TYPE = '03' )  							
+			</isEqual>
+		  ) T
+          ORDER BY T.CAST_TC, T.ORDER_GRADE, T.KOR_NM, T.EMPN  
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 평가결과 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_EVAL_FINAL_RESULT
+	==================================================================
+	-->	
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+        SELECT /*+ ORDERED */
+              A.YEAR
+            , A.EMPN
+            , A.EVAL_GRP_ID
+	        , (SELECT EVAL_GRP_NM FROM PRS_EVAL_GRP WHERE YEAR = A.YEAR AND EVAL_GRP_ID = A.EVAL_GRP_ID) EVAL_GRP_NM
+            , A.KOR_NM
+            , D.DEPT_KOR_NM
+            , F_DEPT_FULL_NM(#findYear#, A.DEPT_CD, 'BSC_INSA_DEPT') DEPT_FULL_NM
+            , B.CODE_NM AS CAST_TC_NM
+            , A.CUR_DEPT_CD
+            , A.CUR_CAST_TC
+            , A.CUR_POS_TC
+            , A.DEPT_CD
+	        , A.CAST_TC
+            , A.POS_TC
+		<isEqual property="flag" compareValue="2">
+           	, DECODE(A.EMPN, #insaEmpn#, CASE WHEN E.EVAL_TYPE = '01' THEN E.EVAL_GRADE
+					                  ELSE A.GRADE
+					             END , '-') GRADE
+		</isEqual>
+		<isNotEqual property="flag" compareValue="2">
+            , CASE WHEN E.EVAL_TYPE = '01' THEN E.EVAL_GRADE
+                   ELSE A.GRADE
+             		END GRADE 
+		</isNotEqual>
+            , NVL(E.EVAL_TYPE,'03') EVAL_TYPE
+         FROM PRS_MNG_EVAL_FINAL_RESULT A
+          LEFT OUTER JOIN BSC_CODE B
+                       ON A.YEAR = B.YEAR
+                      AND A.CAST_TC = B.CODE_ID
+                      AND B.CODE_GRP_ID = '170'
+          LEFT OUTER JOIN BSC_INSA_DEPT D
+                       ON A.YEAR = D.YEAR
+                      AND A.CUR_DEPT_CD = D.DEPT_CD    
+          LEFT OUTER JOIN ( SELECT G.EMPN, F.YEAR, F.EXC_GRP_ID, F.EVAL_TYPE
+                                  ,F_CODE_NM('164', F.EVAL_GRADE, F.YEAR) AS EVAL_GRADE 
+                                  ,NVL(F.BSC_RATE,0) AS BSC_RATE
+                                  ,NVL(F.PRS_RATE,0) AS PRS_RATE
+                                  ,NVL(F.ORG_RATE,0) AS ORG_RATE  
+                              FROM PRS_EXC_GRP F
+                              INNER JOIN PRS_EXC_GRP_MEMBER G
+                                      ON F.YEAR = G.YEAR 
+                                     AND F.EXC_GRP_ID = G.EXC_GRP_ID ) E                       
+                      ON A.YEAR = E.YEAR
+                     AND A.EMPN = E.EMPN       
+        WHERE A.YEAR = #year#
+          AND A.EMPN = #empn#
+		  AND A.EVAL_GRP_ID = #evalGrpId#
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 평가결과 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_EVAL_RESULT
+	==================================================================
+	-->	
+	<select id="getDetailList" parameterClass="hashMap" resultClass="hashMap">
+		<isEqual property="flag" compareValue="2">
+			SELECT /*+ ORDERED */
+	              A.YEAR
+	            , A.EMPN
+	            , A.CAST_TC
+	            , A.DEPT_CD
+	            , B.DEPT_KOR_NM
+	            , F_DEPT_FULL_NM(#findYear#, A.DEPT_CD, 'BSC_INSA_DEPT') DEPT_FULL_NM            
+	        	, DECODE(A.EMPN, #insaEmpn#, A.START_PCMT_DATE, '-') START_PCMT_DATE
+	        	, DECODE(A.EMPN, #insaEmpn#, A.END_PCMT_DATE, '-') END_PCMT_DATE
+	        	, DECODE(A.EMPN, #insaEmpn#, CASE WHEN A.START_PCMT_DATE = '20150119' AND A.END_PCMT_DATE = '20151231' THEN C.WORK_MON + 1 
+	            								   WHEN A.START_PCMT_DATE = '20150119' AND A.END_PCMT_DATE = '20150630' THEN C.WORK_MON + 1 
+	            								   WHEN A.START_PCMT_DATE = '20150119' AND A.END_PCMT_DATE = '20150215' THEN C.WORK_MON + 1 
+	            								   WHEN A.START_PCMT_DATE = '20150216' AND A.END_PCMT_DATE = '20150705' THEN 4 
+							                       WHEN A.START_PCMT_DATE = '20150101' AND A.END_PCMT_DATE = '20150215' THEN 2
+							                       WHEN A.START_PCMT_DATE = '20150101' AND A.END_PCMT_DATE = '20150125' THEN 1
+							                       ELSE C.WORK_MON
+							                       END WORK_MON, '') WORK_MON
+	        	, DECODE(A.EMPN, #insaEmpn#, A.BSC_GRADE, '-') BSC_GRADE
+	            , CASE WHEN E.EVAL_TYPE = '02' THEN
+					TRIM(TO_CHAR(ROUND(A.BSC_SCORE / 100 * E.BSC_RATE, 3), '990.999')) 
+	              ELSE   
+	               	TRIM(TO_CHAR(ROUND(A.BSC_SCORE / 100 * 80, 3), '990.999'))
+	              END AS BSC_SCORE
+	            , A.ORG_GRADE
+	            , CASE WHEN E.EVAL_TYPE = '02' THEN
+	               	TRIM(TO_CHAR(ROUND(A.ORG_SCORE / 100 * E.ORG_RATE, 3), '990.999')) 
+	              ELSE            
+	               	TRIM(TO_CHAR(ROUND(A.ORG_SCORE / 100 * 10, 3), '990.999'))
+	              END AS ORG_SCORE
+	        FROM PRS_MNG_BSC_SCORE A
+	        LEFT OUTER JOIN BSC_INSA_DEPT B
+	        		   ON  A.YEAR = B.YEAR
+	                   AND A.DEPT_CD = B.DEPT_CD
+	        LEFT OUTER JOIN V_PRS_RE_MON C
+	                   ON A.YEAR = C.YEAR
+	                   AND A.EMPN = C.EMPN
+	                   AND A.CAST_TC = C.CAST_TC
+	                   AND A.DEPT_CD = C.DEPT_CD
+	                   AND A.PCMT_TC = C.PCMT_TC
+	                   AND A.START_PCMT_DATE  = C.START_PCMT_DATE 
+	                   AND A.END_PCMT_DATE  = C.END_PCMT_DATE
+	        LEFT OUTER JOIN ( SELECT G.EMPN, F.YEAR, F.EXC_GRP_ID, F.EVAL_TYPE
+	                                ,F_CODE_NM('164', F.EVAL_GRADE, F.YEAR) AS EVAL_GRADE 
+	                                ,NVL(F.BSC_RATE,0) AS BSC_RATE
+	                                ,NVL(F.PRS_RATE,0) AS PRS_RATE
+	                                ,NVL(F.ORG_RATE,0) AS ORG_RATE
+	                          FROM PRS_EXC_GRP F
+	                          INNER JOIN PRS_EXC_GRP_MEMBER G
+	                                  ON F.YEAR = G.YEAR 
+	                                 AND F.EXC_GRP_ID = G.EXC_GRP_ID ) E                       
+	           ON A.YEAR = E.YEAR
+	          AND A.EMPN = E.EMPN          
+	        WHERE A.YEAR = #year#
+	          AND A.EMPN = #empn#
+		      AND A.EVAL_GRP_ID = #evalGrpId#
+	          AND C.WORK_MON <![CDATA[ > ]]> 0          
+	        ORDER BY A.START_PCMT_DATE, A.END_PCMT_DATE
+		</isEqual>
+		<isNotEqual property="flag" compareValue="2">
+	        SELECT /*+ ORDERED */
+	              A.YEAR
+	            , A.EMPN
+	            , A.CAST_TC
+	            , A.DEPT_CD
+	            , B.DEPT_KOR_NM
+	            , F_DEPT_FULL_NM(#findYear#, A.DEPT_CD, 'BSC_INSA_DEPT') DEPT_FULL_NM            
+	            , A.START_PCMT_DATE
+	            , A.END_PCMT_DATE
+	            , CASE WHEN A.START_PCMT_DATE = '20150119' AND A.END_PCMT_dATE = '20151231' THEN C.WORK_MON + 1 
+	            	   WHEN A.START_PCMT_DATE = '20150119' AND A.END_PCMT_dATE = '20150630' THEN C.WORK_MON + 1 
+					   WHEN A.START_PCMT_DATE = '20150119' AND A.END_PCMT_DATE = '20150215' THEN C.WORK_MON + 1 960497
+					   WHEN A.START_PCMT_DATE = '20150216' AND A.END_PCMT_DATE = '20150705' THEN 4 
+                       WHEN A.START_PCMT_DATE = '20150101' AND A.END_PCMT_DATE = '20150215' THEN 2
+                       WHEN A.START_PCMT_DATE = '20150101' AND A.END_PCMT_DATE = '20150125' THEN 1
+                       ELSE C.WORK_MON
+                       END WORK_MON
+	            , A.BSC_GRADE
+	            , CASE WHEN E.EVAL_TYPE = '02' THEN
+					TRIM(TO_CHAR(ROUND(A.BSC_SCORE / 100 * E.BSC_RATE, 3), '990.999')) 
+	              ELSE   
+	               	TRIM(TO_CHAR(ROUND(A.BSC_SCORE / 100 * 80, 3), '990.999'))
+	              END AS BSC_SCORE
+	            , A.ORG_GRADE
+	            , CASE WHEN E.EVAL_TYPE = '02' THEN
+	               	TRIM(TO_CHAR(ROUND(A.ORG_SCORE / 100 * E.ORG_RATE, 3), '990.999')) 
+	              ELSE            
+	               	TRIM(TO_CHAR(ROUND(A.ORG_SCORE / 100 * 10, 3), '990.999'))
+	              END AS ORG_SCORE
+	        FROM PRS_MNG_BSC_SCORE A
+	        LEFT OUTER JOIN BSC_INSA_DEPT B
+	        		   ON  A.YEAR = B.YEAR
+	                   AND A.DEPT_CD = B.DEPT_CD
+	        LEFT OUTER JOIN V_PRS_RE_MON C
+	                   ON A.YEAR = C.YEAR
+	                   AND A.EMPN = C.EMPN
+	                   AND A.CAST_TC = C.CAST_TC
+	                   AND A.DEPT_CD = C.DEPT_CD
+	                   AND A.PCMT_TC = C.PCMT_TC
+	                   AND A.START_PCMT_DATE  = C.START_PCMT_DATE 
+	                   AND A.END_PCMT_DATE  = C.END_PCMT_DATE
+	        LEFT OUTER JOIN ( SELECT G.EMPN, F.YEAR, F.EXC_GRP_ID, F.EVAL_TYPE
+	                                ,F_CODE_NM('164', F.EVAL_GRADE, F.YEAR) AS EVAL_GRADE 
+	                                ,NVL(F.BSC_RATE,0) AS BSC_RATE
+	                                ,NVL(F.PRS_RATE,0) AS PRS_RATE
+	                                ,NVL(F.ORG_RATE,0) AS ORG_RATE
+	                          FROM PRS_EXC_GRP F
+	                          INNER JOIN PRS_EXC_GRP_MEMBER G
+	                                  ON F.YEAR = G.YEAR 
+	                                 AND F.EXC_GRP_ID = G.EXC_GRP_ID ) E                       
+	           ON A.YEAR = E.YEAR
+	          AND A.EMPN = E.EMPN          
+	        WHERE A.YEAR = #year#
+	          AND A.EMPN = #empn#
+	          AND A.EVAL_GRP_ID = #evalGrpId#
+	          AND C.WORK_MON <![CDATA[ > ]]> 0          
+	        ORDER BY A.START_PCMT_DATE, A.END_PCMT_DATE
+	    </isNotEqual>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 평가결과 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_EVAL_RESULT
+	==================================================================
+	-->	
+	<select id="getTotalDetail" parameterClass="hashMap" resultClass="hashMap">
+        SELECT /*+ ORDERED */
+              A.YEAR
+            , A.EMPN
+            , A.EVAL_GRP_ID
+            , TRIM(TO_CHAR(ROUND(A.ORG_TOTAL_SCORE, 3))) AS ORG_TOTAL_SCORE
+        <isEqual property="flag" compareValue="2">
+		        , DECODE(A.EMPN, #insaEmpn#, TRIM(TO_CHAR(ROUND(A.BSC_TOTAL_SCORE, 3))), '-') BSC_TOTAL_SCORE
+		        , DECODE(A.EMPN, #insaEmpn#, TRIM(TO_CHAR(ROUND(A.PRS_TOTAL_SCORE, 3))), '-') PRS_TOTAL_SCORE
+        </isEqual>
+        <isNotEqual property="flag" compareValue="2">
+            , TRIM(TO_CHAR(ROUND(A.BSC_TOTAL_SCORE, 3))) AS BSC_TOTAL_SCORE  
+            , TRIM(TO_CHAR(ROUND(A.PRS_TOTAL_SCORE, 3))) AS PRS_TOTAL_SCORE
+        </isNotEqual>
+        FROM  PRS_MNG_EVAL_FINAL_RESULT A
+        WHERE A.YEAR = #year#
+          AND A.EMPN = #empn#
+          AND A.EVAL_GRP_ID = #evalGrpId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 평가결과 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_EVAL_RESULT
+	==================================================================
+	-->	
+	<select id="getObjList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+		  A.CODE_NM
+		, A.CODE_ID
+		FROM BSC_CODE  A
+		WHERE A.YEAR = #year#
+		AND  A.CODE_GRP_ID = '185'
+		ORDER BY A.SORT_ORDER
+	</select>	
+	<!-- 
+	==================================================================
+	  # 설명	: 이의제기 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_EVAL_RESULT
+	==================================================================
+	 -->
+	<select id="getObjSumDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT OBJ_SUM
+		FROM PRS_MNG_EVAL_OBJECTION 
+        WHERE YEAR = #year#
+          AND EMPN = #empn#
+          AND CAST_TC = #castTc#
+	</select>
+		
+	
+	<!--
+	==================================================================
+	  # 설명	: 이의제기 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_EVAL_RESULT
+	==================================================================
+	-->	
+	<select id="getObjDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.EMPN
+		     , A.EVAL_GRP_ID
+		     , A.DEPT_CD
+		     , A.OBJ_CONTENT
+		     , A.OBJ_DT
+		     , A.OBJ_SUM
+		     , B.OBJ_TYPE
+		     , C.CODE_NM
+         	 , B.OBJ_TYPE_ANSWER
+         	 , B.OBJ_TYPE_ANSWER_DT
+		  FROM PRS_MNG_EVAL_OBJECTION  A
+		  LEFT OUTER JOIN PRS_MNG_EVAL_OBJECTION_TYPE B
+            ON A.YEAR = B.YEAR
+           AND A.EMPN = B.EMPN
+           AND A.EVAL_GRP_ID = B.EVAL_GRP_ID
+          LEFT OUTER JOIN BSC_CODE C
+            ON A.YEAR = C.YEAR
+           AND B.OBJ_TYPE = C.CODE_ID
+           AND C.CODE_GRP_ID = '185'
+         WHERE A.YEAR = #year#
+           AND A.EMPN = #empn#
+           AND A.EVAL_GRP_ID = #evalGrpId#
+         <isNotEmpty property="flag">
+         	<isEqual prepend="AND" property="flag" compareValue="1">
+         		B.OBJ_TYPE IN ('01', '02', '03','04')
+         	</isEqual>
+         	<isEqual prepend="AND" property="flag" compareValue="2">
+         		B.OBJ_TYPE IN ('03')
+         	</isEqual>
+         </isNotEmpty>
+         <isEqual prepend="AND" property="mode" compareValue="REG">
+         	ROWNUM = '1'
+         </isEqual>
+	</select>
+	
+		<!--
+	==================================================================
+	  # 설명	: 이의제기 상세 보기_이의제기 항목
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_EVAL_RESULT
+	==================================================================
+	-->	
+	<select id="getObjDetailList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		     B.OBJ_TYPE
+		FROM PRS_MNG_EVAL_OBJECTION  A
+		LEFT OUTER JOIN PRS_MNG_EVAL_OBJECTION_TYPE B
+			ON A.YEAR = B.YEAR
+		   AND A.EMPN = B.EMPN
+		   AND A.EVAL_GRP_ID = B.EVAL_GRP_ID
+        WHERE A.YEAR = #year#
+          AND A.EMPN = #empn#
+          AND A.EVAL_GRP_ID = #evalGrpId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이의제기항목 중 조직관리역량평가 존재여부
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_AHP_IN_TERM
+	==================================================================
+	-->	
+	<select id="getObjCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(B.OBJ_TYPE) CNT
+  		  FROM PRS_MNG_EVAL_OBJECTION A
+       	  LEFT OUTER JOIN PRS_MNG_EVAL_OBJECTION_TYPE B
+       	    ON A.YEAR = B.YEAR 
+       	   AND A.EMPN = B.EMPN 
+       	   AND A.EVAL_GRP_ID = B.EVAL_GRP_ID
+ 		 WHERE A.YEAR = #year#
+ 		   AND A.EMPN = #empn#
+ 		   AND A.EVAL_GRP_ID = #evalGrpId#
+ 		   AND B.OBJ_TYPE = '03'
+	</select>
+	
+	
+		<!--
+	==================================================================   
+	  # 설명	: 이의제기 신청서 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_MNG_EVAL_OBJECTION
+	==================================================================
+	-->	
+	<insert id="insertRegData" parameterClass="hashMap">
+		MERGE INTO PRS_MNG_EVAL_OBJECTION A
+		USING (SELECT #year# AS YEAR, #empn# AS EMPN, #evalGrpId# AS EVAL_GRP_ID, #deptCd# AS DEPT_CD, #objContent# AS OBJ_CONTENT FROM DUAL ) B
+		   ON (A.YEAR = B.YEAR
+		  AND A.EMPN = B.EMPN
+		  AND A.EVAL_GRP_ID = B.EVAL_GRP_ID)
+		WHEN MATCHED THEN
+		     UPDATE SET A.OBJ_CONTENT = B.OBJ_CONTENT
+		              , A.OBJ_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+		WHEN NOT MATCHED THEN     
+		     INSERT (A.YEAR, A.EMPN, A.EVAL_GRP_ID, A.DEPT_CD, A.OBJ_CONTENT, A.OBJ_DT)
+		     VALUES (B.YEAR, B.EMPN, B.EVAL_GRP_ID, B.DEPT_CD, B.OBJ_CONTENT, TO_CHAR(SYSDATE,'YYYYMMDD'))        
+	</insert>	
+	
+     <!--
+	==================================================================   
+	  # 설명	: 이의제기 답변서 등록
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_MNG_EVAL_OBJECTION
+	==================================================================
+	-->	
+	<update id="updateAnsData" parameterClass="hashMap">
+		UPDATE PRS_MNG_EVAL_OBJECTION_TYPE
+		   SET OBJ_TYPE_ANSWER 	 = #objTypeAnswer#
+		 WHERE YEAR    = #year#
+		   AND EMPN	   = #empn#
+		   AND EVAL_GRP_ID = #evalGrpId#
+		   AND OBJ_TYPE = #objType#
+	</update>
+
+     <!--
+	==================================================================   
+	  # 설명	: 이의제기 요약 등록
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_MNG_EVAL_OBJECTION
+	==================================================================
+	-->	
+	<update id="updateObjAnswerData" parameterClass="hashMap">
+		UPDATE PRS_MNG_EVAL_OBJECTION
+		   SET OBJ_SUM  	 = #objSum#
+		 WHERE YEAR    = #year#
+		   AND EMPN	   = #empn#
+		   AND EVAL_GRP_ID = #evalGrpId#
+	</update>
+
+     <!--
+	==================================================================   
+	  # 설명	: 이의제기 답변일자 등록
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_MNG_EVAL_OBJECTION
+	==================================================================
+	-->	
+	<update id="updateAnsSuccessData" parameterClass="hashMap">
+		UPDATE PRS_MNG_EVAL_OBJECTION_TYPE
+		   SET OBJ_TYPE_ANSWER_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+		 WHERE YEAR    = #year#
+		   AND EMPN	   = #empn#
+		   AND EVAL_GRP_ID = #evalGrpId#
+		   AND OBJ_TYPE = #objType#
+		   <isNotEmpty property="flag">
+         	<isEqual prepend="AND" property="flag" compareValue="1">
+         		OBJ_TYPE IN ('01', '02', '04')
+         	</isEqual>
+         	<isEqual prepend="AND" property="flag" compareValue="2">
+         		OBJ_TYPE IN ('03')
+         	</isEqual>
+         </isNotEmpty>
+	</update>
+
+     <!--
+	==================================================================   
+	  # 설명	: 이의제기 답변일자 등록
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_MNG_EVAL_OBJECTION
+	==================================================================
+	-->	
+	<update id="updateObjAnswerSuccessData" parameterClass="hashMap">
+		UPDATE PRS_MNG_EVAL_OBJECTION
+		   SET OBJ_ANSWER_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+		 WHERE YEAR    = #year#
+		   AND EMPN	   = #empn#
+		   AND EVAL_GRP_ID = #evalGrpId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이의제기 항목 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: PRS_MNG_EVAL_OBJECTION_TYPE
+	==================================================================
+	-->	
+	<delete id="deleteRegObjType" parameterClass="hashMap">
+		DELETE FROM PRS_MNG_EVAL_OBJECTION_TYPE
+		WHERE YEAR = #year#
+		  AND EMPN = #empn#
+		  AND EVAL_GRP_ID = #evalGrpId#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이의제기 항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_MNG_EVAL_OBJECTION_TYPE
+	==================================================================
+	-->	
+	<insert id="insertRegObjType" parameterClass="hashMap">
+		INSERT INTO PRS_MNG_EVAL_OBJECTION_TYPE (
+               YEAR
+             , EMPN
+             , EVAL_GRP_ID
+             , OBJ_TYPE
+          ) VALUES (
+               #year#
+             , #empn#
+             , #evalGrpId#
+             , #objType#
+          )
+	</insert>	
+</sqlMap>
+
+

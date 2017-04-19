@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.evalCon.empEvalConResultStatus">
+
+    <!--
+    ==================================================================   
+      # 설명    : typeAlias 선언
+      #    기능    : SETTING
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <typeAlias alias="hashMap"             type="java.util.HashMap" />
+     
+
+    <!--
+    ==================================================================   
+      # 설명    : 직원개인기여도평가 평가현황 목록 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getList" parameterClass="hashMap" resultClass="hashMap">
+    
+      SELECT A.YEAR  
+             	, A.DEPT_CD 
+            	, F_DEPT_FULL_NM (A.YEAR, A.DEPT_CD,'BSC_INSA_DEPT') DEPT_KOR_NM
+           		, A.ASSESSOR_EMPN
+           		, A.KOR_NM
+            	, A.EVAL_SUBMIT_YN 
+        FROM
+            (  SELECT A.YEAR
+                , A.DEPT_CD
+                , A.DEPT_KOR_NM
+                , B.ASSESSOR_EMPN
+                , I.KOR_NM 
+                , CASE                                       
+	              WHEN C.EVAL_SUBMIT_YN = 'Y' THEN 'Y'                                       
+	              WHEN C.EVAL_SUBMIT_YN = 'N' THEN 'N'                                      
+	              WHEN C.EVAL_SUBMIT_YN IS NULL THEN 'F'                                
+          	   END EVAL_SUBMIT_YN  
+            FROM
+                BSC_INSA_DEPT A                 
+           	LEFT OUTER JOIN CON_EMP_EVAL_ASSESSOR B ON A.YEAR = B.YEAR AND A.DEPT_CD = B.DEPT_CD  
+            LEFT OUTER JOIN BSC_INSA I ON B.YEAR = I.YEAR AND B.ASSESSOR_EMPN  = I.EMPN  
+            LEFT OUTER JOIN CON_EMP_MEMBER C ON B.YEAR = C.YEAR AND B.DEPT_CD = C.DEPT_CD AND EVAL_YN = 'Y'     
+            LEFT OUTER JOIN CON_EMP_DEPT_EVAL_GRP D ON B.YEAR = D.YEAR AND B.DEPT_CD = D.DEPT_CD   
+            LEFT OUTER JOIN PRS_EVAL_GRP E ON D.YEAR = E.YEAR AND D.EVAL_GRP_ID = E.EVAL_GRP_ID AND E.DELETE_DT IS NULL         
+           WHERE A.YEAR =  #findYear#   AND B.ASSESSOR_EMPN IS NOT NULL) A           
+        	LEFT OUTER JOIN CON_EMP_EVAL_MEMBER B ON A.YEAR = B.YEAR                              
+        WHERE A.YEAR =  #findYear#                  
+            AND A.DEPT_CD IN ( SELECT A.DEPT_CD
+                                 FROM BSC_INSA_DEPT A
+                                 LEFT OUTER JOIN BSC_INSA_DEPT B
+                                   ON A.YEAR = B.YEAR AND A.USE_YN = B.USE_YN AND A.DEPT_CD = B.UP_DEPT_CD
+                                WHERE A.YEAR = #findYear# 
+                                <!-- AND A.USE_YN = 'T'   -->
+                                  AND A.DEPT_CD > '1090'
+                                GROUP BY A.DEPT_CD
+                               HAVING COUNT(B.DEPT_CD) = 0
+                          )  
+             <isNotEmpty property="findEmpnNameText">
+				<isEqual prepend="AND" property="findNameEmpn" compareValue="findName">
+					( A.KOR_NM LIKE '%'|| TRIM(#findEmpnNameText#) ||'%' )
+				</isEqual>
+				<isEqual prepend="AND" property="findNameEmpn" compareValue="findEmpn">
+					( A.ASSESSOR_EMPN LIKE '%' || TRIM(#findEmpnNameText#) || '%' )
+				</isEqual>
+			</isNotEmpty> 
+            <isEqual prepend="AND" property="findEvalSubmitYn" compareValue="01">
+	    			A.EVAL_SUBMIT_YN = 'Y' 
+   			</isEqual>
+   			<isEqual prepend="AND" property="findEvalSubmitYn" compareValue="02">
+    				A.EVAL_SUBMIT_YN = 'N'
+   			</isEqual>
+   			<isEqual prepend="AND" property="findEvalSubmitYn" compareValue="03">
+    				A.EVAL_SUBMIT_YN = 'F'
+   			</isEqual>   
+        GROUP BY  A.YEAR
+	            , A.DEPT_CD
+	            , A.DEPT_KOR_NM
+	            , A.ASSESSOR_EMPN
+	            , A.KOR_NM    
+	            , A.EVAL_SUBMIT_YN   
+	   ORDER BY
+            KOR_NM
+    </select>
+    
+</sqlMap>
+
+

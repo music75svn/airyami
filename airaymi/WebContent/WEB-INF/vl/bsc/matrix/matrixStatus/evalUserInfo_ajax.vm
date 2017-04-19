@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+#*************************************************************************
+* CLASS 명      : evalUserInfo_ajax.vm
+* 작 업 자      : 박경태
+* 작 업 일      : 2012년 10월 25일 
+* 기    능      : 평가군 마감정보 조회하기
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용         비고
+* -----  ----------  -------------------  ---------------------- ---------
+*  1      박경태       2012년 10월 25일         최 초 작 업 
+**************************************************************************# 
+
+<items>
+
+	<item>
+		<evalUserGrpId>$!{CS_HTML.txt2html($status.EVAL_USER_GRP_ID)}</evalUserGrpId>
+		<evalUserGrpNm>$!{CS_HTML.txt2html($status.EVAL_USER_GRP_NM)}</evalUserGrpNm>
+		<evalClosingYn>$!{CS_HTML.txt2html($status.EVAL_CLOSING_YN)}</evalClosingYn>
+		<userCnt>$!{CS_HTML.txt2html($status.USER_CNT)}</userCnt>
+		<submitCnt>$!{CS_HTML.txt2html($status.SUBMIT_CNT)}</submitCnt>
+	</item>	
+
+</items>

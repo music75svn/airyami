@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.eval.evalGroup">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.EVAL_GRP_ID
+             , A.EVAL_GRP_NM
+             , F_CODE_NM('166', A.EVAL_TYPE, A.YEAR) AS EVAL_TYPE_NM
+             , EVAL_METHOD_NM    
+             , A.EVAL_METHOD_ID
+             , A.PLAN_YN
+             , A.SORT_ORDER
+             , A.EVAL_TYPE
+             , A.BSC_RATE
+             , A.PRS_RATE
+             , A.PRS_MBO_RATE
+             , (SELECT COUNT(*) FROM PRS_EVAL_GRP_ITEM 
+                 WHERE YEAR=A.YEAR AND EVAL_GRP_ID = A.EVAL_GRP_ID) ITEM_CNT     
+             , (SELECT COUNT(*) FROM PRS_EVAL_GRP_DEPT 
+               WHERE YEAR=A.YEAR AND EVAL_GRP_ID = A.EVAL_GRP_ID) DEPT_CNT      
+          FROM PRS_EVAL_GRP A
+          LEFT OUTER JOIN BSC_ECM_EVAL_GRADE_CONVERT_TAB B
+          ON A.YEAR = B.YEAR AND A.EVAL_METHOD_ID = B.EVAL_METHOD_ID
+          AND B.EVAL_METHOD_GBN_ID = '01' AND B.DELETE_DT IS NULL
+               WHERE A.YEAR=#findYear#
+               <isEqual prepend="AND" property="findUseYn" compareValue="Y">
+		       	 A.DELETE_DT IS NULL
+	           </isEqual>
+		       <isNotEqual prepend="AND" property="findUseYn" compareValue="Y">
+		         A.DELETE_DT IS NOT NULL
+		       </isNotEqual>
+          ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가차수 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_SCHEDULE
+	==================================================================
+	-->
+	<select id="getEvalYear" parameterClass="hashMap" resultClass="String">
+		SELECT YEAR
+          FROM PRS_EVAL_SCHEDULE
+          WHERE YEAR=#findYear#
+    </select>
+    
+    <!--
+	==================================================================   
+	  # 설명	: 평가등급및환산표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_GRADE_CONVERT_TAB
+	==================================================================
+	-->
+	<select id="getMethodList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR,
+               EVAL_METHOD_ID,
+               EVAL_METHOD_NM
+          FROM BSC_ECM_EVAL_GRADE_CONVERT_TAB
+         WHERE YEAR = #year#     
+           AND EVAL_METHOD_GBN_ID = '01'
+		   AND DELETE_DT IS NULL
+	</select>
+	
+    <!--
+	==================================================================   
+	  # 설명	: 상위지표
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_GRADE_CONVERT_TAB
+	==================================================================
+	-->
+	<select id="getTopDeptInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR,
+        	   DEPT_CD,
+        	   DEPT_KOR_NM       
+    	FROM ( SELECT YEAR, DEPT_CD, DEPT_KOR_NM  FROM BSC_INSA_DEPT WHERE YEAR = #findYear# ORDER BY DISP_ORDER DESC, DEPT_CD )   
+    	WHERE DEPT_CD = '0000' 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 관리여부 실적조직 트리
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getDeptMappingTreeList" parameterClass="hashMap" resultClass="hashMap">
+       SELECT A.DEPT_CD AS CODE_ID
+             , A.UP_DEPT_CD AS UP_CODE_ID
+             , DEPT_LEVL AS LEVEL_ID
+             , B.SC_DEPT_NMS
+             , B.DEPT_CNT
+             , CASE
+                  WHEN B.SC_DEPT_NMS IS NULL THEN A.DEPT_KOR_NM
+                  ELSE A.DEPT_KOR_NM || '(' || B.SC_DEPT_NMS || ')'
+                END AS CODE_NM            
+             , DECODE (B.DEPT_CNT, 1, 'mappingTree_txt_red', 'mappingTree_txt_black') AS PARAM
+          FROM (SELECT * FROM BSC_INSA_DEPT
+                   WHERE YEAR = #findYear# ) A
+    LEFT OUTER JOIN
+             ( SELECT YEAR
+                    , DEPT_CD
+                    , count(DEPT_CD) DEPT_CNT
+                    , LTRIM ( (SYS_CONNECT_BY_PATH (DEPT_KOR_NM, ',')), ',') SC_DEPT_NMS
+                 FROM (SELECT YEAR
+                            , DEPT_CD
+                            , DEPT_KOR_NM
+                            , ROW_NUMBER () OVER (PARTITION BY YEAR, DEPT_CD ORDER BY DEPT_KOR_NM) RN
+                         FROM (SELECT A.YEAR, A.DEPT_CD, B.DEPT_KOR_NM
+                                 FROM PRS_EVAL_GRP_DEPT A
+                                    INNER JOIN BSC_INSA_DEPT B
+                                            ON A.YEAR = B.YEAR
+                                           AND A.DEPT_CD = B.DEPT_CD
+                                WHERE A.YEAR = #findYear# AND EVAL_GRP_ID  = #findEvalGrpId#))
+                           START WITH RN = 1
+                     CONNECT BY PRIOR YEAR = YEAR
+                                  AND PRIOR DEPT_CD = DEPT_CD
+                                  AND PRIOR RN = RN - 1
+                             GROUP BY YEAR, DEPT_CD, DEPT_KOR_NM) B
+                                   ON A.DEPT_CD = B.DEPT_CD
+                                  AND A.DEPT_CD = B.DEPT_CD
+                   START WITH A.UP_DEPT_CD = '0000'
+            CONNECT BY PRIOR A.DEPT_CD = A.UP_DEPT_CD
+        ORDER SIBLINGS BY A.DISP_ORDER, A.DEPT_CD    	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군관리부서 리스트 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT_MAPPING
+	==================================================================
+	-->
+	<select id="getMappingDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DEPT_CD
+          FROM PRS_EVAL_GRP_DEPT
+         WHERE YEAR 	   = #findYear#
+           AND EVAL_GRP_ID = #findEvalGrpId#
+      ORDER BY DEPT_CD
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군관리부서 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<delete id="deleteScDeptMappingData" parameterClass="hashMap">
+		DELETE PRS_EVAL_GRP_DEPT
+	     WHERE YEAR 	   = #findYear#
+	       AND EVAL_GRP_ID = #findEvalGrpId#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 성과조직기준 매핑 등록, 단 Tree 사용을 위해 실조직코드앞에 임의로 A를 붙인 것 제거하여 insert 함.
+	  #	기능	: INSERT
+	  #	TABLE	: VALUES (#findYear#, #scDeptMappingId#, #findInsaDeptId#, SYSDATE)
+	==================================================================
+	-->	
+	<insert id="insertScDeptMappingData" parameterClass="hashMap">
+		INSERT INTO PRS_EVAL_GRP_DEPT
+		     VALUES (#findYear#, #findEvalGrpId#, #scDeptMappingId#, SYSDATE , #userId#)
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_GRP_ID           
+			 , EVAL_GRP_NM           
+			 , EVAL_TYPE        
+			 , EVAL_METHOD_ID
+			 , BSC_RATE
+			 , PRS_RATE
+			 , PRS_MBO_RATE
+			 , PLAN_YN
+			 , EVAL_GRP_TYPE
+			 , CONTENT               
+			 , SORT_ORDER            
+			 , CASE WHEN DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USE_YN     
+		  FROM PRS_EVAL_GRP 
+		 WHERE YEAR = #year#
+		   AND EVAL_GRP_ID = #evalGrpId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 입력가능한 평가군 목록 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->
+	<select id="getEvalCode" parameterClass="hashMap" resultClass="hashMap">
+		SELECT CODE_NM
+              ,CODE_ID AS EVAL_TYPE 
+        FROM BSC_CODE 
+       WHERE YEAR = #findYear# 
+         AND CODE_GRP_ID = '166'
+       ORDER BY SORT_ORDER 
+       <!-- 
+         AND CODE_ID NOT IN (
+                             SELECT EVAL_TYPE 
+                               FROM PRS_EVAL_GRP 
+                              WHERE YEAR = #findYear#
+                              	AND DELETE_DT IS NULL
+                            )
+		 -->
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT 'PG'||LPAD(NVL(MAX(SUBSTR(EVAL_GRP_ID,3,5)),0)+1,5,'0') FROM PRS_EVAL_GRP WHERE YEAR=#year#
+		</selectKey>
+		INSERT INTO PRS_EVAL_GRP (
+		       YEAR
+		     , EVAL_GRP_ID
+		     , EVAL_GRP_NM
+		     , EVAL_TYPE
+		     , EVAL_METHOD_ID
+		     , BSC_RATE
+		     , PRS_RATE
+		     , PRS_MBO_RATE
+		     , EVAL_GRP_TYPE
+		     , PLAN_YN
+		     , CONTENT
+		     , SORT_ORDER
+		     , CREATE_DT
+		     , DELETE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #evalGrpNm#
+			 , #evalType#
+			 , #evalMethodId#
+			 , NVL(#bscRate#, 0)
+			 , NVL(#prsRate#, 0)
+			 , NVL(#prsMboRate#, 0)
+			 , #evalGrpType#
+			 , #planYn#
+			 , #content#
+			 , #sortOrder#
+			 , SYSDATE
+			 ,
+			 <isEqual property="useYn" compareValue="Y">
+		     NULL
+		     </isEqual>
+		     <isNotEqual property="useYn" compareValue="Y">
+		     SYSDATE
+		     </isNotEqual>
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE PRS_EVAL_GRP 
+		   SET EVAL_GRP_NM            = #evalGrpNm# 
+			 , EVAL_METHOD_ID         = #evalMethodId#
+			 , EVAL_TYPE			  = #evalType#	
+			 , PRS_RATE				  = NVL(#prsRate#, 0)
+		     , BSC_RATE 			  = NVL(#bscRate#, 0)
+		     , PRS_MBO_RATE 		  = NVL(#prsMboRate#, 0)
+			 , PLAN_YN			      = #planYn#
+			 , EVAL_GRP_TYPE	 	  = #evalGrpType#
+			 , CONTENT                = #content# 
+			 , SORT_ORDER             = #sortOrder# 
+			 , MODIFY_DT              = SYSDATE 
+			 ,
+			 <isEqual property="useYn" compareValue="Y">
+	         DELETE_DT = NULL
+	         </isEqual>
+	         <isNotEqual property="useYn" compareValue="Y">
+	         DELETE_DT = SYSDATE
+	         </isNotEqual>
+		 WHERE YEAR = #year#
+		   AND EVAL_GRP_ID = #evalGrpId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE PRS_EVAL_GRP 
+		   SET DELETE_DT      = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND EVAL_GRP_ID = #evalGrpId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 사용자그룹 매핑 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT
+               A.EVAL_MEMB_USER_ID USER_ID
+             , B.USER_NM
+             , B.DEPT_ID
+             , C.DEPT_F_NM DEPT_NM 
+             , B.JIKGUB_CD
+             , B.JIKGUB_NM
+             , B.POS_CD
+             , B.POS_NM   
+          FROM PRS_EVAL_MEMB_USER A        
+               LEFT OUTER JOIN V_ROLE_USER B ON A.EVAL_MEMB_USER_ID = B.USER_ID         
+               LEFT OUTER JOIN V_DEPTINFO C ON B.DEPT_ID = C.DEPT_ID   
+         WHERE A.YEAR =#year# 
+         AND A.EVAL_GRP_ID = #evalGrpId#
+         ORDER BY B.USER_NM
+   </select>
+   
+   <!--
+	==================================================================   
+	  # 설명	: 평가단-평가자 매핑 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_EVAL_MEMB_USER
+	==================================================================
+	-->	
+	<update id="deleteUserData" parameterClass="hashMap">
+		DELETE FROM PRS_EVAL_MEMB_USER 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND EVAL_GRP_ID = #evalGrpId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가단-평가자 매핑 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EVAL_MEMB_USER
+	==================================================================
+	-->	
+	<insert id="insertUserData" parameterClass="hashMap">
+		INSERT INTO PRS_EVAL_MEMB_USER ( 
+			   YEAR
+			 , EVAL_DEGREE_ID  
+			 , EVAL_GRP_ID
+			 , EVAL_MEMB_USER_ID
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #evalDegreeId#  
+			 , #evalGrpId#
+			 , #evalUserId#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 권한 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<update id="deleteAdminData" parameterClass="hashMap">
+		DELETE FROM BSC_ADMIN
+         WHERE ADMIN_GUBUN='30'
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가단-평가자 매핑 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<insert id="insertAdminData" parameterClass="hashMap">
+		INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID)
+        SELECT DISTINCT '30', EVAL_MEMB_USER_ID
+          FROM PRS_EVAL_MEMB_USER
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가일정 코드 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_DEGREE
+	==================================================================
+	-->
+	<select id="getEvalSchedule" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT YEAR FROM PRS_EVAL_SCHEDULE WHERE YEAR = #findYear#	      
+	</select>
+	
+</sqlMap>
+
+

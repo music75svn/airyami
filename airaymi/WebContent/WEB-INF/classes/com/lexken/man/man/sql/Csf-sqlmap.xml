@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="man.man.csf">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_CSF
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명		: CSF관리 목록 보기
+	  #	기능		: SELECT
+	  #	TABLE	: MAN_CSF
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.CSF_ID
+             , A.CSF_NM
+             , A.SORT_ORDER
+             , B.STRAT_ID
+             , B.STRAT_NM
+             , C.MAN_ID
+             , C.MAN_NM
+             , (SELECT COUNT(*)
+                   FROM MAN_METRIC
+                 WHERE YEAR = #findYear#
+                     AND CSF_ID=A.CSF_ID
+                     AND DELETE_DT IS NULL) CNT
+          FROM MAN_CSF A
+          INNER JOIN MAN_STRATEGY B
+          		  ON A.YEAR = B.YEAR
+                 AND A.STRAT_ID = B.STRAT_ID
+                 AND B.DELETE_DT IS NULL
+          INNER JOIN MAN_TARGET C
+                  ON B.MAN_ID = C.MAN_ID
+                 AND B.YEAR = C.YEAR
+                 AND C.DELETE_DT IS NULL
+          WHERE A.YEAR = #findYear#
+			<isNotEmpty prepend="AND" property="findManId">
+				C.MAN_ID = #findManId#
+			</isNotEmpty>
+         	<isNotEmpty prepend="AND" property="findStratId">
+	            B.STRAT_ID = #findStratId#
+		   	</isNotEmpty>
+         	<isNotEmpty prepend="AND" property="findCsfNm">
+	            UPPER(A.CSF_NM) LIKE  '%' || TRIM(UPPER(#findCsfNm#)) ||'%'
+		   	</isNotEmpty>
+			<isEqual prepend="AND" property="findUseYn" compareValue="Y">
+				A.DELETE_DT IS NULL
+			</isEqual>
+			<isNotEqual prepend="AND" property="findUseYn" compareValue="Y">
+				A.DELETE_DT IS NOT NULL
+			</isNotEqual>
+		  ORDER BY A.SORT_ORDER, B.SORT_ORDER
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명		: 경영목표 목록 보기
+	  #	기능		: SELECT
+	  #	TABLE	: MAN_TARGET
+	==================================================================
+	-->
+	<select id="getTarget" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+			,  A.MAN_ID
+			,  A.MAN_NM
+			,  A.SORT_ORDER
+		FROM MAN_TARGET A
+		WHERE A.YEAR = #findYear#
+		  AND A.DELETE_DT IS NULL
+		ORDER BY A.SORT_ORDER
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명		: 전략과제 목록 보기
+	  #	기능		: SELECT
+	  #	TABLE	: MAN_STRATEGY
+	==================================================================
+	-->
+	<select id="getStrategy" parameterClass="hashMap" resultClass="hashMap">
+	SELECT A.YEAR
+        ,  A.STRAT_ID
+        ,  A.STRAT_NM
+        ,  A.SORT_ORDER
+    FROM MAN_STRATEGY A
+    WHERE A.YEAR= #findYear#
+		AND A.MAN_ID = #findManId#
+		AND A.DELETE_DT IS NULL
+     ORDER BY A.SORT_ORDER
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명		: 전략과제 상세목록 보기
+	  #	기능		: SELECT
+	  #	TABLE	: MAN_STRATEGY
+	==================================================================
+	-->
+	<select id="getStrategy1" parameterClass="hashMap" resultClass="hashMap">
+	SELECT A.YEAR
+         , A.STRAT_ID
+         , A.STRAT_NM
+         , A.SORT_ORDER
+    FROM MAN_STRATEGY A
+    WHERE A.YEAR= #findYear#
+		AND A.MAN_ID = #manId#
+		AND A.DELETE_DT IS NULL
+     ORDER BY A.SORT_ORDER
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명		: CSF관리 상세 보기
+	  #	기능		: SELECT
+	  #	TABLE	: MAN_CSF
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+			 , CSF_ID
+			 , CSF_NM
+			 , STRAT_ID
+			 , SORT_ORDER
+			 , (SELECT COUNT(*)
+                  FROM MAN_METRIC A
+                 WHERE YEAR= #findYear#
+                   AND B.CSF_ID=A.CSF_ID
+                   AND A.DELETE_DT IS NULL) CNT
+			 , CASE WHEN DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USE_YN
+		  FROM MAN_CSF B
+		 WHERE YEAR = #year#
+		   AND CSF_ID = #csfId#
+		   AND STRAT_ID = #stratId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명		: 삭제 전 삭제 여부 확인
+	  #	기능		: SELECT
+	  #	TABLE	: MAN_CSF
+	==================================================================
+	-->
+	<select id="getDelChk" parameterClass="hashMap" resultClass="java.lang.Integer">
+        SELECT COUNT(1)
+		  FROM MAN_CSF
+		 WHERE YEAR = #year#
+		   AND CSF_ID = #csfId#
+		   AND DELETE_DT IS NOT NULL
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명		: CSF관리 등록
+	  #	기능		: INSERT
+	  #	TABLE	: MAN_CSF
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT 'C'||LPAD(NVL(MAX(SUBSTR(CSF_ID,2,6)),0)+1,6,'0') FROM MAN_CSF WHERE YEAR=#year#
+		</selectKey>
+		INSERT INTO MAN_CSF (
+			   YEAR
+			 , CSF_ID
+			 , CSF_NM
+			 , STRAT_ID
+			 , SORT_ORDER
+			 , CREATE_DT
+			 , DELETE_DT
+			 ) VALUES (
+			   #year#
+			 , #SEQ#
+			 , #csfNm#
+			 , #stratId#
+			 , #sortOrder#
+			 , SYSDATE
+			 ,
+			 <isEqual property="useYn" compareValue="Y">
+		     NULL
+		     </isEqual>
+		     <isNotEqual property="useYn" compareValue="Y">
+		     SYSDATE
+		     </isNotEqual>
+			 )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명		: CSF관리 수정
+	  #	기능		: UPDATE
+	  #	TABLE	: MAN_CSF
+	==================================================================
+	-->
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE MAN_CSF
+		   SET CSF_NM          = #csfNm#
+			 , STRAT_ID        = #stratId#
+			 , SORT_ORDER      = #sortOrder#
+			 , MODIFY_DT       = SYSDATE
+			 <isEqual property="useYn" compareValue="Y">
+	         , DELETE_DT = NULL
+	         </isEqual>
+	         <isEqual property="useYn" compareValue="N">
+	         , DELETE_DT = SYSDATE
+	         </isEqual>
+		 WHERE YEAR = #year#
+		   AND CSF_ID = #csfId#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명		: CSF관리 삭제
+	  #	기능		: UPDATE
+	  #	TABLE	: MAN_CSF
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE MAN_CSF
+		   SET DELETE_DT	= SYSDATE
+		 WHERE YEAR			= #year#
+		   AND CSF_ID		= #csfId#
+	</update>
+
+</sqlMap>

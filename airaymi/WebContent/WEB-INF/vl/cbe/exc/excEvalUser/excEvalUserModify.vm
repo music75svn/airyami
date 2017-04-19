@@ -1,0 +1,227 @@
+#*************************************************************************
+* CLASS 명      : excEvalUserModify
+* 작 업 자      : 김상용
+* 작 업 일      : 2013년 07월 13일
+* 기    능      : 별도평가대상자 추가/수정
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1	김상용		2012년 12월 13일             최 초 작 업
+*  2	김상용		2013년 07월 15일             수 정 작 업
+**************************************************************************#
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/cbe/exc/excEvalUser/excEvalUserList.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnSubmit").click(function(e) {
+			e.preventDefault();
+			saveSubmitChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnSubmitCancel").click(function(e) {
+			e.preventDefault();
+			saveSubmitCancelChk();
+		});
+
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#insertUserSearch").fancybox();  //KPI 담당자
+
+	#if($!{searchMap.txt2html("mode")} == "MOD")
+		J("#scDeptId").attr("disabled","disabled");
+	#end
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(!SelEmptyCheck( J("#scDeptId").val(), "별도평가부서" ) ) {
+            J("#scDeptId").focus();
+        	return;
+        }
+
+		if (J("#excUserId").val() == "") {
+			alert("별도평가대상자를 선택해 주십시요.");
+			return;
+		}
+
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+	/*****************************************************
+	 * 별도평가대상자 설정
+	 *****************************************************/
+	function setInsertUserInfo(arguments) {
+		J("#excUserId").val(arguments[0]);
+		J("#excUserNm").val(arguments[1]);
+		J("#excUserDeptId").val(arguments[2]);
+		J("#excUserDeptNm").val(arguments[3]);
+		J.fancybox.close();
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		
+		J("#scDeptId").attr("disabled",false);
+		J("#form1").attr("action", "$!{context_path}/cbe/exc/excEvalUser/excEvalUserProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>
+
+<form id="form1" name="form1" method="post" action="$!{context_path}/cbe/excep/excepAction/excepActionProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="evalDegreeId"   name="evalDegreeId"   value="$!{searchMap.txt2html("findEvalDegreeId")}" />
+	<input type="hidden"	id="empn"   		name="empn"   		  value='$!{searchMap.txt2html("excUserId")}' />
+
+    $!{searchMap.makeHiddenFind()}
+
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>
+                    <table summary="검색조건">
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년 </span></td>
+								<td class="searchBox_tit w250">평가구분 <span class="searchBar">$!{searchMap.txt2html("evalDegreeNm")}</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="별도평가대상자 등록">
+					<caption class="none">별도평가대상자 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="35%" />
+						<col width="15%" />
+    					<col width="35%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="scDeptId">별도평가부서</label></th>
+    						<td>
+    						<select name="scDeptId" id="scDeptId" title="별도평가부서">
+							#if($!{searchMap.txt2html("mode")} == "ADD")
+								<option value="">선택</option>
+							#end
+									#foreach($excDeptList in $excDeptList)
+									<option value="$!{CS_HTML.txt2html($excDeptList.SC_DEPT_ID)}" $searchMap.getSelected("scDeptId", "$!{CS_HTML.txt2html($excDeptList.SC_DEPT_ID)}")>$!{CS_HTML.txt2html($excDeptList.SC_DEPT_NM)}</option>
+									#end
+							</select>
+    						</td>
+
+							<th scope="row"><span class="txt_red">(*)</span> <label for="excUserId">별도평가대상자</label></th>
+							<td style="text-align:left; padding-left:20px">
+								<input type="hidden" id="excUserId" name="excUserId" class="inputbox w100" value='$!{searchMap.txt2html("excUserId")}' />
+								<input type="text" id="excUserNm" name="excUserNm" class="inputbox w100" value='$!{searchMap.txt2html("excUserNm")}' maxlength="20" readonly="readonly"/>
+								<a id="insertUserSearch" href="$!{context_path}/prs/extra/extraPoint/popSearchUser.vw?findYear=$!{searchMap.txt2html("year")}&amp;callBack=setInsertUserInfo"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="사용자선택" /></a>
+								<a href="javascript:J.setInit('excUserId','excUserNm','excUserDeptId','excUserDeptNm');"><img src="$!{img_path}/common/board/ic_cancel.gif" class="valign_middle" alt="사용자선택 취소" /></a>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="rptYn">사업추진보고서 제출여부</label></th>
+							<td colspan="3">
+								<span class="searchBar">
+    								<input type="radio" name="rptYn" id="rptYn1" value="Y" $!{CS_HTML.getChecked($!{CS_HTML.txt2html($details.RPT_YN, 'N')}, 'Y')} />&nbsp;<label for="rptYn1">대상</label>&nbsp;&nbsp;&nbsp;
+									<input type="radio" name="rptYn" id="rptYn2" value="N" $!{CS_HTML.getChecked($!{CS_HTML.txt2html($details.RPT_YN, 'N')}, 'N')}/>&nbsp;<label for="rptYn2">비대상</label>
+        						</span>
+							</td>
+						</tr>
+						#*
+							<th scope="row"><label for="excUserDeptNm">소속부서</label></th>
+							<td style="text-align:left; padding-left:20px">
+								<input type="hidden" id="excUserDeptId" name="excUserDeptId" class="inputbox w100" value='$!{searchMap.txt2html("excUserDeptId")}' />
+								<input type="text" id="excUserDeptNm" name="excUserDeptNm" class="inputbox w100" value='$!{searchMap.txt2html("excUserDeptNm")}' maxlength="20" readonly="readonly"/>
+							</td>
+						</tr>
+						*#
+						#*
+						<tr>
+							<th scope="row"><label for="evalBase">평가방법</label></th>
+							<td style="text-align:left; padding-left:20px">
+								<select id="evalMethodId" name="evalMethodId" class="select w210">
+    								#foreach($evalMethodList in $evalMethodList)
+										<option value="$!{CS_HTML.txt2html($evalMethodList.EVAL_METHOD_ID)}" #if ($!{evalMethodList.EVAL_METHOD_ID} == $!{detail.EVAL_METHOD_ID}) selected="selected" #end >$!{CS_HTML.txt2html($evalMethodList.EVAL_METHOD_NM)}</option>
+									#end
+    							</select>
+							</td>
+						</tr>
+						*#
+    				</tbody>
+    			</table>
+    		</div>
+			<div class="blockButton_all">
+    			<div class="blockButton_l">
+    				<div class="txt_red">
+    					#if( $!{CS_HTML.txt2html($getEvalPeriodYn)} == 'N')
+    					※ 평가기간이 아닙니다.
+    					#end
+    				</div>
+    			</div>
+        		<div class="blockButton">
+        			<ul>
+        				#if($!{CS_HTML.txt2html($confirmYn.USER_YN)} != "Y")
+        					<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+        					<li><input type="submit" id="btnInsert" value="저장" /></li>
+        				#else
+	    					<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+	    				#end
+        			</ul>
+        		</div>
+			</div>
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>
+<a id="anchor"></a>

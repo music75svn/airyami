@@ -1,0 +1,262 @@
+#*************************************************************************
+* CLASS 명      : scDeptMappingModify
+* 작 업 자      : 형광민
+* 작 업 일      : 2012년 7월 16일
+* 기    능      : 성과조직매핑관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    형광민      2012년 7월 16일             최 초 작 업
+**************************************************************************#
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 저장
+		 ******************************************/
+		J("#form1").submit(function(event) {
+			//var formData = $(this).serializeArray();
+
+			//return false;
+		});
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/bsc/base/scDeptMapping/scDeptMappingList.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		var tree = $("#tree").dynatree("getTree");		// 성과조직트리
+		var gbn = J("#findMappingCriterion").val();		// 매핑기준
+		var checkArray = "";
+
+		if(gbn == '02') {
+			if(tree.serializeArray().length > 1) {
+				J.showMsgBox("하나의 실조직에는 여러 개의 성과조직이 매핑될 수 없습니다.", null, null);
+				return;
+			};
+		}
+
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		var tree = $("#tree").dynatree("getTree");		// 성과조직트리
+		var tree2 = $("#tree2").dynatree("getTree");	// 실조직트리
+		var gbn = J("#findMappingCriterion").val();		// 매핑기준
+		var scDeptMappingIds = "";		// 성과조직에 매핑할 실조직 리스트
+		var deptMappingIds = "";		// 실조직에 매핑할 성과조직 리스트
+
+		if(gbn == '01') {
+			// 매핑기준이 성과조직일때 실조직트리에서 선택된 조직리스트 설정
+			scDeptMappingIds = tree2.serializeString();
+			J("#scDeptMappingIds").val(scDeptMappingIds);
+		} else {
+			// 매핑기준이 실조직일때 성과조직트리에서 선택된 조직리스트 설정
+			deptMappingIds = tree.serializeString();
+			J("#deptMappingIds").val(deptMappingIds);
+		}
+
+		J("#mode").val("MOD");
+		J("#form1").attr("action", "$!{context_path}/bsc/base/scDeptMapping/scDeptMappingProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 성과조직트리 조직선택 클릭이벤트
+	 ******************************************/
+	function goActionScDept(deptId, deptNm) {
+		var gbn = J("#findMappingCriterion").val();
+
+		// 매핑기준이 성과조직일때만 클릭이벤트를 실행한다.
+		if(gbn == '01') {
+			setDeptInfo(deptId, deptNm, "scDept");
+		}
+	}
+
+	/******************************************
+	 * 실조직트리 조직선택 클릭이벤트
+	 ******************************************/
+	function goActionDept(deptId, deptNm) {
+		var gbn = J("#findMappingCriterion").val();
+
+		// 매핑기준이 실조직일때만 클릭이벤트를 실행한다.
+		if(gbn == '02') {
+			setDeptInfo(deptId, deptNm, "dept");
+		}
+	}
+
+	/*****************************************************
+	 * 조직트리에서 조직선택 설정
+	 *****************************************************/
+	function setDeptInfo(deptId, deptNm, gbn) {
+
+			// formFind의 변수들 설정.
+			if(gbn == 'scDept') {
+				J("#findScDeptId").val(deptId);			// 성과조직Tree에서 선택한 조직코드를 설정.
+			} else {
+				J("#findDeptId").val(deptId);			// 실조직Tree에서 선택한 조직코드를 설정.
+			}
+
+			J("#formFind").attr("action", "$!{context_path}/bsc/base/scDeptMapping/scDeptMappingModify.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#form1").attr("action", "$!{context_path}/bsc/base/scDeptMapping/scDeptMappingExcel.vw?type=excel").submit();
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+			<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/base/scDeptMapping/scDeptMappingModify.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden" 	id="findScDeptId"	name="findScDeptId"		value="$!{searchMap.txt2html("findScDeptId")}" />
+				<input type="hidden" 	id="findDeptId"		name="findDeptId"		value="$!{searchMap.txt2html("findDeptId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="성과조직관리검색 조건">
+						<caption class="none">성과조직관리 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span>$!{YEAR}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w250">
+									<span>매핑기준</span>
+            						<span class="searchBar">
+            							<select id="findMappingCriterion" name="findMappingCriterion" class="select w100">
+            								$!CS_CODE.getCodeOption("133", $!{searchMap.txt2html("findMappingCriterion")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+	<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/base/scDeptMapping/scDeptMappingProcess.vw?type=template">
+        <input type="hidden" id="mode"					name="mode"					value="$!{searchMap.txt2html("mode")}" />
+        <input type="hidden" id="scDeptMappingIds"		name="scDeptMappingIds"		value="" />
+        <input type="hidden" id="deptMappingIds"		name="deptMappingIds"		value="" />
+		<input type="hidden" id="useYnNm"       		name="useYnNm" />
+		<input type="hidden" id="yearNm"        		name="yearNm" />
+        $!{searchMap.makeHiddenFind()}
+
+		<!-- 좌측 기준 트리 -->
+		#if($!{searchMap.txt2html("findMappingCriterion")} == "01")
+		<div style="width:550px; height:30px;float:left;">
+           <img src="$!{img_path}/common/deptMappingBar_scDept1.gif" alt="" />
+        </div>
+		<div style="width:550px; height:30px;float:right;">
+           <img src="$!{img_path}/common/deptMappingBar_dept1.gif" alt="" />
+        </div>
+		<div class="blockGridTreeTable" style="width:550px;">
+			<!-- 성과조직트리 -->
+			#parse("/WEB-INF/vl/bsc/module/commModule/deptTreeForScDeptMapping.vm")
+		</div>
+		#else
+		<div style="width:550px; height:30px;float:left;">
+           <img src="$!{img_path}/common/deptMappingBar_dept1.gif" alt="" />
+        </div>
+		<div style="width:550px; height:30px;float:right;">
+           <img src="$!{img_path}/common/deptMappingBar_scDept1.gif" alt="" />
+        </div>
+		<div class="blockGridTreeTable" style="width:550px;">
+			<!-- 실조직트리 -->
+			#parse("/WEB-INF/vl/bsc/module/commModule/deptTreeForDeptMapping.vm")
+		</div>
+		#end
+
+		<!-- 우측 매핑 트리 -->
+		#if($!{searchMap.txt2html("findMappingCriterion")} == "01")
+		<div class="blockGridTreeTable" style="width:550px; float:right;">
+			<!-- 실조직트리 Start -->
+			#parse("/WEB-INF/vl/bsc/module/commModule/deptTreeForDeptMapping.vm")
+		</div>
+		#else
+		<div class="blockGridTreeTable" style="width:550px; float:right;">
+			<!-- 성과조직트리 Start -->
+			#parse("/WEB-INF/vl/bsc/module/commModule/deptTreeForScDeptMapping.vm")
+		</div>
+		#end
+
+		<div class="blockButton_all">
+    		<div class="blockButton" style="float:left; text-align:left; width:500px;">
+				<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+			</div>
+    		<div class="blockButton">
+    			<ul>
+    				<!--
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				-->
+    				<li><input type="submit" id="btnInsert" value="저장"    /></li>
+    			</ul>
+    		</div>
+		</div>
+	</form>
+	</div>
+	<div class="clear"></div>
+</div>

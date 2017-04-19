@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.eval.evalStatus">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+               A.EVAL_DEGREE_ID,
+               A.EVAL_USER_ID,
+               B.USER_NM,
+               B.EMAIL,
+               A.EVAL_GRP_ID,
+               C.EVAL_GRP_NM,
+               NVL(A.EVAL_SUBMIT_YN,'N') EVAL_SUBMIT_YN,
+               F_CODE_NM('143',NVL(A.EVAL_SUBMIT_YN,'N'),A.YEAR) EVAL_SUBMIT_YN_NM,
+               COUNT(*) OVER(PARTITION BY A.EVAL_USER_ID) USER_CNT,
+               ROW_NUMBER() OVER(PARTITION BY A.EVAL_USER_ID ORDER BY C.SORT_ORDER) USER_IDX
+          FROM PRS_EVAL_USER A
+          LEFT OUTER JOIN V_ROLE_USER B ON A.EVAL_USER_ID=B.USER_ID
+          INNER JOIN PRS_EVAL_GRP C ON A.YEAR=C.YEAR AND A.EVAL_DEGREE_ID=C.EVAL_DEGREE_ID
+            AND A.EVAL_GRP_ID=C.EVAL_GRP_ID AND C.DELETE_DT IS NULL
+         WHERE A.YEAR=#findYear#
+           AND A.EVAL_DEGREE_ID=#findEvalDegreeId#
+            <isNotEmpty property="findEvalUserId" prepend="AND">
+       			A.EVAL_USER_ID = #findEvalUserId#
+       		</isNotEmpty> 
+            <isNotEmpty property="findEvalSubmitYn" prepend="AND">
+       			A.EVAL_SUBMIT_YN = #findEvalSubmitYn#
+       		</isNotEmpty>
+         ORDER BY A.EVAL_USER_ID, C.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT A.YEAR,
+               A.EVAL_USER_ID,
+               B.USER_NM AS EVAL_USER_NM
+          FROM PRS_EVAL_USER A
+          LEFT OUTER JOIN V_ROLE_USER B ON A.EVAL_USER_ID=B.USER_ID
+         WHERE A.YEAR=#findYear#
+           AND A.EVAL_DEGREE_ID=#findEvalDegreeId#
+          ORDER BY A.EVAL_USER_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getCloseYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT EVAL_CLOSE_YN     
+		  FROM PRS_EVAL_STATUS 
+		 WHERE YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #findEvalDegreeId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getCloseYnDataChk" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT NVL((SELECT COUNT(1)   
+				  FROM PRS_EVAL_STATUS 
+				 WHERE YEAR = #year#
+				   AND EVAL_DEGREE_ID = #evalDegreeId#	
+			   ),0) CNT
+          FROM DUAL	         
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getConfirmYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT EVAL_CONFIRM_YN     
+		  FROM PRS_EVAL_STATUS 
+		 WHERE YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #findEvalDegreeId#	 	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_DEGREE_ID        
+			 , EVAL_GRP_ID           
+			 , EVAL_USER_ID          
+			 , WEIGHT                
+			 , EVAL_SEQ              
+			 , EVAL_SUBMIT_YN        
+		  FROM PRS_EVAL_USER 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND EVAL_GRP_ID = #evalGrpId#
+		   AND EVAL_USER_ID = #evalUserId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO PRS_EVAL_STATUS ( 
+			   YEAR
+			 , EVAL_DEGREE_ID
+			 , EVAL_CLOSE_YN
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #evalDegreeId#
+			 , #evalCloseYn#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE PRS_EVAL_STATUS 
+		   SET EVAL_CLOSE_YN = #evalCloseYn# 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#	
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM PRS_EVAL_USER 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND EVAL_GRP_ID = #evalGrpId#
+		   AND EVAL_USER_ID = #evalUserId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<parameterMap id="paramMap" class="java.util.HashMap">
+		<parameter property="year" 			jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>	
+		<parameter property="evalDegreeId" 	jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>	
+	</parameterMap>			
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적등록
+	  #	기능	: PROCEDURES
+	  #	TABLE	: BSC_ACTUAL
+	==================================================================
+	-->
+	<procedure id="execDB" parameterMap="paramMap">  
+		{CALL SP_PRS_FINAL_SCORE(#findYear#, #evalMethodId#)}
+	</procedure>	
+	
+	
+</sqlMap>
+
+

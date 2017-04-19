@@ -1,0 +1,257 @@
+#*************************************************************************
+* CLASS 명		: dirSalSetModify
+* 작 업 자		: 안요한
+* 작 업 일		: 2013년 06월 10일
+* 기    능		: 임원연봉설정 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     안요한      2013년 06월 10일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/prs/bonus/dirSalSet/dirSalSetModify.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/prs/bonus/dirSalSet/dirSalSetModify_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '사번', '사번', '이름', '부서코드','직급코드', '직급', '직위코드', '직위','입사일', '평가근무시작일','평가근무종료일','퇴직일', '재직구분','근무기간(월)', '지급률', '기본연봉','비고'],
+			colModel     :[
+							{name:'YEAR'				,index:'YEAR'				,width:80   ,align:'center' },
+                            {name:'EMPNS'				,index:'EMPNS'				,width:80   ,align:'center' , formatter:linkEmpn },
+                            {name:'EMPN'				,index:'EMPN'				,width:80   ,align:'center' },
+                            {name:'KOR_NM'				,index:'KOR_NM'				,width:80   ,align:'center' },
+                            {name:'DEPT_CD'				,index:'DEPT_CD'			,width:80   ,align:'center'	, formatter:linkDeptCd },
+                            {name:'CAST_TC'				,index:'CAST_TC'			,width:80   ,align:'center' , formatter:linkCastTC },
+							{name:'CAST_TC_NM'			,index:'CAST_TC_NM'			,width:80   ,align:'center' },
+							{name:'POS_TC'				,index:'POS_TC'				,width:80   ,align:'center' , formatter:linkPosTc },
+							{name:'POS_TC_NM'			,index:'POS_TC_NM'			,width:110  ,align:'center' },
+                            {name:'ORG_PCMT_DATE'		,index:'ORG_PCMT_DATE'		,width:110  ,align:'center' 	},
+                            {name:'START_PCMT_DATE'		,index:'START_PCMT_DATE'	,width:110  ,align:'center' 	},
+                            {name:'END_PCMT_DATE'		,index:'END_PCMT_DATE'		,width:110  ,align:'center' 	},
+                            {name:'ORG_END_DATE'		,index:'ORG_END_DATE'		,width:110  ,align:'center' 	},
+                            {name:'PCMT_TC_NM'			,index:'PCMT_TC_NM'			,width:80   ,align:'center' 	},
+                            {name:'WORK_MON'			,index:'WORK_MON'			,width:80   ,align:'center'	, formatter:linkWorkMon },
+                            {name:'RATE'				,index:'RATE'				,width:80   ,align:'center' , formatter:linkRate	},
+                            {name:'SALARY'				,index:'SALARY'				,width:100   ,align:'center', formatter:linkSalary	},
+                            {name:'CONTENT'				,index:'CONTENT'			,width:150  ,align:'center'	, formatter:linkContent }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			loadComplete : function() {
+								J("input[name=workMons]").numeric({allow:"."});       //특정문자 허용(.)
+								J("input[name=workMons]").css("ime-mode", "disabled"); //한글사용 비활성화
+
+								J("input[name=rates]").numeric({allow:"."});       //특정문자 허용(.)
+								J("input[name=rates]").css("ime-mode", "disabled"); //한글사용 비활성화
+
+								J("input[name=salarys]").numeric({allow:"."});       //특정문자 허용(.)
+								J("input[name=salarys]").css("ime-mode", "disabled"); //한글사용 비활성화
+
+                           },
+
+			caption:"평가군"
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"EMPNS").jqGrid('hideCol',"CAST_TC").jqGrid('hideCol',"POS_TC").jqGrid('hideCol',"DEPT_CD").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#formFind").attr("action", "$!{context_path}/prs/bonus/dirSalSet/dirSalSetList.vw?type=template").submit();
+		});
+
+		/******************************************
+         * 저장
+         ******************************************/
+        J("#btnModify").click(function(e) {
+            e.preventDefault();
+
+            saveChk();
+        });
+
+	});
+
+	/******************************************
+     * jqGrid 사원번호
+     ******************************************/
+    function linkEmpn(cellvalue, options, rowObject) {
+    	return '<input type="text" name="empns" value="' + cellvalue + '" class="input wp50" maxlength="5"/>';
+    }
+
+
+	/******************************************
+     * jqGrid 부서코드
+     ******************************************/
+    function linkDeptCd(cellvalue, options, rowObject) {
+    	return '<input type="text" name="deptCds" value="' + cellvalue + '" class="input wp50" maxlength="5"/>';
+    }
+
+	/******************************************
+     * jqGrid 직급코드
+     ******************************************/
+    function linkCastTC(cellvalue, options, rowObject) {
+    	return '<input type="text" name="castTcs" value="' + cellvalue + '" class="input wp50" maxlength="5"/>';
+    }
+
+	/******************************************
+     * jqGrid 직위코드
+     ******************************************/
+    function linkPosTc(cellvalue, options, rowObject) {
+    	return '<input type="text" name="posTcs" value="' + cellvalue + '" class="input wp50" maxlength="5"/>';
+    }
+
+	/******************************************
+     * jqGrid 근무기간
+     ******************************************/
+    function linkWorkMon(cellvalue, options, rowObject) {
+    	return '<input type="text" name="workMons" value="' + cellvalue + '" class="input wp50" maxlength="5"/>';
+    }
+
+	/******************************************
+     * jqGrid 지급률
+     ******************************************/
+    function linkRate(cellvalue, options, rowObject) {
+    	return '<input type="text" name="rates" value="' + cellvalue + '" class="input wp50" maxlength="5"/> %';
+    }
+
+	/******************************************
+     * jqGrid 기본연봉
+     ******************************************/
+    function linkSalary(cellvalue, options, rowObject) {
+    	return '<input type="text" name="salarys" value="' + cellvalue + '" class="input wp80" maxlength="10"/>';
+    }
+
+	/******************************************
+     * jqGrid 비고
+     ******************************************/
+    function linkContent(cellvalue, options, rowObject) {
+    	return '<input type="text" name="contents" value="' + cellvalue + '" class="input wp80" maxlength="30"/>';
+    }
+
+	/******************************************
+     * 필수입력 체크
+     ******************************************/
+    function saveChk() {
+
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+
+    }
+
+    /******************************************
+     * 저장
+     ******************************************/
+    function saveDo() {
+
+        J("#mode").val("MOD");
+        J("#year").val(J("#findYear").val());
+        J("#formList").attr("action", "$!{context_path}/prs/bonus/dirSalSet/dirSalSetProcess.vw?type=template").submit();
+
+        return false;
+
+    }
+
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">임원연봉설정</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/bonus/dirSalSet/dirSalSetList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"    id="findYear"      	name="findYear"			value="$!{searchMap.txt2html("findYear")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="임원연봉설정검색 조건">
+						<caption class="none">임원연봉설정 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+        				</tbody>
+    				</table>
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/prs/bonus/dirSalSet/dirSalSetProcess.vw?type=template">
+			<input type="hidden" id="mode"		name="mode" value="$!{searchMap.txt2html("mode")}"/>
+			<input type="hidden" id="year"      name="year" value="$!{searchMap.txt2html("findYear")}"/>
+
+			<input type="hidden" id="empn"      name="empn" />
+			<input type="hidden" id="deptCd"    name="deptCd" />
+			<input type="hidden" id="castTc"    name="castTc" />
+			<input type="hidden" id="posTc"     name="posTc" />
+			<input type="hidden" id="workMon"   name="workMon" />
+			<input type="hidden" id="rate"      name="rate" />
+			<input type="hidden" id="salary"    name="salary" />
+			<input type="hidden" id="content"   name="content" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="임원연봉 조회결과">
+							<caption class="none">임원연봉 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnBack" value="돌아가기" /></li>
+								<li><input type="button" id="btnModify" value="저장" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

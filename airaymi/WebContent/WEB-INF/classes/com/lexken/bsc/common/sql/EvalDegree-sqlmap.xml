@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.common.evalDegree">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가구분 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR, EVAL_DEGREE_ID, EVAL_DEGREE_NM, MON
+		     , IMPON_RPT_REG_START_DT, IMPON_RPT_REG_END_DT, IMPON_EVAL_START_DT, IMPON_EVAL_END_DT
+		     , SEPA_EVAL_BASE_REG_START_DT, SEPA_EVAL_BASE_REG_END_DT, SEPA_EVAL_START_DT, SEPA_EVAL_END_DT
+		     , ORG_START_DT, ORG_END_DT
+		  FROM BSC_ECM_EVAL_DEGREE
+		 WHERE 1=1
+		   AND YEAR = #findYear#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가구분 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR, EVAL_DEGREE_ID, EVAL_DEGREE_NM, MON
+		     , IMPON_RPT_REG_START_DT, IMPON_RPT_REG_END_DT, IMPON_EVAL_START_DT, IMPON_EVAL_END_DT
+		     , SEPA_EVAL_BASE_REG_START_DT, SEPA_EVAL_BASE_REG_END_DT, SEPA_EVAL_START_DT, SEPA_EVAL_END_DT
+		     , ORG_START_DT, ORG_END_DT
+		  FROM BSC_ECM_EVAL_DEGREE
+		 WHERE 1 = 1 	  
+		   AND YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#    
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가구분 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('BSC_ECM_EVAL_DEGREE',#findYear#,'','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO BSC_ECM_EVAL_DEGREE
+					( YEAR
+				    , EVAL_DEGREE_ID
+				    , EVAL_DEGREE_NM
+				    , MON        
+				    , IMPON_RPT_REG_START_DT
+				    , IMPON_RPT_REG_END_DT
+				    , IMPON_EVAL_START_DT
+				    , IMPON_EVAL_END_DT        
+				    , SEPA_EVAL_BASE_REG_START_DT
+				    , SEPA_EVAL_BASE_REG_END_DT
+				    , SEPA_EVAL_START_DT
+				    , SEPA_EVAL_END_DT        
+				    , ORG_START_DT
+				    , ORG_END_DT   
+				    , CREATE_DT
+			 ) VALUES 
+			 		( #findYear#
+			 		, #SEQ#
+			 		, #evalDegreeNm#
+			 		, #mon#
+			 		, #imponRptRegStartDt#
+			 		, #imponRptRegEndDt#
+			 		, #imponEvalStartDt#
+			 		, #imponEvalEndDt#
+			 		, #sepaEvalBaseRegStartDt#
+			 		, #sepaEvalBaseRegEndDt#
+			 		, #sepaEvalStartDt#
+			 		, #sepaEvalEndDt#
+			 		, #orgStartDt#
+			 		, #orgEndDt#
+			 		, SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가구분 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_ECM_EVAL_DEGREE
+		   SET EVAL_DEGREE_NM = #evalDegreeNm#
+		    , MON = #mon#
+		    , IMPON_RPT_REG_START_DT = #imponRptRegStartDt#
+		    , IMPON_RPT_REG_END_DT = #imponRptRegEndDt#
+		    , IMPON_EVAL_START_DT = #imponEvalStartDt#
+		    , IMPON_EVAL_END_DT = #imponEvalEndDt#
+		    , SEPA_EVAL_BASE_REG_START_DT = #sepaEvalBaseRegStartDt#
+		    , SEPA_EVAL_BASE_REG_END_DT = #sepaEvalBaseRegEndDt#
+		    , SEPA_EVAL_START_DT = #sepaEvalStartDt#
+		    , SEPA_EVAL_END_DT = #sepaEvalEndDt#
+		    , ORG_START_DT = #orgStartDt#
+			, ORG_END_DT = #orgEndDt#
+		    , MODIFY_DT = SYSDATE
+		 WHERE 1 = 1 
+		   AND YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#   
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가구분 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_ECM_EVAL_DEGREE
+		 WHERE 1 = 1 
+		   AND YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#   
+
+	</update>
+	
+	
+</sqlMap>
+
+

@@ -1,0 +1,407 @@
+#*************************************************************************
+* CLASS 명      : actualMngDetailList
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 7월 24일
+* 기    능      : 실적관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     하윤식      2012년 7월 24일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/tam/actualMng/actualMngDetailList.vm.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+    	/******************************************
+    	 * 실적승인 화면에서 disabled
+    	 ******************************************/
+		#if($!{searchMap.txt2html("findActualType")} == "check")
+    		J("input[type=text]", "#blockDetailTB").attr("disabled", true);
+    		J("textarea", "#blockDetailTB").attr("disabled", true);
+
+			#if($!{actStatusId} != "06") //승인요청단계에서만 평가가능
+				J("input:radio", "#blockDetailTB").attr("disabled", true);
+			#end
+		#elseif($!{searchMap.txt2html("findActualType")} == "approve")
+			J("input[type=text]", "#blockDetailTB").attr("disabled", true);
+    		J("textarea", "#blockDetailTB").attr("disabled", true);
+    		J("input:radio", "#blockDetailTB").attr("disabled", "disabled");
+		#end
+
+		/******************************************
+    	 * 실적입력 화면에서 disabled
+    	 ******************************************/
+		#if($!{searchMap.txt2html("findActualType")} == "input")
+			#if($!{actStatusId} == "03" || $!{actStatusId} == "04" || $!{actStatusId} == "06")  //승인요청, 승인완료일 경우
+    			J("input[type=text]", "#blockDetailTB").attr("disabled", true);
+	       		J("input:radio, textarea", "#blockDetailTB").attr("disabled", true);
+			#end
+		#end
+
+		/******************************************
+    	 * 마감여부에 따른 disabled
+    	 ******************************************/
+		#if($!{monCloseYn} == 'Y' || $!{yearCloseYn} == 'Y' || $!{actInputTermYn} == 'N')
+			J("input[type=text]", "#blockDetailTB").attr("disabled", true);
+			J("input:radio, textarea", "#blockDetailTB").attr("disabled", true);
+		#end
+
+		J("#actStatusId").val("$!{actStatusId}");
+		showReturnView(); //반려조회 버튼 설정
+
+		/******************************************
+    	 * 숫자만 입력받기
+    	 ******************************************/
+		/*
+		J(":input[name=colValues]").numeric({allow:".-"}); //숫자만 입력받기
+		J(":input[name=colValues]").css("ime-mode", "disabled"); //한글사용 비활성화
+		*/
+	});
+
+	/******************************************
+	 * 파일추가
+	 ******************************************/
+	var fileIndex = 0;
+
+	function fileAttachAdd() {
+		J("#fileAttach").append("<li id=\"fileRow" + fileIndex + "\"><input type=\"file\" name=\"file" + fileIndex + "\" class=\"input\" size=\"70\" /> <input type=\"button\" value=\"삭제\" onclick=\"deleteRow(" + fileIndex + ")\" class=\"input\" size=\"70\"></li>");
+		fileIndex++;
+	}
+
+	function deleteRow(fileIndex)	{
+    	J("#fileRow" + fileIndex).remove();
+    }
+
+//]]>
+</script>
+
+<div id="blockDetailTB" class="blockListTable">
+	#if($!{actRegDefMonYn} == "Y")
+    	<table summary="실적입력">
+        	<caption class="none">실적입력</caption>
+        	<thead>
+        		<tr>
+        		    <th scope="col" width="11%" class="textCenter">구분</th>
+        			<th scope="col" width="5%" class="textCenter">단위</th>
+    				<th scope="col" width="7%" class="textCenter">1월</th>
+    				<th scope="col" width="7%" class="textCenter">2월</th>
+    				<th scope="col" width="7%" class="textCenter">3월</th>
+    				<th scope="col" width="7%" class="textCenter">4월</th>
+    				<th scope="col" width="7%" class="textCenter">5월</th>
+    				<th scope="col" width="7%" class="textCenter">6월</th>
+    				<th scope="col" width="7%" class="textCenter">7월</th>
+    				<th scope="col" width="7%" class="textCenter">8월</th>
+    				<th scope="col" width="7%" class="textCenter">9월</th>
+    				<th scope="col" width="7%" class="textCenter">10월</th>
+    				<th scope="col" width="7%" class="textCenter">11월</th>
+    				<th scope="col" width="7%" class="textCenter">12월</th>
+        		</tr>
+        	</thead>
+        	<tbody>
+        		#foreach($list in $list)
+        			<tr class="row1">
+        				<td class="textCenter">$!{CS_HTML.txt2html($list.CAL_TYPE_COL_NM)}</td>
+                    	<td class="textCenter">$!{CS_HTML.txt2html($list.UNIT_NM)}</td>
+    					<td class="textCenter">
+    						#if($!{searchMap.txt2html("mon")} == "01" && $!{CS_HTML.txt2html($list.INSERT_GUBUN)} == "02")
+        						<input type="hidden" name="colNames" class="inputbox" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}" />
+        						<input type="text" name="colValues" style="width:90%;" class="inputbox" value="$!{CS_HTML.txt2html($list.MON01)}" maxlength="20" />
+    						#else
+                                $!{CS_HTML.txt2htmlActcolFormat($list.MON01)}
+    						#end
+    					</td>
+    					<td class="textCenter">
+    						#if($!{searchMap.txt2html("mon")} == "02" && $!{CS_HTML.txt2html($list.INSERT_GUBUN)} == "02")
+        						<input type="hidden" name="colNames" class="inputbox" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}" />
+        						<input type="text" name="colValues" style="width:90%;" class="inputbox" value="$!{CS_HTML.txt2html($list.MON02)}" maxlength="20" />
+    						#else
+                                $!{CS_HTML.txt2htmlActcolFormat($list.MON02)}
+    						#end
+    					</td>
+    					<td class="textCenter">
+    						#if($!{searchMap.txt2html("mon")} == "03" && $!{CS_HTML.txt2html($list.INSERT_GUBUN)} == "02")
+        						<input type="hidden" name="colNames" class="inputbox" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}" />
+        						<input type="text" name="colValues" style="width:90%;" class="inputbox" value="$!{CS_HTML.txt2html($list.MON03)}" maxlength="15" />
+    						#else
+                                $!{CS_HTML.txt2htmlActcolFormat($list.MON03)}
+    						#end
+    					</td>
+    					<td class="textCenter">
+    						#if($!{searchMap.txt2html("mon")} == "04" && $!{CS_HTML.txt2html($list.INSERT_GUBUN)} == "02")
+        						<input type="hidden" name="colNames" class="inputbox" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}" />
+        						<input type="text" name="colValues" style="width:90%;" class="inputbox" value="$!{CS_HTML.txt2html($list.MON04)}" maxlength="20" />
+    						#else
+                                $!{CS_HTML.txt2htmlActcolFormat($list.MON04)}
+    						#end
+    					</td>
+    					<td class="textCenter">
+    						#if($!{searchMap.txt2html("mon")} == "05" && $!{CS_HTML.txt2html($list.INSERT_GUBUN)} == "02")
+        						<input type="hidden" name="colNames" class="inputbox" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}" />
+        						<input type="text" name="colValues" style="width:90%;" class="inputbox" value="$!{CS_HTML.txt2html($list.MON05)}" maxlength="20" />
+    						#else
+                                $!{CS_HTML.txt2htmlActcolFormat($list.MON05)}
+    						#end
+    					</td>
+    					<td class="textCenter">
+    						#if($!{searchMap.txt2html("mon")} == "06" && $!{CS_HTML.txt2html($list.INSERT_GUBUN)} == "02")
+        						<input type="hidden" name="colNames" class="inputbox" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}" />
+        						<input type="text" name="colValues" style="width:90%;" class="inputbox" value="$!{CS_HTML.txt2html($list.MON06)}" maxlength="20" />
+    						#else
+                                $!{CS_HTML.txt2htmlActcolFormat($list.MON06)}
+    						#end
+    					</td>
+    					<td class="textCenter">
+    						#if($!{searchMap.txt2html("mon")} == "07" && $!{CS_HTML.txt2html($list.INSERT_GUBUN)} == "02")
+        						<input type="hidden" name="colNames" class="inputbox" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}" />
+        						<input type="text" name="colValues" style="width:90%;" class="inputbox" value="$!{CS_HTML.txt2html($list.MON07)}" maxlength="20" />
+    						#else
+                                $!{CS_HTML.txt2htmlActcolFormat($list.MON07)}
+    						#end
+    					</td>
+    					<td class="textCenter">
+    						#if($!{searchMap.txt2html("mon")} == "08" && $!{CS_HTML.txt2html($list.INSERT_GUBUN)} == "02")
+        						<input type="hidden" name="colNames" class="inputbox" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}" />
+        						<input type="text" name="colValues" style="width:90%;" class="inputbox" value="$!{CS_HTML.txt2html($list.MON08)}" maxlength="20" />
+    						#else
+                                $!{CS_HTML.txt2htmlActcolFormat($list.MON08)}
+    						#end
+    					</td>
+    					<td class="textCenter">
+    						#if($!{searchMap.txt2html("mon")} == "09" && $!{CS_HTML.txt2html($list.INSERT_GUBUN)} == "02")
+        						<input type="hidden" name="colNames" class="inputbox" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}" />
+        						<input type="text" name="colValues" style="width:90%;" class="inputbox" value="$!{CS_HTML.txt2html($list.MON09)}" maxlength="20" />
+    						#else
+                                $!{CS_HTML.txt2htmlActcolFormat($list.MON09)}
+    						#end
+    					</td>
+    					<td class="textCenter">
+    						#if($!{searchMap.txt2html("mon")} == "10" && $!{CS_HTML.txt2html($list.INSERT_GUBUN)} == "02")
+        						<input type="hidden" name="colNames" class="inputbox" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}" />
+        						<input type="text" name="colValues" style="width:90%;" class="inputbox" value="$!{CS_HTML.txt2html($list.MON10)}" maxlength="20" />
+    						#else
+                                $!{CS_HTML.txt2htmlActcolFormat($list.MON10)}
+    						#end
+    					</td>
+    					<td class="textCenter">
+    						#if($!{searchMap.txt2html("mon")} == "11" && $!{CS_HTML.txt2html($list.INSERT_GUBUN)} == "02")
+        						<input type="hidden" name="colNames" class="inputbox" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}" />
+        						<input type="text" name="colValues" style="width:90%;" class="inputbox" value="$!{CS_HTML.txt2html($list.MON11)}" maxlength="20" />
+    						#else
+                                $!{CS_HTML.txt2htmlActcolFormat($list.MON11)}
+    						#end
+    					</td>
+    					<td class="textCenter">
+    						#if($!{searchMap.txt2html("mon")} == "12" && $!{CS_HTML.txt2html($list.INSERT_GUBUN)} == "02")
+        						<input type="hidden" name="colNames" class="inputbox" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}" />
+        						<input type="text" name="colValues" style="width:90%;" class="inputbox" value="$!{CS_HTML.txt2html($list.MON12)}" maxlength="20" />
+    						#else
+                                $!{CS_HTML.txt2htmlActcolFormat($list.MON12)}
+    						#end
+    					</td>
+        			</tr>
+    			#end
+    			#foreach($scoreList in $scoreList)
+        			<tr class="row1">
+						#if($!{CS_HTML.txt2html($scoreList.TYPE)} == 1)
+							<td class="textCenter">$!{searchMap.txt2html("METRIC_NM")} 실적</td>
+							<td class="textCenter">$!{CS_HTML.txt2html($scoreList.UNIT_NM)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlActualFormat($scoreList.MON01)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlActualFormat($scoreList.MON02)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlActualFormat($scoreList.MON03)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlActualFormat($scoreList.MON04)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlActualFormat($scoreList.MON05)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlActualFormat($scoreList.MON06)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlActualFormat($scoreList.MON07)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlActualFormat($scoreList.MON08)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlActualFormat($scoreList.MON09)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlActualFormat($scoreList.MON10)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlActualFormat($scoreList.MON11)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlActualFormat($scoreList.MON12)}</td>
+						#elseif($!{CS_HTML.txt2html($scoreList.TYPE)} == 2)
+							<td class="textCenter">$!{searchMap.txt2html("METRIC_NM")} 목표</td>
+							<td class="textCenter">$!{CS_HTML.txt2html($scoreList.UNIT_NM)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlTargetFormat($scoreList.MON01)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlTargetFormat($scoreList.MON02)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlTargetFormat($scoreList.MON03)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlTargetFormat($scoreList.MON04)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlTargetFormat($scoreList.MON05)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlTargetFormat($scoreList.MON06)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlTargetFormat($scoreList.MON07)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlTargetFormat($scoreList.MON08)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlTargetFormat($scoreList.MON09)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlTargetFormat($scoreList.MON10)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlTargetFormat($scoreList.MON11)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlTargetFormat($scoreList.MON12)}</td>
+						#elseif($!{CS_HTML.txt2html($scoreList.TYPE)} == 3)
+							<td class="textCenter">점수</td>
+							<td class="textCenter">$!{CS_HTML.txt2html($scoreList.UNIT_NM)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlScoreFormat($scoreList.MON01)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlScoreFormat($scoreList.MON02)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlScoreFormat($scoreList.MON03)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlScoreFormat($scoreList.MON04)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlScoreFormat($scoreList.MON05)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlScoreFormat($scoreList.MON06)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlScoreFormat($scoreList.MON07)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlScoreFormat($scoreList.MON08)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlScoreFormat($scoreList.MON09)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlScoreFormat($scoreList.MON10)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlScoreFormat($scoreList.MON11)}</td>
+        					<td class="textCenter">$!{CS_HTML.txt2htmlScoreFormat($scoreList.MON12)}</td>
+						#end
+        			</tr>
+    			#end
+    			<tr>
+    				<td>실적산식</td>
+    				<td colspan="13" class="textLeft">$!{calTypeColDesc}</td>
+    			</tr>
+    			<tr>
+    				<td>득점산식</td>
+    				<td colspan="13" class="textLeft">$!{CS_HTML.txt2html($detail.SCORE_CAL_TYPE_NM)}</td>
+    			</tr>
+        	</tbody>
+        </table>
+		<br/>
+	#end
+	<table summary="실적입력">
+    	<caption class="none">실적입력</caption>
+    	<thead>
+    		<tr>
+    		    <th colspan="2" scope="col"  class="textCenter">당월 $!{searchMap.txt2html("ACTIVITY_NM")} 요약/상세</th>
+    		</tr>
+			<tr>
+    		    <th scope="col" width="50%" class="textCenter">당월계획</th>
+				<th scope="col" width="50%" class="textCenter">당월실적</th>
+    		</tr>
+    	</thead>
+    	<tbody>
+			<tr>
+				<td class="textLeft">
+##					#if($!{searchMap.txt2html("mon")} == "01")
+						<input type="text" id="planNm1Mon" name="planNm1Mon" class="inputbox wp98" value="$!{CS_HTML.txt2html($activityDetail.PLAN_NM_1MON)}" maxlength="20" />
+##					#else
+##						$!{CS_HTML.txt2html($activityDetail.PLAN_NM_1MON)}
+##					#end
+				</td>
+				<td><input type="text" id="actNm" name="actNm" class="inputbox wp98" value="$!{CS_HTML.txt2html($activityDetail.ACT_NM)}" maxlength="20" /></td>
+			</tr>
+			<tr>
+				<td class="valign_top textLeft">
+##					#if($!{searchMap.txt2html("mon")} == "01")
+						<textarea id="planContents1Mon" name="planContents1Mon" class="inputbox wp98" title="당월계획" cols="" rows="8">$!{CS_HTML.txt2html($activityDetail.PLAN_CONTENTS_1MON)}</textarea>
+##					#else
+##						$!{CS_HTML.txt2htmlbr($activityDetail.PLAN_CONTENTS_1MON)}
+##					#end
+				</td>
+				<td><textarea id="actContents" name="actContents" class="inputbox wp98" title="당월실적" cols="" rows="8">$!{CS_HTML.txt2html($activityDetail.ACT_CONTENTS)}</textarea></td>
+			</tr>
+    	</tbody>
+    </table>
+	<table summary="실적입력">
+    	<caption class="none">실적입력</caption>
+    	<thead class="none">
+    		<tr><td width="25%"></td><td></td></tr>
+    	</thead>
+    	<tbody>
+			<tr>
+				<th width="25%">미진사유</th>
+				<td width="75%" class="textLeft"><textarea id="causeDesc" name="causeDesc" class="tabletext" title="비고" cols="" rows="5">$!{CS_HTML.txt2html($causeDetail.CAUSE_DESC)}</textarea></td>
+			</tr>
+			<tr>
+				<th>첨부파일</th>
+				<td class="textLeft">
+					#foreach($fileList in $fileList)
+						$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))}
+						&nbsp;&nbsp;
+						#if($!{searchMap.txt2html("findActualType")} == "input")
+							#if($!{actStatusId} == "01" || $!{actStatusId} == "02" || $!{actStatusId} == "05")
+								<input type="checkbox" name="delAttachFiles" id="delAttachFile$!{fileList.get("SEQ")}" value="$!{fileList.get("SEQ")}" />&nbsp;
+								<label for="delAttachFile$!{fileList.get("SEQ")}">첨부파일 삭제</label> <br/>
+							#end
+						#end
+
+					#end
+					<br/>
+
+					#if($!{searchMap.txt2html("findActualType")} == "input")
+						#if($!{actStatusId} == "01" || $!{actStatusId} == "02" || $!{actStatusId} == "05")
+							<a href="javascript:fileAttachAdd();"><img src="$!{searchMap.txt2html("context")}/images/common/btn_file.gif" class="valign_middle" alt="파일추가" /></a>&nbsp;(첨부파일 용량제한은 100M입니다)<br/>
+						#end
+					#end
+
+					<div>
+						<ul id="fileAttach">
+						</ul>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				#if($!{searchMap.txt2html("findActualType")} == "input")
+    				<th>당월 자기평가 $!{CS_HTML.txt2html($activityDetail.SELF_EVAL)} </th>
+    				<td class="textLeft">&nbsp;$!CS_CODE.getCodeRadio("selfEval", "120", $!{CS_HTML.txt2html($activityDetail.SELF_EVAL)}, $!{searchMap.txt2html("year")})</td>
+    			#else
+    				<th>평가자평가 당월</th>
+    				<td class="textLeft">&nbsp;$!CS_CODE.getCodeRadio("finalEval", "120", $!{CS_HTML.txt2html($activityDetail.FINAL_EVAL)}, $!{searchMap.txt2html("year")})</td>
+				#end
+			</tr>
+    	</tbody>
+    </table>
+	<br/>
+	<table summary="실적입력">
+    	<caption class="none">실적입력</caption>
+		<colgroup>
+			<col width="25%" />
+			<col width="75%" />
+		</colgroup>
+    	<thead>
+    		<tr>
+    		    <th scope="col" width="100%" class="textCenter" colspan="2">누계 $!{searchMap.txt2html("ACTIVITY_NM")}(요약)</th>
+    		</tr>
+    	</thead>
+    	<tbody>
+			<tr>
+				<th>누계계획</th>
+				<td class="textLeft"><input type="text" id="planNmY" name="planNmY" class="inputbox wp98" value='$!{CS_HTML.txt2html($activityDetail.PLAN_NM_Y)}' maxlength="20" /></td>
+			</tr>
+			<tr>
+				<th>누계실적</th>
+				<td class="textLeft"><input type="text" id="actNmY" name="actNmY" class="inputbox wp98" value='$!{CS_HTML.txt2html($activityDetail.ACT_NM_Y)}' maxlength="20" /></td>
+			</tr>
+			<tr>
+				#if($!{searchMap.txt2html("findActualType")} == "input")
+    				<th>누계 자기평가</th>
+    				<td class="textLeft">&nbsp;$!CS_CODE.getCodeRadio("selfEvalY", "120", $!{CS_HTML.txt2html($activityDetail.SELF_EVAL_Y)}, $!{searchMap.txt2html("year")})</td>
+    			#else
+					<th>평가자평가 누계</th>
+    				<td class="textLeft">&nbsp;$!CS_CODE.getCodeRadio("finalEvalY", "120", $!{CS_HTML.txt2html($activityDetail.FINAL_EVAL_Y)}, $!{searchMap.txt2html("year")})</td>
+				#end
+			</tr>
+    	</tbody>
+    </table>
+	<br/>
+	<table summary="실적입력">
+    	<caption class="none">실적입력</caption>
+    	<thead>
+    		<tr>
+    		    <th scope="col" width="100%" class="textCenter" colspan="2">차월 $!{searchMap.txt2html("ACTIVITY_NM")}</th>
+    		</tr>
+			<tr>
+    		    <th scope="col" width="50%" class="textCenter">Catch-up 대책</th>
+				<th scope="col" width="50%" class="textCenter">차월계획</th>
+    		</tr>
+    	</thead>
+    	<tbody>
+			<tr>
+				<td rowspan="2"><textarea id="catchUp" name="catchUp" class="tabletext" title="비고" cols="" rows="9">$!{CS_HTML.txt2html($causeDetail.CATCH_UP)}</textarea></td>
+				<td class="textLeft"><input type="text" id="nextPlanNm" name="nextPlanNm" class="inputbox wp98" value="$!{CS_HTML.txt2html($activityDetail.NEXT_PLAN_NM)}" maxlength="20" /></td>
+			</tr>
+			<tr>
+				<td class="textLeft"><textarea id="nextPlanContents" name="nextPlanContents" class="tabletext" title="차월계획" cols="" rows="8">$!{CS_HTML.txt2html($activityDetail.NEXT_PLAN_CONTENTS)}</textarea></td>
+			</tr>
+    	</tbody>
+    </table>
+</div>
+<div class="clear"></div>

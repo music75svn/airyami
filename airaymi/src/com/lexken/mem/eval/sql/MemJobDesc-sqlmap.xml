@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.eval.memJobDesc">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MEM_JOB_DESC
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 성과기술서 제출기간
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EVAL_SCHEDULE
+	==================================================================
+	-->
+	<select id="getPeriodInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+		       TO_CHAR(TO_DATE(STA_START_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS STA_START_DT
+		     , TO_CHAR(TO_DATE(STA_END_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS STA_END_DT
+             , CASE WHEN
+             			 STA_START_DT <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMMDD') 
+             	     AND STA_END_DT <![CDATA[ >= ]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+        			THEN
+                         'Y'
+                    ELSE
+                         'N'
+                    END AS STA_IN_TERM
+		  FROM MEM_EVAL_SCHEDULE
+		 WHERE YEAR = #findYear#
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 업무성과기술서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_JOB_DESC
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		       A.YEAR
+		     , A.EMP_NO
+		     , A.EMP_NM
+		     , F_DEPT_LEV2_NM(A.YEAR, A.DEPT_CD) AS DEPT_NM
+		     , F_CODE_NM('170', A.CAST_TC , A.YEAR) AS CAST_NM 
+		     , F_CODE_NM('171', A.POS_TC , A.YEAR) AS POS_NM
+		     , DECODE(B.ATTACH_FILE_FNM, '', '미제출', '제출') AS SEND_YN
+		  FROM MEM_USER A
+		     , MEM_JOB_DESC B
+		 WHERE A.YEAR = B.YEAR(+)
+		   AND A.EMP_NO = B.EMP_NO(+)
+		   AND A.YEAR = #findYear#
+	<isNotEmpty prepend="AND" property="findEmpNo">
+	           A.EMP_NO LIKE '%' || TRIM(#findEmpNo#) || '%'
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="findEmpNm">
+	           A.EMP_NM LIKE '%' || TRIM(#findEmpNm#) || '%'
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="findCastTc">
+	           A.CAST_TC = #findCastTc#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="findPosTc">
+	           A.POS_TC = #findPosTc#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="findDeptCd">
+	           A.DEPT_CD = #findDeptCd#
+	</isNotEmpty>
+		 ORDER BY A.EMP_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 업무성과기술서 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_JOB_DESC
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EMP_NO           
+			 , CONTENT            
+			 , ATTACH_FILE_NM            
+			 , ATTACH_FILE_FNM
+			 , ATTACH_FILE_SUFFIX
+			 , ATTACH_FILE_PATH
+		  FROM MEM_JOB_DESC 
+		 WHERE YEAR = #year#
+		   AND EMP_NO = #empNo#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 업무성과기술서 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_JOB_EVAL_ITEM
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+	MERGE INTO MEM_JOB_DESC A
+		USING DUAL
+		ON (A.YEAR = #year# AND A.EMP_NO = #empNo#)
+	WHEN MATCHED THEN 
+    UPDATE SET 
+           CONTENT = #content#
+	<isNotEmpty property="attachFileFnm">
+         , ATTACH_FILE_NM = #attachFileNm#
+         , ATTACH_FILE_FNM = #attachFileFnm#
+         , ATTACH_FILE_SUFFIX =#attachFileSufix#
+         , ATTACH_FILE_PATH =#attachFilePath#
+	</isNotEmpty>
+         , MODIFY_DT = SYSDATE
+	WHEN NOT MATCHED THEN
+	INSERT (
+               YEAR
+             , EMP_NO
+             , CONTENT
+	<isNotEmpty property="attachFileFnm">
+             , ATTACH_FILE_NM
+             , ATTACH_FILE_FNM
+             , ATTACH_FILE_SUFFIX
+             , ATTACH_FILE_PATH
+	</isNotEmpty>
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #empNo#
+             , #content#
+    <isNotEmpty property="attachFileFnm">
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSufix#
+             , #attachFilePath#
+	</isNotEmpty>
+             , SYSDATE
+    	   )
+	</update>
+
+</sqlMap>
+
+

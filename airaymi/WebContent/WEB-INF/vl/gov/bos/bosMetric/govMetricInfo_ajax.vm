@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+#*************************************************************************
+* CLASS 명      : getMetricInfo_ajax.vm
+* 작 업 자      : 박경태
+* 작 업 일      : 2012년 11월 06일 
+* 기    능      : 정부경영평가 지표 상세조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용         비고
+* -----  ----------  -------------------  ---------------------- ---------
+*  1      박경태       2012년 11월 06일         최 초 작 업 
+**************************************************************************# 
+
+<items>
+
+#foreach($list in $govMetricDetail)
+	<item>
+		<year>$!{CS_HTML.txt2html($list.YEAR)}</year>
+		<govMetricId>$!{CS_HTML.txt2html($list.GOV_METRIC_ID)}</govMetricId>
+		<govMetricNm>$!{CS_HTML.txt2html($list.GOV_METRIC_NM)}</govMetricNm>
+		<evalCatGrpId>$!{CS_HTML.txt2html($list.EVAL_CAT_GRP_ID)}</evalCatGrpId>
+		<direcId>$!{CS_HTML.txt2html($list.DIREC_ID)}</direcId>
+		<evalMethodId>$!{CS_HTML.txt2html($list.EVAL_METHOD_ID)}</evalMethodId>
+		<gbnId>$!{CS_HTML.txt2html($list.GBN_ID)}</gbnId>
+		<unit>$!{CS_HTML.txt2html($list.UNIT)}</unit>
+		<actCalType>$!{CS_HTML.txt2html($list.ACT_CAL_TYPE)}</actCalType>
+		<insertUserId>$!{CS_HTML.txt2html($list.INSERT_USER_ID)}</insertUserId>
+		<insertUserNm>$!{CS_HTML.txt2html($list.INSERT_USER_NM)}</insertUserNm>
+		<scDeptId>$!{CS_HTML.txt2html($list.SC_DEPT_ID)}</scDeptId>
+		<scDeptNm>$!{CS_HTML.txt2html($list.SC_DEPT_NM)}</scDeptNm>
+		<weight>$!{CS_HTML.txt2html($list.WEIGHT)}</weight>
+		<sortOrder>$!{CS_HTML.txt2html($list.SORT_ORDER)}</sortOrder>
+		<useYn>$!{CS_HTML.txt2html($list.USER_YN)}</useYn>
+		<content>$!{CS_HTML.txt2html($list.CONTENT)}</content>
+		<baseValue>$!{CS_HTML.txt2html($list.BASE_VALUE)}</baseValue>
+		<bestTarget>$!{CS_HTML.txt2html($list.BEST_TARGET)}</bestTarget>
+		<lowestTarget>$!{CS_HTML.txt2html($list.LOWEST_TARGET)}</lowestTarget>
+		<stadConst>$!{CS_HTML.txt2html($list.STAD_CONST)}</stadConst>
+		
+		<lowestTarget3year>$!{CS_HTML.txt2html($list.LOWEST_TARGET_3YEAR)}</lowestTarget3year>
+		<bestTarget3year>$!{CS_HTML.txt2html($list.BEST_TARGET_3YEAR)}</bestTarget3year>
+		<actual3year>$!{CS_HTML.txt2html($list.ACTUAL_3YEAR)}</actual3year>
+		<rateYear>$!{CS_HTML.txt2html($list.RATE_YEAR)}</rateYear>
+		<detailEvalSummaryComment>$!{CS_HTML.txt2html($list.DETAIL_EVAL_SUMMARY_COMMENT)}</detailEvalSummaryComment>
+	</item>	
+#end
+
+#foreach($list in $govCalTypeColList)
+	<coldata>
+		<colId>$!{CS_HTML.txt2html($list.ACT_CAL_TYPE_COL_ID)}</colId>
+		<colNm>$!{CS_HTML.txt2html($list.ACT_CAL_TYPE_COL_NM)}</colNm>
+		<colUnit>$!{CS_HTML.txt2html($list.UNIT)}</colUnit>
+	</coldata>	
+#end
+
+#foreach($list in $govCalTypeDetailList)
+	<detaildata>
+		<detailEvalContent>$!{CS_HTML.txt2html($list.DETAIL_EVAL_CONTENT)}</detailEvalContent>
+		<evalContent>$!{CS_HTML.txt2html($list.EVAL_COMMENT)}</evalContent>
+		<detailUserId>$!{CS_HTML.txt2html($list.INSERT_USER_ID)}</detailUserId>
+		<detailUserNm>$!{CS_HTML.txt2html($list.INSERT_USER_NM)}</detailUserNm>
+	</detaildata>	
+#end
+
+</items>
+
+
+

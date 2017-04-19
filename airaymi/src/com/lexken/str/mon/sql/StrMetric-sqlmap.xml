@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="str.mon.strMetric">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표정의서 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.YEAR
+             , A.SUBJECT_METRIC_ID
+             , A.SUBJECT_METRIC_NM
+             , A.CSF_ID
+             , B.CSF_NM
+             , C.STRAT_SUBJECT_ID
+             , C.STRAT_SUBJECT_NM
+             , A.CYCLE_ID
+             , F_CODE_NM('008', A.CYCLE_ID, A.YEAR) AS CYCLE_NM
+             , A.UNIT_ID
+             , F_CODE_NM('013', A.UNIT_ID, A.YEAR) AS UNIT_NM
+             , A.SCORE_CAL_TYPE_ID
+             , F_CODE_NM('145', A.SCORE_CAL_TYPE_ID, A.YEAR) AS SCORE_CAL_TYPE_NM
+             , A.METRIC_ID
+             , E.METRIC_NM
+             , J.SC_DEPT_NM
+             , A.CHARGE_USER_ID
+             , F.USER_NM AS CHARGE_USER_NM
+             , A.CHARGE_DEPT_ID
+             , G.DEPT_NM AS CHARGE_DEPT_NM
+             , A.APPROVE_USER_ID
+             , H.USER_NM AS APPROVE_USER_NM
+             , A.APPROVE_DEPT_ID
+             , I.DEPT_NM AS APPROVE_DEPT_NM
+             , A.SORT_ORDER
+        FROM STR_METRIC A
+             LEFT OUTER JOIN BSC_CSF B ON A.YEAR = B.YEAR AND A.CSF_ID = B.CSF_ID
+             LEFT OUTER JOIN STR_STRAT_SUBJECT C ON B.YEAR = C.YEAR AND B.STRAT_SUBJECT_ID = C.STRAT_SUBJECT_ID
+             LEFT OUTER JOIN BSC_METRIC E ON A.YEAR = E.YEAR AND A.METRIC_ID = E.METRIC_ID AND E.DELETE_DT IS NULL
+             LEFT OUTER JOIN V_ROLE_USER F ON A.CHARGE_USER_ID = F.USER_ID
+             LEFT OUTER JOIN V_DEPTINFO G ON A.CHARGE_DEPT_ID = G.DEPT_ID
+             LEFT OUTER JOIN V_ROLE_USER H ON A.APPROVE_USER_ID = H.USER_ID
+             LEFT OUTER JOIN V_DEPTINFO I ON A.APPROVE_DEPT_ID = I.DEPT_ID
+             LEFT OUTER JOIN BSC_SC_DEPT J ON A.YEAR = J.YEAR AND E.SC_DEPT_ID = J.SC_DEPT_ID AND J.DELETE_DT IS NULL
+		WHERE A.YEAR = #findYear#
+		  AND A.SUBJECT_METRIC_ID = #findSubjectMetricId#
+		  AND A.DELETE_DT IS NULL
+	</select>
+	
+		
+	<!--
+	==================================================================   
+	  # 설명	: 세부과제 첨부파일 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_ATTACH
+	==================================================================
+	-->
+	<select id="getFileList" parameterClass="hashMap" resultClass="hashMap">
+  		SELECT YEAR
+             , SUBJECT_METRIC_ID
+             , SEQ
+             , ATTACH_FILE_NM
+             , ATTACH_FILE_FNM
+             , ATTACH_FILE_SUFFIX
+             , F_ENCRYPT(ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+          FROM STR_METRIC_ATTACH             
+         WHERE YEAR = #findYear#       
+           AND SUBJECT_METRIC_ID = #findSubjectMetricId#
+	</select>	
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 세부과제 첨부파일 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_MAPPING
+	==================================================================
+	-->
+	<select id="getMetricMappingList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.SUBJECT_METRIC_ID
+		     , A.METRIC_ID
+		     , B.METRIC_NM
+		     , C.SC_DEPT_ID
+		     , C.SC_DEPT_NM
+		FROM STR_METRIC_MAPPING A
+		     LEFT OUTER JOIN BSC_METRIC B ON A.YEAR = B.YEAR AND A.METRIC_ID = B.METRIC_ID AND B.DELETE_DT IS NULL
+		     LEFT OUTER JOIN BSC_SC_DEPT C ON B.YEAR = C.YEAR AND B.SC_DEPT_ID = C.SC_DEPT_ID AND C.DELETE_DT IS NULL
+       WHERE A.YEAR = #findYear#       
+         AND A.SUBJECT_METRIC_ID = #findSubjectMetricId#
+	   ORDER BY C.SORT_ORDER, B.SORT_ORDER
+	</select>	
+	
+</sqlMap>
+
+

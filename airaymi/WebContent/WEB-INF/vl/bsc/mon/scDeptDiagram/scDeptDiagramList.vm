@@ -1,0 +1,575 @@
+#*************************************************************************
+* CLASS 명      : scDeptDiagramList
+* 작 업 자      : 형광민
+* 작 업 일      : 2012년 9월 6일 
+* 기    능      : 조직성과도
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     형광민      2012년 9월 6일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/bsc/mon/scDeptDiagram/scDeptDiagramList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/mon/scDeptDiagram/scDeptDiagramList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : 250,
+			width        : $!{jqGrid_width},
+			colNames     :[ '$!{PERSPECTIVE_NM}','$!{DIRECTION_NM}', '$!{STRATEGY_NM} 코드', '$!{STRATEGY_NM}', '$!{METRIC_NM} 코드', 'UP_METRIC_ID', '$!{METRIC_NM}' ,'주기' , '$!{WEIGHT}' , '단위', '목표', '실적', '점수', '상태'],
+			colModel     :[
+							{name:'PERSPECTIVE_NM'      ,index:'PERSPECTIVE_NM'   	,width:60    ,align:'center' },
+							{name:'DIRECTION_NM'      	,index:'DIRECTION_NM'   	,width:60    ,align:'center' },
+                            {name:'STRATEGY_ID'			,index:'STRATEGY_ID'        ,width:80   ,align:'left'   }, 
+							{name:'STRATEGY_NM'			,index:'STRATEGY_NM'        ,width:80   ,align:'left'   },
+                            {name:'METRIC_ID'          	,index:'METRIC_ID'          ,width:80   ,align:'left'   },
+							{name:'UP_METRIC_ID'        ,index:'UP_METRIC_ID'       ,width:80   ,align:'left'   },
+							{name:'METRIC_NM'          	,index:'METRIC_NM'          ,width:200   ,align:'left'   ,formatter:linkUpdateMetric },
+                            {name:'EVAL_CYCLE_NM'       ,index:'EVAL_CYCLE_NM'      ,width:40    ,align:'center' },
+							{name:'WEIGHT'              ,index:'WEIGHT'             ,width:50    ,align:'center' },
+							{name:'UNIT_NM'             ,index:'UNIT_NM'            ,width:40    ,align:'center' },
+                            {name:'TARGET'              ,index:'TARGET'             ,width:70   ,align:'right' }, 
+                            {name:'ACTUAL'            	,index:'ACTUAL'            	,width:70   ,align:'right' ,formatter:linkUpdateActual },
+							{name:'SCORE'            	,index:'SCORE'            	,width:50    ,align:'right'  },
+                            {name:'STATUS'        		,index:'STATUS'            	,width:40    ,align:'center' ,formatter:linkUpdateSignal }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : false,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			cmTemplate: {sortable:false},
+			loadComplete : function() {
+				
+								J("#scDeptNmText").append('<nobr>'+J("#findSelScDeptNm").val()+'</nobr>');
+								
+								var ids = J("#list").jqGrid('getDataIDs');
+								var rowdata = J("#list").getRowData(ids[0]);
+								
+								J("#metricNmText").append("<span style='cursor:hand;overflow:hidden;text-overflow:ellipsis;width:140;'><nobr><b>"+J(rowdata.METRIC_NM).text()+"</b></nobr></span>");
+								J("#findSelMetricId").val(rowdata.METRIC_ID);
+								J("#findSelMetricNm").val(J(rowdata.METRIC_NM).text());
+##								J("#findSelMetricId").val(J("#findSelMetricId").val());
+##								J("#findSelMetricNm").val(J("#findSelMetricNm").val());
+								
+								/******************************************
+                            	 * 지표 탭 초기화
+                            	 ******************************************/
+                        		tabEvent('chart');
+                        		callView('chart');
+								
+						   },
+			caption:"조직성과도"
+		}).jqGrid('hideCol',"DIRECTION_NM").jqGrid('hideCol',"UP_METRIC_ID").jqGrid('hideCol',"PERSPECTIVE_NM").jqGrid('hideCol',"STRATEGY_NM").jqGrid('hideCol',"STRATEGY_ID").jqGrid('hideCol',"METRIC_ID").setGridWidth($!{jqGrid_r4_width});
+
+
+		jQuery("#list2").jqGrid({
+			url          :"$!{context_path}/bsc/mon/scDeptDiagram/orgRankList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : 460,
+			width        : 227,
+			colNames     :['순위', '$!{SC_DEPT_NM}', '총점', '상태' ],
+			colModel     :[
+							{name:'RANK'     		    ,index:'RANK'      			  ,width:20    ,align:'center' ,sorttype : 'int' },
+							{name:'SC_DEPT_NM'          ,index:'SC_DEPT_NM'           ,width:120   ,align:'left'   },
+                            {name:'SCORE'               ,index:'SCORE'                ,width:60   ,align:'right'  ,sorttype : 'int' },
+                            {name:'STATUS'              ,index:'STATUS'               ,width:20   ,align:'center' ,formatter:linkUpdate }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : false,
+			multiselect  : false,
+			cellEdit     : true,
+			cmTemplate	 : {sortable:false},
+			gridview     : true,
+			caption:"조직순위"
+		});
+        
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+        
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/bsc/mon/scDeptDiagram/scDeptDiagramModify.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+		
+		/******************************************
+		 * 조직성과상세버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnOrgDetail").click(function() {
+			J("#formList").attr("action", "$!{context_path}/bsc/mon/orgDetail/orgDetailList.vw?type=template").submit();
+		});
+		
+		/******************************************
+		 * 요약보고서버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnSummaryReport").click(function() {
+			J("#formList").attr("action", "$!{context_path}/bsc/mon/deptSummaryReport/deptSummaryReportList.vw?type=template").submit();
+		});
+		
+		/******************************************
+    	 * 조직선택 팝업호출
+    	 ******************************************/
+    	J("#icSearch").fancybox();
+		
+	});
+	
+	/******************************************
+     * 하단 TAB 마우스오버 이벤트
+     ******************************************/	
+	function tabEvent(item){
+	
+		hiddenAllItem();
+		
+		if(item=="chart"){
+			J("#chart").attr("src", "$!{img_path}/common/tab2_06_on.gif");
+			J("#metricChartContainer").show();
+		}else{
+			J("#cause").attr("src", "$!{img_path}/common/tab2_07_on.gif");
+    		J("#metricCauseContainer").show();
+		}
+		
+	}
+
+	/******************************************
+     * 하단 TAB 마우스오버 이벤트
+     ******************************************/	
+	function hiddenAllItem(){
+	
+		J("#chart").attr("src", "$!{img_path}/common/tab2_06.gif");
+		J("#cause").attr("src", "$!{img_path}/common/tab2_07.gif");
+		
+		J("#metricChartContainer").empty();
+		J("#metricCauseContainer").empty();
+		
+		J("#metricChartContainer").hide();
+		J("#metricCauseContainer").hide();
+		
+	}
+	
+	function callView(item){
+	
+		if(item == 'chart'){
+			callChart();
+		}else{
+			callCause();
+		}
+	}
+	
+	var i=0;
+	var myChart1;
+	
+	function callChart(){
+		
+		var analCycle = J(":input:radio[name=findAnalCycle]:checked").val();
+	
+		FusionCharts.setCurrentRenderer(render);
+		if(!FusionCharts("myChartId1")){
+			myChart1 = new FusionCharts( "$!{chart_path}/MSColumn3DLineDY.swf", "myChartId1", "500", "250", "0", "1" );
+		}
+		myChart1.setXMLUrl("$!{context_path}/bsc/mon/scDeptDiagram/scDeptDiagramMetricChart_xml.vw?year=$!{searchMap.txt2html("findYear")}&mon=$!{searchMap.txt2html("findMon")}&scDeptId=$!{searchMap.txt2html("findSelScDeptId")}&analCycle="+analCycle+"&metricId="+J("#findSelMetricId").val());
+    	myChart1.render("metricChartContainer");
+		
+	}
+	
+	/******************************************
+	 * 조회
+	 ******************************************/
+    function callCause() {
+		
+		var year = J("#findYear").val();
+		var mon  = J("#findMon").val();
+		var metricId = J("#findSelMetricId").val();
+		var diagramGubun = J("#findDiagramGubun").val();
+		var selScDeptId = J("#findSelScDeptId").val();
+		var selMetricId = J("#findSelMetricId").val();
+		
+		var mode = "OPNION";
+		var analCycle = J(":input:radio[name=findAnalCycle]:checked").val();
+
+		J.ajax({
+        	url      : "$!{context_path}/bsc/mon/scDeptDiagram/causeMetricView.vw",
+        	cache    : false,
+        	type     : "POST",
+			data     : "year=" + year + "&amp;mon=" + mon + "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;metricId=" + metricId + "&amp;mode=" + mode + "&amp;analCycle=" + analCycle + "&amp;diagramGubun=" + diagramGubun + "&amp;selMetricId=" + selMetricId + "&amp;selScDeptId=" + selScDeptId,
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+        		J("#metricCauseContainer").empty();  //body부분 div를 empty 시켜줌(empty를 시키지 않을 경우 메모리릭 발생)   
+        		J("#metricCauseContainer").append(data);
+        	}
+    	});
+	}
+	
+	/******************************************
+	 * 지표정의서
+	 ******************************************/
+	function linkUpdateMetric(cellvalue, options, rowObject) { 
+	
+		var str = cellvalue;
+		
+		if(rowObject.UP_METRIC_ID != "") {
+			str = "<img src=\'$!{img_path}/tree.gif\' align='absmiddle'>" + str
+		}
+		
+		return '<a href=javascript:goPopMetricDetail(' + options.rowId + ')>' + str + '<//a>';
+	
+	}
+	
+	/******************************************
+	 * 실적상세
+	 ******************************************/
+	function linkUpdateActual(cellvalue, options, rowObject) { 
+		return "<a href=javascript:goPopMetricActualDetail(" + options.rowId + ")>" + cellvalue+ "</a>";
+	}
+	
+	/******************************************
+	 * 실적상세
+	 ******************************************/
+	function linkUpdateSignal(cellvalue, options, rowObject) { 
+		return "<a href=javascript:goPopMetricActualDetail(" + options.rowId + ")>" + "<img name=\'sig\'  src=\'$!{img_path}/common/ball/ball_" + cellvalue + ".gif\' >" + "</a>";
+	}
+
+	/******************************************
+	 * 지표정의서버튼 클릭 이벤트
+	 ******************************************/
+	function goPopMetricDetail(rowId) {
+		
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		
+		J("#findSelMetricId").val(ret.METRIC_ID);
+		J("#findSelMetricNm").val(J(ret.METRIC_NM).text());
+		
+		J("#metricNmText").empty();
+		J("#metricNmText").append("<span style='cursor:hand;overflow:hidden;text-overflow:ellipsis;width:80px;'><nobr><b>"+J(ret.METRIC_NM).text()+"</b></nobr></span>");
+		
+		tabEvent('chart');
+		callView('chart');
+		
+	}
+
+	/*****************************************************
+	 * 실적상세 팝업
+	 *****************************************************/ 
+    function goPopMetricActualDetail(rowId){
+		
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		
+		var scDeptId = J("#findScDeptId").val();
+		var strategyId = ret.STRATEGY_ID;
+		var metricId = ret.METRIC_ID;
+		var year = J("#findYear :selected").val();
+		var mon = J("#findMon :selected").val();
+		var analCycle = J(":input:radio[name=findAnalCycle]:checked").val();
+		
+		var param = "&amp;year=" + year + "&amp;findMon=" + mon + "&amp;metricId=" + metricId + "&amp;analCycle="+analCycle;
+		
+		var url = "$!{context_path}/bsc/mon/metricActualDetail/popMetricActualDetailList.vw?type=popup" + param;
+		openWinByName(url,'popMetricDetail','1250','650','yes');
+		
+    }
+	
+	
+	/******************************************
+	 * 전략과제 연계도 링크
+	 ******************************************/
+	function goStrategyMatrix(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		
+		J("#findStrategyId").val(ret.STRATEGY_ID);				// List에서 선택한 전략과제코드를 설정.
+		J("#findStrategyNm").val(J(ret.STRATEGY_NM).text());	// List에서 선택한 전략과제명을 설정.
+		J("#formList").attr("action", "$!{context_path}/bsc/mon/strategyMatrix/strategyMatrixList.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * KPI 연계도 링크
+	 ******************************************/
+	function goMetricMatrix(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		
+		J("#findMetricId").val(ret.METRIC_ID);				// List에서 선택한 KPI코드를 설정.
+		J("#findMetricNm").val(J(ret.METRIC_NM).text());	// List에서 선택한 KPI명을 설정.
+		J("#formList").attr("action", "$!{context_path}/bsc/mon/metricMatrix/metricMatrixList.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * KPI 성과 상세화면 링크
+	 ******************************************/
+	function goMetricDetail(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		
+		J("#year").val(J("#findYear").val());			// List에서 선택한 연도를 설정.
+		J("#metricId").val(ret.METRIC_ID);				// List에서 선택한 KPI코드를 설정.
+		J("#formList").attr("action", "$!{context_path}/bsc/mon/metricDetail/metricDetailList.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * jqGrid 신호등
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) {
+		return "<img name=\'sig\'  src=\'$!{img_path}/common/ball/ball_" + cellvalue + ".gif\' >";
+	}
+	
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#formFind").attr("action", "$!{context_path}/bsc/mon/scDeptDiagram/scDeptDiagramListExcel.vw?type=excel").submit();
+		return false;
+	}
+	
+	/*****************************************************
+	 * 조직선택 설정
+	 *****************************************************/ 
+	function setDeptInfoPop(scDeptId, scDeptNm) {
+		scDeptNm = J(scDeptNm).text();
+		J("#findScDeptId").val(scDeptId);
+		J("#findScDeptNm").val(scDeptNm);
+		J.fancybox.close();
+	}
+	
+	/******************************************
+	 * 그리드 ajax 조회
+	 ******************************************/
+	function goGridSearch(scDeptId, scDeptNm) {
+		J("#findSelScDeptId").val(scDeptId);
+		J("#findSelScDeptNm").val(scDeptNm);
+		
+		J("#scDeptNmText").empty();
+		J("#metricNmText").empty();
+		
+		J("#list2").setGridParam({url:"$!{context_path}/bsc/mon/scDeptDiagram/orgRankList_xml.vw?"+J("#formFind").serialize()});
+		J("#list2").trigger("reloadGrid");
+		
+		J("#list").setGridParam({url:"$!{context_path}/bsc/mon/scDeptDiagram/scDeptDiagramList_xml.vw?"+J("#formFind").serialize()}); 
+		J("#list").trigger("reloadGrid");
+	}
+	
+	/******************************************
+	 * 그리드 ajax 확장, 축소
+	 ******************************************/
+	function hideScDetpDiagram() {
+		if(J("#scDeptDiagramBox").css("display") == "block") {
+			J("#scDeptDiagramBox").hide();
+			J("#list").setGridHeight(350);
+		} else {
+			J("#scDeptDiagramBox").show();
+			J("#list").setGridHeight(100);
+		}
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">조직성과도</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/mon/scDeptDiagram/scDeptDiagramList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"		name="findHighPgmId"		value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"		name="findSubPgmId"			value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"			name="findPgmId"			value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden" 	id="findSelScDeptId"	name="findSelScDeptId"  	value="$!{searchMap.txt2html("findScDeptId")}"/>
+    			<input type="hidden" 	id="findSelScDeptNm"	name="findSelScDeptNm"  	value="$!{searchMap.txt2html("findScDeptNm")}"/>    			
+    			<input type="hidden" 	id="findSelMetricId"	name="findSelMetricId" />
+    			<input type="hidden" 	id="findSelMetricNm"	name="findSelMetricNm" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="조직성과도검색 조건">
+						<caption class="none">조직성과도 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">평가년월</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+										<select id="findMon" name="findMon" class="select w80">
+            								$!CS_CODE.getCodeOption("024", $!{searchMap.txt2html("findMon")})
+            							</select>
+            						</span>
+            					</td>
+								<td style="display:none;" class="searchBox_tit w300" >
+            						<span>$!{SC_DEPT_NM}</span>
+            						<span class="searchBar">
+        								<input type="hidden" id="findScDeptId" name="findScDeptId" value="$!{CS_STATIC.nullToDefault($!{searchMap.txt2html("findScDeptId")},$!{CS_LOGIN.getSc_dept_id()})}" />
+        								<input type="text" id="findScDeptNm" name="findScDeptNm" class="inputbox w170" value="$!{CS_STATIC.nullToDefault($!{searchMap.txt2html("findScDeptNm")},$!{CS_LOGIN.getSc_dept_nm()})}" maxlength="20" />
+        								<a id="icSearch" href="$!{context_path}/bsc/module/commModule/popScDeptTree.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;findSearchCodeId=$!{searchMap.txt2html("findScDeptId")}"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="조직검색"/></a>
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w280">
+            						<span>조직도 구분</span>
+            						<span class="searchBar">
+										<select id="findDiagramGubun" name="findDiagramGubun" class="select w150" >
+											$!CS_CODE.getCodeOption("202", $!{searchMap.txt2html("findDiagramGubun")})
+										</select>
+									</span>	
+								</td>
+								<td class="w100">
+            						<span class="searchBar">
+										$!CS_CODE.getCodeRadio("findAnalCycle", "138", $!{searchMap.txt2html("findAnalCycle")}, "")
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/mon/scDeptDiagram/scDeptDiagramProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"		 		name="year" />
+			<input type="hidden" id="findStrategyId"	name="findStrategyId" />
+			<input type="hidden" id="findStrategyNm"	name="findStrategyNm" />
+			<input type="hidden" id="findMetricId"		name="findMetricId" />
+			<input type="hidden" id="findMetricNm"		name="findMetricNm" />
+			$!{searchMap.makeHiddenFind()}
+			
+		<div id="total" style="width:100%; text-align:center;" >
+			<div id="scDeptDiagramBox" style="width:80%; float:left; text-align:center;">
+				<div style="width:100%; text-align:center;">
+                    <div style="width:100%; text-align:left;">
+                    	<div id="chartContainer"></div>
+						<script type="text/javascript" language="javascript">
+						//<![CDATA[
+							var scDiagramGubun = J("#findDiagramGubun").val();
+							
+							if(scDiagramGubun == "01") {
+								scDiagramGubun = "D000001";
+							} else if(scDiagramGubun == "02") {
+								scDiagramGubun = "D000002";
+							} else if(scDiagramGubun == "03") {
+								scDiagramGubun = "D000003";
+							}
+							
+							##/* var url = 'bgNum=$!{searchMap.txt2html("findYear")}&_pPath=$!{context_path}&_pSignal=$!{context_path}/bsc/base/scDeptDiagMng/trafficSignal_xml.vw?suffix=vm%26findYear=$!{searchMap.txt2html("findYear")}&_pParam=$!{context_path}/bsc/base/scDeptDiagMng/scDeptDiagMng_xml.vw?suffix=vm%26findYear=$!{searchMap.txt2html("findYear")}%26findMon=$!{searchMap.txt2html("findMon")}%26findAnalCycle=$!{searchMap.txt2html("findAnalCycle")}%26findScDeptId=$!{searchMap.txt2html("findScDeptId")}%26findDiagramGubun=$!{searchMap.txt2html("findDiagramGubun")}'; */
+							var url = 'bgNum=$!{searchMap.txt2html("findYear")}&_pPath=$!{context_path}&_pSignal=$!{context_path}/bsc/base/scDeptDiagMng/trafficSignal_xml.vw?suffix=vm%26findYear=$!{searchMap.txt2html("findYear")}&_pParam=$!{context_path}/bsc/base/scDeptDiagMng/scDeptDiagMng_xml.vw?suffix=vm%26findYear=$!{searchMap.txt2html("findYear")}%26findMon=$!{searchMap.txt2html("findMon")}%26findAnalCycle=$!{searchMap.txt2html("findAnalCycle")}%26findScDeptId='+scDiagramGubun+'%26findDiagramGubun=$!{searchMap.txt2html("findDiagramGubun")}';
+							VBOX2Swf("TreeOrgChartList","900","500","$!{img_path}/flash/VBOX_ORGANIZATIONS.swf","strPath="+url,true);
+						//]]>
+                    	</script> 				
+                    </div>
+				</div>
+			</div>
+            <div id="lList" style="width:20%; height:100%; float:right; text-align:center;" >
+				<table id="list2" style="width:100%; height:100%;" summary="조직성과도 조회결과">
+					<caption class="none">조직성과도 조회</caption>
+					<thead><tr><th></th></tr></thead>
+					<tbody><tr><td></td></tr></tbody>
+				</table>
+				<div id="pager"></div>
+			</div>
+		</div>
+			<div>
+				<table width="100%" style="height:23px" border="0" cellpadding="0" cellspacing="0">
+        			<tr>
+            			<td class="bodybox_deptTit" style="width:1000px;border-bottom:1px solid #e3e3e3; padding:0px 0px 0px 30px;">
+            				<span id="scDeptNmText" style='cursor:hand;overflow:hidden;text-overflow:ellipsis;width:140;'></span>
+                        </td>
+						<td style="width:200px;">
+							<div class="blockButton w200">
+        						<ul>
+        							<li><input type="button" id="btnOrgDetail" 		value="조직성과상세" /></li>
+									<!--
+        							<li>&nbsp;&nbsp;</li>
+        							<li><input type="button" id="btnSummaryReport" 	value="요약보고서" /></li>-->
+        						</ul>
+        					</div>
+						</td>
+        			</tr>
+                </table>
+            </div>
+			<div class="h10"></div>
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable floatLeft">
+						<table id="list" summary="조직성과도 조회결과">
+							<caption class="none">조직성과도 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<div class="blockGridListTable floatRight">
+						<div class="bodyboxlist" style="width:530px;height:285px;">
+    						<div class="bodyboxlist_titbg">
+    							<div class="bodyboxlist_mon_tit">
+    								<ul>
+										<li id="metricNmText" style="width:100px;border-bottom:1px solid #e3e3e3; padding:5px 0px 0px 10px;">
+										</li>
+    									<li style="float:right;"><img id="cause" style="cursor:hand;" src="$!{img_path}/common/tab2_07.gif" alt="미진사유" onclick="javascript:tabEvent('cause');callView('cause');" /></li>
+										<li style="float:right;"><img id="chart" style="cursor:hand;" src="$!{img_path}/common/tab2_06.gif" alt="실적/점수추이" onclick="javascript:tabEvent('chart');callView('chart');" /></li>
+									</ul>
+    							</div>
+    							<!--<div class="bodyboxlist_more"><input type="image" name="more" src="$!{img_path}/common/btn_more.gif" alt="더보기" /></div>-->
+    							<div class="bodybox_list" style="cursor:pointer;">
+    								<div id="metricChartContainer"></div>
+									<div id="metricCauseContainer"></div>
+    							</div>
+    						</div>
+    					</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+	</div>
+	<div class="clear"></div>
+</div>

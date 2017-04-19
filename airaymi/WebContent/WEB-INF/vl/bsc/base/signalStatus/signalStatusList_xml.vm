@@ -1,0 +1,27 @@
+#*************************************************************************
+* CLASS 명      : signalStatusList_xml.jsp
+* 작 업 자      : 정철수
+* 작 업 일      : 2012.05.30
+* 기    능      : 신호등구간 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     정 철 수      2012.05.30            최 초 작 업 
+**************************************************************************#
+<rows>
+	<page>1</page>
+	<total>1</total>
+	<records>$!{CS_HTML.txt2html($list.size())}</records>
+	
+#foreach($list in $list)
+	<row>
+		<cell>$!{CS_HTML.txt2html($list.STATUS_ID)}</cell>
+		<cell>$!{CS_HTML.txt2html($list.STATUS_NM)}</cell>
+		<cell>$!{CS_HTML.txt2html($list.FROM_VALUE)}</cell>
+		<cell>$!{CS_HTML.txt2html($list.TO_VALUE)}</cell>
+		<cell>$!{CS_HTML.txt2html($list.COLOR)}</cell>
+	</row> 
+#end
+
+</rows> 
+

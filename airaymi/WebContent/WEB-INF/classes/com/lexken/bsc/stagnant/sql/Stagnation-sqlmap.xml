@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.stagnant.stagnation">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 부진 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_STAGNATION_DEPT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.SC_DEPT_ID
+		     , B.SC_DEPT_NM
+		     , A.USE_YN
+		  FROM PRS_MNG_STAGNATION_DEPT A
+		       INNER JOIN BSC_SC_DEPT B
+		          ON A.YEAR = B.YEAR
+		         AND A.SC_DEPT_ID = B.SC_DEPT_ID
+		         AND B.DELETE_DT IS NULL
+		       INNER JOIN (SELECT *
+		                     FROM BSC_CODE
+		                    WHERE CODE_GRP_ID = '216'
+		                      AND YEAR = #findYear#
+		                      AND DELETE_DT IS NULL) C
+		          ON B.DEPT_SLUMP_ID = C.CODE_ID
+		         AND C.DELETE_DT IS NULL
+			<isNotEqual property="adminYN" compareValue="Y">
+		         AND B.DEPT_SLUMP_ID = #deptSlumpId#
+			</isNotEqual>
+		 WHERE A.YEAR = #findYear#
+		   AND A.DELETE_DT IS NULL
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 부진부서 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_STAGNATION_DEPT
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.SC_DEPT_ID, A.USE_YN, B.SC_DEPT_NM
+		  FROM PRS_MNG_STAGNATION_DEPT A
+		       LEFT OUTER JOIN BSC_SC_DEPT B
+		          ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID
+		       WHERE A.YEAR = #findYear#
+		 AND A.SC_DEPT_ID = #scDeptId#
+	</select>
+
+
+
+	<!--
+	==================================================================
+	  # 설명	: 부진부서 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_MNG_STAGNATION_DEPT
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO PRS_MNG_STAGNATION_DEPT (YEAR
+		                                   , SC_DEPT_ID
+		                                   , USE_YN
+		                                   , CREATE_DT
+		                                   , DELETE_DT)
+		     VALUES (#findYear#
+		           , #scDeptId#
+		           , #useYn#
+		           , SYSDATE
+		           , '')
+
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 부진부서 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_MNG_STAGNATION_DEPT
+	==================================================================
+	-->
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE PRS_MNG_STAGNATION_DEPT
+		            SET YEAR = #findYear#
+		                , SC_DEPT_ID = #scDeptId#
+		                , USE_YN = #useYn#
+		            <isEqual property="useYn" compareValue="Y">
+		                , CREATE_DT   = SYSDATE
+		                , DELETE_DT   = NULL
+		            </isEqual>
+		            <isNotEqual property="useYn" compareValue="Y">
+		            	, DELETE_DT = SYSDATE
+		            </isNotEqual>
+	</update>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 부진부서 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: PRS_MNG_STAGNATION_DEPT
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE PRS_MNG_STAGNATION_DEPT
+		        SET DELETE_DT = SYSDATE
+		        	, USE_YN = 'N'
+		WHERE YEAR = #findYear#
+		AND SC_DEPT_ID = #scDeptId#
+	</update>
+
+<!--
+	==================================================================   
+	  # 설명	: 로그인 사용자 부진부서 정보 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_USERINFO
+	==================================================================
+	-->	
+	<select id="getDeptSlumpId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT T3.DEPT_SLUMP_ID
+          FROM V_ROLE_USER T1
+          	   LEFT OUTER JOIN V_DEPT_MAPPING_LOGIN T2 ON T1.DEPT_ID = T2.DEPT_ID AND T2.YEAR = #findYear#
+               LEFT OUTER JOIN BSC_SC_DEPT T3 ON T2.YEAR = T3.YEAR AND T2.SC_DEPT_ID = T3.SC_DEPT_ID AND T3.DELETE_DT IS NULL
+               LEFT OUTER JOIN BSC_SC_DEPT T4 ON T3.YEAR = T4.YEAR AND T3.UP_SC_DEPT_ID = T4.SC_DEPT_ID AND T4.DELETE_DT IS NULL
+         WHERE T1.SABUN  = #userId#
+	</select>	
+	
+
+</sqlMap>
+
+

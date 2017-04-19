@@ -1,0 +1,381 @@
+#*************************************************************************
+* CLASS 명      : memEvalGunModify
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년 03월 15일 
+* 기    능      : 평가군관리  
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    유연주      2017년 03월 15일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	var grdRowId = 0;
+	
+	J(document).ready(function(){
+		J("select[name=posTc] option:eq(1)").remove();
+	
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#contentIndicator"),
+			limit:500
+		});
+		J("#content").trigger("keyup");
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/mem/tot/memEvalGun/memEvalGunList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("#sortOrder").numeric();
+		J("#sortOrder").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 년차 숫자만 입력
+		 ******************************************/
+		J("input[name=yearTc]").numeric({allow:""});        	//특정문자 허용(.)
+		J("input[name=yearTc]").css("ime-mode", "disabled"); 	//한글사용 비활성화
+		
+		/******************************************
+		 * 조직평가비율 숫자만 입력
+		 ******************************************/
+		J("input[name=orgEvalRate]").numeric({allow:""});        	//특정문자 허용(.)
+		J("input[name=orgEvalRate]").css("ime-mode", "disabled"); 	//한글사용 비활성화
+		
+		/******************************************
+		 * 개인평가비율 숫자만 입력
+		 ******************************************/
+		J("input[name=indEvalRate]").numeric({allow:""});        	//특정문자 허용(.)
+		J("input[name=indEvalRate]").css("ime-mode", "disabled"); 	//한글사용 비활성화
+		
+		/******************************************
+		 * fancybox 설정
+		 ******************************************/
+		J("#anchor").fancybox();
+		
+		/******************************************
+		 * 화면 초기셋팅
+		 ******************************************/
+		init();
+	});
+	
+	/******************************************
+	 * 적용기준일 클릭시 달력팝업 이벤트
+	 ******************************************/
+	 function calen() {
+	 	J("input[name='applyDt']").each(function(i){
+	 		J("input[name='applyDt']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	}
+	
+	/******************************************
+	 * 조직 추가
+	 ******************************************/
+	var deptIndex = 1;
+
+	function deptAdd() {
+		J("#deptAttach").append("<li id=\"deptRow" + deptIndex + "\"><input type=\"hidden\" id=\"deptCd\" name=\"deptCd\"/><input type=\"text\" id=\"deptNm\" name=\"deptNm\" class=\"inputbox w170\" maxlength=\"20\" readonly/> <input type=\"image\" onclick=\"javascript:popChargeScDept(" + deptIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/board/ic_search.gif\" alt=\"부서선택\"/> <input type=\"image\" onclick=\"javascript:cancelChargeScDept(" + deptIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/board/ic_cancel.gif\" alt=\"부서선택취소\"/> <input type=\"image\" onclick=\"javascript:deptDeleteRow(" + deptIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/bt_10.gif\" alt=\"삭제\"/></li>");
+
+		deptIndex++;
+	}
+
+	function deptAddMod(deptCd, deptNm) {
+		J("#deptAttach").append("<li id=\"deptRow" + deptIndex + "\"><input type=\"hidden\" id=\"deptCd\" value=\"" + deptCd + "\" name=\"deptCd\" /><input type=\"text\" id=\"deptNm\" name=\"deptNm\" value=\"" + deptNm + "\" class=\"inputbox w170\" maxlength=\"20\" readonly/> <input type=\"image\" onclick=\"javascript:popChargeScDept(" + deptIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/board/ic_search.gif\" alt=\"부서선택\"/> <input type=\"image\" onclick=\"javascript:cancelChargeScDept(" + deptIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/board/ic_cancel.gif\" alt=\"부서선택취소\"/> <input type=\"image\" onclick=\"javascript:deptDeleteRow(" + deptIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/bt_10.gif\" alt=\"삭제\"/></li>");
+
+		deptIndex++;
+	}
+
+	function deptDeleteRow(deptIndexP)	{
+		J("#deptRow" + deptIndexP).remove();
+		deptIndex--;
+	}
+	
+	/*****************************************************
+	 * 부서선택 팝업
+	 *****************************************************/
+	function popChargeScDept(deptIndex) {
+		var findSearchCodeId = J("#deptCd").val();
+
+		J("#deptCnt").val(deptIndex);
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popScDeptTree1.vw?findYear=$!{searchMap.txt2html("year")}&amp;findSearchCodeId=" + findSearchCodeId);
+		J("#anchor").click();
+	}
+	
+	/*****************************************************
+	 * 부서선택 설정
+	 *****************************************************/
+	function setDeptInfoPop(deptCd, deptNm) {
+		deptNm = J(deptNm).text();
+		var chkCnt = 0;
+		J("input[name=deptCd]").each(function() {
+			if($(this).val()==deptCd){
+				chkCnt++;
+				J.showMsgBox("선택하신 부서는 이미 선택되었습니다", null, null);
+				return;
+			}
+		});
+
+		if(chkCnt==0){
+    		J("input[name=deptCd]").eq(J("#deptCnt").val()).val(deptCd);
+    		J("input[name=deptNm]").eq(J("#deptCnt").val()).val(deptNm);
+		}
+
+		J.fancybox.close();
+	}
+	
+	/*****************************************************
+	 * 조직선택 팝업 취소
+	 *****************************************************/
+	function cancelChargeScDept(deptIndex) {
+		J("input[name=deptCd]").eq(deptIndex).val("");
+    	J("input[name=deptNm]").eq(deptIndex).val("");
+	}
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(!J.checkLength("evalGunNm", "평가군명", 1, 200)) {
+			return;
+		}
+		if(!J.checkLength("evalGiveMethodId", "배분표", 1, 7)) {
+			return;
+		}
+		
+		var chkCnt = 0;
+		J("input[name=deptCd]").each(function() {
+			if($(this).val()!=''){
+				chkCnt++;
+			}
+		});
+		
+		if(chkCnt == 0){
+			alert("부서를 한부서 이상 선택하세요.");
+			return;
+		}
+		
+		if(J("#castTc").val()=="100"){
+			J.showMsgBox("직급을 선택해 주십시요", null, "castTc");
+			return;
+		}
+		if(!J.checkLength("castTc", "직급", 1, 7)) {
+			return;
+		}
+		if(!J.checkLength("orgEvalRate", "조직평가비율", 1, 3)) {
+			return;
+		}
+		if(!J.checkLength("indEvalRate", "개인평가비율", 1, 3)) {
+			return;
+		}
+		if(!J.checkLength("content", "비고", 0, 4000)) {
+			return;
+		}
+		if(!J.checkLength("sortOrder", "정렬순서", 0, 5)) {
+			return;
+		}
+		
+		J("#orgGubunIds").val(orgGubunIds);
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/mem/tot/memEvalGun/memEvalGunProcess.vw?type=template").submit();
+	}
+
+	/*****************************************************
+	 * 화면초기셋팅
+	 *****************************************************/
+	function init() {
+
+		J("#evalGunNm").focus();
+
+		var chargeDeptCnt = 0;
+		#foreach($deptList in $deptList)
+			if (chargeDeptCnt == 0) {
+				J("input[name=deptCd]").eq(0).val('$!{CS_HTML.txt2html($deptList.DEPT_CD)}');
+    			J("input[name=deptNm]").eq(0).val('$!{CS_HTML.txt2html($deptList.DEPT_NM)}');
+			} else {
+				deptAddMod('$!{CS_HTML.txt2html($deptList.DEPT_CD)}','$!{CS_HTML.txt2html($deptList.DEPT_NM)}');
+			}
+			chargeDeptCnt++;
+		#end
+	}
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/mem/tot/memEvalGun/memEvalGunProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="orgGubunIds"    name="orgGubunIds"    />
+	<input type="hidden" 	id="deptCnt"		name="deptCnt"		 />
+	
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">기준년도 <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="업무수행평가항목 등록">
+					<caption class="none">업무수행평가항목 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="80%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row"><label for="evalGunId">평가군코드</label></th>
+    						<td>
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.EVAL_GUN_ID)}
+									<input type="hidden" id="evalGunId" name="evalGunId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.EVAL_GUN_ID)}" maxlength="7" readonly="readonly"/>
+								#else
+									<input type="hidden" id="evalGunId" name="evalGunId" class="inputbox w100" maxlength="7" />
+									※ 저장시 자동으로 부여됩니다.
+								#end
+							</td>
+    					</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="evalGunNm">평가군명</label></th>
+							<td><input type="text" id="evalGunNm" name="evalGunNm" class="inputbox w270" value='$!{CS_HTML.txt2html($detail.EVAL_GUN_NM)}' maxlength="40"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="evalGiveMethodId">배분표</label></th>
+							<td>
+                                <select id="evalGiveMethodId" name="evalGiveMethodId" class="select w250" >
+                                    <option value="">선택</option>
+                                    #foreach($evalGiveMethodList in $evalGiveMethodList)
+                                        <option value="$!{CS_HTML.txt2html($evalGiveMethodList.EVAL_METHOD_ID)}" #if($detail.EVAL_GIVE_METHOD_ID==$evalGiveMethodList.EVAL_METHOD_ID) selected="selected" #end)>$!{CS_HTML.txt2html($evalGiveMethodList.EVAL_METHOD_NM)}</option>
+                                    #end
+                                </select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="">부서</label></th>
+							<td colspan="4">
+								<input type="hidden" id="deptCd" name="deptCd"  />
+								<input type="text" id="deptNm" name="deptNm" class="inputbox w170" readonly maxlength="20" />
+								<input type="image" onclick="javascript:popChargeScDept(0);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_search.gif" alt="부서선택"/>
+								<input type="image" onclick="javascript:cancelChargeScDept(0);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_cancel.gif" alt="부서선택취소"/>
+								<input type="image" onclick="javascript:deptAdd();return false;" class="valign_middle" src="$!{img_path}/common/bt_09.gif"  alt="부서추가"/>
+								<div>
+									<ul id="deptAttach">
+									</ul>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="evalTarget">평가대상</label></th>
+							<td>
+								직급 :
+                                <select id="castTc" name="castTc" class="select w80" >
+									$!CS_CODE.getCodeOption("170", $!{CS_HTML.txt2html($detail.CAST_TC)}, $!{searchMap.txt2html("findYear")})
+                                </select>&nbsp;&nbsp;&nbsp;
+								직위 :
+                                <select id="castTc" name="posTc" class="select w80" >
+                                	<option value="">전체</option>
+									$!CS_CODE.getCodeOption("171", $!{CS_HTML.txt2html($detail.POS_TC)}, $!{searchMap.txt2html("findYear")})
+                                </select>&nbsp;&nbsp;&nbsp;
+                               	년차 : <input type="text" id="yearTc" name="yearTc" value="$!{CS_HTML.txt2html($detail.YEAR_TC)}" class="inputbox w20" maxlength="2"/>&nbsp;&nbsp;&nbsp;
+								이상/미만 : 
+                                <select id="yearTcGubun" name="yearTcGubun" class="select w80" >
+									$!CS_CODE.getCodeOption("236", $!{CS_HTML.txt2html($detail.YEAR_TC_GUBUN)}, $!{searchMap.txt2html("findYear")})
+                                </select>&nbsp;&nbsp;&nbsp;
+                              	적용기준일 : <input type="text" name="applyDt" value="$!{CS_HTML.txt2html($detail.APPLY_DT)}" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="orgEvalRate">조직평가비율</label></th>
+							<td><input type="text" id="orgEvalRate" name="orgEvalRate" class="inputbox w170" value='$!{CS_HTML.txt2html($detail.ORG_EVAL_RATE)}' maxlength="3"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="indEvalRate">개인평가비율</label></th>
+							<td><input type="text" id="indEvalRate" name="indEvalRate" class="inputbox w170" value='$!{CS_HTML.txt2html($detail.IND_EVAL_RATE)}' maxlength="3"/></td>
+						</tr>
+						
+						<tr>
+							<th scope="row"><label for="content">비고</label></th>
+							<td>
+								<textarea id="content" name="content" class="tabletext" title="비고" cols="" rows="3">$!{CS_HTML.txt2html($detail.CONTENT)}</textarea>
+								<span id="contentIndicator">0</span>/4000byte
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="sortOrder">정렬순서</label></th>
+							<td><input type="text" id="sortOrder" name="sortOrder" class="inputbox w170" value='$!{CS_HTML.txt2html($detail.SORT_ORDER)}' maxlength="5"/></td>
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    	</div>
+		<div id="Table_blockContainer">
+			<div id="splitterBox">
+				<div>
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							##<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+			    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+			    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<a id="anchor"></a>
+	<div class="clear"></div>
+</form>

@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.dir.govScoreYear">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 정평결과확인 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_SCORE_YEAR
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	SELECT T2.YEAR,
+        T2.EMPN,
+         T2.EVAL_CAT_GRP_ID,
+         T2.EVAL_CAT_GRP_NM,
+         T2.EVAL_CAT_ID,
+         T2.EVAL_CAT_NM,
+         T2.GOV_METRIC_ID,
+         T2.GOV_METRIC_NM,
+         T2.CAT_GRP_CNT,
+         T2.CAT_CNT,
+         T2.CAT_INDEX,
+         T2.GOV_SCORE,
+         T2.GOV_WEIGHT,
+        F_CODE_NM ('007', T3.GBN_ID, #findYear#) AS GBN_NM
+        FROM ( SELECT T1.YEAR
+		          	 , T1.EMPN
+		          	 , T1.EVAL_CAT_GRP_ID
+		          	 , T1.EVAL_CAT_GRP_NM
+		          	 , T1.EVAL_CAT_ID
+		          	 , T1.EVAL_CAT_NM
+		             , T1.GOV_METRIC_ID
+		          	 , T1.GOV_METRIC_NM
+		          	 , COUNT (1) OVER (PARTITION BY T1.YEAR, T1.EVAL_CAT_GRP_ID) CAT_GRP_CNT
+		          	 , ROW_NUMBER ()
+		           	   OVER (
+		               PARTITION BY T1.YEAR, T1.EVAL_CAT_GRP_ID, T1.EVAL_CAT_ID
+		               ORDER BY T1.EVAL_CAT_GRP_ID, T1.GOV_METRIC_ID) CAT_GRP_INDEX
+		           	 , COUNT (1) OVER (PARTITION BY T1.YEAR, T1.EVAL_CAT_ID) CAT_CNT
+		             , ROW_NUMBER ()
+		           	   OVER (
+		               PARTITION BY T1.YEAR, T1.EVAL_CAT_ID
+		               ORDER BY T1.EVAL_CAT_ID ASC, T1.GOV_METRIC_ID) CAT_INDEX
+		             , T1.GOV_SCORE
+		             , T1.GOV_WEIGHT
+				  FROM (SELECT A.YEAR
+		        			 , A.EMPN
+		        			 , A.EVAL_CAT_GRP_ID
+		        			 , (SELECT EVAL_CAT_GRP_NM 
+		        			 	  FROM GOV_EVAL_CAT_GRP 
+		        			 	 WHERE YEAR = A.YEAR 
+		        			 	   AND EVAL_CAT_GRP_ID = A.EVAL_CAT_GRP_ID) EVAL_CAT_GRP_NM
+		       				 , A.EVAL_CAT_ID
+		       				 , (SELECT EVAL_CAT_NM FROM GOV_EVAL_CAT WHERE YEAR = A.YEAR AND EVAL_CAT_GRP_ID = A.EVAL_CAT_GRP_ID AND EVAL_CAT_ID = A.EVAL_CAT_ID) EVAL_CAT_NM
+		        			 , A.GOV_METRIC_ID
+		        			 , NVL((SELECT GOV_METRIC_NM FROM GOV_METRIC WHERE A.GOV_METRIC_ID = GOV_METRIC_ID AND A.YEAR = YEAR), 'TOTAL') GOV_METRIC_NM
+		        			 , A.GOV_SCORE
+		        			 , A.GOV_WEIGHT
+		        		  FROM (SELECT A.YEAR
+		        		  			 , T.EMPN
+		        		  			 , B.EVAL_CAT_GRP_ID
+		        		  			 , B.EVAL_CAT_ID
+		        		  			 , B.GOV_METRIC_ID
+		        		  			 , SUM(A.GOV_SCORE) GOV_SCORE
+		        		  			 , SUM(B.WEIGHT) GOV_WEIGHT
+		                  		  FROM PRS_DIR_GOV_METRIC T
+		                        	 , GOV_SCORE_YEAR A
+		                       		 , GOV_METRIC B
+		                  		 WHERE B.YEAR = A.YEAR 
+		                    	   AND B.YEAR = #findYear#
+		                    	   AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+		                    	   AND T.EMPN = #findEmpn# 
+		                    	   AND T.POS_TC = #findPosTc#
+		                    	   AND T.YEAR = B.YEAR 
+		                    	   AND T.GOV_METRIC_ID = A.GOV_METRIC_ID
+		                 GROUP BY ROLLUP(A.YEAR, T.EMPN,  B.EVAL_CAT_GRP_ID, B.EVAL_CAT_ID, B.GOV_METRIC_ID)
+		                  ) A 
+				 WHERE A.EVAL_CAT_ID IS NOT NULL) T1
+				 )T2
+           LEFT OUTER JOIN GOV_METRIC T3
+           ON T2.GOV_METRIC_ID = T3.GOV_METRIC_ID
+           AND T2.YEAR = T3.YEAR
+		 ORDER BY EVAL_CAT_GRP_ID, EVAL_CAT_ID , GOV_METRIC_ID, GOV_METRIC_NM DESC
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 정평결과확인 지표점수 유무 조회
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_SCORE_YEAR
+	==================================================================
+	-->
+	<select id="getGovScoreCnt" parameterClass="hashMap" resultClass="java.lang.Integer">
+	
+		SELECT COUNT(A.GOV_SCORE) CNT 
+		  FROM PRS_DIR_EVAL_MEMBER A
+		  	 , V_PRS_RE_MON B           
+         WHERE A.YEAR =  #findYear#             
+	       AND A.YEAR = B.YEAR             
+	       AND A.EMPN = B.EMPN
+		   AND A.EMPN = #findEmpn#
+		   AND B.POS_TC = #findPosTc#
+	
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 정평결과확인 지표관리 임원조회
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_SCORE_YEAR
+	==================================================================
+	-->
+	<select id="getGovScoreYearList" parameterClass="hashMap" resultClass="hashMap">
+	
+	SELECT DISTINCT A.YEAR
+	              , A.EMPN
+	              , A.KOR_NM || '(' || F_CODE_NM('171', B.POS_TC, A.YEAR)  || ')' AS KOR_NM
+	              , A.DEPT_CD
+	              , B.POS_TC
+	          FROM PRS_DIR_EVAL_MEMBER A
+	             , V_PRS_RE_MON B
+	         WHERE A.YEAR = #findYear# 
+	           AND A.YEAR = B.YEAR
+	           AND A.EMPN = B.EMPN
+	           AND A.EVAL_YN = 'Y'
+	             ORDER BY A.DEPT_CD, A.EMPN, B.POS_TC   
+	
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 정평결과확인 정평결과점수 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_SCORE_YEAR
+	==================================================================
+	-->
+	<select id="getDirScoreInfo" parameterClass="hashMap" resultClass="hashMap">
+	
+		SELECT A.EMPN
+			 , SUM(B.GOV_SCORE) SUM
+			 , SUM(C.WEIGHT) WEIGHT
+		  FROM PRS_DIR_GOV_METRIC A
+		  LEFT OUTER JOIN GOV_SCORE_YEAR B
+		    ON A.YEAR = B.YEAR
+		   AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+		 GROUP BY A.EMPN
+	
+	</select>
+	
+	 <!--
+	==================================================================   
+	  # 설명	: 정평결과확인 점수합계 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_DIR_EVAL_MEMBER
+	==================================================================
+	-->	
+	<update id="insertGovTotScore" parameterClass="hashMap">
+		UPDATE PRS_DIR_EVAL_MEMBER AA
+   		   SET 
+   		   	   GOV_SCORE = (
+   		   	   				SELECT SUM_GOV_SCORE 
+						      FROM ( SELECT YEAR,
+						                	EMPN,
+						                	ROUND (SUM(SUM_GOV_SCORE * ( 100 / WEIGHT )), 5) SUM_GOV_SCORE                                    
+									   FROM ( SELECT YEAR,
+						                    		 EMPN,
+													 SUM(SUM_GOV_SCORE) SUM_GOV_SCORE,
+						                    		 SUM(WEIGHT) WEIGHT,
+													 POS_TC                                   
+												FROM ( SELECT A.YEAR,
+															  A.EMPN,
+						                        			  A.POS_TC,
+						                        			  SUM(D.WEIGHT) WEIGHT,
+						                        			  NVL(SUM (B.GOV_SCORE) * C.WORK_MON / DECODE(C.TOT_MON,0,NULL,C.TOT_MON),0) SUM_GOV_SCORE,
+						                        			  C.WORK_MON,
+															  C.TOT_MON                                             
+														 FROM PRS_DIR_GOV_METRIC A                                            
+												   LEFT OUTER JOIN GOV_SCORE_YEAR B                                             
+														   ON A.YEAR = B.YEAR                                            
+														  AND A.GOV_METRIC_ID = B.GOV_METRIC_ID                                            
+												   LEFT OUTER JOIN GOV_METRIC D                                            
+														   ON B.YEAR = D.YEAR                                            
+														  AND B.GOV_METRIC_ID = D.GOV_METRIC_ID                                           
+												   LEFT OUTER JOIN ( SELECT YEAR,
+						                                					EMPN,
+																			POS_TC,
+						                                					SUM(WORK_MON) WORK_MON,
+						                                					( SELECT SUM(WORK_MON)                                                                          
+																				FROM V_PRS_RE_MON                                                                        
+																			   WHERE ( YEAR, EMPN ) IN ( SELECT YEAR,
+						                                            											EMPN 
+																										   FROM PRS_DIR_EVAL_MEMBER 
+																										  WHERE YEAR = A.YEAR )                                                                           
+																				 AND EMPN = A.EMPN ) TOT_MON                                                                 
+																	   FROM V_PRS_RE_MON A                                                                
+																	  WHERE ( YEAR, EMPN ) IN ( SELECT YEAR,
+																									   EMPN 
+						                                    									  FROM PRS_DIR_EVAL_MEMBER 
+						                                    									 WHERE YEAR =  #findYear# )                                                               
+																	  GROUP BY YEAR, EMPN, POS_TC ) C                                                
+														   ON A.YEAR = C.YEAR 
+						                                  AND A.EMPN = C.EMPN 
+						                                  AND A.POS_TC = C.POS_TC                                             
+														GROUP BY A.YEAR,
+																 A.EMPN,
+																 A.POS_TC,
+																 WEIGHT,
+								                                 C.WORK_MON,
+								                                 C.TOT_MON ) T1                                     
+						                       WHERE T1.EMPN IN ( SELECT DISTINCT A.EMPN                                                      
+																	FROM PRS_DIR_GOV_METRIC A                                                        
+															  LEFT OUTER JOIN GOV_SCORE_YEAR B                                                        
+						                                        	  ON A.YEAR = B.YEAR                                                       
+																	 AND A.GOV_METRIC_ID = B.GOV_METRIC_ID )                                  
+														GROUP BY YEAR, EMPN, POS_TC ) GROUP BY YEAR, EMPN) BB
+					         WHERE AA.YEAR = BB.YEAR
+					           AND AA.EMPN = BB.EMPN
+					       ) WHERE AA.YEAR  = #findYear#
+				
+	</update>
+
+	<!--
+	==================================================================   
+	  # 설명	: 정평결과확인 엑셀변환
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_SCORE_YEAR
+	==================================================================
+	-->
+	<select id="getExcelList" parameterClass="hashMap" resultClass="hashMap">
+	
+		SELECT A.YEAR,
+               B.EVAL_CAT_GRP_NM,
+               C.EVAL_CAT_NM,
+               A.GOV_METRIC_NM               
+          FROM GOV_METRIC A
+         INNER JOIN GOV_EVAL_CAT_GRP B
+            ON A.YEAR = B.YEAR AND A.EVAL_CAT_GRP_ID = B.EVAL_CAT_GRP_ID
+         INNER JOIN GOV_EVAL_CAT C
+            ON A.YEAR = C.YEAR AND A.EVAL_CAT_ID = C.EVAL_CAT_ID
+          LEFT OUTER JOIN PRS_DIR_GOV_METRIC D
+            ON A.YEAR = D.YEAR
+           AND A.GOV_METRIC_ID = D.GOV_METRIC_ID
+         WHERE A.YEAR = #findYear#
+           AND D.EMPN = #empn#                                   
+           AND A.DELETE_DT IS NULL
+         START WITH A.UP_METRIC_ID IS NULL
+       CONNECT BY PRIOR A.YEAR = A.YEAR AND PRIOR A.GOV_METRIC_ID = A.UP_METRIC_ID
+		 ORDER SIBLINGS BY B.SORT_ORDER, C.SORT_ORDER, A.SORT_ORDER
+	
+	</select>
+
+</sqlMap>

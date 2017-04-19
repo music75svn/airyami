@@ -1,0 +1,567 @@
+#*************************************************************************
+* CLASS 명      : excUserModify
+* 작 업 자      : 김상용
+* 작 업 일      : 2013년 07월 19일
+* 기    능      : 간부 평가 예외자
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    김상용     2013년 07월 19일             최 초 작 업
+**************************************************************************#
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/prs/exc/excUser/excUserList.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+		/******************************************
+		 * 비율 숫자만 입력
+		 ******************************************/
+		J("#bscRate").numeric();
+		J("#bscRate").css("ime-mode", "disabled");
+
+		J("#prsRate").numeric();
+		J("#prsRate").css("ime-mode", "disabled");
+		
+		#*
+		
+    		J("#orgRate").numeric();
+    		J("#orgRate").css("ime-mode", "disabled");
+			
+		*#
+		
+		J("#effRate").numeric();
+		J("#effRate").css("ime-mode", "disabled");
+
+		
+		/******************************************
+		 * fancybox 설정
+		 ******************************************/
+		J("#anchor").fancybox();
+
+		#* //사용하지 않음
+		
+    		/******************************************
+    		 * 평가방법 설정 변경이벤트
+    		 ******************************************/
+    		J("#evalType0").bind('change', function() {
+    			//dispSection0();
+    		});
+    		J("#evalType1").bind('change', function() {
+    			//dispSection1();
+    		});
+		
+		*#
+
+		/******************************************
+		 * 화면 초기셋팅
+		 ******************************************/
+		init();
+
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+
+		if(!J.checkLength("excGrpNm", "평가예외자명 ", 1, 100)) {
+			return;
+		}
+
+		if(J("#deptId").val() == "" && J("#posTc").val() == ""){
+			J.showMsgBox("부서와 직위 중 한가지는 필수 입력입니다.", null, null);
+			return;
+		}
+		
+		
+		#*
+		//사용하지 않음
+    		if (J("input[name=evalType]:checked").val() == undefined) {
+    			J.showMsgBox("별도 평가방법을 선택해 주십시요", null, "evalType");
+    			return;
+    		}
+    
+    		if (J("input[name=evalType]:checked").val() == "01") {
+    			if (J("input[name=evalGrade]:checked").val() == undefined) {
+    				J.showMsgBox("별도 평가등급을 선택해 주십시요", null, "evalGrade");
+    				return;
+    			}
+    		}
+    		
+		*#
+		
+
+		//if (J("input[name=evalType]:checked").val() == "02") {
+
+			var bscRate = 0;
+			var prsRate = 0;
+			var orgRate = 0;
+			var effRate = 0;
+
+			if(0 == parseInt(J("#bscRate").val())){
+				J("#bscRate").val("");
+			}else if("" != J("#bscRate").val()){
+				bscRate = parseInt(J("#bscRate").val());
+			}
+
+			if(0 == parseInt(J("#prsRate").val())){
+				J("#prsRate").val("");
+			}else if("" != J("#prsRate").val()){
+				prsRate = parseInt(J("#prsRate").val());
+			}
+			
+			
+			#*
+    			if(0 == parseInt(J("#orgRate").val())){
+    				J("#orgRate").val("");
+    			}else if("" != J("#orgRate").val()){
+    				orgRate = parseInt(J("#orgRate").val());
+    			}
+			*#
+			
+			if(0 == parseInt(J("#effRate").val())){
+				J("#effRate").val("");
+			}else if("" != J("#effRate").val()){
+				effRate = parseInt(J("#effRate").val());
+			}
+			
+			if(100 != parseInt(bscRate) + parseInt(prsRate)
+			        + parseInt(effRate)){
+			 	J.showMsgBox("모든 비율의 합이 100%가 되어야 합니다", null, null);
+			 	return;
+			 }
+			 
+			#*
+			//상단 조건절의 원본
+			
+    			if(100 != parseInt(bscRate) + parseInt(prsRate)
+    			        + parseInt(orgRate) + parseInt(effRate)){
+    			 	J.showMsgBox("모든 비율의 합이 100%가 되어야 합니다", null, null);
+    			 	return;
+    			 }
+			 
+			*#
+		//}
+
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/prs/exc/excUser/excUserProcess.vw?type=template").submit();
+	}
+
+	/*****************************************************
+	 * 화면초기셋팅
+	 *****************************************************/
+	function init() {
+
+		J("#excGrpNm").focus();
+		
+		#*
+		//사용하지 않음
+		
+		if(J("#evalType0").is(":checked")){
+			//dispSection0();
+		}else if(J("#evalType1").is(":checked")){
+			//dispSection1();
+		}
+		
+		*#
+
+		var chargeDeptCnt = 0;
+		#foreach($deptList in $deptList)
+			if (chargeDeptCnt == 0) {
+				J("input[name=deptId]").eq(0).val('$!{CS_HTML.txt2html($deptList.DEPT_ID)}');
+    			J("input[name=deptNm]").eq(0).val('$!{CS_HTML.txt2html($deptList.DEPT_NM)}');
+			} else {
+				deptAddMod('$!{CS_HTML.txt2html($deptList.DEPT_ID)}','$!{CS_HTML.txt2html($deptList.DEPT_NM)}');
+			}
+			chargeDeptCnt++;
+		#end
+
+		var chargePosTcCnt = 0;
+		#foreach($posTcList in $posTcList)
+			if (chargePosTcCnt == 0) {
+				J("input[name=posTc]").eq(0).val('$!{CS_HTML.txt2html($posTcList.POS_TC)}');
+    			J("input[name=posTcNm]").eq(0).val(getPosName('$!{CS_HTML.txt2html($posTcList.POS_TC)}', '$!{CS_HTML.txt2html($posTcList.POS_TC_NM)}'));
+			} else {
+				userAddMod('$!{CS_HTML.txt2html($posTcList.POS_TC)}', getPosName('$!{CS_HTML.txt2html($posTcList.POS_TC)}', '$!{CS_HTML.txt2html($posTcList.POS_TC_NM)}'));
+			}
+			chargePosTcCnt++;
+		#end
+	}
+
+	/*****************************************************
+	 * 직위명을 보여줄때 급수도 같이 표시해준다.
+	 *****************************************************/
+	function getPosName(posTc, posNm) {
+		var str = "";
+
+		if (posTc.substr(0, 1) == "0")
+			str = "[임원] " + posNm;
+		else
+			str = "[" + posTc.substr(0, 1) + "급] " + posNm;
+
+		return str;
+	}
+	
+	#*
+	//사용하지 않음
+    	/*****************************************************
+    	 * 평가방법 구분에 의한 등급과 비율을 활성, 비활성 시킨다.
+    	 *****************************************************/
+        function dispSection0() {
+    		//J("#evalSectionArea0").show();
+    		//J("#evalSectionArea1").hide();
+        }
+    
+        function dispSection1() {
+        	//J("#evalSectionArea0").hide();
+    		//J("#evalSectionArea1").show();
+        }
+		
+	*#
+
+	/*****************************************************
+	 * 부서선택 팝업
+	 *****************************************************/
+	function popChargeScDept(deptIndex) {
+		var findSearchCodeId = J("#deptId").val();
+
+		J("#deptCnt").val(deptIndex);
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popScDeptTree1.vw?findYear=$!{searchMap.txt2html("year")}&amp;findSearchCodeId=" + findSearchCodeId);
+		J("#anchor").click();
+	}
+
+	/*****************************************************
+	 * 직위선택 팝업
+	 *****************************************************/
+
+	function popChargeUser(userIndex) {
+		var findSearchCodeId = J("#posTc").val();
+
+		J("#posTcCnt").val(userIndex);
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popPosTcSearch.vw?findYear=$!{searchMap.txt2html("year")}&amp;findSearchCodeId=" + findSearchCodeId);
+		J("#anchor").click();
+	}
+
+
+	/*****************************************************
+	 * 부서선택 설정
+	 *****************************************************/
+	function setDeptInfoPop(deptId, deptNm) {
+		deptNm = J(deptNm).text();
+		var chkCnt = 0;
+		J("input[name=deptId]").each(function() {
+			if($(this).val()==deptId){
+				chkCnt++;
+				J.showMsgBox("선택하신 부서는 이미 선택되었습니다", null, null);
+				return;
+			}
+		});
+
+		if(chkCnt==0){
+    		J("input[name=deptId]").eq(J("#deptCnt").val()).val(deptId);
+    		J("input[name=deptNm]").eq(J("#deptCnt").val()).val(deptNm);
+		}
+
+		J.fancybox.close();
+	}
+
+	/*****************************************************
+	 * 직위선택 설정
+	 *****************************************************/
+	function setUserInfoPop(posTc, posTcNm) {
+		var chkCnt = 0;
+		J("input[name=posTc]").each(function() {
+			if($(this).val()==posTc){
+				chkCnt++;
+				J.showMsgBox("선택하신 직위는 이미 선택되었습니다", null, null);
+				return;
+			}
+		});
+
+		if(chkCnt==0){
+    		J("input[name=posTc]").eq(J("#posTcCnt").val()).val(posTc);
+    		J("input[name=posTcNm]").eq(J("#posTcCnt").val()).val(posTcNm);
+		}
+
+		J.fancybox.close();
+	}
+
+	/*****************************************************
+	 * 조직선택 팝업 취소
+	 *****************************************************/
+	function cancelChargeScDept(deptIndex) {
+		J("input[name=deptId]").eq(deptIndex).val("");
+    	J("input[name=deptNm]").eq(deptIndex).val("");
+	}
+
+	/*****************************************************
+	 * 직위선택 팝업 취소
+	 *****************************************************/
+
+	function cancelChargeUser(userIndex) {
+		J("input[name=posTc]").eq(userIndex).val("");
+    	J("input[name=posTcNm]").eq(userIndex).val("");
+	}
+
+	/******************************************
+	 * 조직 추가
+	 ******************************************/
+	var deptIndex = 1;
+
+	function deptAdd() {
+		J("#deptAttach").append("<li id=\"deptRow" + deptIndex + "\"><input type=\"hidden\" id=\"deptId\" name=\"deptId\"/><input type=\"text\" id=\"deptNm\" name=\"deptNm\" class=\"inputbox w170\" maxlength=\"20\" readonly/> <input type=\"image\" onclick=\"javascript:popChargeScDept(" + deptIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/board/ic_search.gif\" alt=\"부서선택\"/> <input type=\"image\" onclick=\"javascript:cancelChargeScDept(" + deptIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/board/ic_cancel.gif\" alt=\"부서선택취소\"/> <input type=\"image\" onclick=\"javascript:deptDeleteRow(" + deptIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/bt_10.gif\" alt=\"삭제\"/></li>");
+
+		deptIndex++;
+	}
+
+	function deptAddMod(deptId, deptNm) {
+		J("#deptAttach").append("<li id=\"deptRow" + deptIndex + "\"><input type=\"hidden\" id=\"deptId\" value=\"" + deptId + "\" name=\"deptId\" /><input type=\"text\" id=\"deptNm\" name=\"deptNm\" value=\"" + deptNm + "\" class=\"inputbox w170\" maxlength=\"20\" readonly/> <input type=\"image\" onclick=\"javascript:popChargeScDept(" + deptIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/board/ic_search.gif\" alt=\"부서선택\"/> <input type=\"image\" onclick=\"javascript:cancelChargeScDept(" + deptIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/board/ic_cancel.gif\" alt=\"부서선택취소\"/> <input type=\"image\" onclick=\"javascript:deptDeleteRow(" + deptIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/bt_10.gif\" alt=\"삭제\"/></li>");
+
+		deptIndex++;
+	}
+
+	function deptDeleteRow(deptIndexP)	{
+		J("#deptRow" + deptIndexP).remove();
+		deptIndex--;
+	}
+
+	/******************************************
+	 * 직위 추가
+	 ******************************************/
+
+	var userIndex = 1;
+
+	function userAdd() {
+		J("#userAttach").append("<li id=\"userRow" + userIndex + "\"><input type=\"hidden\" id=\"posTc\" name=\"posTc\"/><input type=\"text\" id=\"posTcNm\" name=\"posTcNm\" class=\"inputbox w170\" maxlength=\"20\" readonly/> <input type=\"image\" onclick=\"javascript:popChargeUser(" + userIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/board/ic_search.gif\" alt=\"직위선택\"/> <input type=\"image\" onclick=\"javascript:cancelChargeUser(" + userIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/board/ic_cancel.gif\" alt=\"직위선택취소\"/> <input type=\"image\" onclick=\"javascript:userDeleteRow(" + userIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/bt_12.gif\" alt=\"삭제\"/></li>");
+
+		userIndex++;
+	}
+
+	function userAddMod(posTc, posTcNm) {
+		J("#userAttach").append("<li id=\"userRow" + userIndex + "\"><input type=\"hidden\" id=\"posTc\" value=\"" + posTc + "\" name=\"posTc\" /><input type=\"text\" id=\"posTcNm\" name=\"posTcNm\" value=\"" + posTcNm + "\" class=\"inputbox w170\" maxlength=\"20\" readonly/> <input type=\"image\" onclick=\"javascript:popChargeUser(" + userIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/board/ic_search.gif\" alt=\"직위선택\"/> <input type=\"image\" onclick=\"javascript:cancelChargeUser(" + userIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/board/ic_cancel.gif\" alt=\"직위선택취소\"/> <input type=\"image\" onclick=\"javascript:userDeleteRow(" + userIndex + ");return false;\" class=\"valign_middle\" src=\"$!{img_path}/common/bt_12.gif\" alt=\"삭제\"/></li>");
+
+		userIndex++;
+	}
+
+	function userDeleteRow(userIndexP)	{
+		J("#userRow" + userIndexP).remove();
+		userIndex--;
+	}
+
+
+//]]>
+</script>
+
+<form id="form1" name="form1" method="post" action="$!{context_path}/prs/exc/excUser/excUserProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden" 	id="deptCnt"		name="deptCnt"		 />
+	<input type="hidden" 	id="posTcCnt"		name="posTcCnt"		 />
+
+    $!{searchMap.makeHiddenFind()}
+
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>
+                    <table summary="검색조건">
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="간부 평가예외자 등록">
+					<caption class="none">간부 평가예외자 등록</caption>
+    				<colgroup>
+    					<col width="16%" />
+    					<col width="84%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row">
+    							<label for="excGrpId">평가예외자 코드</label>
+    						</th>
+    						<td colspan="4">
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.EXC_GRP_ID)}
+									<input type="hidden" id="excGrpId" name="excGrpId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.EXC_GRP_ID)}" maxlength="7" readonly="readonly"/>
+								#else
+									<input type="hidden" id="excGrpId" name="excGrpId" class="inputbox w100" maxlength="7" />
+                                    ※ 저장시 자동으로 부여됩니다.
+								#end
+							</td>
+    					</tr>
+						<tr>
+							<th scope="row">
+								<span class="txt_red">(*)</span> <label for="excGrpNm">평가예외자</label>
+							</th>
+							<td colspan="4">
+								<input type="text" id="excGrpNm" name="excGrpNm" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.EXC_GRP_NM)}' maxlength="50"/>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="">부서</label></th>
+							<td colspan="4">
+								<input type="hidden" id="deptId" name="deptId"  />
+								<input type="text" id="deptNm" name="deptNm" class="inputbox w170" readonly maxlength="20" />
+								<input type="image" onclick="javascript:popChargeScDept(0);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_search.gif" alt="부서선택"/>
+								<input type="image" onclick="javascript:cancelChargeScDept(0);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_cancel.gif" alt="부서선택취소"/>
+								<input type="image" onclick="javascript:deptAdd();return false;" class="valign_middle" src="$!{img_path}/common/bt_09.gif"  alt="부서추가"/>
+								<div>
+									<ul id="deptAttach">
+									</ul>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="">직위</label></th>
+							<td colspan="4">
+								<input type="hidden" id="posTc" name="posTc"  />
+								<input type="text" id="posTcNm" name="posTcNm" class="inputbox w170" readonly maxlength="20" />
+								<input type="image" onclick="javascript:popChargeUser(0);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_search.gif" alt="직위선택"/>
+								<input type="image" onclick="javascript:cancelChargeUser(0);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_cancel.gif" alt="직위선택취소"/>
+								<input type="image" onclick="javascript:userAdd();return false;" class="valign_middle" src="$!{img_path}/common/bt_11.gif"  alt="직위추가"/>
+								<div>
+									<ul id="userAttach">
+									</ul>
+								</div>
+							</td>
+						</tr>
+						#*
+    						<tr>
+    							<th scope="row">
+    								<span class="txt_red">(*)</span><label for="evalType">별도 평가방법</label>
+    							</th>
+    							<td colspan="4">
+    								$!CS_CODE.getCodeRadio("evalType", "178", $!{CS_HTML.txt2html($detail.EVAL_TYPE,'01')}, $!{searchMap.txt2html("findYear")})
+    							</td>
+    						</tr>
+						*#
+					</tbody>
+				</table>
+			</div>
+			#*
+    			<div id="evalSectionArea0" class="blockDetail2 none">
+    				<table>
+    					<tbody>
+    						<caption class="none">평가 등급</caption>
+        						<colgroup>
+    		    					<col width="16%" />
+    		    					<col width="84%" />
+        						</colgroup>
+    						<tr>
+    							<th scope="row"><span class="txt_red">(*)</span><label for="evalGrade">등급</label></th>
+    							<td style="text-align: left;">
+    								$!CS_CODE.getCodeRadio("evalGrade", "164", $!{CS_HTML.txt2html($detail.EVAL_GRADE,'01')}, $!{searchMap.txt2html("findYear")})
+    							</td>
+    						</tr>
+    					</tbody>
+    				</table>
+    			</div>
+			*#
+			<div id="evalSectionArea1" class="blockDetail">
+				<table>
+					<tbody>
+						<caption class="none">평가 비율</caption>
+    						<colgroup>
+		    					<col width="16%" />
+		    					<col width="21%" />
+		    					<col width="21%" />
+		    					<col width="21%" />
+		    					<col width="21%" />
+    						</colgroup>
+						<tr>
+							<th rowspan="2" scope="row">
+								<label for=""><span class="txt_red">(*)</span>비율</label>
+							</th>
+							<td class="textCenter">
+								조직업적평가
+							</td>
+							<td class="textCenter">
+								개인업적평가
+							</td>
+							#*
+    							<td class="textCenter">
+    								조직관리역량평가
+    							</td>
+							*#
+							<td class="textCenter">
+								종합경영효율성
+							</td>
+						</tr>
+						<tr>
+							<td class="textCenter">
+								<input type="text" id="bscRate" name="bscRate" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.BSC_RATE)}' maxlength="3"/> %
+							</td>
+							<td class="textCenter">
+								<input type="text" id="prsRate" name="prsRate" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.PRS_RATE)}' maxlength="3"/> %
+							</td>
+							#*
+    							<td class="textCenter">
+    								<input type="text" id="orgRate" name="orgRate" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.ORG_RATE)}' maxlength="3"/> %
+    							</td>
+							*#
+							<td class="textCenter">
+								<input type="text" id="effRate" name="effRate" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.EFF_RATE)}' maxlength="3"/> %
+							</td>
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton">
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>
+    	</div>
+    	<a id="anchor"></a>
+    	<div class="clear"></div>
+    </div>
+</form>

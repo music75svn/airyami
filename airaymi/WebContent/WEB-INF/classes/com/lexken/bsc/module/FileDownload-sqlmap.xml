@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="FileDownload">
+
+	<!--
+	==================================================================   
+	  # 설명		: typeAlias 선언
+	  #	기능		: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================   
+	  # 설명	: 파일 다운로드 path 경로 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->
+	<select id="getFiledownloadPath" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT F_DECRYPT(#fileName#,#encryptionCode#) FROM DUAL
+	</select>
+	
+	
+</sqlMap>
+
+

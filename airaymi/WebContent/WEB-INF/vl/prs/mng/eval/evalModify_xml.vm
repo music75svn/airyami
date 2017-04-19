@@ -1,0 +1,48 @@
+#*************************************************************************
+* CLASS 명      : evalModify_xml.vm
+* 작 업 자      : 김상용
+* 작 업 일      : 2013년 06월 14일 
+* 기    능      : 간부개인업적평가 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김상용     2013년 06월 14일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"				: "$!{CS_HTML.txt2html($list.YEAR)}",
+		"EVAL_MEMB_EMPN"	: "$!{CS_HTML.txt2html($list.EVAL_MEMB_EMPN)}",
+        "EVAL_MEMB_EMPN_SEQ": "$!{CS_HTML.txt2html($list.EVAL_MEMB_EMPN_SEQ)}",
+        "SEQS"              : "$!{CS_HTML.txt2html($list.SEQS)}",
+		"KOR_NM"			: "$!{CS_HTML.txt2html($list.KOR_NM)}", 
+		"EVAL_GRP_ID"		: "$!{CS_HTML.txt2html($list.EVAL_GRP_ID)}",
+		"EVAL_END_YN"		: "$!{CS_HTML.txt2html($list.EVAL_END_YN)}",
+		"EVAL_END_NM"		:  "#if($list.EVAL_END_YN == "Y")평가완료#else평가진행중#end",
+		#foreach($evalItem in $evalItemList)
+			"$!CS_HTML.txt2html($evalItem.EVAL_ITEM_ID)"	: "$!{CS_HTML.txt2html($list.get($evalItem.EVAL_ITEM_ID))},$!{CS_HTML.txt2html($evalItem.EVAL_ITEM_ID)}",
+		#end
+		
+		"EXTRA_POINT_EMPN"	: "$!{CS_HTML.txt2html($list.EXTRA_POINT_EMPN)}",
+		"RPT_YN"			: "$!{CS_HTML.txt2html($list.RPT_YN)}",
+		"SCORE"				: "$!{CS_HTML.txt2html($list.SCORE)}",
+		"EXTRA_POINT"		: "$!{CS_HTML.txt2html($list.EXTRA_POINT)}",
+		"BSC_SCORE"			: "$!{CS_HTML.txt2html($list.BSC_SCORE)}",
+		"ORG_SCORE"			: "$!{CS_HTML.txt2html($list.ORG_SCORE)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

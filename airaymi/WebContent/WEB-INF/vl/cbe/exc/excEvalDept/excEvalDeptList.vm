@@ -1,0 +1,388 @@
+#*************************************************************************
+* CLASS 명      : excEvalDeptList
+* 작 업 자      : 안요한
+* 작 업 일      : 2013년 07월 13일 
+* 기    능      : 별도평가부서
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     안요한      2013년 07월 13일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/cbe/exc/excEvalDept/excEvalDeptList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/cbe/exc/excEvalDept/excEvalDeptList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '평가차수 코드', '평가조직 코드', '별도평가대상부서', '평가방법', '사업추진담당자ID','사업추진보고서담당자', '제출여부', '사업추진보고서<br>대상여부','개수'],
+			colModel     :[
+							{name:'YEAR'                 ,index:'YEAR'					,width:150   ,align:'center' }, 
+                            {name:'EVAL_DEGREE_ID'       ,index:'EVAL_DEGREE_ID'		,width:150   ,align:'center' }, 
+                            {name:'SC_DEPT_ID'           ,index:'SC_DEPT_ID'			,width:150   ,align:'center' }, 
+                            {name:'SC_DEPT_NM'           ,index:'SC_DEPT_NM'			,width:200   ,align:'left'   ,formatter:linkUpdate}, 
+                            {name:'EVAL_METHOD_NM'       ,index:'EVAL_METHOD_NM'		,width:200   ,align:'center' }, 
+                            {name:'RPT_EMPN'			 ,index:'RPT_EMPN' 				,width:100   ,align:'center' }, 
+                            {name:'RPT_EMPN_NM'			 ,index:'RPT_EMPN_NM' 			,width:100   ,align:'center' }, 
+							{name:'EVAL_SUBMIT_YN'       ,index:'EVAL_SUBMIT_YN'		,width:100   ,align:'center' },
+							{name:'RPT_YN'       		 ,index:'RPT_YN'				,width:50    ,align:'center' },
+							{name:'BASE_CNT'             ,index:'BASE_CNT'				,width:100   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			loadComplete : function() {
+    							var ids = J("#list").jqGrid('getDataIDs');
+    							J("#list input:checkbox").each(function(index) {
+    								var rowdata = J("#list").getRowData(ids[index]);
+									if(rowdata.EVAL_SUBMIT_YN == 'Y' ) { //비교조건 대상 컬럼
+    									J("#list input:checkbox[name=jqg_list_" + (index+1) + "]").hide();
+    								}
+								});
+                           },
+			caption:"별도평가부서"
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"EVAL_DEGREE_ID").jqGrid('hideCol',"EVAL_METHOD_NM").jqGrid('hideCol',"SC_DEPT_ID").jqGrid('hideCol',"RPT_EMPN").jqGrid('hideCol',"EVAL_SUBMIT_YN").jqGrid('hideCol',"BASE_CNT").setGridWidth($!{jqGrid_width});
+		
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+        
+        /******************************************
+		 * 별도평가부서가져오기 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcDetp").click(function() {
+			if('$!{CS_HTML.txt2html($confirmYn.DEPT_YN)}' == 'Y'){
+		
+    			J.showMsgBox("확정되어 별도평가부서를 가져올수 없습니다..", null, null);
+    			return;
+    		
+    		} else {
+				getExcDept();
+				return false;
+			}
+		});
+		
+		/******************************************
+		 * 확정버튼 이벤트
+		 ******************************************/
+		J("#btnConfirm").click(function(e) {
+			e.preventDefault();
+			getConfirm();
+		});
+		
+		/******************************************
+		 * 확정취소버튼 이벤트
+		 ******************************************/
+		J("#btnCancle").click(function(e) {
+			e.preventDefault();
+			btnCancle();
+		});
+        
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#year").val(J("#findYear").val());
+			J("#evalDegreeId").val(J("#findEvalDegreeId").val());
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/cbe/exc/excEvalDept/excEvalDeptModify.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+		
+		/******************************************
+		 * 년도별 평가단 change 이벤트
+		 ******************************************/
+		$('#findYear').change(function(){
+			chgEvalGrp();
+		});
+	});
+	
+	/******************************************
+	 * 년도별 평가구분 조회
+	 ******************************************/
+	function chgEvalGrp(){
+		
+		J.ajax({
+        	url      : "$!{context_path}/cbe/exc/excEvalDept/getDegreeList_ajax.vw",﻿
+        	cache    : false,
+        	type     : "POST",
+			data     : J("#formFind").serialize(),
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+				var xmlDoc = J.parseXML(data);
+        		J("#findEvalDegreeId").empty();
+				J(xmlDoc).find("data").each(function() {
+					J('<option/>').attr('value', J(this).find("value").text()).text(J(this).find("text").text()).appendTo('#findEvalDegreeId');
+				})
+			}
+    	});
+	}
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function getConfirm() {
+		
+		J.showConfirmBox("확정하시겠습니까?", "Confirm"); //Confirm() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 확정
+	 ******************************************/
+	function Confirm() {
+		
+		J("#mode").val("CONF");
+		J("#year").val(J("#findYear").val());
+		J("#deptYn").val('Y');
+		J("#formList").attr("action", "$!{context_path}/cbe/exc/excEvalDept/excEvalDeptProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 확정취소처리
+	 ******************************************/
+	function btnCancle(){
+		
+		J.showConfirmBox("확정을 취소 하시겠습니까?", "CancelDo"); //CancelDo() 콜백함수 호출
+		
+	}
+	
+	/******************************************
+	 * 확정취소처리
+	 ******************************************/
+	function CancelDo() {
+		J("#mode").val("CONF");
+		J("#year").val(J("#findYear").val());
+		J("#deptYn").val('N');
+		J("#formList").attr("action", "$!{context_path}/cbe/exc/excEvalDept/excEvalDeptProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) { 
+		return '<a href=javascript:goModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		
+		if('$!{CS_HTML.txt2html($closeYn)}' == 'Y'){
+		
+			J.showMsgBox("평가가 마감되어 수정할수 없습니다.", null, null);
+			return;
+		
+		}
+		
+		if(ret.EVAL_SUBMIT_YN == 'Y'){
+		
+			J.showMsgBox(J(ret.SC_DEPT_NM).text()+"부서의 평가가 제출되어 수정할수 없습니다.", null, null);
+			return;
+		
+		}
+		
+		J("#evalDegreeId").val(ret.EVAL_DEGREE_ID);
+		J("#scDeptId").val(ret.SC_DEPT_ID);
+		J("#year").val(J("#findYear").val());
+		J("#mode").val("MOD");
+		J("#formList").attr("action", "$!{context_path}/cbe/exc/excEvalDept/excEvalDeptModify.vw?type=template").submit();
+	}
+    
+	/******************************************
+	 * 삭제
+	 ******************************************/
+	function goDelete() {
+	
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("삭제할 데이터를 선택하십시요", null, null); 
+		} else {
+			J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+    
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var evalDegreeIds = "";
+		var scDeptIds = "";
+		var rptEmpns = "";
+        
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					evalDegreeIds += rowdata.EVAL_DEGREE_ID + '|';
+					scDeptIds += rowdata.SC_DEPT_ID + '|';
+					if("" == rowdata.RPT_EMPN) {
+					 	rptEmpns += "null" + '|';
+					} else {
+						rptEmpns += rowdata.RPT_EMPN + '|';
+					}
+				}
+			});
+		}
+        
+		J("#evalDegreeIds").val(evalDegreeIds);
+		J("#scDeptIds").val(scDeptIds);
+		J("#rptEmpns").val(rptEmpns);
+		
+		J("#mode").val("DEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/cbe/exc/excEvalDept/excEvalDeptProcess.vw?type=template").submit();
+		return false;
+	}
+	
+	/******************************************
+	 * 별도평가부서 불러오기
+	 ******************************************/
+	function getExcDept() {
+		J.showConfirmBox("별도평가부서 불러오기를 하시면 기존에 입력한 데이터가 삭제됩니다. 진행하시겠습니까?", "getExcDeptInfo"); //getExcDeptInfo() 콜백함수 호출
+	}
+	
+	function getExcDeptInfo() {
+		J("#mode").val("GET");
+		J("#evalDegreeId").val(J("#findEvalDegreeId").val());
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/cbe/exc/excEvalDept/excEvalDeptProcess.vw?type=template").submit();
+	}
+	
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">별도평가부서</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/cbe/exc/excEvalDept/excEvalDeptList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="별도평가부서검색 조건">
+						<caption class="none">별도평가부서 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+                					<span><label for="findEvalDegreeId">평가구분</label></span>
+									<span class="searchBar">
+										<select id="findEvalDegreeId" name="findEvalDegreeId" class="select w120">
+            								#foreach($evalDegreeList in $evalDegreeList)
+												<option value="$!{CS_HTML.txt2html($evalDegreeList.EVAL_DEGREE_ID)}" $searchMap.getSelected("findEvalDegreeId", "$!{CS_HTML.txt2html($evalDegreeList.EVAL_DEGREE_ID)}")>$!{CS_HTML.txt2html($evalDegreeList.EVAL_DEGREE_NM)}</option>
+											#end
+            							</select> 
+									</span>
+                                </td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/cbe/exc/excEvalDept/excEvalDeptProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"       		name="year" />
+			<input type="hidden" id="yearNm"     		name="yearNm" />
+			<input type="hidden" id="evalDegreeIds" 	name="evalDegreeIds" /> 
+			<input type="hidden" id="evalDegreeId"  	name="evalDegreeId" />
+			<input type="hidden" id="evalDegreeNm"  	name="evalDegreeNm" />
+			<input type="hidden" id="scDeptIds" 		name="scDeptIds" /> 
+			<input type="hidden" id="scDeptId"  		name="scDeptId" />
+			<input type="hidden" id="rptEmpns"  		name="rptEmpns" />
+			<input type="hidden" id="rptEmpn"  			name="rptEmpn" />
+			<input type="hidden" id="deptYn"  			name="deptYn" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="별도평가부서 조회결과">
+							<caption class="none">별도평가부서 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton" style="float:left; text-align:left; width:130px;">
+							<input id="btnExcDetp" type="button" align="middle" value="별도평가대상부서 가져오기" alt="별도평가대상부서 가져오기" />
+						</div>
+						<div class="blockButton">
+							<ul>
+								#if($!{CS_HTML.txt2html($confirmYn.DEPT_YN)} != "Y")
+									<li><input type="button" id="btnInsert" value="신규" /></li>
+									<li><input type="button" id="btnDelete" value="삭제" /></li>
+									<li><input type="button" id="btnConfirm" value="확정" /></li>
+								#else
+	    							<li><input type="button" id="btnCancle" value="확정취소" /></li>
+	    						#end
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+	</div>
+	<div class="clear"></div>
+</div>

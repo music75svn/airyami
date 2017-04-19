@@ -1,0 +1,176 @@
+#*************************************************************************
+* CLASS 명      : memEvalActSearchList
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년 03월30일 
+* 기    능      : 실적조회  
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    유연주      2017년 03월 30일             최 초 작 업 
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/mem/eval/memActIn/popMemSelfEvalList.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	var grdRowId = 0;
+	
+	J(document).ready(function(){
+		if("$!{searchMap.txt2html("metricId")}" != ""){
+			if("$!{searchMap.txt2html("typeId")}" == "01"){
+				goActualMngAction("$!{searchMap.txt2html("metricId")}", "$metricInfo.METRIC_NM", "$!{searchMap.txt2html("evalCycleId")}");
+			}
+			goActionPlanAction("$!{searchMap.txt2html("metricId")}", "$metricInfo.METRIC_NM", "$!{CS_HTML.txt2html($periodInfo.ACT_IN_TERM)}");
+		}
+		/******************************************
+		 * 닫기버튼 이벤트
+		 ******************************************/
+		J("#btnClose").click(function(e) {
+			self.close();
+		});
+	});
+	
+	/*****************************************
+	 * 전략과제 Rowspan 설정
+	 ******************************************/
+	function attrSetting(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.CAL_NUM;
+		var rowSpan = rowObject.CAL_CNT;
+
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+
+		return result;
+	}
+	
+	/******************************************
+	 * 조회
+	 ******************************************/
+    function goActualMngAction(metricId, metricNm, evalCycleId) {
+		var mode = "$!{searchMap.txt2html("mode")}";
+		var year = J("#year").val();
+		var findActualType = "$!{searchMap.txt2html("findActualType")}";
+		
+		J("#metricId").val(metricId);
+		J("#metricNm").val(metricNm);
+		J("#evalCycleId").val(evalCycleId);
+
+		J.ajax({
+        	url      : "$!{context_path}/mem/eval/memActIn/memActualMngDetailList.vw",
+        	cache    : false,
+        	type     : "POST",
+			data     : "mode=" + mode + "&year=" + year + "&amp;evalCycleId=" + evalCycleId + "&amp;findYear=" + year + "&amp;findEvalCycleId=" + evalCycleId + "&amp;metricNm=" + metricNm + "&amp;metricId=" + metricId + "&amp;findActualType=" + findActualType,
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+        		J("#detailActualMngData").empty();  //body부분 div를 empty 시켜줌(empty를 시키지 않을 경우 메모리릭 발생)
+        		J("#detailActualMngData").append(data);
+        	}
+    	});
+	}
+	
+	/******************************************
+	 * 조회
+	 ******************************************/
+    function goActionPlanAction(metricId, metricNm, actInTerm) {
+    	var mode = "$!{searchMap.txt2html("mode")}";
+		var year = J("#year").val();
+		var findActualType = "$!{searchMap.txt2html("findActualType")}";
+
+		J.ajax({
+        	url      : "$!{context_path}/mem/eval/memActIn/memActionPlanList.vw",
+        	cache    : false,
+        	type     : "POST",
+			data     : "mode=" + mode + "&year=" + year + "&amp;actInTerm=" + actInTerm + "&amp;findYear=" + year + "&amp;findActInTerm=" + actInTerm + "&amp;metricNm=" + metricNm + "&amp;metricId=" + metricId + "&amp;findActualType=" + findActualType,
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+        		J("#detailActionPlanData").empty();  //body부분 div를 empty 시켜줌(empty를 시키지 않을 경우 메모리릭 발생)
+        		J("#detailActionPlanData").append(data);
+        	}
+    	});
+	}
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" enctype="multipart/form-data" action="$!{context_path}/mem/eval/memActIn/memActInProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="empNo"          name="empNo"          value="$!{searchMap.txt2html("empNo")}" />
+	<input type="hidden" 	id="year"       	name="year" 		  value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"    id="evalGubun"      name="evalGubun"      value="$!{searchMap.txt2html("evalGubun")}" />
+	<input type="hidden"    id="evalEmpNo"      name="evalEmpNo"      value="$!{searchMap.txt2html("evalEmpNo")}" />
+	<input type="hidden"    id="deptCd"         name="deptCd"         value="$!{searchMap.txt2html("deptCd")}" />
+	<input type="hidden"    id="deptNm"         name="deptNm"         value="$!{searchMap.txt2html("deptNm")}" />
+	<input type="hidden"    id="evalGrpId"      name="evalGrpId"      value="$!{searchMap.txt2html("evalGrpId")}" />
+	<input type="hidden"    id="evalGrpNm"      name="evalGrpNm"      value="$!{searchMap.txt2html("evalGrpNm")}" />
+	
+    $!{searchMap.makeHiddenFind()}
+	<br>
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">기준년월 <span class="searchBar">$!{searchMap.txt2html("findYear")}년 
+							#if($!{searchMap.txt2html("baseMon")} != '')
+								      $!{searchMap.txt2html("baseMon")}월</span>
+							#end
+								</td>
+								<td class="searchBox_tit w250">성과지표 <span class="searchBar">$metricInfo.METRIC_NM</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    	</div>
+		<div id="Table_blockContainer">
+			<div id="splitterBox">
+				<div>
+					<!-- 실적입력 Start -->
+					<div id="detailActualMngData" class="blockGridListTable"></div>
+					<!-- 실적입력 End -->
+
+					<!-- ActionPlan Start -->
+					<div id="detailActionPlanData" class="blockGridListTable"></div>
+					<!-- ActionPlan End -->
+
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							##<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+			    				<li><input type="button" id="btnClose"   value="닫기" /></li>&nbsp;
+							</ul>
+						</div>
+					</div>
+					<br><br>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>

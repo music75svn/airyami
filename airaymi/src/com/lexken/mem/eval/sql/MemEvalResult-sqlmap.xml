@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.eval.memEvalResult">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MEM_MEET
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가확정 정보 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ALL_STD_DEVIATION
+	==================================================================
+	-->
+	<select id="getEvalConfirmInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+		       NVL(A.EVAL_CONFIRM_YN, 'N') AS EVAL_CONFIRM_YN
+		     , ALL_AVERAGE
+		     , ALL_STD_DEVIATION
+		  FROM MEM_EVAL_RESULT A
+		 WHERE A.YEAR = #findYear#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가비율 정보 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EVAL_USER_RATE
+	==================================================================
+	-->
+	<select id="getEvalRateInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+		       SUM(DECODE(A.EVAL_USER_GUBUN_ID, '01', MAX(EVAL_RATE))) EVAL_1_RATE
+		     , SUM(DECODE(A.EVAL_USER_GUBUN_ID, '02', MAX(EVAL_RATE))) EVAL_2_RATE
+		     , SUM(DECODE(A.EVAL_USER_GUBUN_ID, '03', MAX(EVAL_RATE))) PEER_RATE
+		  FROM MEM_EVAL_USER_RATE A
+		 WHERE A.YEAR = #findYear#
+		 GROUP BY A.EVAL_USER_GUBUN_ID
+	</select>
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 업무수행평가결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_USER, MEM_EVAL_SCORE_RESULT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		       A.YEAR
+		     , A.EMP_NO
+		     , A.EMP_NM
+		     , F_DEPT_LEV2_NM(A.YEAR, A.DEPT_CD) AS DEPT_NM
+		     , A.EVAL_GRP_ID
+		     , F_CODE_NM('170', A.CAST_TC , A.YEAR) AS CAST_NM 
+		     , F_CODE_NM('171', A.POS_TC , A.YEAR) AS POS_NM
+		     , B.EVAL_1_SCORE
+		     , B.EVAL_2_SCORE
+		     , B.PEER_SCORE
+		     , B.PEER_ADJUST_SCORE
+		     , B.TOT_SCORE
+		  FROM MEM_USER A
+		     , MEM_EVAL_SCORE_RESULT B
+		 WHERE 1 = 1
+		   AND A.YEAR = B.YEAR(+)
+		   AND A.EMP_NO = B.EMP_NO(+)
+		   AND A.YEAR = #findYear#
+		   AND A.EVAL_TGT_YN = 'Y'
+	<isNotEmpty prepend="AND" property="findEmpNm">
+	           A.EMP_NM LIKE '%' || TRIM(#findEmpNm#) || '%'
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="findCastTc">
+	           A.CAST_TC = #findCastTc#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="findPosTc">
+	           A.POS_TC = #findPosTc#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="findDeptCd">
+	           A.DEPT_CD = #findDeptCd#
+	</isNotEmpty>
+		 ORDER BY A.EMP_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 업무수행평가 동료평가결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EVAL_PEER_RESULT, BSC_INSA, BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getPeerList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		       A.YEAR
+		     , F_DEPT_LEV2_NM(A.YEAR, A.EVAL_PEER_DEPT_CD) AS EVAL_DEPT_NM
+			 , F_CODE_NM('170', A.EVAL_PEER_CAST_TC , A.YEAR) AS EVAL_CAST_NM 
+			 , F_CODE_NM('171', A.EVAL_PEER_POS_TC , A.YEAR) AS EVAL_POS_NM
+		     , A.EVAL_PEER_EMP_NO AS EVAL_EMP_NO
+		     , B.KOR_NM AS EVAL_EMP_NM
+		     , A.CHANGE_SCORE
+		     , A.AVERAGE
+		     , A.STD_DEVIATION
+		     , A.ADJUST_SCORE
+		  FROM MEM_EVAL_PEER_RESULT A
+		     , BSC_INSA B
+		 WHERE 1 = 1
+		   AND A.YEAR = B.YEAR
+		   AND A.EVAL_PEER_EMP_NO = B.EMPN
+		   AND A.YEAR = #findYear#
+		   AND A.EMP_NO = #findEmpNo#
+		   AND A.EVAL_GRP_ID = #findEvalGrpId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 업무수행평가 결과 확정
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_EVAL_RESULT
+	==================================================================
+	-->	
+	<insert id="confirmEvalResultData" parameterClass="hashMap">
+	 	 MERGE INTO MEM_EVAL_RESULT A
+		       USING DUAL
+		          ON (A.YEAR = #year#)
+		  WHEN MATCHED THEN
+		       UPDATE SET 
+<isNotEmpty property="evalConfirmYn">
+		              EVAL_CONFIRM_YN = #evalConfirmYn#
+</isNotEmpty>
+<isEmpty property="evalConfirmYn">
+		              ALL_AVERAGE = #allAverage#
+		            , ALL_STD_DEVIATION = #allStdDeviation#
+</isEmpty>
+		  WHEN NOT MATCHED THEN
+		       INSERT (
+		              YEAR
+		            , EVAL_CONFIRM_YN
+		            , CREATE_DT
+		       ) VALUES (
+		              #year#
+		            , #evalConfirmYn#
+		            , SYSDATE
+		       )		
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 점수결과 전체 삭제
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_EVAL_SCORE_RESULT
+	==================================================================
+	-->	
+	<delete id="deletePeerResultAllData" parameterClass="hashMap">
+	 	 DELETE FROM MEM_EVAL_PEER_RESULT
+	 	  WHERE YEAR = #year#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 점수계산 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_EVAL_SCORE_RESULT
+	==================================================================
+	-->	
+	<insert id="insertPeerResultData" parameterClass="hashMap">
+		INSERT INTO MEM_EVAL_PEER_RESULT (YEAR, EMP_NO, EVAL_PEER_EMP_NO, EVAL_GRP_ID, EVAL_PEER_DEPT_CD, EVAL_PEER_CAST_TC
+		                                , EVAL_PEER_POS_TC, CHANGE_SCORE, AVERAGE, STD_DEVIATION, ADJUST_SCORE
+		                                , CREATE_DT)
+		SELECT
+		       A.YEAR
+		     , A.EMP_NO
+		     , A.EVAL_PEER_EMP_NO
+		     , A.EVAL_GRP_ID
+		     , A.EVAL_PEER_DEPT_CD
+		     , A.EVAL_PEER_CAST_TC
+		     , A.EVAL_PEER_POS_TC
+		     , A.CHANGE_SCORE
+		     , A.ALL_AVERAGE
+		     , A.STD_DEVIATION		    
+		     , ROUND(TO_NUMBER(#allAverage#) + ((A.CHANGE_SCORE - A.ALL_AVERAGE)*(TO_NUMBER(#allStdDeviation#))), 2 / A.STD_DEVIATION) AS ADJUST_SCORE
+			 , SYSDATE AS CREATE_DT
+		FROM(
+				SELECT 
+				       A.YEAR
+				     , A.EMP_NO
+				     , A.EVAL_PEER_EMP_NO
+				     , A.EVAL_GRP_ID
+				     , A.EVAL_PEER_DEPT_CD
+				     , A.EVAL_PEER_CAST_TC
+				     , A.EVAL_PEER_POS_TC
+				     , B.CHANGE_SCORE
+                     , AVG(B.CHANGE_SCORE) OVER (PARTITION BY A.EVAL_PEER_EMP_NO) AS ALL_AVERAGE
+					 , STDDEV(B.CHANGE_SCORE) OVER (PARTITION BY A.EVAL_PEER_EMP_NO) AS STD_DEVIATION
+				  FROM MEM_PEER_EVAL_USER A
+				     , MEM_EVAL_EMP B
+				     , MEM_EVAL_STATE C
+				 WHERE 1 = 1
+				   AND A.YEAR = #year#
+				   AND A.YEAR = B.YEAR
+				   AND A.EMP_NO = B.EMP_NO
+				   AND A.EVAL_PEER_EMP_NO = B.EVAL_EMP_NO
+				   AND B.EVAL_GUBUN = '03'
+				   AND A.YEAR = C.YEAR
+				   AND A.EVAL_PEER_EMP_NO = C.EVAL_EMP_NO
+				   AND C.EVAL_GUBUN = '03'
+				   AND C.EVAL_STATE = 'Y'
+		) A
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 점수결과 전체 삭제
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_EVAL_SCORE_RESULT
+	==================================================================
+	-->	
+	<delete id="deleteResultAllData" parameterClass="hashMap">
+	 	 DELETE FROM MEM_EVAL_SCORE_RESULT
+	 	  WHERE YEAR = #year#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 점수계산 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_EVAL_SCORE_RESULT
+	==================================================================
+	-->	
+	<insert id="insertCalculateResultData" parameterClass="hashMap">
+		INSERT INTO MEM_EVAL_SCORE_RESULT (YEAR, EMP_NO, EVAL_1_SCORE, EVAL_2_SCORE, PEER_SCORE, PEER_ADJUST_SCORE, TOT_SCORE, CREATE_DT)
+		SELECT 
+		       A.YEAR
+		     , A.EMP_NO
+		     , A.EVAL_1_SCORE
+		     , A.EVAL_2_SCORE
+		     , A.PEER_SCORE
+		     , A.PEER_ADJUST_SCORE
+		     , (NVL(A.EVAL_1_SCORE, 0) * (B.EVAL_1_RATE / (DECODE(A.EVAL_1_SCORE, '', 0, B.EVAL_1_RATE) + DECODE(A.EVAL_2_SCORE, '', 0, B.EVAL_2_RATE) + DECODE(A.PEER_ADJUST_SCORE, '', 0, B.PEER_RATE)))) 
+		       + (NVL(A.EVAL_2_SCORE, 0) * (B.EVAL_2_RATE / (DECODE(A.EVAL_1_SCORE, '', 0, B.EVAL_1_RATE) + DECODE(A.EVAL_2_SCORE, '', 0, B.EVAL_2_RATE) + DECODE(A.PEER_ADJUST_SCORE, '', 0, B.PEER_RATE))))
+		       + (NVL(A.PEER_ADJUST_SCORE, 0) * (B.PEER_RATE / (DECODE(A.EVAL_1_SCORE, '', 0, B.EVAL_1_RATE) + DECODE(A.EVAL_2_SCORE, '', 0, B.EVAL_2_RATE) + DECODE(A.PEER_ADJUST_SCORE, '', 0, B.PEER_RATE))))
+		       AS TOT_SCORE
+		     , SYSDATE
+		  FROM(
+				SELECT A.YEAR
+		             , A.EMP_NO
+		             , AVG(CASE WHEN A.EVAL_GUBUN = '01' THEN A.CHANGE_SCORE END) AS EVAL_1_SCORE
+		             , AVG(CASE WHEN A.EVAL_GUBUN = '02' THEN A.CHANGE_SCORE END) AS EVAL_2_SCORE
+		             , AVG(CASE WHEN A.EVAL_GUBUN = '03' THEN A.CHANGE_SCORE END) AS PEER_SCORE
+		             , ROUND((
+		                  SELECT AVG(ADJUST_SCORE)
+		                    FROM MEM_EVAL_PEER_RESULT MEPR
+		                   WHERE MEPR.YEAR = A.YEAR
+		                     AND MEPR.EVAL_GRP_ID = A.EVAL_GRP_ID
+		                     AND MEPR.EMP_NO = A.EMP_NO
+		               ), 2) AS PEER_ADJUST_SCORE
+				  FROM (SELECT A.YEAR,
+				               A.EMP_NO,
+				               A.EVAL_GRP_ID,
+				               A.DEPT_CD,
+				               C.UP_DEPT_CD,
+				               B.EMP_NO AS EVALUER_EMP_NO,
+				               B.EVAL_GUBUN,
+				               B.EVAL_EMP_NO,
+				               B.CHANGE_SCORE
+				          FROM MEM_USER A
+				               LEFT OUTER JOIN MEM_EVAL_EMP B
+				               ON A.YEAR = B.YEAR
+				               AND A.EMP_NO = B.EMP_NO
+				               AND (B.EVAL_EMP_NO = (CASE WHEN B.EVAL_GUBUN = '01' THEN A.EVAL_1_EMP_NO
+				                                          WHEN B.EVAL_GUBUN = '02' THEN A.EVAL_2_EMP_NO
+				                                     END)
+				                     OR(B.EVAL_GUBUN = '03' AND B.EVAL_EMP_NO IN (SELECT EVAL_EMP_NO
+				                                                                    FROM MEM_PEER_EVAL_USER
+				                                                                   WHERE YEAR = A.YEAR
+				                                                                     AND EMP_NO = A.EMP_NO))
+				                    )
+				               LEFT OUTER JOIN BSC_INSA_DEPT C
+				               ON A.YEAR = C.YEAR
+				               AND A.DEPT_CD = C.DEPT_CD
+				         WHERE A.YEAR = #year#
+				         ) A
+				         INNER JOIN MEM_EVAL_STATE B
+				         ON A.YEAR = B.YEAR
+				         AND A.EVAL_EMP_NO = B.EVAL_EMP_NO
+				         AND A.EVAL_GUBUN = B.EVAL_GUBUN
+				         AND B.EVAL_DEPT_CD = CASE WHEN B.EVAL_GUBUN IN ('01','03') THEN A.DEPT_CD
+				                                   WHEN B.EVAL_GUBUN IN ('02') THEN A.UP_DEPT_CD END
+				         AND B.EVAL_STATE = 'Y'
+				 GROUP BY A.YEAR, A.EMP_NO, A.EVAL_GRP_ID
+			) A
+		    , (
+				SELECT 
+				       SUM(DECODE(A.EVAL_USER_GUBUN_ID, '01', MAX(EVAL_RATE))) EVAL_1_RATE
+				     , SUM(DECODE(A.EVAL_USER_GUBUN_ID, '02', MAX(EVAL_RATE))) EVAL_2_RATE
+				     , SUM(DECODE(A.EVAL_USER_GUBUN_ID, '03', MAX(EVAL_RATE))) PEER_RATE
+				  FROM MEM_EVAL_USER_RATE A
+				 WHERE A.YEAR = #year#
+				 GROUP BY A.EVAL_USER_GUBUN_ID
+		    ) B
+	</insert>
+</sqlMap>
+
+

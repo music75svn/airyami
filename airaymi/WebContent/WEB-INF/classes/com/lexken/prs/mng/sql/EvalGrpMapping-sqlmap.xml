@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.mng.evalGrpMapping">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_MANAGEMENT
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.YEAR
+		     , A.EVAL_GRP_ID
+		     , A.EVAL_GRP_NM
+		     , A.EVAL_METHOD_ID
+		     , A.EVAL_TYPE
+		     , A.CONTENT
+		     , A.SORT_ORDER
+		     , (SELECT COUNT (1)
+          		  FROM PRS_MNG_EVAL_GRP_MEMBER B
+			INNER JOIN PRS_MNG_MEMBER C
+               ON B.YEAR = C.YEAR
+              AND B.EVAL_MEMB_EMPN = C.EMPN
+              WHERE A.YEAR = B.YEAR
+           		   AND A.EVAL_GRP_ID = B.EVAL_GRP_ID ) CNT
+  		  FROM PRS_EVAL_GRP A 
+  		  LEFT OUTER JOIN BSC_CODE B
+        	ON A.YEAR = B.YEAR
+       	   AND B.CODE_GRP_ID = '166'
+       	   AND A.EVAL_TYPE = B.CODE_ID
+  	     WHERE A.YEAR = #findYear#
+  	<!-- AND A.EVAL_GRP_ID IN ('PG00001', 'PG00002', 'PG00003','PG00004')	 -->  
+  		   AND A.EVAL_TYPE IN ('01', '02', '03', '04')
+           AND A.DELETE_DT IS NULL
+         	<isNotEmpty prepend="AND" property="findEvalGrpNm">
+	            UPPER(A.EVAL_GRP_NM) LIKE  '%' || TRIM(UPPER(#findEvalGrpNm#)) ||'%'
+		   	</isNotEmpty>
+         ORDER BY A.SORT_ORDER, A.EVAL_GRP_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 선택된 평가군평가자 맵핑 조회
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_EVAL_GRP_MEMBER
+	==================================================================
+	-->
+	<select id="getUseList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+			 , A.EVAL_GRP_ID
+			 , A.EVAL_MEMB_EMPN AS EMPN
+			 , B.KOR_NM
+			 , C.DEPT_CD
+			 , C.DEPT_KOR_NM
+			 , B.CAST_TC
+             , B.POS_TC
+			 , D.CODE_NM AS CAST_TC_NM
+			 , E.CODE_NM AS POS_TC_NM
+		  FROM PRS_MNG_EVAL_GRP_MEMBER A
+	LEFT OUTER JOIN BSC_INSA B
+				 ON A.YEAR = B.YEAR
+				AND A.EVAL_MEMB_EMPN = B.EMPN
+	LEFT OUTER JOIN BSC_INSA_DEPT C
+          		 ON B.DEPT_CD = C.DEPT_CD
+       		    AND B.YEAR = C.YEAR
+	LEFT OUTER JOIN BSC_CODE D
+				 ON B.YEAR = D.YEAR
+				AND B.CAST_TC = D.CODE_ID
+				AND D.CODE_GRP_ID = '170'
+	LEFT OUTER JOIN BSC_CODE E
+				 ON B.YEAR = E.YEAR
+				AND B.POS_TC = E.CODE_ID
+				AND E.CODE_GRP_ID = '171'
+	INNER JOIN PRS_MNG_MEMBER F
+            ON A.YEAR = F.YEAR
+		   AND A.EVAL_MEMB_EMPN = F.EMPN
+		 WHERE	A.YEAR = #findYear#
+		   AND A.EVAL_GRP_ID = #evalGrpId#
+	  ORDER BY B.KOR_NM , B.EMPN	
+					  
+    </select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 평가대상자 맵핑 조회
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_MEMBER
+	==================================================================
+	-->
+	<select id="getInsaUseList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.EMPN
+		     , B.KOR_NM
+		     , C.DEPT_CD
+		     , C.DEPT_KOR_NM
+		     , B.CAST_TC
+		     , B.POS_TC
+		     , D.CODE_NM AS CAST_TC_NM
+		     , E.CODE_NM AS POS_TC_NM
+    	  FROM PRS_MNG_MEMBER A
+	LEFT OUTER JOIN BSC_INSA B
+            ON A.YEAR = B.YEAR
+           AND A.EMPN = B.EMPN
+	LEFT OUTER JOIN BSC_INSA_DEPT C
+            ON B.DEPT_CD = C.DEPT_CD
+		   AND B.YEAR = C.YEAR
+	LEFT OUTER JOIN BSC_CODE D
+            ON B.YEAR = D.YEAR
+           AND B.CAST_TC = D.CODE_ID
+           AND D.CODE_GRP_ID = '170'
+	LEFT OUTER JOIN BSC_CODE E
+            ON B.YEAR = E.YEAR
+           AND B.POS_TC = E.CODE_ID
+           AND E.CODE_GRP_ID = '171'
+		 WHERE A.YEAR = #year#
+		   AND A.CAST_TC = (CASE WHEN #evalType# = '01' THEN '10'
+		                         WHEN  #evalType# = '02'  AND  A.POS_TC IN ('21', '23', '24', '2A', '2C')  THEN '20'
+		                         WHEN  #evalType# = '03'  AND  A.POS_TC NOT IN ('21', '23', '24', '2A', '2C')  THEN '20'
+		                         WHEN  #evalType# = '04' THEN '30'
+                     		 END )
+		   AND A.EVAL_YN = 'Y'
+		   AND A.EMPN NOT IN ( SELECT EVAL_MEMB_EMPN AS EMPN
+								 FROM PRS_MNG_EVAL_GRP_MEMBER                          
+		   						WHERE YEAR = #year#                                                 
+		     					  AND EVAL_GRP_ID = #evalGrpId# )
+	  ORDER BY B.KOR_NM , B.EMPN
+
+		                  
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 대상자관리 대상자 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: PRS_MNG_EVAL_GRP_MEMBER
+	==================================================================
+	-->
+	<delete id="deleteUseData" parameterClass="hashMap">
+		DELETE FROM PRS_MNG_EVAL_GRP_MEMBER 
+		 WHERE YEAR = #year#
+		   AND EVAL_GRP_ID = #evalGrpId# 
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 대상자관리 대상자 저장
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_MNG_EVAL_GRP_MEMBER
+	==================================================================
+	-->
+		
+	<insert id="insertUseData" parameterClass="hashMap">		
+		INSERT INTO PRS_MNG_EVAL_GRP_MEMBER (
+		       YEAR
+		     , EVAL_GRP_ID
+		     , EVAL_MEMB_EMPN
+		     , EVAL_SUBMIT_YN 
+			 ) VALUES (
+			  #year#
+			, #evalGrpId#
+			, #empn#
+			, 'N'
+			 )
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자 선정 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_MNG_MEMBER
+	==================================================================
+	-->	
+	<update id="updateUseData" parameterClass="hashMap">
+		UPDATE PRS_MNG_MEMBER
+	   	   SET PRS_YN = 'Y'
+		WHERE EMPN = #empn#
+		   AND YEAR = #findYear#		
+	</update>		
+	
+	
+	
+</sqlMap>
+
+

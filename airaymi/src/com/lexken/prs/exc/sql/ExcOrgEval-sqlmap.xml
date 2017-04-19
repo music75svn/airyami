@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.exc.excOrgEval">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EXC_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 부설기관장 별도평가 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EXC_GRP
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+		       A.EXC_GRP_ID,
+		       A.DEPT_CD AS DEPT_ID,
+		       B.DEPT_KOR_NM DEPT_NM,
+		       C.EMPN,
+		       C.KOR_NM,
+		       C.EFF_SCORE,
+		       C.GRADE,
+		       ROUND(D.BSC_SCORE * F.BSC_RATE / 100, 3) BSC_SCORE,
+		       CASE WHEN TOTAL_SCORE IS NULL THEN
+		                 ROUND(D.BSC_SCORE * F.BSC_RATE / 100, 3) 
+		            ELSE
+		                 C.TOTAL_SCORE
+		             END TOTAL_SCORE
+		     , E.WORK_MON
+		  FROM PRS_EXC_GRP_DEPT A
+		       LEFT OUTER JOIN BSC_INSA_DEPT B
+		          ON A.YEAR = B.YEAR AND A.DEPT_CD = B.DEPT_CD
+		       LEFT OUTER JOIN PRS_EXC_GRP_MEMBER C
+		          ON     A.YEAR = C.YEAR
+		             AND A.EXC_GRP_ID = C.EXC_GRP_ID
+		             AND A.DEPT_CD = C.DEPT_CD
+		        LEFT OUTER JOIN BSC_INSA_PCMT E
+		        ON A.YEAR = E.YEAR
+		        AND C.EMPN = E.EMPN
+		        AND E.END_PCMT_DATE =#findYear#||'1231'             
+		       LEFT OUTER JOIN PRS_MNG_BSC_SCORE D
+		       ON C.YEAR = D.YEAR 
+		       AND C.EMPN = D.EMPN
+		       AND C.DEPT_CD = D.DEPT_CD
+		     , prs_exc_grp F
+		 WHERE A.YEAR = #findYear#
+		   AND A.YEAR = F.YEAR 
+		   AND F.EVAL_TYPE = '02' 
+		   AND F.EFF_RATE IS NOT NULL
+		   AND A.EXC_GRP_ID = F.EXC_GRP_ID 
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 간부 별도평가군 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EXC_GRP_MEMBER
+	==================================================================
+	-->
+	<update id="insertData" parameterClass="hashMap">
+		UPDATE PRS_EXC_GRP_MEMBER 
+		   SET EFF_SCORE   = #effScore# , 
+			   TOTAL_SCORE = #totalScore# ,
+			   GRADE 	   = #grade#
+		 WHERE YEAR = #findYear#
+		   AND EXC_GRP_ID = #excGrpId#
+		   AND EMPN = #empn#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 부설기관장 확정 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_EXC_SUBMIT
+	==================================================================
+	-->	
+	<insert id="insertExcOrgEvalYnData" parameterClass="hashMap">
+		MERGE INTO PRS_CLOSING A
+        USING DUAL
+           ON (A.YEAR = #year# )
+         WHEN MATCHED THEN
+                UPDATE SET A.EXC_ORG_EVAL_YN = #excOrgEvalYn#, A.MODIFY_DT = SYSDATE
+         WHEN NOT MATCHED THEN
+                INSERT (YEAR, EXC_ORG_EVAL_YN, CREATE_DT)
+                VALUES (#year#, #excOrgEvalYn#, SYSDATE)
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 확정여부 확인
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_CLOSING
+	==================================================================
+	-->	
+	<select id="getConfirmYn" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DIR_LEADERSHIP_YN, DIR_RPT_YN, DIR_EVAL_YN, MNG_RPT_YN, MNG_EVAL_YN, EMP_EVAL_YN, ORG_EVAL_YN, DIR_FINAL_YN, EXC_EVAL_YN, EXC_ORG_EVAL_YN FROM PRS_CLOSING WHERE YEAR = #findYear#	
+	</select>	
+	
+</sqlMap>
+
+

@@ -1,0 +1,44 @@
+#*************************************************************************
+* CLASS 명      : evalDegreeList_xml
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 11월 26일 
+* 기    능      : 평가구분 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      정철수     2012년 11월 26일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 			: "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"EVAL_DEGREE_ID"       			: "$!{CS_HTML.txt2html($list.EVAL_DEGREE_ID)}", 
+		"EVAL_DEGREE_NM"       			: "$!{CS_HTML.txt2html($list.EVAL_DEGREE_NM)}", 
+		"MON"                  			: "$!{CS_HTML.txt2html($list.MON)}", 
+		"IMPON_RPT_REG_START_DT" 		: "$!{CS_FORMAT.dateFormat($!{CS_HTML.txt2html($list.IMPON_RPT_REG_START_DT)})}", 
+		"IMPON_RPT_REG_END_DT" 			: "$!{CS_FORMAT.dateFormat($!{CS_HTML.txt2html($list.IMPON_RPT_REG_END_DT)})}", 
+		"IMPON_EVAL_START_DT"  			: "$!{CS_FORMAT.dateFormat($!{CS_HTML.txt2html($list.IMPON_EVAL_START_DT)})}", 
+		"IMPON_EVAL_END_DT"    			: "$!{CS_FORMAT.dateFormat($!{CS_HTML.txt2html($list.IMPON_EVAL_END_DT)})}", 
+		"SEPA_EVAL_BASE_REG_START_DT" 	: "$!{CS_FORMAT.dateFormat($!{CS_HTML.txt2html($list.SEPA_EVAL_BASE_REG_START_DT)})}", 
+		"SEPA_EVAL_BASE_REG_END_DT" 	: "$!{CS_FORMAT.dateFormat($!{CS_HTML.txt2html($list.SEPA_EVAL_BASE_REG_END_DT)})}", 
+		"SEPA_EVAL_START_DT"   			: "$!{CS_FORMAT.dateFormat($!{CS_HTML.txt2html($list.SEPA_EVAL_START_DT)})}", 
+		"SEPA_EVAL_END_DT"     			: "$!{CS_FORMAT.dateFormat($!{CS_HTML.txt2html($list.SEPA_EVAL_END_DT)})}", 
+		"ORG_START_DT"  				: "$!{CS_FORMAT.dateFormat($!{CS_HTML.txt2html($list.ORG_START_DT)})}", 
+		"ORG_END_DT"    				: "$!{CS_FORMAT.dateFormat($!{CS_HTML.txt2html($list.ORG_END_DT)})}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

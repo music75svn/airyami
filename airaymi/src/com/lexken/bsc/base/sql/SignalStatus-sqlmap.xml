@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.base.signalStatus">
+
+	<!--
+	==================================================================   
+	  # 설명		: typeAlias 선언
+	  #	기능		: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+
+	<!--
+	==================================================================   
+	  # 설명		: 신호등구간 목록 보기
+	  #	기능		: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CODE_ID AS STATUS_ID, A.CODE_NM AS STATUS_NM, B.FROM_VALUE, B.TO_VALUE, B.COLOR        
+ 		  FROM BSC_CODE A                                         
+      		   LEFT OUTER JOIN 
+      		   BSC_COMMON_STATUS B                
+       		ON A.CODE_ID = B.STATUS_ID                        
+           AND A.YEAR = B.YEAR                              
+		 WHERE A.CODE_GRP_ID = '021'                            
+  		   AND A.DELETE_DT IS NULL                                
+  		   AND A.YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #findYear# ELSE '9999' END 
+  		   				   FROM BSC_CODE_GRP 
+  		   				  WHERE CODE_GRP_ID = '021')   
+		 ORDER BY A.SORT_ORDER, A.CODE_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명		: 신호등구간 상세 보기
+	  #	기능		: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+        SELECT YEAR, STATUS_ID, FROM_VALUE, TO_VALUE, COLOR, CREATE_DT, SCORE
+		  FROM BSC_COMMON_STATUS
+		 WHERE 1=1
+		   AND YEAR = #year#
+		   AND STATUS_ID = #statusId# 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명		: 신호등구간 등록
+	  #	기능		: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_COMMON_STATUS (
+		       YEAR
+		     , STATUS_ID
+		     , FROM_VALUE
+		     , TO_VALUE
+		     , COLOR
+		     , CREATE_DT
+		     ) VALUES (
+		       #year#
+		     , #statusId#
+		     , #fromValue#
+		     , #toValue#
+		     , #color#
+		     , SYSDATE
+		     )
+	</insert>	
+	
+	
+	<!--
+	==================================================================   
+	  # 설명		: 신호등구간 수정
+	  #	기능		: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<delete id="deleteData" parameterClass="hashMap">
+		DELETE BSC_COMMON_STATUS
+		 WHERE YEAR = #year#
+		   AND STATUS_ID = #statusId# 
+	</delete>	
+	
+
+
+</sqlMap>
+
+

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.budExcEffect">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 부서조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getDeptInfo" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+        SELECT B.DEPT_ID
+             , CASE WHEN C.DEPT_ID >= '6000' THEN C.DEPT_NM
+                    ELSE C.UP_DEPT_NM || ' ' || C.DEPT_NM                       
+                     END DEPT_NM
+          FROM BSC_METRIC A
+          LEFT OUTER JOIN BSC_SC_DEPT_MAPPING B
+            ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID
+          LEFT OUTER JOIN BSC_DEPTINFO C
+            ON B.DEPT_ID = C.DEPT_ID
+         WHERE (A.YEAR, A.METRIC_GRP_ID) IN (
+                                            SELECT YEAR, METRIC_GRP_ID
+                                              FROM BSC_METRIC A
+                                             WHERE YEAR = #findYear#
+                                               AND METRIC_ID = #findMetricId#
+                                        )
+           AND LENGTH(C.DEPT_ID) = 4
+           AND ((C.DEPT_ID >= '6000' AND C.OULEVEL = 1) OR C.DEPT_ID < '6000')
+         ORDER BY C.DISP_SORT
+		]]>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getScDeptMapping" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DEPT_ID 
+		  FROM (        
+		         SELECT * FROM BSC_SC_DEPT_MAPPING WHERE
+		                YEAR = #findYear# 
+		                AND SC_DEPT_ID = #findScDeptCd#
+		                ORDER BY DEPT_ID
+		       )
+		 WHERE ROWNUM = 1  
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DEPT_CD, DEPT_NM, ACCT_CD, ACCT_NM, BGT_TOT_AMT, BGT_RSLT, BGT_AMT
+		     , ROUND(NVL(BGT_RSLT / DECODE(BGT_AMT, 0, NULL, BGT_AMT) * 100, 0), 5) RATE
+		  FROM (
+		        SELECT DEPT_CD, DEPT_NM, ACCT_CD, ACCT_NM, NVL(SUM(BGT_TOT_AMT), 0) BGT_TOT_AMT
+		<isEqual property="findQuarter" compareValue="01">
+					 , NVL(SUM(BGT_RSLT1), 0) BGT_RSLT, NVL(SUM(BGT_AMT1), 0) BGT_AMT
+		</isEqual>
+		<isEqual property="findQuarter" compareValue="02">
+					 , NVL(SUM(BGT_RSLT2), 0) BGT_RSLT, NVL(SUM(BGT_AMT2), 0) BGT_AMT
+		</isEqual>
+		<isEqual property="findQuarter" compareValue="03">
+					 , NVL(SUM(BGT_RSLT3), 0) BGT_RSLT, NVL(SUM(BGT_AMT3), 0) BGT_AMT
+		</isEqual>
+		<isEqual property="findQuarter" compareValue="04">
+					 , NVL(SUM(BGT_RSLT4), 0) BGT_RSLT, NVL(SUM(BGT_AMT4), 0) BGT_AMT
+		</isEqual> 
+		          FROM V_AAA0106M_001
+		         WHERE YY = #findYear#
+		<isLessThan prepend="AND" property="findDeptId" compareValue="6000">
+						DEPT_CD IN (SELECT DEPT_ID FROM BSC_DEPTINFO WHERE DEPT_ID = #findDeptId#)
+		</isLessThan>
+		<isGreaterEqual prepend="AND" property="findDeptId" compareValue="6000">
+						DEPT_CD IN (SELECT DEPT_ID FROM BSC_DEPTINFO WHERE UP_DEPT_ID = '6300')
+		</isGreaterEqual>
+		         GROUP BY DEPT_CD, DEPT_NM, ACCT_CD, ACCT_NM
+		       )
+		 ORDER BY DEPT_CD, ACCT_CD
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+
+</sqlMap>

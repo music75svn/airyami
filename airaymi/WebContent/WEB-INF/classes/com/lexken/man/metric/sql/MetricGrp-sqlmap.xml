@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="man.metric.metricGrp">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================   
+	  # 설명		: KGS2020KPI POOL 목록
+	  #	기능		: SELECT
+	  #	TABLE	: MAN_METRIC
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT  MMG.MAN_KPI_GRP_ID
+	          , MMG.MAN_KPI_GRP_NM
+	          , BCA.CODE_NM AS TYPE_ID
+	          , BCB.CODE_NM AS EVAL_CYCLE
+	          , BCC.CODE_NM AS UNIT
+	          , MMG.CONTENT
+	          , (SELECT COUNT(1) 
+	             FROM MAN_METRIC 
+	             WHERE YEAR = #findYear#
+                  AND MAN_KPI_GRP_ID = MMG.MAN_KPI_GRP_ID) AS CNT
+		FROM MAN_METRIC_GRP MMG
+		LEFT OUTER JOIN BSC_CODE BCA
+                     ON MMG.TYPE_ID = BCA.CODE_ID
+                    AND BCA.CODE_GRP_ID = '007'
+		LEFT OUTER JOIN BSC_CODE BCB
+		             ON MMG.EVAL_CYCLE = BCB.CODE_ID
+		            AND BCB.CODE_GRP_ID = '008'
+		LEFT OUTER JOIN BSC_CODE BCC
+		             ON MMG.UNIT = BCC.CODE_ID
+		            AND BCC.CODE_GRP_ID = '013'
+        WHERE 1=1
+        <isNotEmpty prepend="AND" property="findManKpiGrpNm">
+        	UPPER(MMG.MAN_KPI_GRP_NM) LIKE '%' || UPPER(#findManKpiGrpNm#) || '%'
+        </isNotEmpty>
+        <isEqual prepend="AND" property="findUseYn" compareValue="Y">
+    	    MMG.DELETE_DT IS NULL
+        </isEqual>
+        <isNotEqual prepend="AND" property="findUseYn" compareValue="Y">
+	        MMG.DELETE_DT IS NOT NULL
+        </isNotEqual>
+		ORDER BY MMG.MAN_KPI_GRP_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명		: KGS2020KPI POOL 상세목록
+	  #	기능		: SELECT
+	  #	TABLE	: MAN_METRIC_GRP
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT  MMG.MAN_KPI_GRP_ID
+              , MMG.MAN_KPI_GRP_NM
+              , MMG.TYPE_ID
+              , (SELECT CODE_NM FROM BSC_CODE WHERE CODE_GRP_ID = '007' AND CODE_ID = MMG.TYPE_ID) TYPE_NM
+              , MMG.EVAL_CYCLE
+              , MMG.TIME_ROLLUP
+              , MMG.CPC_GUBUN
+              , MMG.UNIT
+              , MMG.ACT_CAL_TYPE
+              , MMG.SCORE_CAL_TYPE_GUBUN
+              , MMG.SCORE_CAL_TYPE_ID
+              , MMG.CONTENT
+              , MMG.DESCRIPTION
+              , MMG.CREATE_DT
+              , MMG.MODIFY_DT
+              , DECODE (MMG.DELETE_DT, null, 'Y', 'N') DELETE_DT 
+        FROM MAN_METRIC_GRP MMG
+        WHERE MAN_KPI_GRP_ID = #manKpiGrpId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 득점산식 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAL_TYPE
+	==================================================================
+	-->
+	<select id="scoreCalTypeList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CAL_TYPE_ID
+		     , A.CAL_TYPE_NM
+		  FROM BSC_CAL_TYPE A
+	 	 WHERE A.CAL_TYPE_GUBUN = '01'
+	 	   AND A.DELETE_DT IS NULL
+	 	 ORDER BY A.CAL_TYPE_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 구간대 조회
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_EVAL_SECTION_GRP
+	==================================================================
+	-->
+	<select id="evalSectionList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT    A.CODE_ID AS EVAL_SECTION_ID
+				, A.CODE_NM AS EVAL_SECTION_NM
+				, B.MAN_KPI_GRP_ID
+				, B.FROM_VALUE
+				, B.TO_VALUE
+				, B.CONVERSION_SCORE
+	            , CASE WHEN C.SCORE_CAL_TYPE_GUBUN = '04' THEN B.TO_VALUE
+				  ELSE B.FROM_VALUE
+				   END VIEW_VAL
+		  FROM BSC_CODE A
+	LEFT OUTER JOIN MAN_EVAL_SECTION_GRP B
+            ON    B.MAN_KPI_GRP_ID = #manKpiGrpId#
+		   AND	  A.CODE_ID = B.EVAL_SECTION_ID
+		   AND	  B.DELETE_DT IS NULL
+	LEFT OUTER JOIN MAN_METRIC_GRP C
+            ON	  B.MAN_KPI_GRP_ID = C.MAN_KPI_GRP_ID
+		 WHERE    A.CODE_GRP_ID = '020'
+		   AND	  A.YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #year# ELSE '9999' END
+							  FROM BSC_CODE_GRP
+							 WHERE CODE_GRP_ID = '020')
+		   AND	  A.DELETE_DT IS NULL
+	  ORDER BY	  A.SORT_ORDER
+	</select>  
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 지표풀 구간대항목 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: MAN_EVAL_SECTION_GRP
+	==================================================================
+	-->	
+	<delete id="deleteEvalSection" parameterClass="hashMap">
+		DELETE FROM MAN_EVAL_SECTION_GRP
+		WHERE MAN_KPI_GRP_ID = #manKpiGrpId#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표풀 구간대항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MAN_EVAL_SECTION_GRP
+	==================================================================
+	-->	
+	<insert id="insertEvalSection" parameterClass="hashMap">
+		INSERT INTO MAN_EVAL_SECTION_GRP (
+               MAN_KPI_GRP_ID
+             , EVAL_SECTION_ID
+             , FROM_VALUE
+             , TO_VALUE
+             , CONVERSION_SCORE
+             , CREATE_DT
+           ) VALUES (
+               #manKpiGrpId#
+             , #evalSectionId#
+             , #fromValue#
+             , #toValue#
+             , #conversionScore#  
+             , SYSDATE       
+               )
+	</insert>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표Pool 산식 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAL_TYPE_COL_GRP
+	==================================================================
+	-->
+	<select id="calTypeColList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.MAN_KPI_GRP_ID
+		     , A.CAL_TYPE_COL
+		     , A.CAL_TYPE_COL_NM
+		     , A.INSERT_GUBUN
+		     , A.UNIT
+		FROM MAN_CAL_TYPE_COL_GRP A
+		WHERE A.MAN_KPI_GRP_ID = #manKpiGrpId#
+		  AND A.DELETE_DT IS NULL
+		ORDER BY A.CAL_TYPE_COL ASC
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명		: 지표코드 채번
+	  #	기능		: SELECT
+	  #	TABLE	: MAN_METRIC_GRP
+	==================================================================
+	-->
+	<select id="getManKpiGrpId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT 'MKG'||LPAD(NVL(MAX(TO_NUMBER(SUBSTR(MAN_KPI_GRP_ID,4,4))),0)+1,4,'0') AS MAN_KPI_GRP_ID
+     	  FROM MAN_METRIC_GRP
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명		: KGS2020KPI POOL 등록
+	  #	기능		: INSERT
+	  #	TABLE	: MAN_METRIC_GRP
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO MAN_METRIC_GRP (                 
+                MAN_KPI_GRP_ID               
+              , MAN_KPI_GRP_NM               
+              , TYPE_ID                      
+              , EVAL_CYCLE                   
+              , TIME_ROLLUP                  
+              , UNIT                         
+              , ACT_CAL_TYPE                 
+              , SCORE_CAL_TYPE_ID
+              , SCORE_CAL_TYPE_GUBUN            
+              , CONTENT                      
+              , DESCRIPTION                  
+              , CREATE_DT     
+              , CPC_GUBUN               
+        ) VALUES (                     
+                #manKpiGrpId#                
+              , #manKpiGrpNm#             
+              , #typeId#
+              , #evalCycle#
+              , #timeRollup#
+              , #unit#
+              , #actCalType#
+              , #scoreCalTypeId#
+              , #scoreCalTypeGubun#
+              , #content#
+              , #description#
+              , SYSDATE  
+              , #cpcGubun#                         
+        )     
+	</insert>
+
+	<!--
+	==================================================================   
+	  # 설명		: 지표풀 산식항목 삭제
+	  #	기능		: DELETE
+	  #	TABLE	: MAN_CAL_TYPE_COL_GRP
+	==================================================================
+	-->	
+	<delete id="deleteCalTypeCol" parameterClass="hashMap">
+		DELETE FROM MAN_CAL_TYPE_COL_GRP
+		WHERE MAN_KPI_GRP_ID = #manKpiGrpId#
+	</delete>
+
+	<!--
+	==================================================================   
+	  # 설명		: 지표Pool산식관리 등록
+	  #	기능		: INSERT
+	  #	TABLE	: MAN_CAL_TYPE_COL_GRP
+	==================================================================
+	-->	
+	<insert id="insertCalTypeCol" parameterClass="hashMap">
+		INSERT INTO MAN_CAL_TYPE_COL_GRP (
+               MAN_KPI_GRP_ID
+             , CAL_TYPE_COL
+             , CAL_TYPE_COL_NM
+             , INSERT_GUBUN
+             , UNIT
+             , CREATE_DT
+           ) VALUES (
+               #manKpiGrpId#
+             , #calTypeCol#
+             , #calTypeColNm#
+             , #insertGubun#
+             , #unit#
+             , SYSDATE
+             )
+	</insert>
+
+	<!--
+	==================================================================   
+	  # 설명		: 지표Pool관리 수정
+	  #	기능		: UPDATE
+	  #	TABLE	: MAN_METRIC_GRP
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE MAN_METRIC_GRP
+		   SET MAN_KPI_GRP_NM    = #manKpiGrpNm#
+             , TYPE_ID           = #typeId#
+             , EVAL_CYCLE        = #evalCycle#
+             , TIME_ROLLUP       = #timeRollup#
+             , UNIT              = #unit#
+             , ACT_CAL_TYPE      = #actCalType#
+             , CPC_GUBUN		 = #cpcGubun#
+             , SCORE_CAL_TYPE_ID = #scoreCalTypeId#
+             , SCORE_CAL_TYPE_GUBUN = #scoreCalTypeGubun#
+             , CONTENT           = #content#
+             , DESCRIPTION		 = #description#
+             , MODIFY_DT         = SYSDATE
+	    <isEqual property="deleteDt" compareValue="N">
+          	, DELETE_DT         = SYSDATE
+	    </isEqual>
+	    <isNotEqual property="deleteDt" compareValue="N">
+          	, DELETE_DT         = NULL
+	    </isNotEqual>
+		WHERE MAN_KPI_GRP_ID  = #manKpiGrpId#
+	</update>
+
+	<!--
+	==================================================================   
+	  # 설명		: 지표Pool 산식관리 수정
+	  #	기능		: UPDATE
+	  #	TABLE	: MAN_CAL_TYPE_COL_GRP
+	==================================================================
+	-->	
+	<update id="updateCalTypeCol" parameterClass="hashMap">
+		UPDATE MAN_CAL_TYPE_COL_GRP
+		  SET  CAL_TYPE_COL_NM      = #calTypeColNm#
+		     , INSERT_GUBUN         = #insertGubun#
+		     , UNIT                 = #unit#
+		WHERE  MAN_KPI_GRP_ID       = #manKpiGrpId#
+		  AND  CAL_TYPE_COL         = #calTypeCol# 
+	</update>
+
+	<!--
+	==================================================================   
+	  # 설명	: KGS2020KPI POOL 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE MAN_METRIC_GRP
+		   SET DELETE_DT = SYSDATE 
+		 WHERE MAN_KPI_GRP_ID = #manKpiGrpId#
+	</update>
+	
+	
+	
+</sqlMap>	
+	

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.userGrp">
+
+	<!--
+	==================================================================   
+	  # 설명		: typeAlias 선언
+	  #	기능		: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 사용자그룹 매핑 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		       A.USER_ID
+		     , B.USER_NM
+		     , B.DEPT_ID
+		     , C.DEPT_F_NM DEPT_NM
+		     , B.JIKGUB_CD
+		     , B.JIKGUB_NM
+		     , B.POS_CD
+		     , B.POS_NM   
+		  FROM BSC_ADMIN A        
+			   INNER JOIN V_ROLE_USER B ON A.USER_ID = B.USER_ID         
+			   LEFT OUTER JOIN V_DEPTINFO C ON B.DEPT_ID = C.DEPT_ID   
+		 WHERE A.ADMIN_GUBUN = #findAdminGubun#
+         ORDER BY B.USER_NM  
+	</select>
+ 
+	
+	<!--
+	==================================================================   
+	  # 설명	: 사용자그룹 매핑 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		       A.USER_ID
+		     , B.USER_NM
+		     , B.DEPT_ID
+		     , C.DEPT_F_NM DEPT_NM   
+		     , B.JIKGUB_CD
+		     , B.JIKGUB_NM
+		     , B.POS_CD
+		     , B.POS_NM   
+		  FROM BSC_ADMIN A        
+			   INNER JOIN V_ROLE_USER B ON A.USER_ID = B.USER_ID         
+			   LEFT OUTER JOIN V_DEPTINFO C ON B.DEPT_ID = C.DEPT_ID   
+		 WHERE A.ADMIN_GUBUN = #adminGubun#
+         ORDER BY B.USER_NM  
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 사용자 그룹별 권한 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_ADMIN(
+			   ADMIN_GUBUN
+			 , USER_ID
+			 , DEPT_ID
+			 ) VALUES (
+			   #adminGubun#
+			 , #userId#
+			 , (SELECT DEPT_ID FROM V_ROLE_USER WHERE USER_ID = #userId#)
+			 )
+	</insert>	
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 사용자 그룹별 권한 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_ADMIN
+		WHERE ADMIN_GUBUN = #adminGubun#
+	</update>
+	
+	
+</sqlMap>
+
+

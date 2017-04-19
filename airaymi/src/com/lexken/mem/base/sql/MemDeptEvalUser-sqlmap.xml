@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.base.memDeptEvalUser">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 최상위 평가조직 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getTopDeptInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+			 , DEPT_CD
+			 , DEPT_KOR_NM
+		  FROM ( SELECT YEAR, DEPT_CD, DEPT_KOR_NM FROM BSC_INSA_DEPT WHERE YEAR = #findYear# ORDER BY DISP_ORDER, DEPT_CD )
+		 WHERE DEPT_CD = '0000'
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 인사조직 왼쪽트리목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT YEAR
+			 , DEPT_CD
+			 , DEPT_KOR_NM
+			 , UP_DEPT_CD
+			 , UP_USER_ID
+			 , USE_YN
+			 , DEPT_LEVL
+			 , DISP_ORDER
+		  FROM BSC_INSA_DEPT
+		 WHERE YEAR = #findYear#
+		   AND ( DEPT_CD > '1025'
+		   		 OR DEPT_CD = '0000'
+   		   		 OR DEPT_CD = '1000' )
+<![CDATA[
+   		   AND DEPT_CD <> '1090'
+]]>	
+		 ORDER BY DEPT_CD, DISP_ORDER      
+		 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가자관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_DEPT_EVAL_USER
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+			 , A.DEPT_CD
+             , F_DEPT_LEV2_NM(A.YEAR, A.DEPT_CD) DEPT_KOR_NM
+             , B.EVAL_1_EMP_NO
+             , B.EVAL_1_EMP_NM
+             , B.EVAL_2_EMP_NO
+             , B.EVAL_2_EMP_NM
+          FROM BSC_INSA_DEPT A
+	LEFT OUTER JOIN MEM_DEPT_EVAL_USER B
+			ON A.YEAR = B.YEAR
+		   AND A.DEPT_CD = B.DEPT_CD
+		 WHERE A.DEPT_CD IN (SELECT DEPT_CD
+                               FROM BSC_INSA_DEPT
+                              WHERE YEAR = #findYear#
+                         START WITH DEPT_CD = #findDeptCd#
+                   CONNECT BY PRIOR YEAR = YEAR
+                                AND PRIOR DEPT_CD = UP_DEPT_CD)
+		   AND A.DEPT_CD > '1090'
+		   <!-- AND A.USE_YN = 'T' -->
+		   AND A.YEAR = #findYear#
+           AND A.DEPT_CD IN (
+                                SELECT A.DEPT_CD
+                                  FROM BSC_INSA_DEPT A
+                                  LEFT OUTER JOIN BSC_INSA_DEPT B
+                                    ON A.YEAR = B.YEAR AND A.USE_YN = B.USE_YN AND A.DEPT_CD = B.UP_DEPT_CD
+                                 WHERE A.YEAR = #findYear# 
+                                 <!-- AND A.USE_YN = 'T' --> 
+                                   AND A.DEPT_CD > '1090'
+                                 GROUP BY A.DEPT_CD
+                                HAVING COUNT(B.DEPT_CD) = 0
+                           )
+	  ORDER BY A.DEPT_CD
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실조직 트리 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getRealDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT  A.DEPT_ID AS CODE_ID
+		      , A.DEPT_NM AS CODE_NM
+		      , A.UP_DEPT_ID AS UP_CODE_ID
+		      , LEVEL AS LEVEL_ID
+		FROM  V_DEPTINFO A
+		WHERE BEING_YN = 'Y'
+		START WITH UP_DEPT_ID IS NULL
+		CONNECT BY PRIOR DEPT_ID = UP_DEPT_ID   
+		ORDER SIBLINGS BY OUORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 사용자정보 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_USERINFO
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.SABUN
+	         , A.USER_ID 
+	         , A.USER_NM
+	         , A.DEPT_ID
+	         , F_DEPT_LEV2_NM(TO_CHAR(SYSDATE, 'YYYY'), A.DEPT_ID) AS DEPT_NM
+	         , A.JIKGUB_CD
+	         , A.JIKGUB_NM
+	         , A.POS_CD
+	         , A.POS_NM
+	         , A.EMAIL
+		 FROM V_ROLE_USER A
+		WHERE 1=1
+		
+		<isEmpty prepend="AND" property="findUserNm">
+			A.DEPT_ID = #deptId#
+		</isEmpty>
+		  
+		<isNotEmpty prepend="AND" property="findUserNm">
+            UPPER(A.USER_NM) LIKE  '%' || TRIM(UPPER(#findUserNm#)) ||'%'
+	   	</isNotEmpty>
+	   	
+		ORDER BY A.JIKGUB_CD, A.POS_CD 
+	</select>
+	
+	<!--
+    ==================================================================
+      # 설명    : 평가자관리 삭제
+      # 기능    : DELETE
+      # TABLE   : MEM_DEPT_EVAL_USER
+    ==================================================================
+    -->
+    <delete id="deleteData" parameterClass="hashMap">
+        DELETE FROM MEM_DEPT_EVAL_USER
+        WHERE DEPT_CD = #deptCd#
+        AND YEAR = #year#
+         
+    </delete>
+    
+	<!--
+    ==================================================================
+      # 설명    : 평가자관리 삭제
+      # 기능    : DELETE
+      # TABLE   : MEM_DEPT_EVAL_USER
+    ==================================================================
+    -->
+    <delete id="deleteDeptEvalUserInfo" parameterClass="hashMap">
+        DELETE FROM MEM_DEPT_EVAL_USER
+        WHERE YEAR = #findYear#
+         
+    </delete>
+    
+	<!--
+    ==================================================================
+      # 설명  : 평가자 입력 
+      # 기능  : INSERT
+      # TABLE : MEM_DEPT_EVAL_USER
+    ==================================================================
+    -->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO MEM_DEPT_EVAL_USER 
+					( YEAR
+					, DEPT_CD
+					, EVAL_1_EMP_NO
+					, EVAL_1_EMP_NM
+					, EVAL_1_DEPT_CD
+					, EVAL_1_CAST_TC
+					, EVAL_1_POS_TC
+					, EVAL_2_EMP_NO
+					, EVAL_2_EMP_NM
+					, EVAL_2_DEPT_CD
+					, EVAL_2_CAST_TC
+					, EVAL_2_POS_TC
+					, CREATE_DT
+                     			  )
+		SELECT #year# AS YEAR, 
+		       #deptCd# AS DEPT_CD, 
+		       A.ASSESSOR1_EMPN , 
+		       B.KOR_NM AS EVAL_1_EMP_NM , 
+		       B.DEPT_CD ,
+		       B.CAST_TC , 
+		       B.POS_TC , 
+		       A.ASSESSOR2_EMPN , 
+		       C.KOR_NM AS EVAL_2_EMP_NM , 
+		       C.DEPT_CD ,
+		       C.CAST_TC , 
+		       C.POS_TC ,
+		       SYSDATE AS CREATE_DT
+		  FROM 
+		       (SELECT #eval1EmpNo# AS ASSESSOR1_EMPN, 
+		               #eval2EmpNo# AS ASSESSOR2_EMPN 
+		         FROM DUAL 
+		       ) A, 
+		       BSC_INSA B , 
+		       BSC_INSA C 
+		 WHERE A.ASSESSOR1_EMPN = B.EMPN 
+		       AND A.ASSESSOR2_EMPN = C.EMPN 
+		       AND B.YEAR = #year#
+		       AND C.YEAR = #year#
+	</insert>
+	
+	<!--
+    ==================================================================
+      # 설명  : 평가자 입력 
+      # 기능  : INSERT
+      # TABLE : MEM_DEPT_EVAL_USER
+    ==================================================================
+    -->
+	<insert id="insertDeptEvalUserInfo" parameterClass="hashMap">
+		INSERT INTO MEM_DEPT_EVAL_USER (YEAR, DEPT_CD, EVAL_1_EMP_NO, EVAL_1_EMP_NM, EVAL_1_DEPT_CD, EVAL_1_CAST_TC, EVAL_1_POS_TC, EVAL_2_EMP_NO, EVAL_2_EMP_NM, EVAL_2_DEPT_CD, EVAL_2_CAST_TC, EVAL_2_POS_TC, CREATE_DT)
+				SELECT A.YEAR , 
+				       A.DEPT_CD , 
+				       A.ASSESSOR1_EMPN , 
+				       B.KOR_NM AS EVAL_1_EMP_NM , 
+				       B.DEPT_CD AS EVAL_1_DEPT_CD ,
+				       B.CAST_TC ,
+				       B.POS_TC ,
+				       A.ASSESSOR2_EMPN , 
+				       C.KOR_NM AS EVAL_2_EMP_NM , 
+				       C.DEPT_CD AS EVAL_2_DEPT_CD ,
+				       C.CAST_TC ,
+				       C.POS_TC ,
+				       SYSDATE 
+				  FROM (
+							SELECT A.YEAR
+					             , A.DEPT_CD
+<![CDATA[					             
+					             , (select empn from BSC_INSA where YEAR = A.YEAR AND ROWNUM = '1' AND DEPT_CD = A.DEPT_CD AND POS_TC IN ('12', '21', '22', '2C', '31', '32', '34', '39') and EMPN in (select empn from bsc_insa_pcmt where year = #findYear# and end_pcmt_date = #findYear#||'1231' and pcmt_tc <> '34')) ASSESSOR1_EMPN
+					             , (select empn from BSC_INSA where YEAR = A.YEAR AND ROWNUM = '1' AND (( DEPT_CD = A.UP_DEPT_CD AND POS_TC IN ('11', '12', '13', '1B', '1C', '2A', '21', '23', '24', '2C')) OR (A.DEPT_CD IN ('5130', '5135') AND POS_TC IN ('06')) OR (A.DEPT_CD IN ('4005', '4015', '4025') AND POS_TC IN ('08'))) and EMPN in (select empn from bsc_insa_pcmt where year = #findYear# and end_pcmt_date = #findYear#||'1231' and pcmt_tc <> '34')) ASSESSOR2_EMPN
+]]>
+					          FROM BSC_INSA_DEPT A
+					         WHERE A.DEPT_CD IN (SELECT DEPT_CD
+					                               FROM BSC_INSA_DEPT
+					                              WHERE YEAR = #findYear#
+					                         START WITH DEPT_CD = '0000'
+					                   CONNECT BY PRIOR YEAR = YEAR
+					                                AND PRIOR DEPT_CD = UP_DEPT_CD)
+					           AND A.DEPT_CD > '1090'
+					            <!-- AND A.USE_YN = 'T' -->
+					           AND A.DEPT_CD IN (
+					                                SELECT A.DEPT_CD
+					                                  FROM BSC_INSA_DEPT A
+					                                  LEFT OUTER JOIN BSC_INSA_DEPT B
+					                                    ON A.YEAR = B.YEAR AND A.USE_YN = B.USE_YN AND A.DEPT_CD = B.UP_DEPT_CD
+					                                 WHERE A.YEAR = #findYear# 
+					                                 <!-- AND A.USE_YN = 'T' --> 
+					                                   AND A.DEPT_CD > '1090'
+					                                 GROUP BY A.DEPT_CD
+					                                HAVING COUNT(B.DEPT_CD) = 0
+					                           )
+							   AND A.YEAR = #findYear#
+					      ORDER BY A.DEPT_CD
+			   ) A
+			     , BSC_INSA B
+			     , BSC_INSA C
+			 WHERE A.ASSESSOR1_EMPN = B.EMPN
+			   AND A.ASSESSOR2_EMPN = C.EMPN
+               AND B.YEAR = #findYear#
+               AND C.YEAR = #findYear#
+	</insert>
+    
+    <!--
+	==================================================================
+	  # 설명	: 평가자관리 엑셀전환다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_DEPT_EVAL_USER
+	==================================================================
+	-->
+	<select id="getMemDeptEvalUserExcelList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DEPT_CD
+		     , B.DEPT_KOR_NM
+		     , A.EVAL_1_EMP_NO
+		     , A.EVAL_1_EMP_NM
+		     , A.EVAL_2_EMP_NO
+		     , A.EVAL_2_EMP_NM
+		  FROM MEM_DEPT_EVAL_USER A
+	LEFT OUTER JOIN BSC_INSA_DEPT B
+			ON A.YEAR = B.YEAR
+		   AND A.DEPT_CD = B.DEPT_CD      
+
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 권한 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<update id="deleteAdminDatas" parameterClass="hashMap">
+		DELETE FROM BSC_ADMIN
+         WHERE ADMIN_GUBUN='31'
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 권한 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<insert id="insertAdminDatas" parameterClass="hashMap">
+		INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID)
+			SELECT DISTINCT '31', A.ASSESSOR_EMPN 
+              FROM (SELECT DISTINCT EVAL_1_EMP_NO AS ASSESSOR_EMPN
+                      FROM MEM_DEPT_EVAL_USER A
+                     WHERE A.EVAL_1_EMP_NO IS NOT NULL 
+                       AND YEAR = #findYear#
+                    UNION ALL
+                    SELECT DISTINCT EVAL_2_EMP_NO
+                      FROM MEM_DEPT_EVAL_USER B
+                     WHERE B.EVAL_2_EMP_NO IS NOT NULL 
+                       AND YEAR = #findYear#) A 
+	</insert>
+	
+</sqlMap>
+
+

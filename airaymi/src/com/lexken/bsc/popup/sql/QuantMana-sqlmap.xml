@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.quantMana">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getCountList" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+		<isEqual property="findItemCd" compareValue="S072D001">
+		SELECT YEAR,
+		       MON,
+		       C.DEPT_ID,
+		       D.DEPT_NM,
+		       ACCT_NM,
+		       CUR_AMT_2
+		  FROM    (SELECT #findYear# AS YEAR,
+		                  #findMon# AS MON,
+		                  A.DEPT_ID,
+		                  B.ACCT_NM,
+		                  NVL (B.CUR_AMT_2, 0) CUR_AMT_2
+		             FROM (SELECT '1300' DEPT_ID FROM DUAL) A,
+		                  (SELECT CUR_AMT_2, ACCT_NM
+		                     FROM V_ABA0199M_002
+		                    WHERE ACNT_YM = #findYear# || #findMon# AND PRNT_SEQ = '399999') B) C
+		       LEFT OUTER JOIN
+		          BSC_DEPTINFO D
+		       ON C.DEPT_ID = D.DEPT_ID
+		 </isEqual>
+		 <isEqual property="findItemCd" compareValue="S072D002">
+		SELECT YEAR,
+		       MON,
+		       C.DEPT_ID,
+		       D.DEPT_NM,
+		       ACCT_NM,
+		       CUR_AMT_1
+		  FROM    (SELECT #findYear# AS YEAR,
+		                  #findMon# AS MON,
+		                  A.DEPT_ID,
+		                  B.ACCT_NM,
+		                  NVL (B.CUR_AMT_1, 0) CUR_AMT_1
+		             FROM (SELECT '1300' DEPT_ID FROM DUAL) A,
+		                  (SELECT CUR_AMT_1, ACCT_NM
+		                     FROM V_ABA0199M_002
+		                    WHERE ACNT_YM = #findYear# || #findMon# AND ACCT_CD = '61022300') B) C
+		       LEFT OUTER JOIN
+		          BSC_DEPTINFO D
+		       ON C.DEPT_ID = D.DEPT_ID		 
+		 </isEqual>
+		  <isEqual property="findItemCd" compareValue="S072D003">
+		SELECT YEAR,
+		       MON,
+		       C.DEPT_ID,
+		       D.DEPT_NM,
+		       ACCT_NM,
+		       CUR_AMT_1
+		  FROM    (SELECT #findYear# AS YEAR,
+		                  #findMon# AS MON,
+		                  A.DEPT_ID,
+		                  B.ACCT_NM,
+		                  NVL (B.CUR_AMT_1, 0) CUR_AMT_1
+		             FROM (SELECT '1300' DEPT_ID FROM DUAL) A,
+		                  (SELECT CUR_AMT_1, ACCT_NM
+		                     FROM V_ABA0199M_002
+		                    WHERE ACNT_YM = #findYear# || #findMon# AND ACCT_CD IN ('61020600', '61030600', '61040600', '61050600', '61060600', '61070600', '61080600', '61090600', '61100600', '61120600')) B) C
+		       LEFT OUTER JOIN
+		          BSC_DEPTINFO D
+		       ON C.DEPT_ID = D.DEPT_ID
+		</isEqual>
+		<isEqual property="findItemCd" compareValue="S072D004">
+		SELECT YEAR,
+		       MON,
+		       C.DEPT_ID,
+		       D.DEPT_NM,
+		       ACCT_NM,
+		       CUR_AMT_1
+		  FROM    (SELECT #findYear# AS YEAR,
+		                  #findMon# AS MON,
+		                  A.DEPT_ID,
+		                  B.ACCT_NM,
+		                  NVL (B.CUR_AMT_1, 0) CUR_AMT_1
+		             FROM (SELECT '1300' DEPT_ID FROM DUAL) A,
+		                  (SELECT CUR_AMT_1, ACCT_NM
+		                     FROM V_ABA0199M_002
+		                    WHERE ACNT_YM = #findYear# || #findMon# AND ACCT_CD IN ('61070000')) B) C
+		       LEFT OUTER JOIN
+		          BSC_DEPTINFO D
+		       ON C.DEPT_ID = D.DEPT_ID
+		</isEqual>		                     
+		<isEqual property="findItemCd" compareValue="S072D005">
+		SELECT YEAR,
+		       MON,
+		       C.DEPT_ID,
+		       D.DEPT_NM,
+		       ACCT_NM,
+		       CUR_AMT_1
+		  FROM    (SELECT #findYear# AS YEAR,
+		                  #findMon# AS MON,
+		                  A.DEPT_ID,
+		                  B.ACCT_NM,
+		                  NVL (B.CUR_AMT_1, 0) CUR_AMT_1
+		             FROM (SELECT '1300' DEPT_ID FROM DUAL) A,
+		                  (SELECT CUR_AMT_1, ACCT_NM
+		                     FROM V_ABA0199M_002
+		                    WHERE ACNT_YM = #findYear# || #findMon# AND ACCT_CD IN ('61021000', '61031000', '61041000', '61051000', '61061000', '61071000', '61081000', '61091000', '61101000', '61121000')) B) C
+		       LEFT OUTER JOIN
+		          BSC_DEPTINFO D
+		       ON C.DEPT_ID = D.DEPT_ID
+		</isEqual>		                     
+		<isEqual property="findItemCd" compareValue="S072D006">
+		SELECT YEAR,
+		       MON,
+		       C.DEPT_ID,
+		       D.DEPT_NM,
+		       ACCT_NM,
+		       CUR_AMT_1
+		  FROM    (SELECT #findYear# AS YEAR,
+		                  #findMon# AS MON,
+		                  A.DEPT_ID,
+		                  B.ACCT_NM,
+		                  NVL (B.CUR_AMT_1, 0) CUR_AMT_1
+		             FROM (SELECT '1300' DEPT_ID FROM DUAL) A,
+		                  (SELECT CUR_AMT_1, ACCT_NM
+		                     FROM V_ABA0199M_002
+		                    WHERE ACNT_YM = #findYear# || #findMon# AND ACCT_CD IN ('51000000', '52060000', '55010000')) B) C
+		       LEFT OUTER JOIN
+		          BSC_DEPTINFO D
+		       ON C.DEPT_ID = D.DEPT_ID
+		</isEqual>		                     
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+			 AND B.INSERT_GUBUN = '01'
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 부서조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		
+	SELECT A.DEPT_ID, B.DEPT_NM
+		  FROM BSC_SC_DEPT_MAPPING A
+	LEFT OUTER JOIN BSC_DEPTINFO B
+			ON A.DEPT_ID = B.DEPT_ID
+		 WHERE (YEAR, SC_DEPT_ID) IN
+		          (SELECT YEAR, SC_DEPT_ID
+		             FROM BSC_METRIC
+		            WHERE (METRIC_GRP_ID, YEAR) IN
+		                     (SELECT METRIC_GRP_ID, YEAR
+		                        FROM BSC_METRIC
+		                       WHERE YEAR = #findYear# AND METRIC_ID = #findMetricId#)
+				AND DELETE_DT IS NULL)
+  
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getScDeptMapping" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DEPT_ID
+		  FROM ( SELECT DEPT_ID 
+				   FROM BSC_SC_DEPT_MAPPING
+				  WHERE YEAR = #findYear# 
+				    AND SC_DEPT_ID = #findScDeptCd# ORDER BY DEPT_ID 
+				    )
+		 WHERE ROWNUM = 1
+	</select>
+	
+
+</sqlMap>
+
+

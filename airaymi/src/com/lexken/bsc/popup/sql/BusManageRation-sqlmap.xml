@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.busManageRation">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 부서조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getDeptInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DEPT_ID, B.DEPT_NM
+		  FROM BSC_SC_DEPT_MAPPING A
+	LEFT OUTER JOIN BSC_DEPTINFO B
+			ON A.DEPT_ID = B.DEPT_ID
+		 WHERE (YEAR, SC_DEPT_ID) IN
+		          (SELECT YEAR, SC_DEPT_ID
+		             FROM BSC_METRIC
+		            WHERE (METRIC_GRP_ID, YEAR) IN
+		                     (SELECT METRIC_GRP_ID, YEAR
+		                        FROM BSC_METRIC
+		                       WHERE YEAR = #findYear# AND METRIC_ID = #findMetricId#)
+				AND DELETE_DT IS NULL)
+<![CDATA[		   AND OULEVEL < 2 ]]>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getScDeptMapping" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DEPT_ID
+		  FROM ( SELECT DEPT_ID 
+				   FROM BSC_SC_DEPT_MAPPING
+				  WHERE YEAR = #findYear# 
+				    AND SC_DEPT_ID = #findScDeptCd# ORDER BY DEPT_ID 
+				    )
+		 WHERE ROWNUM = 1
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	<!-- 수입실적 -->
+		<isEqual property="findItemCd" compareValue="S020D001">
+		SELECT A.YEAR
+	        , A.MM AS MON
+	        , A.DEPT_CD
+	        , B.DEPT_NM
+	        , SUM(A.CUM_REQ_AMT) CUM_REQ_AMT
+	        , SUM(A.CUM_RE_REQ_AMT) CUM_RE_REQ_AMT
+	        , SUM(A.L_YEAR_AMT) L_YEAR_AMT
+	        , SUM(A.N_YEAR_AMT) N_YEAR_AMT
+		FROM V_GHF0221D_003 A
+		LEFT OUTER JOIN BSC_DEPTINFO B
+		ON A.DEPT_CD = B.DEPT_ID
+		WHERE A.YEAR = #findYear# AND A.MM = #findMon# AND B.DEPT_ID = #findDeptId#
+		AND A.DEPT_CD > '6000'
+		GROUP BY A.YEAR, A.MM, A.DEPT_CD, B.DEPT_NM
+		</isEqual>
+	</select>
+
+	<select id="getList1" parameterClass="hashMap" resultClass="hashMap">
+	<!-- 예산집행액  -->
+		<isEqual property="findItemCd" compareValue="S020D002">
+			SELECT A.YY AS YEAR
+		       , A.MON
+		       , A.DEPT_CD
+		       , B.DEPT_NM
+		       , A.APRV_QUAT
+		       , A.BGR_RSLT_QUAT
+			FROM    (SELECT YY
+		                  , '01' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT1 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT1 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '02' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT1 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT1 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '03' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT1 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT1 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '04' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT2 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT2 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '05' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT2 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT2 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '06' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT2 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT2 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '07' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT3 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT3 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '08' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT3 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT3 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '09' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT3 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT3 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '10' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT4 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT4 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '11' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT4 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT4 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '12' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT4 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT4 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B) A
+		         INNER JOIN
+		            BSC_DEPTINFO B
+		         ON A.DEPT_CD = B.DEPT_ID
+			WHERE YY = #findYear# AND MON = #findMon# AND B.UP_DEPT_ID = #findDeptId#
+			ORDER BY YY, MON, DEPT_CD
+      </isEqual>
+      </select>
+
+	<select id="getList2" parameterClass="hashMap" resultClass="hashMap">
+      <!-- 수입목표 -->
+		<isEqual property="findItemCd" compareValue="S020D003">
+
+			SELECT A.YEAR
+			     , A.MON
+			     , A.DEPT_ID
+			     , B.DEPT_NM
+			     , C.STIC_LAG_TC_NM
+			     , C.STIC_SML_TC_NM
+			     , SUM(A.PLAN_AMT) PLAN_AMT
+			  FROM (SELECT YEAR
+			             , CASE LENGTH (TO_CHAR (MON))
+			                  WHEN 1 THEN '0' || MON
+			                  ELSE TO_CHAR (MON)
+			               END
+			                  MON
+			             , DEPT_ID
+			             , ROLE_TC
+			             , PLAN_AMT
+			          FROM V_GHA0110D_001) A
+			       LEFT OUTER JOIN BSC_DEPTINFO B
+			          ON A.DEPT_ID = B.DEPT_ID
+			       LEFT OUTER JOIN V_GHF0221D_003 C
+			          ON A.YEAR = C.YEAR AND A.MON = C.MM AND A.DEPT_ID = C.DEPT_CD
+			 WHERE YEAR = #findYear# AND A.MON = #findMon# AND B.DEPT_ID = #findDeptId# AND A.DEPT_ID > '6000'
+			 GROUP BY A.YEAR
+			     , A.MON
+			     , A.DEPT_ID
+			     , B.DEPT_NM
+			     , C.STIC_LAG_TC_NM
+			     , C.STIC_SML_TC_NM
+		</isEqual>
+	</select>
+
+	<select id="getList3" parameterClass="hashMap" resultClass="hashMap">
+      <!-- 배정액  -->
+		<isEqual property="findItemCd" compareValue="S020D004">
+			SELECT A.YY AS YEAR
+		       , A.MON
+		       , A.DEPT_CD
+		       , B.DEPT_NM
+		       , A.APRV_QUAT
+		       , A.BGR_RSLT_QUAT
+			FROM    (SELECT YY
+		                  , '01' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT1 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT1 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '02' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT1 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT1 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '03' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT1 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT1 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '04' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT2 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT2 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '05' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT2 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT2 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '06' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT2 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT2 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '07' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT3 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT3 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '08' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT3 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT3 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '09' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT3 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT3 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '10' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT4 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT4 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '11' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT4 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT4 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B
+		             UNION ALL
+		             SELECT YY
+		                  , '12' AS MON
+		                  , B.DEPT_CD
+		                  , APRV_QUAT4 AS APRV_QUAT
+		                  , BGT_RSLT_QUAT4 AS BGR_RSLT_QUAT
+		               FROM DUAL A, V_AAA0106M_001 B) A
+		         INNER JOIN
+		            BSC_DEPTINFO B
+		         ON A.DEPT_CD = B.DEPT_ID
+			WHERE YY = #findYear# AND MON = #findMon# AND B.UP_DEPT_ID = #findDeptId#
+			ORDER BY YY, MON, DEPT_CD
+      </isEqual>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+             AND B.INSERT_GUBUN = '01'
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+
+</sqlMap>

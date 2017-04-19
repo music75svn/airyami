@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.evalCon.empEvalConMember">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 최상위 평가조직 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getTopDeptInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+			 , DEPT_CD
+			 , DEPT_KOR_NM
+		  FROM ( SELECT YEAR, DEPT_CD, DEPT_KOR_NM FROM BSC_INSA_DEPT WHERE YEAR = #findYear# ORDER BY DISP_ORDER, DEPT_CD )
+		WHERE DEPT_CD = '0000'
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 인사조직 왼쪽트리목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+			 , DEPT_CD
+			 , DEPT_KOR_NM
+			 , UP_DEPT_CD
+			 , UP_USER_ID
+			 , USE_YN
+			 , DEPT_LEVL
+			 , DISP_ORDER
+		  FROM BSC_INSA_DEPT
+		 WHERE YEAR = #findYear#
+		   AND ( DEPT_CD > '1025'
+		   		 OR DEPT_CD = '0000'
+   		   		 OR DEPT_CD = '1000' )
+<![CDATA[
+   		   AND DEPT_CD <> '1090'
+]]>	
+		 ORDER BY DEPT_CD, DISP_ORDER      
+		 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CON_EMP_MEMBER
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+			 , A.EMPN
+			 , A.KOR_NM
+			 , A.DEPT_CD
+			 , D.DEPT_KOR_NM
+             , F_DEPT_FULL_NM(A.YEAR, A.DEPT_CD, 'BSC_INSA_DEPT') DEPT_FULL_NM
+			 , A.CAST_TC
+			 , B.CODE_NM AS CAST_TC_NM
+			 , A.POS_TC
+			 , C.CODE_NM AS POS_TC_NM
+			 , A.EVAL_YN
+			 , B1.START_PCMT_DATE
+             , B1.END_PCMT_DATE 
+             , V.ASSESSOR_EMPN AS MANAGER_USER_ID
+			 , I.KOR_NM AS  MANAGER_USER_NM
+          FROM CON_EMP_MEMBER A
+          LEFT OUTER JOIN BSC_CODE B
+                       ON A.YEAR = B.YEAR
+                      AND B.CODE_GRP_ID = '170'
+                      AND B.CODE_ID = A.CAST_TC
+          LEFT OUTER JOIN BSC_CODE C
+                       ON A.YEAR = C.YEAR
+                      AND C.CODE_GRP_ID = '171'
+                      AND C.CODE_ID = A.POS_TC
+		  LEFT OUTER JOIN BSC_INSA_DEPT D
+            		   ON A.YEAR = D.YEAR
+           AND A.DEPT_CD = D.DEPT_CD
+		  LEFT OUTER JOIN CON_EMP_EVAL_ASSESSOR V ON A.YEAR = V.YEAR AND A.DEPT_CD = V.DEPT_CD
+		  LEFT OUTER JOIN BSC_INSA I ON V.YEAR = I.YEAR 
+		  							<!-- AND V.DEPT_CD  = I.DEPT_CD  -->
+		  							AND V.ASSESSOR_EMPN = I.EMPN
+          LEFT OUTER JOIN (SELECT YEAR, EMPN, DEPT_CD, MIN(START_PCMT_DATE) AS START_PCMT_DATE, 
+					          MAX(END_PCMT_DATE) AS END_PCMT_DATE 
+					         FROM BSC_INSA_PCMT GROUP BY YEAR, EMPN, DEPT_CD 
+					       ) B1 ON A.YEAR = B1.YEAR AND A.EMPN = B1.EMPN  AND A.DEPT_CD = B1.DEPT_CD 
+         WHERE A.YEAR=#findYear#
+	       <isNotEqual prepend="AND" property="findDeptCd" compareValue="0000">
+               A.DEPT_CD IN (SELECT DEPT_CD
+							   FROM BSC_INSA_DEPT
+							  WHERE YEAR = #findYear#
+						 START WITH DEPT_CD = #findDeptCd#
+				   CONNECT BY PRIOR YEAR = YEAR
+								AND PRIOR DEPT_CD = UP_DEPT_CD)
+            </isNotEqual>
+			<isNotEmpty prepend="AND" property="findYear">
+	            A.YEAR = #findYear#
+		   	</isNotEmpty>
+		   	<isNotEmpty prepend="AND" property="findCastTc">
+		   		A.CAST_TC = #findCastTc#
+		   	</isNotEmpty>
+		   	<isNotEmpty prepend="AND" property="findKorNm">
+		   		UPPER(A.KOR_NM) LIKE  '%' || TRIM(UPPER(#findKorNm#)) ||'%'   
+		   	</isNotEmpty>
+          ORDER BY A.DEPT_CD, A.EMPN  
+	</select>
+	
+	
+		<!--
+    ==================================================================   
+      # 설명  : 평가대상자 상세보기
+      # 기능  : SELECT
+      # TABLE   : CON_EMP_MEMBER
+    ==================================================================
+    -->
+    <select id="getEmpnList" parameterClass="hashMap" resultClass="hashMap">
+    SELECT EMPN FROM CON_EMP_MEMBER
+    WHERE YEAR = #findYear#
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명  : 평가대상자 상세보기
+      # 기능  : SELECT
+      # TABLE   : CON_EMP_MEMBER
+    ==================================================================
+    -->
+    <select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+    	SELECT A.YEAR
+				, A.EMPN
+				, A.KOR_NM
+				, A.DEPT_CD
+				, (SELECT DEPT_KOR_NM FROM BSC_INSA_DEPT WHERE A.YEAR = YEAR AND A.DEPT_CD = DEPT_CD) AS DEPT_NM
+				, F_DEPT_FULL_NM(A.YEAR, A.DEPT_CD, 'BSC_INSA_DEPT') AS DEPT_FULL_NM
+				, A.CAST_TC
+				, A.POS_TC
+				, A.EVAL_YN
+				, B.EVAL_GRP_ID
+				, C.ASSESSOR_EMPN AS MANAGER_USER_ID
+				, D.KOR_NM AS  MANAGER_USER_NM
+    	FROM  CON_EMP_MEMBER A
+    	LEFT OUTER JOIN CON_EMP_DEPT_EVAL_GRP B ON A.YEAR = B.YEAR AND A.DEPT_CD = B.DEPT_CD
+    	LEFT OUTER JOIN CON_EMP_EVAL_ASSESSOR C ON A.YEAR = C.YEAR AND A.DEPT_CD = C.DEPT_CD
+    	LEFT OUTER JOIN BSC_INSA D ON C.YEAR = D.YEAR 
+    	  				 		  <!-- AND C.DEPT_CD  = D.DEPT_CD  -->
+    	  				 		  AND C.ASSESSOR_EMPN = D.EMPN
+    	 WHERE A.YEAR = #year#
+           AND A.EMPN = #evalMembEmpn#
+    	
+    </select>
+    
+     <!--
+    ==================================================================
+      # 설명    : 평가대상자 입력
+      # 기능    : INSERT
+      # TABLE   : CON_EMP_MEMBER
+    ==================================================================
+    -->
+    <insert id="insertData" parameterClass="hashMap">
+        INSERT INTO CON_EMP_MEMBER
+        (YEAR, EMPN , KOR_NM , DEPT_CD, CAST_TC, POS_TC , EVAL_YN , CREATE_DT)
+        VALUES
+        (#year#,#evalMembEmpn#, #korNm# ,#deptCd#,#castTc#,#posTc#, 'Y',SYSDATE)
+         
+    </insert>
+    
+    <insert id="insertAssessorData" parameterClass="hashMap">
+       MERGE INTO CON_EMP_EVAL_ASSESSOR A
+       USING (SELECT #year# AS YEAR
+                   , #deptCd# AS DEPT_CD
+                   , #managerUserId# AS ASSESSOR_EMPN
+                   FROM DUAL
+             ) B ON (A.YEAR= B.YEAR AND A.DEPT_CD = B.DEPT_CD )
+       WHEN MATCHED THEN 
+           UPDATE SET A.ASSESSOR_EMPN = B.ASSESSOR_EMPN
+       WHEN NOT MATCHED THEN 
+          INSERT (A.YEAR,A.DEPT_CD,A.ASSESSOR_EMPN,A.CREATE_DT)
+          VALUES (B.YEAR,B.DEPT_CD,B.ASSESSOR_EMPN,SYSDATE)
+    </insert>
+    
+    <insert id="insertEvalGrpData" parameterClass="hashMap">
+       MERGE INTO CON_EMP_DEPT_EVAL_GRP A
+       USING (SELECT #year# AS YEAR
+                   , #deptCd# AS DEPT_CD
+                   , #evalGrpId# AS EVAL_GRP_ID
+              FROM DUAL
+             ) B ON (A.YEAR= B.YEAR AND A.DEPT_CD = B.DEPT_CD )
+       WHEN MATCHED THEN 
+            UPDATE SET A.EVAL_GRP_ID = B.EVAL_GRP_ID
+       WHEN NOT MATCHED THEN 
+        INSERT (A.YEAR,A.DEPT_CD,A.EVAL_GRP_ID,A.CREATE_DT)
+        VALUES (B.YEAR,B.DEPT_CD,B.EVAL_GRP_ID,SYSDATE)
+    </insert>
+    
+    <!--
+    ==================================================================   
+      # 설명  : 평가대상자 수정
+      # 기능  : UPDATE
+      # TABLE   : CON_EMP_MEMBER
+    ==================================================================
+    --> 
+    <update id="updateData" parameterClass="hashMap">
+        UPDATE CON_EMP_MEMBER
+           SET DEPT_CD = #deptCd#
+             , CAST_TC = #castTc#
+             , POS_TC  = #posTc#
+         WHERE YEAR    = #year#
+           AND EMPN    = #evalMembEmpn#
+    </update>
+    
+	
+	<!--
+	==================================================================   
+	  # 설명	: 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<parameterMap id="paramMap" class="java.util.HashMap">
+		<parameter property="year" 			jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>	
+	
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 데이터집계관리 프로시저 호출
+	  #	기능	: CALL PROCEDURE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<procedure id="callSpPrsEmpMemberProc"  parameterMap="paramMap">
+		{CALL  SP_CON_EMP_MEMBER(? )} 
+	</procedure>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자 선정 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_MNG_MEMBER
+	==================================================================
+	-->	
+	<update id="updateEmpMemberData" parameterClass="hashMap">
+		UPDATE CON_EMP_MEMBER
+	   	   SET EVAL_YN = #evalYn#
+		 WHERE EMPN = #empn#
+		   AND YEAR = #findYear#		
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자 선정 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_MNG_MEMBER
+	  	UPDATE CON_MNG_MEMBER
+	   	   SET EVAL_YN = #evalYn#
+		 WHERE EVAL_MEMB_EMPN = #empn#
+		   AND YEAR = #findYear#	
+	==================================================================
+	-->	
+	<update id="updateMngMemberData" parameterClass="hashMap">
+		   
+	 INSERT INTO CON_MNG_MEMBER (YEAR, EVAL_MEMB_EMPN , EVAL_MEMB_EMPN_SEQ , KOR_NM, DEPT_CD, CAST_TC, POS_TC, EVAL_YN, CREATE_DT)
+    	SELECT YEAR ,EMPN,'1',KOR_NM,DEPT_CD,CAST_TC,POS_TC,EVAL_YN ,SYSDATE FROM CON_EMP_MEMBER 
+     		WHERE YEAR = #findYear#  AND EMPN =  #empn#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 대상자 선정 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: CON_MNG_MEMBER
+	==================================================================
+	-->
+	<delete id="deleteData" parameterClass="hashMap">
+		DELETE FROM  CON_EMP_MEMBER
+		WHERE YEAR = #findYear#  
+		AND EMPN = #empn#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 대상자 선정 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: CON_MNG_MEMBER
+	==================================================================
+	-->
+	<delete id="deleteMngData" parameterClass="hashMap">
+    DELETE FROM CON_MNG_MEMBER 
+		WHERE YEAR = #findYear#  
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 카운트
+	  #	기능	: SELECT
+	  #	TABLE	: CON_MNG_MEMBER
+	==================================================================
+	-->
+	<select id="getMngCnt" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(1) AS CNT 
+		  FROM CON_MNG_MEMBER 
+		WHERE YEAR = #findYear#    
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 권한 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<update id="deleteAdminDatas" parameterClass="hashMap">
+		DELETE FROM BSC_ADMIN
+         WHERE ADMIN_GUBUN='30'
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 권한 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<insert id="insertAdminDatas" parameterClass="hashMap">
+		INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID)
+			SELECT '30', A.EMPN 
+              FROM (SELECT EMPN
+                      FROM CON_EMP_MEMBER A
+                     WHERE YEAR = #findYear#
+                    ) A 
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자 권한 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<delete id="deleteAdminData" parameterClass="hashMap">
+		DELETE FROM BSC_ADMIN
+         WHERE ADMIN_GUBUN=#adminGubun#
+         <isEqual property="adminGubun" compareValue="30">
+         AND USER_ID = #evalMembEmpn#
+         </isEqual>
+          <isEqual property="adminGubun" compareValue="31">
+         AND USER_ID = #managerUserId#
+          </isEqual>
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 권한 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<insert id="insertAdminData" parameterClass="hashMap">
+		INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID)
+        <isEqual property="adminGubun" compareValue="30">
+            SELECT DISTINCT #adminGubun#, EMPN
+            FROM CON_EMP_MEMBER 
+            WHERE YEAR = #findYear# 
+            AND EMPN = #evalMembEmpn#
+            AND EVAL_YN = 'Y'
+        </isEqual>
+        <isEqual property="adminGubun" compareValue="31">
+            SELECT DISTINCT #adminGubun#, ASSESSOR_EMPN
+            FROM CON_EMP_EVAL_ASSESSOR 
+            WHERE YEAR = #findYear# 
+            AND ASSESSOR_EMPN = #managerUserId#
+        </isEqual>
+         
+	</insert>
+	
+	
+	
+		
+</sqlMap>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.mon.metricDefine">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 지표정의서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+	            A.YEAR
+	          , C.DB_INITIATIVE_ID 
+	          , A.STRATEGY_ID 
+	          , C.STRATEGY_NM
+	          , A.METRIC_ID
+	          , A.METRIC_NM
+	          , A.METRIC_GRP_ID
+	          , B.METRIC_GRP_NM
+	          , A.TYPE_ID
+	          , A.METRIC_PROPERTY_ID
+	          , A.EVAL_CYCLE
+	          , A.UNIT
+	          , A.WEIGHT
+	          , A.SORT_ORDER
+	          , A.ACTUAL_Y
+	          , A.INSERT_USER_ID
+              , F.USER_NM AS INSERT_USER_NM
+              , A.APPROVE_USER_ID
+              , G.USER_NM AS APPROVE_USER_NM
+	          , NVL(E.ACTION_CNT, 0) ||'/'|| NVL(E.PLAN_CNT, 0) AS PLAN_CNT 
+	          , CASE WHEN A.TYPE_ID =  '01' THEN TO_CHAR(D.TGT_VALUE) ELSE TARGETY_TXT END TARGETY
+	          , F_CODE_NM('115', C.DB_INITIATIVE_ID, A.YEAR) AS DB_INITIATIVE_NM
+	          , F_CODE_NM('007', A.TYPE_ID, A.YEAR) AS TYPE_NM 
+	          , F_CODE_NM('010', A.METRIC_PROPERTY_ID, A.YEAR) AS METRIC_PROPERTY_NM 
+	          , F_CODE_NM('008', A.EVAL_CYCLE, A.YEAR) AS EVAL_CYCLE_NM 
+	          , F_CODE_NM('013', A.UNIT, A.YEAR) AS UNIT_NM 
+	    FROM BSC_METRIC A
+	         LEFT OUTER JOIN BSC_METRIC_GRP B ON A.YEAR = B.YEAR AND A.METRIC_GRP_ID = B.METRIC_GRP_ID
+	         LEFT OUTER JOIN BSC_DEPT_STRATEGY C ON A.YEAR = C.YEAR AND A.STRATEGY_ID = C.STRATEGY_ID AND A.SC_DEPT_ID = C.SC_DEPT_ID
+	         LEFT OUTER JOIN BSC_TARGET D ON A.YEAR = D.YEAR AND A.METRIC_ID = D.METRIC_ID AND D.MON = '12' AND D.ANAL_CYCLE = 'Y'
+	         LEFT OUTER JOIN (SELECT YEAR, METRIC_ID
+	                               , COUNT(CASE WHEN PLAN_START_DT IS NOT NULL THEN 1 ELSE NULL END) AS PLAN_CNT
+	                               , COUNT(CASE WHEN ACT_START_DT IS NOT NULL THEN 1 ELSE NULL END) AS ACTION_CNT                                                                                                   
+	                            FROM BSC_INITIATIVE
+	                           WHERE YEAR = #findYear#                                                                                                                               
+	                           GROUP BY YEAR, METRIC_ID) E ON A.YEAR = E.YEAR AND A.METRIC_ID = E.METRIC_ID
+             LEFT OUTER JOIN V_ROLE_USER F ON A.INSERT_USER_ID = F.USER_ID
+             LEFT OUTER JOIN V_ROLE_USER G ON A.APPROVE_USER_ID = G.USER_ID
+	    <isNotEmpty prepend="AND" property="findScDeptId">
+	    	A.SC_DEPT_ID = #findScDeptId#
+	    </isNotEmpty>
+	    
+	    <isNotEmpty prepend="AND" property="findBscMetricGbn">
+			A.BSC_METRIC_GBN = #findBscMetricGbn#
+		</isNotEmpty>
+	      
+	    <isEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NOT NULL
+	    </isEqual>
+	    
+	    <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NULL
+	    </isNotEqual>
+	    
+	    ORDER BY A.SORT_ORDER, C.SORT_ORDER, C.DB_INITIATIVE_ID, A.METRIC_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표정의서 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+           
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표정의서 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표정의서 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 지표정의서 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+
+	</update>
+	
+	
+</sqlMap>
+
+

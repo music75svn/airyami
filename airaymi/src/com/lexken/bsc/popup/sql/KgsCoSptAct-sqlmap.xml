@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.kgsCoSptAct">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getList" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+	<!-- S073D001 공장등록심사(기업지원실적(전사)) -->
+		<isEqual property="findItemCd" compareValue="S073D001">
+		
+			SELECT A.YEAR
+                  ,A.MON
+                  ,A.DEPT_CD
+                  ,B.DEPT_NM
+                  ,A.RPT_TC_NM
+                  ,A.ROLE_TC_NM
+                  ,A.INSP_KIND_TC_NM
+                  ,A.LAW_TC_NM
+                  ,A.STIC_LAG_TC_NM
+                  ,A.STIC_MID_TC_NM
+                  ,A.STIC_SML_TC_NM
+                  ,A.INSP_QTY
+              FROM TABLE(BSC_SYSTEM_KGS.F_V_GHF0221D_LIST(#findYear#, #findMon#)) A
+   LEFT OUTER JOIN BSC_DEPTINFO B
+                ON A.DEPT_CD = B.DEPT_ID
+             WHERE A.ROLE_TC = '04' AND A.INSP_KIND_TC = '06'
+               AND A.DEPT_CD = '3J00'
+               
+		</isEqual>
+	<!--  S073D002 방폭수탁(기업지원실적(전사)) -->
+		<isEqual property="findItemCd" compareValue="S073D002">
+		
+			SELECT A.YEAR
+                  ,A.MON
+                  ,A.DEPT_CD
+                  ,B.DEPT_NM
+                  ,A.RPT_TC_NM
+                  ,A.ROLE_TC_NM
+                  ,A.INSP_KIND_TC_NM
+                  ,A.LAW_TC_NM
+                  ,A.STIC_LAG_TC_NM
+                  ,A.STIC_MID_TC_NM
+                  ,A.STIC_SML_TC_NM
+                  ,A.INSP_QTY
+              FROM TABLE(BSC_SYSTEM_KGS.F_V_GHF0221D_LIST(#findYear#, #findMon#)) A
+   LEFT OUTER JOIN BSC_DEPTINFO B
+                ON A.DEPT_CD = B.DEPT_ID
+             WHERE ROLE_TC = '12' AND INSP_KIND_TC = '01'
+               AND DEPT_CD = '3J00'
+               AND STIC_LAG_TC = '86'
+               AND STIC_MID_TC = '00'
+               AND STIC_SML_TC = '00' 
+               
+		</isEqual>
+	<!--  S073D003 방폭인증(기업지원실적(전사)) -->
+		<isEqual property="findItemCd" compareValue="S073D003">
+		
+			SELECT A.YEAR
+                  ,A.MON
+                  ,A.DEPT_CD
+                  ,B.DEPT_NM
+                  ,A.RPT_TC_NM
+                  ,A.ROLE_TC_NM
+                  ,A.INSP_KIND_TC_NM
+                  ,A.LAW_TC_NM
+                  ,A.STIC_LAG_TC_NM
+                  ,A.STIC_MID_TC_NM
+                  ,A.STIC_SML_TC_NM
+                  ,A.INSP_QTY
+              FROM TABLE(BSC_SYSTEM_KGS.F_V_GHF0221D_LIST(#findYear#, #findMon#)) A
+   LEFT OUTER JOIN BSC_DEPTINFO B
+                ON A.DEPT_CD = B.DEPT_ID
+             WHERE ROLE_TC = '13' AND INSP_KIND_TC = '03'
+               AND DEPT_CD = '3J00'
+               AND STIC_MID_TC IN ('30', '05', '25') 
+               
+		</isEqual>
+	<!--  S073D004 ISO인증심사(기업지원실적(전사)) -->
+		<isEqual property="findItemCd" compareValue="S073D004">
+			
+			SELECT A.YEAR
+                  ,A.MON
+                  ,A.DEPT_CD
+                  ,B.DEPT_NM
+                  ,A.RPT_TC_NM
+                  ,A.ROLE_TC_NM
+                  ,A.INSP_KIND_TC_NM
+                  ,A.LAW_TC_NM
+                  ,A.STIC_LAG_TC_NM
+                  ,A.STIC_MID_TC_NM
+                  ,A.STIC_SML_TC_NM
+                  ,A.INSP_QTY
+              FROM TABLE(BSC_SYSTEM_KGS.F_V_GHF0221D_LIST(#findYear#, #findMon#)) A
+   LEFT OUTER JOIN BSC_DEPTINFO B
+                ON A.DEPT_CD = B.DEPT_ID
+             WHERE ROLE_TC = '10' AND INSP_KIND_TC = '01'
+               AND STIC_LAG_TC IN ('35', '36', '37')
+               AND DEPT_CD = '3L00' 
+               
+		</isEqual>
+	<!--  S073D005 자율검사(기업지원실적(전사)) -->
+		<isEqual property="findItemCd" compareValue="S073D005">
+			
+			SELECT A.YEAR
+                  ,SUBSTR(REAL_INSP_DATE, 5, 2) AS MON
+                  ,A.DEPT_CD
+                  ,B.DEPT_NM
+                  ,A.EQUI_NM
+                  ,A.CO_NM
+                  ,A.BSNO
+                  ,A.ADDR
+                  ,A.INSP_NM
+                  ,A.INSP_PLAN_DATE
+                  ,A.REAL_INSP_DATE
+              FROM V_GHF0301M_001 A
+   LEFT OUTER JOIN BSC_DEPTINFO B
+                ON A.DEPT_CD = B.DEPT_ID
+             WHERE YEAR = #findYear# 
+               AND SUBSTR(REAL_INSP_DATE, 5, 2) = #findMon#
+               AND IMP_GUBUN = '1501' 
+               AND REAL_INSP_DATE IS NOT NULL
+               
+		</isEqual>
+	<!--  S073D006 수탁인증(기업지원실적(전사)) -->
+		<isEqual property="findItemCd" compareValue="S073D006">
+			
+			SELECT A.YEAR
+                  ,A.MON
+                  ,A.DEPT_CD
+                  ,B.DEPT_NM
+                  ,A.RPT_TC_NM
+                  ,A.ROLE_TC_NM
+                  ,A.INSP_KIND_TC_NM
+                  ,A.LAW_TC_NM
+                  ,A.STIC_LAG_TC_NM
+                  ,A.STIC_MID_TC_NM
+                  ,A.STIC_SML_TC_NM
+                  ,A.INSP_QTY
+              FROM TABLE(BSC_SYSTEM_KGS.F_V_GHF0221D_LIST(#findYear#, #findMon#)) A
+   LEFT OUTER JOIN BSC_DEPTINFO B
+                ON A.DEPT_CD = B.DEPT_ID
+             WHERE DEPT_CD IN ('3100', '3F00')
+               AND INSP_KIND_TC = '01'
+               AND ROLE_TC = '14'
+               
+		</isEqual>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 부서조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getScDeptMapping" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DEPT_ID
+		  FROM ( SELECT DEPT_ID 
+				   FROM BSC_SC_DEPT_MAPPING
+				  WHERE YEAR = #findYear# 
+				    AND SC_DEPT_ID = #findScDeptCd# ORDER BY DEPT_ID )
+		 WHERE ROWNUM = 1
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 부서조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DEPT_ID, B.DEPT_NM
+		  FROM BSC_SC_DEPT_MAPPING A
+	LEFT OUTER JOIN BSC_DEPTINFO B
+			ON A.DEPT_ID = B.DEPT_ID
+		 WHERE (YEAR, SC_DEPT_ID) IN
+		          (SELECT YEAR, SC_DEPT_ID
+		             FROM BSC_METRIC
+		            WHERE (METRIC_GRP_ID, YEAR) IN
+		                     (SELECT METRIC_GRP_ID, YEAR
+		                        FROM BSC_METRIC
+		                       WHERE YEAR = #findYear# AND METRIC_ID = #findMetricId#))
+	</select>
+
+</sqlMap>
+
+

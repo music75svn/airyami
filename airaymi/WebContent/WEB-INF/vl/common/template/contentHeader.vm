@@ -1,0 +1,235 @@
+#*************************************************************************
+* CLASS 명      : contentHeader.vm
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012.05.18
+* 기    능      : 상단 TOP 메뉴
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자      작  업   일        변 경 내 용             비  고
+* ----  ----------  ----------------  -------------------------  ----------
+*  1     하 윤 식      2012.05.18         최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript">
+//<![CDATA[
+
+	var J = jQuery
+
+	J(document).ready(function(){
+		
+		#if($!{searchMap.txt2html("findHighPgmId")} == "")
+			var subMenuShow = $('#topMenu > ul > li > span').first().attr("id");
+		#else
+			var subMenuShow = "$!{searchMap.txt2html("findHighPgmId")}";
+		#end
+		
+		J("#subMenu_" + subMenuShow).removeClass("hidden");
+		
+		J("#topMenu > ul > li :last").remove(); //상단탑메뉴 '|' 숨기기
+		
+		J("#topMenu > ul > li > span[class='topMenu_txt']").each(function(index, item) {
+			J("li :last", "#subMenu_" + this.id).remove();
+		});
+		
+		J("#topMenu > ul > li > span[class='topMenu_txt']").bind("mouseenter keyup", function() {
+			J(".topDropdown").addClass("hidden");
+			J("#subMenu_" + this.id).removeClass("hidden");
+		});
+		
+		/******************************************
+    	 * 마우스 out시 기존 선택 메뉴설정
+    	 ******************************************/
+		J("#header").bind("mouseleave", function() {
+			J(".topDropdown").addClass("hidden");
+			J("#subMenu_" + subMenuShow).removeClass("hidden");
+		});
+		
+		/******************************************
+    	 * 서브메뉴 출력
+    	 ******************************************/
+		J("#topMenu > ul > li > span[class='topMenu_txt']").each(function(index, item) {
+			var subMenu = J("#subMenu_" + this.id);
+			var margine = "290";
+			var gab = "175";
+			var lMargine = "1";
+			var subMenuGap = "25";
+			var subMenuLen = J("#subMenu_" + item.id + " > li").length/2;
+			
+			margine = parseFloat(margine) + (parseFloat(index) * parseFloat(gab));
+			margine = Math.round(margine*100)/100;
+			
+			if(index >= 5) {
+				subMenuGap = 21;
+			} else if(index >= 4) {
+				subMenuGap = 21;
+			} else if(subMenuLen >= 8) {
+				subMenuGap = 20;
+			}
+			
+			if(subMenuLen != 1) {
+    			lMargine = parseFloat(lMargine) * parseFloat(subMenuLen) * parseFloat(subMenuGap) * parseFloat(index);
+				
+				if(index > 4) {
+					lMargine = lMargine + 80;
+				}
+				
+        		lMargine = Math.round(lMargine*100)/100;
+				margine = parseFloat(margine) - parseFloat(lMargine);
+				margine = Math.round(margine*100)/100;
+			
+				subMenu.offset({left : margine});
+			}
+		});
+		
+		/******************************************
+    	 * 서브메뉴 width 조정
+    	 ******************************************/
+		J("#topMenu > ul > li > span[class='topMenu_txt']").each(function(index, item) {
+			var subMenu = J("#subMenu_" + this.id);
+			var subMenuLen = J("#subMenu_" + item.id + " > li").length/2;
+			
+			var subWidth = parseFloat(100) * parseFloat(subMenuLen) + 50;
+    		subWidth = Math.round(subWidth*100)/100;
+			
+			subMenu.width(subWidth);
+			
+		});
+		
+		/******************************************
+    	 * 공지사항 팝업 호출
+    	 ******************************************/
+		popup();
+		
+		/******************************************
+		 * 메세지 보내기 팝업  클릭 이벤트
+		 ******************************************/
+		J("#message").click(function() {
+			var url = "$!{context_path}/bsc/message/message/messageList.vw?type=popup&amp;year="+$!{year};
+			openWinByName(url,'message','550','400','no');
+		});
+		
+		/******************************************
+		 * 신호등현황 팝업  클릭 이벤트
+		 ******************************************/
+		J("#viewSignal").click(function() {
+			var url = "$!{context_path}/bsc/mon/viewSignal/viewSignalList.vw?type=popup&amp;findYear="+$!{year};
+			openWinByName(url,'viewSignal','450','300','no');
+		});
+		
+		/******************************************
+		 * 용어사전 팝업  클릭 이벤트
+		 ******************************************/
+		J("#systemWordDic").click(function() {
+			var url = "$!{context_path}/bsc/mon/systemWordDic/systemWordDicList.vw?type=popup";
+			openWinByName(url,'systemWordDic','800','500','no');
+		});
+		
+		/******************************************
+		 * 평가편람  클릭 이벤트
+		 ******************************************/
+		J("#interManual").click(function() {
+			var url = "$!{context_path}/bsc/system/attFile/attFileList.vw?type=popup&amp;findYear="+$!{year};
+			openWinByName(url,'interManual','450','150','no');
+		});
+		
+	});
+	
+	/******************************************
+	 * 메뉴 URL 미등록
+	 ******************************************/
+	function checkUrl() {
+		J.showMsgBox('메뉴 URL을 등록해 주십시요', null, null);
+	}
+	
+	/******************************************
+	 * 공지사항 팝업
+	 ******************************************/
+	function popup() {
+		#foreach($list in $popupList)
+			if(J.cookie("bscNotice_"+$list.ID)==null){
+        		window.open('', 'List'+ $velocityCount, 'width=$list.WIDTH, height=$list.HEIGHT , top=50, left=100 scrollbars=yes, resizble=no');
+              	J("#formPop").attr("action","$!{context_path}/bsc/system/notice/noticePopup.vw");
+              	J("#formPop").attr("target","List"+$velocityCount);
+    			J("#popUpId").val($list.ID);
+    			J("#formPop").submit();
+			}
+		#end
+	}
+			
+	
+//]]>
+</script>
+<div id="header">
+	<ul id="skipNavi" class="none">
+		<li><a href="#topMenu">주메뉴 바로가기</a></li>
+		<li><a href="#Table_blockContainer">본문 바로가기</a></li>
+	</ul>
+	<div id="headerInfo">
+		<h1 id="topLogo"><a href="$!{context_path}/bsc/mon/main/$!{CS_LOGIN.getDashboard_url()}.vw?type=template"><img src="$!{img_path}/common/top_logo.gif" alt="logo" /></a></h1>
+		<div id="topInfo">
+			<div id="personInfo">
+    			<span><em>$!{CS_LOGIN.getUser_nm()}</em>($!{CS_LOGIN.getDept_nm()})</span>
+    			<span><a href="#" onclick="window.close(); return false;"><img src="$!{img_path}/common/top_btn_logout.gif" alt="로그아웃" /></a></span>
+			</div>
+    		<div id="topSubMenu" style="margin-left:185px" >
+    			<ul>
+    				<li><span id="message" style="cursor:pointer;">쪽지보내기</span></li>
+    				<li><span class="topSubMenu_bar"><span>|</span></span></li>
+    				<li><span id="viewSignal" style="cursor:pointer;">신호등</span></li>
+    				<li><span class="topSubMenu_bar"><span>|</span></span></li>
+##    				<li><span id="systemWordDic" style="cursor:pointer;">용어사전</span></li>
+    				<li><span id="interManual" style="cursor:pointer;">평가편람</span></li>
+    			</ul>
+			</div>
+		</div>
+	</div>
+	<div id="topMenu">
+		<ul id="topMenuList">
+			#foreach($list in $CS_MENU_LIST)
+				#if($list.levelId == '01')
+					#if($!{CS_LOGIN.chkAuthGrp("01")} && $!{CS_HTML.txt2html($list.pgmId)} == 'PGM0436')
+					#else
+    					<li style="padding:0 0 0 0;"><span id="$!{CS_HTML.txt2html($list.pgmId)}" class="topMenu_txt" style="width:120px">
+    							#if($!{CS_HTML.txt2html($list.url)} != '')
+									#if($!{searchMap.txt2html("findHighPgmId")} == $!{CS_HTML.txt2html($list.pgmId)})
+										<a href="$!{context_path}$!{CS_HTML.txt2html($list.url)}?type=template&amp;findYear=$!{year}&amp;findMon=$!{mon}&amp;findAnalCycle=Y&amp;findHighPgmId=$!{CS_HTML.txt2html($list.pgmId)}&amp;findSubPgmId=$!{CS_HTML.txt2html($list.subPgmId)}&amp;findPgmId=$!{CS_HTML.txt2html($list.lastPgmId)}&amp;isPageFirstLoadingYN=Y&amp;$!{CS_HTML.txt2html($list.param)}">
+											<div style="background-image:url($!{img_path}/common/top_bar.gif); height:24px; width:120px;">
+												<span class="txt_white">
+													$!{CS_HTML.txt2html($list.pgmNm)}
+												</span>
+											</div>
+										</a>
+									#else
+										<a href="$!{context_path}$!{CS_HTML.txt2html($list.url)}?type=template&amp;findYear=$!{year}&amp;findMon=$!{mon}&amp;findAnalCycle=Y&amp;findHighPgmId=$!{CS_HTML.txt2html($list.pgmId)}&amp;findSubPgmId=$!{CS_HTML.txt2html($list.subPgmId)}&amp;findPgmId=$!{CS_HTML.txt2html($list.lastPgmId)}&amp;isPageFirstLoadingYN=Y&amp;$!{CS_HTML.txt2html($list.param)}"  >
+											$!{CS_HTML.txt2html($list.pgmNm)}
+										</a>
+									#end
+    							#else
+    								<a href="javascript:checkUrl();">$!{CS_HTML.txt2html($list.pgmNm)}</a>
+    							#end
+    						</span>
+    						<ul id="subMenu_$!{CS_HTML.txt2html($list.pgmId)}" class="topDropdown hidden w500">
+    						#foreach($list2 in $CS_MENU_LIST)
+    							#if($list2.levelId == '02' && $list.pgmId == $list2.upPgmId)
+    								#if($!{CS_HTML.txt2html($list2.url)} != '')
+    									
+    									#set ($selected = "")
+    									#if($!{searchMap.txt2html("findSubPgmId")} == $!{CS_HTML.txt2html($list2.pgmId)})
+    										#set ($selected = "selected")
+    									#end
+    									
+    									<li class="$!{selected}"><a href="$!{context_path}$!{CS_HTML.txt2html($list2.url)}?type=template&amp;findYear=$!{year}&amp;findMon=$!{mon}&amp;findAnalCycle=Y&amp;findHighPgmId=$!{CS_HTML.txt2html($list.pgmId)}&amp;findSubPgmId=$!{CS_HTML.txt2html($list2.pgmId)}&amp;findPgmId=$!{CS_HTML.txt2html($list2.lastPgmId)}&amp;isPageFirstLoadingYN=Y&amp;$!{CS_HTML.txt2html($list2.param)}">$!{CS_HTML.txt2html($list2.pgmNm)}</a></li>
+                					#else
+                						<li><a href="$!{context_path}/bsc/module/commModule/notFoundPage.vw" onclick="checkUrl(); return false;">$!{CS_HTML.txt2html($list2.pgmNm)}</a></li>
+    								#end
+    								<li><span class="topDropdown_bar"><span>|</span></span></li>
+    							#end
+    						#end
+    						</ul>
+    					</li>
+    					<li style="width:1px; padding:0 0 0 0;"><span style="width:1px; paddin:0, 0, 0, 0;" class="topMenu_bar2"><span style="width:1px; paddin:0, 0, 0, 0;">|</span></span></li>
+					#end
+				#end
+			#end
+		</ul>
+	</div>
+</div>

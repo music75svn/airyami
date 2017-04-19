@@ -1,0 +1,43 @@
+
+#*************************************************************************
+* CLASS 명      : imponReportList_xml
+* 작 업 자      : 박경태
+* 작 업 일      : 2012년 12월 3일 
+* 기    능      : 실적보고서 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      박경태     2012년 12월 3일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"INSERT_USER_ID"       : "$!{CS_HTML.txt2html($list.INSERT_USER_ID)}", 
+		"USER_NM"              : "$!{CS_HTML.txt2html($list.USER_NM)}", 
+		"EMAIL"                : "$!{CS_HTML.txt2html($list.EMAIL)}", 
+		"METRIC_GRP_ID"        : "$!{CS_HTML.txt2html($list.METRIC_GRP_ID)}", 
+		"METRIC_GRP_NM"        : "$!{CS_HTML.txt2html($list.METRIC_GRP_NM)}", 
+		"ITEM_ID"              : "$!{CS_HTML.txt2html($list.ITEM_ID)}", 
+		"ITEM_NM"              : "$!{CS_HTML.txt2html($list.ITEM_NM)}", 
+		"ACTUAL_BASE"          : "$!{CS_HTML.txt2htmlbr2_forList($list.ACTUAL_BASE)}",
+		"ATTACH_FILE_NM"       : "$!{CS_HTML.makeFileIconFileName($list.ATTACH_FILE_SUFFIX, $list.ATTACH_FILE_NM, $list.ATTACH_FILE_PATH)}", 
+		"ATTACH_FILE_FNM"      : "$!{CS_HTML.txt2html($list.ATTACH_FILE_FNM)}", 
+		"ATTACH_FILE_SUFFIX"   : "$!{CS_HTML.txt2html($list.ATTACH_FILE_SUFFIX)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

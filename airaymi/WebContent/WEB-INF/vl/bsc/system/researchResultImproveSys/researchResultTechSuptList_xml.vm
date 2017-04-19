@@ -1,0 +1,47 @@
+#*************************************************************************
+* CLASS 명      : researchResultTechSuptList_xml
+* 작 업 자      : 김기현
+* 작 업 일      : 2012년 6월 26일 
+* 기    능      : 시스템 연계데이터 조회 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김기현     2012년 6월 26일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"               		: "$!{CS_HTML.txt2html($list.YEAR)}",
+		"MON"               		: "$!{CS_HTML.txt2html($list.MON)}",
+		"AID_NM"               		: "$!{CS_HTML.txt2html($list.AID_NM)}",
+		"AID_TC"               		: "$!{CS_HTML.txt2html($list.AID_TC)}",
+		"RQST_DEPT_CD"              : "$!{CS_HTML.txt2html($list.RQST_DEPT_CD)}",
+		"RQST_DEPT_NM"              : "$!{CS_HTML.txt2html($list.RQST_DEPT_NM)}",
+		"RQST_EMPN"               	: "$!{CS_HTML.txt2html($list.RQST_EMPN)}",
+		"AID_DEPT"            		: "$!{CS_HTML.txt2html($list.AID_DEPT)}",
+		"AID_DEPT_NM"            	: "$!{CS_HTML.txt2html($list.AID_DEPT_NM)}",
+		"AID_ST_DATE"            	: "$!{CS_HTML.txt2html($list.AID_ST_DATE)}",
+		"AID_END_DATE"            	: "$!{CS_HTML.txt2html($list.AID_END_DATE)}",
+		"AID_HOUR"            		: "$!{CS_HTML.txt2html($list.AID_HOUR)}",
+		"SCORE"            			: "$!{CS_HTML.txt2html($list.SCORE)}",
+		"AID_RSRC_EMPN"            	: "$!{CS_HTML.txt2html($list.AID_RSRC_EMPN)}",
+		"REVI_CNTN"            		: "$!{CS_HTML.txt2htmlbr2_forList($list.REVI_CNTN)}",
+		"SUBJ_NM"            		: "$!{CS_HTML.txt2html($list.SUBJ_NM)}",
+		"SUBJ_NO"            		: "$!{CS_HTML.txt2html($list.SUBJ_NO)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

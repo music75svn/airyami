@@ -1,0 +1,355 @@
+#*************************************************************************
+* CLASS 명      : ahpEvalList
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 11월 29일
+* 기    능      : AHP 평가실시
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     하윤식      2012년 11월 29일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/ahp/ahpEval/ahpEvalList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/ahp/ahpEval/ahpEvalList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가대상 그룹 코드', '평가대상 그룹', '평가문항/전체문항', '비고', '평가제출 여부', '평가제출 여부', '마감여부'],
+			colModel     :[
+                            {name:'ITEM_GRP_ID'          ,index:'ITEM_GRP_ID'          ,width:150   ,align:'center' },
+                            {name:'ITEM_GRP_NM'          ,index:'ITEM_GRP_NM'          ,width:150   ,align:'left'   ,formatter:linkUpdate},
+							{name:'CNT'                  ,index:'CNT'                  ,width:80    ,align:'center' },
+							{name:'CONTENT'              ,index:'CONTENT'              ,width:200   ,align:'left'   },
+                            {name:'EVAL_SUBMIT_YN'       ,index:'EVAL_SUBMIT_YN'       ,width:50    ,align:'center' },
+							{name:'EVAL_SUBMIT_YN_NM'    ,index:'EVAL_SUBMIT_YN_NM'    ,width:50    ,align:'center' },
+							{name:'EVAL_CLOSING_YN'      ,index:'EVAL_CLOSING_YN'      ,width:50    ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			##cmTemplate: {sortable:false},
+			caption:"AHP 평가실시"
+        }).jqGrid('hideCol',"ITEM_GRP_ID").jqGrid('hideCol',"EVAL_SUBMIT_YN").jqGrid('hideCol',"EVAL_CLOSING_YN").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#year").val(J("#findYear").val());
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/bsc/ahp/ahpEval/ahpEvalModify.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+		/******************************************
+		 * 평가년도  change 이벤트
+		 ******************************************/
+		$('#findYear').change(function(){
+			chgEvalYear();
+		});
+
+		/******************************************
+		 * 평가자  change 이벤트
+		 ******************************************/
+		$('#findEvalUserId').change(function(){
+			chgEvalUser();
+		});
+	});
+
+	/******************************************
+	 * 평가년도 변경 시 평가자 변경 (AJAX)
+	 ******************************************/
+	function chgEvalYear(){
+		J.ajax({
+        	url      : "$!{context_path}/bsc/ahp/ahpEval/ahpEvalUserList_ajax.vw",﻿
+        	cache    : false,
+        	type     : "POST",
+			data     : J("#formFind").serialize(),
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+				var xmlDoc = J.parseXML(data);
+        		#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+				J("#findEvalUserId").empty();
+				J(xmlDoc).find("data").each(function() {
+					J('<option/>').attr('value', J(this).find("value").text()).text(J(this).find("text").text()).appendTo('#findEvalUserId');
+				})
+				#end
+				chgEvalUser(); //평가자 변경 시 평가단 변경
+        	}
+    	});
+	}
+
+	/******************************************
+	 * 평가자 변경 시 평가단 변경 (AJAX)
+	 ******************************************/
+	function chgEvalUser(){
+		J.ajax({
+        	url      : "$!{context_path}/bsc/ahp/ahpEval/ahpEvalUserGrpList_ajax.vw",﻿
+        	cache    : false,
+        	type     : "POST",
+			data     : J("#formFind").serialize(),
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+				var xmlDoc = J.parseXML(data);
+        		J("#findEvalUserGrpId").empty();
+
+				J(xmlDoc).find("data").each(function() {
+					J('<option/>').attr('value', J(this).find("value").text()).text(J(this).find("text").text()).appendTo('#findEvalUserGrpId');
+				})
+        	}
+    	});
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) {
+		return '<a href=javascript:goModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#itemGrpId").val(ret.ITEM_GRP_ID);
+
+		//평가기간 여부
+		if("$!{evalTerm.EVAL_TERM_YN}" != "Y"){
+			J.showMsgBox("평가기간이 아닙니다.", null, null);
+			return;
+		}
+
+		//마감여부
+		if("Y" == ret.EVAL_CLOSING_YN) {
+			J.showMsgBox("평가가 마감되었습니다.", null, null);
+			return;
+		}
+
+		J("#evalUserGrpId").val(J("#findEvalUserGrpId").val());
+		J("#evalUserId").val(J("#findEvalUserId").val());
+		J("#year").val(J("#findYear").val());
+		J("#mode").val("MOD");
+		J("#formList").attr("action", "$!{context_path}/bsc/ahp/ahpEval/ahpEvalModify.vw?type=template").submit();
+
+	}
+
+	/******************************************
+	 * 삭제
+	 ******************************************/
+	function goDelete() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("삭제할 데이터를 선택하십시요", null, null);
+		} else {
+			J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var evalUserGrpIds = "";
+		var evalUserIds = "";
+		var perItemIds = "";
+		var itemIds = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					evalUserGrpIds += rowdata.EVAL_USER_GRP_ID + '|';evalUserIds += rowdata.EVAL_USER_ID + '|';perItemIds += rowdata.PER_ITEM_ID + '|';itemIds += rowdata.ITEM_ID + '|';
+				}
+			});
+		}
+
+		J("#evalUserGrpIds").val(evalUserGrpIds);J("#evalUserIds").val(evalUserIds);J("#perItemIds").val(perItemIds);J("#itemIds").val(itemIds);
+		J("#mode").val("DEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/bsc/ahp/ahpEval/ahpEvalProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+			J("#evalUserNm").val(J("#findEvalUserId > option:selected").text());
+		#else
+			J("#evalUserNm").val("$!{CS_LOGIN.getUser_nm()}");
+		#end
+		J("#evalUserGrpNm").val(J("#findEvalUserGrpId > option:selected").text());
+		J("#formFind").attr("action", "$!{context_path}/bsc/ahp/ahpEval/ahpEvalListExcel.vw?type=excel").submit();
+	    J("#formFind").attr("action", "$!{context_path}/bsc/ahp/ahpEval/ahpEvalList.vw?type=template");
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">AHP 평가실시</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/ahp/ahpEval/ahpEvalList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+                <input type="hidden"    id="yearNm"     	 name="yearNm" />	
+                <input type="hidden"    id="evalUserNm"		name="evalUserNm" />
+			    <input type="hidden"    id="evalUserGrpNm"		name="evalUserGrpNm" />
+			    	
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="AHP 평가실시검색 조건">
+						<caption class="none">AHP 평가실시 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+                					<span><label for="findEvalUserId">평가자</label></span>
+									<span class="searchBar">
+										#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+											<select id="findEvalUserId" name="findEvalUserId" class="select w100">
+    											#foreach($list in $evalUserList)
+    												<option value="$!{CS_HTML.txt2html($list.EVAL_USER_ID)}" $searchMap.getSelected("findEvalUserId", "$!{CS_HTML.txt2html($list.EVAL_USER_ID)}")>$!{CS_HTML.txt2html($list.EVAL_USER_NM)}</option>
+    											#end
+                							</select>
+										#else
+											$!{CS_LOGIN.getUser_nm()}
+											<input type="hidden" id="findEvalUserId" name="findEvalUserId" value="$!{CS_LOGIN.getUser_id()}" />
+										#end
+									</span>
+                                </td>
+								<td class="searchBox_tit w300">
+                					<span><label for="findEvalUserGrpId">평가단</label></span>
+									<span class="searchBar">
+										<select id="findEvalUserGrpId" name="findEvalUserGrpId" class="select w200">
+											#foreach($list in $evalUserGrpList)
+												<option value="$!{CS_HTML.txt2html($list.EVAL_USER_GRP_ID)}" $searchMap.getSelected("findEvalUserGrpId", "$!{CS_HTML.txt2html($list.EVAL_USER_GRP_ID)}")>$!{CS_HTML.txt2html($list.EVAL_USER_GRP_NM)}</option>
+											#end
+            							</select>
+									</span>
+                                </td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/ahp/ahpEval/ahpEvalProcess.vw?type=template">
+			<input type="hidden" id="mode"       	 name="mode" />
+			<input type="hidden" id="year"       	 name="year" />	
+			
+			<input type="hidden" id="evalUserGrpIds" name="evalUserGrpIds" />
+			<input type="hidden" id="evalUserGrpId"  name="evalUserGrpId" />
+			<input type="hidden" id="evalUserIds"    name="evalUserIds" />
+			<input type="hidden" id="evalUserId"  	 name="evalUserId" />
+			<input type="hidden" id="itemGrpId"		 name="itemGrpId" />
+			<input type="hidden" id="perItemIds"     name="perItemIds" />
+			<input type="hidden" id="perItemId"  	 name="perItemId" />
+			<input type="hidden" id="itemIds"        name="itemIds" />
+			<input type="hidden" id="itemId"  		 name="itemId" />
+			$!{searchMap.makeHiddenFind()}
+
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="AHP 평가실시 조회결과">
+							<caption class="none">AHP 평가실시 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+						<div class="txt_blue">
+						<b>
+    						#if($!{evalTerm.EVAL_TERM_YN} == 'Y')
+    						※ 평가기간 : $!{CS_HTML.txt2html($evalTerm.START_DT)} ~ $!{CS_HTML.txt2html($evalTerm.END_DT)}
+    						#else
+    						※ 평가기간이 아닙니다.
+    						#end
+						</b>
+						</div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton" style="float:left; text-align:left; width:145px;">
+						<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

@@ -1,0 +1,42 @@
+#*************************************************************************
+* CLASS 명      : evalUserList_xml
+* 작 업 자      : 현걸욱
+* 작 업 일      : 2012년 12월 11일 
+* 기    능      : 평가대상자(평가종합) json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      현걸욱     2012년 12월 11일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"EVAL_DEGREE_ID"       : "$!{CS_HTML.txt2html($list.EVAL_DEGREE_ID)}", 
+		"EVAL_MEMB_USER_ID"    : "$!{CS_HTML.txt2html($list.EVAL_MEMB_USER_ID)}", 
+		"NAME"                 : "$!{CS_HTML.txt2html($list.NAME)}", 
+		"JIKGUB_ID"            : "$!{CS_HTML.txt2html($list.JIKGUB_ID)}", 
+		"WEIGHT_GRP_ID"        : "$!{CS_HTML.txt2html($list.WEIGHT_GRP_ID)}", 
+		"RIVAL_GRP_ID"         : "$!{CS_HTML.txt2html($list.RIVAL_GRP_ID)}", 
+		"ITEM_FRS_DEPT_ID"     : "$!{CS_HTML.txt2html($list.ITEM_FRS_DEPT_ID)}", 
+		"ITEM_SEC_DEPT_ID"     : "$!{CS_HTML.txt2html($list.ITEM_SEC_DEPT_ID)}", 
+		"ITEM_TEAM_ID"         : "$!{CS_HTML.txt2html($list.ITEM_TEAM_ID)}", 
+		"EVAL_METHOD_GBN"      : "$!{CS_HTML.txt2html($list.EVAL_METHOD_GBN)}"
+
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

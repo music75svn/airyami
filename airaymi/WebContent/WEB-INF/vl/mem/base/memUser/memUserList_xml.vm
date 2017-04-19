@@ -1,0 +1,58 @@
+#*************************************************************************
+* CLASS 명      : memUserList_xml
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년03월 16일 
+* 기    능      : 평가대상자관리 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      유연주    2017년03월16일      최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"              : "$!{CS_HTML.txt2html($list.YEAR)}",
+		"EMP_NO"            : "$!{CS_HTML.txt2html($list.EMP_NO)}",
+		"EMP_NO_TMP"        : "$!{CS_HTML.txt2html($list.EMP_NO)}",
+		"EMP_NM"            : "$!{CS_HTML.txt2html($list.EMP_NM)}",
+		"EMP_NM_TMP"        : "$!{CS_HTML.txt2html($list.EMP_NM)}",
+		"DEPT_CD"           : "$!{CS_HTML.txt2html($list.DEPT_CD)}",
+		"DEPT_NM"           : "$!{CS_HTML.txt2html($list.DEPT_NM)}",
+		"CAST_TC"           : "$!{CS_HTML.txt2html($list.CAST_TC)}",
+		"CAST_NM"           : "$!{CS_HTML.txt2html($list.CAST_NM)}",
+		"POS_TC"            : "$!{CS_HTML.txt2html($list.POS_TC)}",
+		"POS_NM"            : "$!{CS_HTML.txt2html($list.POS_NM)}",
+		"EVAL_GRP_ID"       : "$!{CS_HTML.txt2html($list.EVAL_GRP_ID)}",
+		"EVAL_GRP_ID_TMP"   : "$!{CS_HTML.txt2html($list.EVAL_GRP_ID)}",
+		"EVAL_1_EMP_NO"     : "$!{CS_HTML.txt2html($list.EVAL_1_EMP_NO)}",
+		"EVAL_1_EMP_NM"     : "$!{CS_HTML.txt2html($list.EVAL_1_EMP_NM)}",
+		"EVAL_1_DEPT_CD"    : "$!{CS_HTML.txt2html($list.EVAL_1_DEPT_CD)}",
+		"EVAL_1_CAST_TC"    : "$!{CS_HTML.txt2html($list.EVAL_1_CAST_TC)}",
+		"EVAL_1_POS_TC"     : "$!{CS_HTML.txt2html($list.EVAL_1_POS_TC)}",
+		"EVAL_2_EMP_NO"     : "$!{CS_HTML.txt2html($list.EVAL_2_EMP_NO)}",
+		"EVAL_2_EMP_NM"     : "$!{CS_HTML.txt2html($list.EVAL_2_EMP_NM)}",
+		"EVAL_2_DEPT_CD"    : "$!{CS_HTML.txt2html($list.EVAL_2_DEPT_CD)}",
+		"EVAL_2_CAST_TC"    : "$!{CS_HTML.txt2html($list.EVAL_2_CAST_TC)}",
+		"EVAL_2_POS_TC"     : "$!{CS_HTML.txt2html($list.EVAL_2_POS_TC)}",
+		"EVAL_TGT_YN"       : "$!{CS_HTML.txt2html($list.EVAL_TGT_YN)}",
+		"EVAL_EXP_RS_ID"    : "$!{CS_HTML.txt2html($list.EVAL_EXP_RS_ID)}",
+		"METRIC_STATUS_ID"  : "$!{CS_HTML.txt2html($list.METRIC_STATUS_ID)}",
+		"EVAL_PEER_COUNT"   : "$!{CS_HTML.txt2html($list.EVAL_PEER_COUNT)}",
+		"BSC_MODIFY_DT"     : "$!{CS_HTML.txt2html($list.BSC_MODIFY_DT)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

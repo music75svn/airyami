@@ -1,0 +1,240 @@
+#*************************************************************************
+* CLASS 명      : gradeConvertModify
+* 작 업 자      : 하윤식 
+* 작 업 일      : 2012년 10월 23일 
+* 기    능      : 난이도등급점수    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    하윤식      2012년 10월 23일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+	
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#form1').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/level/gradeConvert/gradeConvertDetail_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['$!{YEAR}', '등급', 'From 구간(이상)', 'To 구간(이하)' 
+						  ],
+			colModel     :[
+							{name:'YEAR'                 ,index:'YEAR'               ,width:150   ,align:'center' }, 
+                            {name:'GRADE'        		 ,index:'GRADE'              ,width:150   ,align:'center' ,formatter:linkGrade}, 
+                            {name:'MIN_VALUE'            ,index:'MIN_VALUE'          ,width:150   ,align:'center' ,formatter:linkMinValue},
+							{name:'MAX_VALUE'            ,index:'MAX_VALUE'          ,width:150   ,align:'center' ,formatter:linkMaxValue}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			loadComplete : function() {
+								var minValuesObj = J("input[name=minValues]");
+								minValuesObj.numeric({allow:"."}).css("ime-mode", "disabled");
+								
+								var maxValuesObj = J("input[name=maxValues]");
+								maxValuesObj.numeric({allow:"."}).css("ime-mode", "disabled");
+								
+								J.each(maxValuesObj,function(index,item){
+								
+									J(this).bind('focusout',function(){
+										
+    									if(minValuesObj.eq(index).val() != '' && J(item).val() != ''){
+    										if(parseFloat(minValuesObj.eq(index).val()) >= parseFloat(J(item).val())){
+    										
+    											J.showMsgBox("from 구간값이 to 구간값보다 크거나 같을수 없습니다.", null, this);
+    											J(this).val('');
+    											return false;
+    										
+    										}
+    									}
+									
+									});
+								});
+								
+								J.each(minValuesObj,function(index,item){
+								
+									J(this).bind('focusout',function(){
+										
+    									if(maxValuesObj.eq(index).val() != '' && J(item).val() != ''){
+    										if(parseFloat(maxValuesObj.eq(index).val()) <= parseFloat(J(item).val())){
+    										
+    											J.showMsgBox("from 구간값이 to 구간값보다 크거나 같을수 없습니다.", null, this);
+    											J(this).val('');
+    											return false;
+    										
+    										}
+    									}
+									
+									});
+								});
+								
+						   },
+			caption:"난이도등급점수"
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"ITEM_GRP_ID").setGridWidth($!{jqGrid_width});
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/bsc/level/gradeConvert/gradeConvertList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+	});
+	
+	/******************************************
+	 * jqGrid 평가항목 
+	 ******************************************/
+	function linkGrade(cellvalue, options, rowObject) {
+		return cellvalue + '<input type="hidden" name="grades" value="' + cellvalue + '" class="inputbox textRight w50"/>';
+	}
+	
+	function linkMinValue(cellvalue, options, rowObject) {
+		return '<input type="text" name="minValues" value="' + cellvalue + '" class="inputbox textRight w50"/>';
+	}
+	
+	function linkMaxValue(cellvalue, options, rowObject) {
+		return '<input type="text" name="maxValues" value="' + cellvalue + '" class="inputbox textRight w50"/>';
+	}
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/bsc/level/gradeConvert/gradeConvertProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var itemGrpIds = "";
+        
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					grades += rowdata.GRADE + '|';itemGrpIds += rowdata.ITEM_GRP_ID + '|';
+				}
+			});
+		}
+        
+		J("#itemGrpIds").val(itemGrpIds);
+		J("#mode").val("DEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/bsc/level/gradeConvert/gradeConvertProcess.vw?type=template").submit();
+		return false;
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/level/gradeConvert/gradeConvertProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="grade"          name="grade"          value="$!{searchMap.txt2html("grade")}" />
+	<input type="hidden"	id="itemGrpIds"     name="itemGrpIds"     value="$!{searchMap.txt2html("itemGrpIds")}" />
+	<input type="hidden"	id="itemGrpId"      name="itemGrpId"      value="$!{searchMap.txt2html("itemGrpId")}" />
+
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+			
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="난이도등급점수 조회결과">
+							<caption class="none">난이도등급점수 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+				</div>
+			</div>
+			
+			<!--// 데이터그리드 End -->
+			<div class="blockButton_all">
+        		<div class="blockButton"> 
+        			<ul>
+        				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+        				<li><input type="submit" id="btnInsert" value="저장" /></li>
+        			</ul>
+        		</div>
+			</div>
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.base.memEvalGradeTab">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MEM_ECM_GRADE_DISTRI_EVAL_ITEM
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 등급표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_ECM_GRADE_DISTRI_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR,
+               EVAL_METHOD_ID,
+               GRADE_ITEM_ID,
+               GRADE_ITEM_NM,
+               SORT_ORDER
+          FROM MEM_ECM_GRADE_DISTRI_EVAL_ITEM
+         WHERE YEAR=#findYear# 
+           AND EVAL_METHOD_ID=#findEvalMethodId#
+         ORDER BY SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 등급표 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_ECM_GRADE_DISTRI_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_METHOD_ID        
+			 , GRADE_ITEM_ID         
+			 , GRADE_ITEM_NM         
+			 , SORT_ORDER            
+		  FROM MEM_ECM_GRADE_DISTRI_EVAL_ITEM 
+		 WHERE YEAR = #year#
+		   AND EVAL_METHOD_ID = #evalMethodId#
+		   AND GRADE_ITEM_ID = #gradeItemId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 등급표 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_ECM_GRADE_DISTRI_EVAL_ITEM
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT 'GD'||LPAD(NVL(MAX(SUBSTR(GRADE_ITEM_ID,3,5)),0)+1,5,'0') 
+			  FROM MEM_ECM_GRADE_DISTRI_EVAL_ITEM 
+			 WHERE YEAR = #year# 
+			   AND EVAL_METHOD_ID = #evalMethodId#
+		</selectKey>
+		INSERT INTO MEM_ECM_GRADE_DISTRI_EVAL_ITEM ( 
+			   YEAR
+			 , EVAL_METHOD_ID
+			 , GRADE_ITEM_ID
+			 , GRADE_ITEM_NM
+			 , SORT_ORDER
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #evalMethodId#
+			 , #SEQ#
+			 , #gradeItemNm#
+			 , #sortOrder#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 등급표 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_ECM_GRADE_DISTRI_EVAL_ITEM
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE MEM_ECM_GRADE_DISTRI_EVAL_ITEM 
+		   SET GRADE_ITEM_NM          = #gradeItemNm# 
+			 , SORT_ORDER             = #sortOrder# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND EVAL_METHOD_ID = #evalMethodId#
+		   AND GRADE_ITEM_ID = #gradeItemId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 등급표 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_ECM_GRADE_DISTRI_EVAL_ITEM
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM MEM_ECM_GRADE_DISTRI_EVAL_ITEM 
+		 WHERE YEAR = #year#
+		   AND EVAL_METHOD_ID = #evalMethodId#
+		   AND GRADE_ITEM_ID = #gradeItemId#
+	</update>
+	
+</sqlMap>
+
+

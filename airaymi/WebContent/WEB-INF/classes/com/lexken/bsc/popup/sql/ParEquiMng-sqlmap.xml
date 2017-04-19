@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.parEquiMng">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT A.YEAR,
+		         A.MON,
+		         A.DEPT_CD,
+		         B.DEPT_NM,
+		         A.CO_NM,
+		         A.GAS_KIND,
+		         A.EQUI_GUBUN,
+		         A.BULD_STRU,
+		         A.INSP_DATE,
+		         A.KOR_NM, 
+		         COUNT (1) AS ACTUAL
+		    FROM V_GBD0952M_001 A
+		    LEFT OUTER JOIN V_DEPTINFO B
+		      ON A.DEPT_CD = B.DEPT_ID
+		   WHERE YEAR = #findYear# AND MON = #findMon#
+		     AND A.USE_YN = '1'
+		GROUP BY YEAR,
+		         MON,
+		         DEPT_CD,
+		         CO_NM,
+		         GAS_KIND,
+		         EQUI_GUBUN,
+		         BULD_STRU,
+		         INSP_DATE,
+		         KOR_NM,
+		         DEPT_NM
+		ORDER BY YEAR, MON, GAS_KIND		         
+	
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getCountList" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT A.YEAR,
+		         A.MON,
+		         A.DEPT_CD,
+		         B.DEPT_NM,
+		         COUNT (1) AS ACTUAL
+		    FROM V_GBD0952M_001 A LEFT OUTER JOIN V_DEPTINFO B ON A.DEPT_CD = B.DEPT_ID
+		   WHERE YEAR = #findYear# 
+		     AND MON = #findMon# 
+		     AND A.USE_YN = '1'
+		GROUP BY YEAR,
+		         MON,
+		         DEPT_CD,
+		         DEPT_NM
+		ORDER BY YEAR, MON		         
+	
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+			 AND B.INSERT_GUBUN = '01'
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getScDeptMapping" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DEPT_ID
+		  FROM ( SELECT DEPT_ID 
+				   FROM BSC_SC_DEPT_MAPPING
+				  WHERE YEAR = #findYear# 
+				    AND SC_DEPT_ID = #findScDeptCd# ORDER BY DEPT_ID 
+				    )
+		 WHERE ROWNUM = 1
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+			SELECT A.DEPT_ID, B.DEPT_NM
+		  FROM BSC_SC_DEPT_MAPPING A
+	LEFT OUTER JOIN BSC_DEPTINFO B
+			ON A.DEPT_ID = B.DEPT_ID
+		 WHERE (YEAR, SC_DEPT_ID) IN
+		          (SELECT YEAR, SC_DEPT_ID
+		             FROM BSC_METRIC
+		            WHERE (METRIC_GRP_ID, YEAR) IN
+		                     (SELECT METRIC_GRP_ID, YEAR
+		                        FROM BSC_METRIC
+		                       WHERE YEAR = #findYear# AND METRIC_ID = #findMetricId#)
+				AND DELETE_DT IS NULL)
+<![CDATA[		   AND OULEVEL < 2 ]]>
+	</select>
+
+</sqlMap>
+
+

@@ -1,0 +1,37 @@
+#*************************************************************************
+* CLASS 명      : ahpItemGrpList_xml
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 11월 28일 
+* 기    능      : AHP 평가대상그룹 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      하윤식     2012년 11월 28일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"ITEM_GRP_ID"          : "$!{CS_HTML.txt2html($list.ITEM_GRP_ID)}", 
+		"ITEM_GRP_NM"          : "$!{CS_HTML.txt2html($list.ITEM_GRP_NM)}", 
+		"CONTENT"              : "$!{CS_HTML.txt2html($list.CONTENT)}", 
+		"SORT_ORDER"           : "$!{CS_HTML.txt2html($list.SORT_ORDER)}", 
+		"ITEM_CNT"             : "$!{CS_HTML.txt2html($list.ITEM_CNT)}",
+		"MAPPING_CNT"          : "$!{CS_HTML.txt2html($list.MAPPING_CNT)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

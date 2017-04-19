@@ -1,0 +1,586 @@
+#*************************************************************************
+* CLASS 명      : imponEvalModify
+* 작 업 자      : 현걸욱
+* 작 업 일      : 2012년 11월 30일
+* 기    능      : 비계량평가실시
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    현걸욱      2012년 11월 30일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/impon/imponEval/imponEvalModify.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+	
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formList').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/impon/imponEval/imponEvalModify_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['EVAL_ITEM_ID', '평가단위', '보고서','ITEM_ID','항목명',
+			                #foreach($gradeList in $gradeList)
+								'$!{CS_HTML.txt2html($gradeList.GRADE_ITEM_SCORE)}',
+							#end
+						   'YEAR', 'EVAL_DEGREE_ID', 'EVAL_USER_GRP_ID', 'METRIC_GRP_ID', 'ITEM_GBN','SEQ', 'GRADE_NUM', 'EUG_ROWSPAN_CNT', 'EUG_ROWSPAN_IDX', 'MG_ROWSPAN_CNT', 'MG_ROWSPAN_IDX'],
+			colModel     :[
+							{name:'EVAL_ITEM_ID'       		,index:'EVAL_ITEM_ID'  		,width:10   ,align:'center' },
+                            {name:'EVAL_ITEM_NM'       		,index:'EVAL_ITEM_NM'  		,width:100   ,align:'center' ,cellattr: attrMGSetting},
+							{name:'EVAL_ITEM_ID_AC'       	,index:'EVAL_ITEM_ID_AC'  	,width:30   ,align:'center' ,cellattr: attrMGSetting ,formatter:linkActualReport},
+							{name:'ITEM_ID'       			,index:'ITEM_ID'  			,width:10   ,align:'center' },
+                            {name:'ITEM_NM'       			,index:'ITEM_NM'  			,width:300   ,align:'center' },
+
+							#foreach($gradeList in $gradeList)
+								{name:'$!{CS_HTML.txt2html($gradeList.GRADE_ITEM_ID)}'      ,index:'$!{CS_HTML.txt2html($gradeList.GRADE_ITEM_ID)}'   ,width:20   ,align:'center' ,formatter:linkRadioCheck},
+							#end
+
+							{name:'YEAR'         			,index:'YEAR'         		,width:10   ,align:'center' },
+                            {name:'EVAL_DEGREE_ID'         	,index:'EVAL_DEGREE_ID'     ,width:10   ,align:'center' },
+                            {name:'EVAL_USER_GRP_ID'      	,index:'EVAL_USER_GRP_ID'   ,width:10   ,align:'center' },
+                            {name:'METRIC_GRP_ID'           ,index:'METRIC_GRP_ID'      ,width:10   ,align:'center' },
+							{name:'ITEM_GBN'           		,index:'ITEM_GBN'           ,width:10   ,align:'center' },
+							{name:'SEQ'           		    ,index:'SEQ'           		,width:10   ,align:'center' },
+							{name:'GRADE_NUM'           	,index:'GRADE_NUM'          ,width:10   ,align:'center' },
+							{name:'EUG_ROWSPAN_CNT'         ,index:'EUG_ROWSPAN_CNT'    ,width:10   ,align:'center' },
+							{name:'EUG_ROWSPAN_IDX'         ,index:'EUG_ROWSPAN_IDX'    ,width:10   ,align:'center' },
+							{name:'MG_ROWSPAN_CNT'          ,index:'MG_ROWSPAN_CNT'     ,width:10   ,align:'center' },
+							{name:'MG_ROWSPAN_IDX'          ,index:'MG_ROWSPAN_IDX'     ,width:10   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			cmTemplate   : {sortable:false},
+			gridview     : true,
+			loadComplete : function() {
+
+								var gradeArray = new Array();
+
+								#foreach($gradeList in $gradeList)
+									var gradeId = '$!{CS_HTML.txt2html($gradeList.GRADE_ITEM_ID)}';
+									gradeArray.push(gradeId);
+    							#end
+
+								var ids = J("#list").jqGrid('getDataIDs');
+								if( ids.length > 0 ){
+									for( var i = 1 ; i <= ids.length ; i++ ){
+
+										var rowDatas = J("#list").getRowData(i);
+
+										J("input[name=feeds]").each(function(index,value){
+
+											J(this).addClass('inputbox w300');
+
+										});
+
+										J("input[name=feeds]").each(function(index,value){
+
+											J(this).addClass('inputbox w300');
+
+											$(this).bind('keyup',function(){
+        										J(this).checkbyte({
+                                        			limit:600
+                                        		});
+                                			});
+
+											if('$!{searchMap.txt2html("evalSubmitYn")}' == 'Y' || "N" == "$!{evalTermDetail.EVAL_TERM_YN}"){
+												J(this).attr('readonly','readonly');
+											}
+
+										});
+
+										J('input[name=evalGrades'+i+']').each(function(index,value){
+
+											J(this).val(gradeArray[index]);
+
+											if('$!{searchMap.txt2html("evalSubmitYn")}' == 'Y' || "N" == "$!{evalTermDetail.EVAL_TERM_YN}"){
+												J(this).attr('disabled','disabled');
+											}
+
+										});
+									}
+								}
+                           },
+			caption:"개인평가 평가실시 (현황)"
+		}).jqGrid('hideCol',"EVAL_ITEM_ID").jqGrid('hideCol',"ITEM_ID").jqGrid('hideCol',"YEAR").jqGrid('hideCol',"EVAL_DEGREE_ID").jqGrid('hideCol',"EVAL_USER_GRP_ID").setGridWidth($!{jqGrid_width})
+		  .jqGrid('hideCol',"METRIC_GRP_ID").jqGrid('hideCol',"SEQ").jqGrid('hideCol',"GRADE_NUM").jqGrid('hideCol',"ITEM_GBN").jqGrid('hideCol',"EUG_ROWSPAN_CNT").jqGrid('hideCol',"EUG_ROWSPAN_IDX").jqGrid('hideCol',"MG_ROWSPAN_CNT").jqGrid('hideCol',"MG_ROWSPAN_IDX").setGridWidth($!{jqGrid_width});
+
+		J("#list").jqGrid('setGroupHeaders', {
+          useColSpanStyle: true,
+          groupHeaders:[
+		  	// jqGrid 의 해더 합병
+		  	#foreach($list in $gradeList)
+				#if( $list.GRADE_NUM == "1")
+					{startColumnName: '$list.GRADE_ITEM_ID', numberOfColumns: 1, titleText: '<em>$list.GRADE_ITEM_NM</em>'}
+				#end
+				#if( $list.GRADE_NUM != "1")
+					,{startColumnName: '$list.GRADE_ITEM_ID', numberOfColumns: 1, titleText: '<em>$list.GRADE_ITEM_NM</em>'}
+				#end
+			#end
+
+          ]
+		});
+		
+		/*****************************************
+    	 * 데이터 Rowspan 설정
+    	 ******************************************/
+    	function attrEUGSetting(rowId, val, rowObject, cm) {
+    		var result;
+    		var index = rowObject.EUG_ROWSPAN_IDX;
+    		var rowSpan = rowObject.EUG_ROWSPAN_CNT;
+    
+    		if(index == 1) {
+    			result = ' rowspan="' + rowSpan + '"';
+    		} else {
+    			result = ' style="display:none"';
+    		}
+    		return result;
+    	}
+    
+    	/*****************************************
+    	 * 데이터 Rowspan 설정
+    	 ******************************************/
+    	function attrMGSetting(rowId, val, rowObject, cm) {
+    		var result;
+    		var index = rowObject.MG_ROWSPAN_IDX;
+    		var rowSpan = rowObject.MG_ROWSPAN_CNT;
+    
+    		if(index == 1) {
+    			result = ' rowspan="' + rowSpan + '"';
+    		} else {
+    			result = ' style="display:none"';
+    		}
+    		return result;
+    	}
+		
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#formList").attr("action", "$!{context_path}/bsc/impon/imponEval/imponEvalList.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 제출버튼 이벤트
+		 ******************************************/
+		J("#btnSubmit").click(function(e) {
+			e.preventDefault();
+			chkSubmit();
+		});
+
+		/******************************************
+		 * 제출취소버튼  이벤트
+		 ******************************************/
+		J("#btnSubmitCancel").click(function(e) {
+			e.preventDefault();
+			chkSubmitCancel();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+		// 평가기간 보여주기
+		if( "Y" == "$!{evalTermDetail.EVAL_TERM_YN}" ){
+			var startDt = "$!{CS_FORMAT.dateFormat( $!{evalTermDetail.IMPON_EVAL_START_DT} )}";
+			var endDt = "$!{CS_FORMAT.dateFormat( $!{evalTermDetail.IMPON_EVAL_END_DT} )}";
+			if( startDt.length > 0 && endDt.length > 0 ){
+				J("#alertDis").html("※  평가기간 : " + startDt + " ~ " + endDt );
+			}
+		}else {
+			J("#alertDis").html("※  평가기간이 지났습니다." ).attr("class","txt_red");
+		}
+		
+
+	});
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkRadioCheck(cellvalue, options, rowObject) {
+		var str = '<input type="radio" id="evalGrade' + options.rowId + '" name="evalGrades' + options.rowId+'" value="'+cellvalue+'">';
+
+		if(cellvalue != ''){
+			str = '<input type="radio" id="evalGrade' + options.rowId + '" name="evalGrades' + options.rowId+'" value="'+cellvalue+'" checked>';
+		}
+
+		return str;
+	}
+
+	/******************************************
+	 * jqGrid 실적보고서 팝업
+	 ******************************************/
+	function linkActualReport(cellvalue, options, rowObject) {
+		var str = '';
+		if( 0 < cellvalue ){
+			str = '<input type="image" onclick="javascript:popReport(' + options.rowId + ');return false;" class="valign_middle" src="$!{img_path}/common/board/ic_search.gif" alt="실적보고서"/>&nbsp;';
+		}
+		return str;
+	}
+
+	function popReport(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+
+		var year = ret.YEAR;
+		var evalDegreeId = ret.EVAL_DEGREE_ID;
+		var metricGrpId = ret.METRIC_GRP_ID;
+		var itemId = ret.EVAL_ITEM_ID;
+		var itemGbn = ret.ITEM_GBN;
+
+		var param = "&amp;year=" + year + "&amp;evalDegreeId=" + evalDegreeId + "&amp;metricGrpId=" + metricGrpId + "&amp;itemId=" + itemId + "&amp;itemGbn=" + itemGbn ;
+
+		var url = "$!{context_path}/bsc/impon/imponReport/popActRptList.vw?type=popup" + param;
+		openWinByName(url,'popImponActRpt','650','450','yes');
+	}
+
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkInputText(cellvalue, options, rowObject) {
+		return '<input type="text" id="feed'+options.rowId+'" name="feeds" value="'+cellvalue+'">';
+	}
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var val = "";
+		var cnt = 0;
+		var countChk = true;
+		//var evalItemCnt = '$!{CS_HTML.txt2html($evalItemCnt.EVAL_ITEM_CNT)}';
+		var evalItemCnt = '$!{searchMap.txt2html("evalItemCnts")}';
+		
+		var itemCnt = (ids.length / evalItemCnt);
+		var pointer = 0;
+		
+		if(ids.length == 0){
+			J.showMsgBox("저장할 데이터가 없습니다..", null, null);
+			return false;
+		}
+		
+		
+		if("$!{searchMap.txt2html("evalMethodGbnId")}" == "01"){
+		
+			//3중 for문을 돌면서 체크된 라디오박스가 항목당 등급만큼 부여되었는지 체크합니다
+			//evalItemCnt는 '평가항목(ITEM_ID)'의 개수이며 항목의 개수만큼 루프를 돕니다
+			
+    		for(var j = 1; j <= itemCnt; j ++){
+        		//단위 개수 내에서 평가 등급만큼 루프를 돕니다
+				#foreach($gradeList in $gradeList)
+            		var gradeId = '$!{CS_HTML.txt2html($gradeList.GRADE_ITEM_ID)}';
+            		var gradeNm = '$!{CS_HTML.txt2html($gradeList.GRADE_ITEM_NM)}';
+        			var distCnt = '$!{CS_HTML.txt2html($gradeList.ITEM_DISTRI_CNT)}';
+    				distCnt = distCnt;
+					
+        			cnt = 0;
+					pointer = j;
+					//평가항목 내에서, 평가 등급 내에서, 단위 만큼 루프를 돌면서 각 항목당 체크 가능 등급을 벗어나지 않았는지 체크합니다
+            		for (var i = 1; i <= evalItemCnt; i ++) {
+						
+            			val = J(':radio[name="evalGrades'+pointer+'"]:checked').val();
+        				if(val == gradeId){
+        					cnt++;
+        				}
+						
+						//alert(j + "번 항목 " + gradeNm +"등급" + pointer + "번 부서(단위) "+ " 체크수 =" + cnt + "허용 체크수 = " + distCnt );
+						if(pointer < (j*evalItemCnt)+1){
+					   		 pointer = pointer + itemCnt;
+						}
+    				
+            		}
+					
+        			if(cnt != distCnt){
+        				countChk = false;
+        			}
+            	#end
+    
+        		if(!countChk){
+    
+        			J.showMsgBox("각 등급에 따른 제한 명수를 확인하십시요.", null, null);
+        			return false;
+        		}
+			}
+		}
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var itemGbns = "";
+		var itemIds = "";
+		var gradeIds = "";
+		var ipeItemIds = "";
+		var seqs = "";
+
+		var temp_grade = "";
+
+		for (var i = 1; i <= ids.length; i++) {
+			var rowDatas = J("#list").getRowData(i);
+
+			temp_grade = J(':radio[name="evalGrades'+i+'"]:checked').val();
+
+			if(temp_grade != undefined){
+
+				itemGbns 	+= rowDatas.ITEM_GBN + '|';
+    			itemIds 	+= rowDatas.EVAL_ITEM_ID + '|';
+				seqs 		+= i +'|';
+				gradeIds 	+= J(':radio[name="evalGrades'+i+'"]:checked').val() + '|';
+				ipeItemIds 	+= rowDatas.ITEM_ID + '|';
+			}
+    	}
+		
+		J('#mode').val('MOD');
+		J('#itemGbns').val(itemGbns);
+		J('#itemIds').val(itemIds);
+		J('#seqs').val(seqs);
+		J('#gradeIds').val(gradeIds);
+		J('#ipeItemIds').val(ipeItemIds);
+
+		J("#formList").attr("action", "$!{context_path}/bsc/impon/imponEval/imponEvalProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 제출
+	 ******************************************/
+	function chkSubmit() {
+
+		if('$!{searchMap.txt2html("totCnt")}' != '$!{searchMap.txt2html("evalCnt")}'){
+			J.showMsgBox("평가한 내용을 먼저 저장해 주십시요.", null, null);
+			return false;
+		}
+
+		J.showConfirmBox("평가를 제출 하시겠습니까?", "submitDo"); //submitDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 제출취소
+	 ******************************************/
+	function chkSubmitCancel() {
+
+		if('$!{CS_HTML.txt2html($confirmYn)}' == 'Y'){
+			J.showMsgBox("평가가 확정되어 평가제출을 취소할수 없습니다.", null, null);
+			return false;
+		}
+
+		if('$!{CS_HTML.txt2html($closeYn)}' == 'Y'){
+			J.showMsgBox("평가가 마감되어 평가제출을 취소할수 없습니다.", null, null);
+			return false;
+		}
+
+		J.showConfirmBox("평가제출을 취소 하시겠습니까?", "submitCancelDo"); //closeCancelDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 제출
+	 ******************************************/
+	function submitDo() {
+
+		J('#mode').val('SUB');
+		J('#evalSubmitYn').val('Y');
+		J("#formList").attr("action", "$!{context_path}/bsc/impon/imponEval/imponEvalProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 제출취소
+	 ******************************************/
+	function submitCancelDo() {
+		J('#mode').val('SUB');
+		J('#evalSubmitYn').val('N');
+		J("#formList").attr("action", "$!{context_path}/bsc/impon/imponEval/imponEvalProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#findEvalDegreeNm").val(J("#findEvalDegreeId > option:selected").text());
+		J("#findEvalUserNm").val(J("#findEvalUserId > option:selected").text());
+		J("#formList").attr("action", "$!{context_path}/bsc/impon/imponEval/imponEvalListExcel.vw?type=excel").submit();
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">개인평가 평가실시 (현황)</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="개인평가 평가실시 (현황)검색 조건">
+						<caption class="none">개인평가 평가실시 (현황) 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w150">
+            						<span><label for="year">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							$!CS_CODE.getCodeName("017", $!{searchMap.txt2html("year")})
+            						</span>
+            					</td>
+
+								<td class="searchBox_tit w150">
+                					<span><label for="evalDegreeNm">평가구분</label></span>
+									<span class="searchBar">
+										$!{searchMap.txt2html("evalDegreeNm")}
+									</span>
+                                </td>
+
+            					<td class="searchBox_tit w150">
+                					<span><label for="evalUserNm">평가자</label></span>
+									<span class="searchBar">
+										$!{searchMap.txt2html("evalUserNm")}
+									</span>
+                                </td>
+
+								<td class="searchBox_tit w300">
+                					<span><label for="evalPoolNm">평가지표POOL</label></span>
+									<span class="searchBar">
+										$!{searchMap.txt2html("evalPoolNm")}
+									</span>
+                                </td>
+								<!--
+								<td class="searchBox_tit w250">
+                					<span><label for="evalGrpNm">평가군</label></span>
+									<span class="searchBar">
+										$!{searchMap.txt2html("evalGrpNm")}
+									</span>
+                                </td>
+								-->
+            				</tr>
+        				</tbody>
+    				</table>
+                    </div></div></div>
+    	        </div>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/impon/imponEval/imponEvalProcess.vw?type=template">
+			<input type="hidden" id="mode"       			name="mode" 			value="$!{searchMap.txt2html("mode")}" />
+			<input type="hidden" id="year"       			name="year" 			value="$!{searchMap.txt2html("year")}" />
+			<input type="hidden" id="evalUserGrpId"     	name="evalUserGrpId" 	value="$!{searchMap.txt2html("evalUserGrpId")}" />
+			<input type="hidden" id="evalUserId"     		name="evalUserId" 		value="$!{searchMap.txt2html("evalUserId")}" />
+			<input type="hidden" id="evalDegreeId"   		name="evalDegreeId" 	value="$!{searchMap.txt2html("evalDegreeId")}" />
+			<input type="hidden" id="metricGrpId"   		name="metricGrpId"  	value="$!{searchMap.txt2html("metricGrpId")}" />
+			<input type="hidden" id="evalMethodId"     		name="evalMethodId" 	value="$!{searchMap.txt2html("evalMethodId")}" />
+			<input type="hidden" id="evalMethodGbnId"     	name="evalMethodGbnId" 	value="$!{searchMap.txt2html("evalMethodGbnId")}" />
+			<input type="hidden" id="itemGbn"     			name="itemGbn" 			value="$!{searchMap.txt2html("itemGbn")}" />
+			<input type="hidden" id="totCnt"       			name="totCnt" 			value="$!{searchMap.txt2html("totCnt")}" />
+			<input type="hidden" id="evalItemCnt"       	name="evalItemCnt" 		value="$!{CS_HTML.txt2html($evalItemCnt.EVAL_ITEM_CNT)}"/>
+			<input type="hidden" id="evalItemCnts"       	name="evalItemCnts" 	value="$!{searchMap.txt2html("evalItemCnts")}" />
+			<input type="hidden" id="itemGbns"       		name="itemGbns" 		/>
+			<input type="hidden" id="gradeIds"       		name="gradeIds" 		/>
+			<input type="hidden" id="ipeItemIds"       		name="ipeItemIds" 		/>
+			<input type="hidden" id="seqs"       			name="seqs" 			/>
+			<input type="hidden" id="itemIds"       		name="itemIds" 			/>
+			<input type="hidden" id="evalSubmitYn"       	name="evalSubmitYn" 	value="$!{searchMap.txt2html("evalSubmitYn")}" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="개인평가 평가실시 (현황) 조회결과">
+							<caption class="none">개인평가 평가실시 (현황) 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l txt_blue">
+							<span id="alertDis"></span>
+							</br>
+							※ 평가대상 : 총 $!{searchMap.txt2html("totCnt")} 개
+							&nbsp;&nbsp;
+
+							#if($!{searchMap.txt2html("totCnt")} != '0')
+							</br>※ 각 항목당
+    							#foreach($gradeList in $gradeList)
+    								$!{CS_HTML.txt2html($gradeList.GRADE_ITEM_NM)}등급:$!{CS_HTML.txt2html($gradeList.ITEM_DISTRI_CNT)}개
+    							#end
+							#end
+
+
+						</div>
+
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnBack" value="돌아가기" /></li>
+								#if($!{searchMap.txt2html("evalSubmitYn")} == 'N' && "Y" == "$!{evalTermDetail.EVAL_TERM_YN}")
+								<li><input type="button" id="btnInsert" value="저장" /></li>
+								<li><input type="button" id="btnSubmit" value="평가제출" /></li>
+								#elseif($!{searchMap.txt2html("evalSubmitYn")} == 'Y')
+									#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+										<li><input type="button" id="btnSubmitCancel" value="평가제출취소" /></li>
+									#end
+								#end
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

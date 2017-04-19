@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.dept.deptGovWeight">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 년도별 지표사용여부 체크하기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getMeticCount" parameterClass="hashMap" resultClass="hashMap">
+		SELECT COUNT(GOV_METRIC_ID) CNT
+		  FROM GOV_METRIC
+		 WHERE YEAR = #findYear#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표를 가져온다.
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getGovMetricList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.GOV_METRIC_ID, A.GOV_METRIC_NM, A.GBN_ID
+          FROM GOV_METRIC A
+             , GOV_METRIC_GRP B
+         WHERE A.YEAR = #findYear#
+           AND A.DELETE_DT IS NULL
+           AND A.YEAR = B.YEAR
+           AND A.GOV_METRIC_GRP_ID = B.GOV_METRIC_GRP_ID
+           AND B.DELETE_DT IS NULL
+         ORDER BY A.GBN_ID, A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 가중치 조회
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.SC_DEPT_NM, A.SC_DEPT_ID,
+		<iterate property="govMetricIds" conjunction=",">
+				B.$govMetricIds[]$
+		</iterate>
+			 ,  C.TOTAL_WEIGHT, C.RATE
+		  FROM BSC_SC_DEPT A
+		  LEFT OUTER JOIN (
+		                    SELECT YEAR, SC_DEPT_ID,
+		<iterate property="govMetricIds" conjunction=",">
+				     	 			MAX($govMetricIds[]$) $govMetricIds[]$
+		</iterate>
+		                      FROM (
+		                     SELECT YEAR, SC_DEPT_ID,
+		<iterate property="govMetricIds" conjunction=",">
+									DECODE(GOV_METRIC_ID, '$govMetricIds[]$', WEIGHT, NULL) $govMetricIds[]$
+		</iterate>						
+		                       FROM BSC_DEPT_GOV_WEIGHT
+		                      WHERE YEAR = #findYear#
+		                            )
+		                      GROUP BY YEAR, SC_DEPT_ID
+		                 ) B
+		    ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID
+		  LEFT OUTER JOIN BSC_DEPT_GOV_RATE C                     
+			ON A.YEAR = C.YEAR
+		   AND A.SC_DEPT_ID = C.SC_DEPT_ID    
+		 WHERE A.YEAR = #findYear#
+		   AND GOV_REF_YN = 'Y'
+		   AND DELETE_DT IS NULL
+		   AND LEVEL_ID > '1' 
+		 ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 부서별 정평지표 책임가중치 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_DEPT_GOV_WEIGHT
+	==================================================================
+	-->	
+	<delete id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_DEPT_GOV_WEIGHT 
+		 WHERE YEAR = #year#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 부서별가중치 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_DEPT_GOV_WEIGHT
+	==================================================================
+	-->	
+	<insert id="insertTabData" parameterClass="hashMap">
+		INSERT INTO BSC_DEPT_GOV_WEIGHT ( 
+			   YEAR
+			 , SC_DEPT_ID
+			 , GOV_METRIC_ID
+			 , WEIGHT
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #scDeptId#
+			 , #govMetricId#
+			 , #weight#
+			 , TRUNC(SYSDATE, 'dd')
+			 )
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 부서별 정평지표 합계 및 반영비율 집계
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_DEPT_GOV_RATE
+	==================================================================
+	-->	
+	<insert id="insertTotaldata" parameterClass="hashMap">
+		CALL SP_GOV_DEPT_WEIGHT_RATE(#year#)
+	</insert>
+	
+</sqlMap>
+
+

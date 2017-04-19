@@ -1,0 +1,37 @@
+#*************************************************************************
+* CLASS 명      : deptStrategyDiagramList_xml
+* 작 업 자      : 형광민
+* 작 업 일      : 2012년 9월 7일 
+* 기    능      : 전략체계도 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      형광민     2012년 9월 7일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"METRIC_ID"       : "$!{CS_HTML.txt2html($list.METRIC_ID)}", 
+		"METRIC_NM"       : "$!{CS_HTML.txt2html($list.METRIC_NM)}", 
+		"WEIGHT"          : "$!{CS_HTML.txt2html($list.WEIGHT)}", 
+		"TARGET"          : "$!{CS_HTML.txt2htmlTargetFormat($list.TARGET)}", 
+		"ACTUAL"          : "$!{CS_HTML.txt2htmlActualFormat($list.ACTUAL)}", 
+		"SCORE"           : "$!{CS_HTML.txt2htmlScoreFormat($list.SCORE)}", 
+		"STATUS"          : "$!{CS_HTML.txt2html($list.STATUS)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

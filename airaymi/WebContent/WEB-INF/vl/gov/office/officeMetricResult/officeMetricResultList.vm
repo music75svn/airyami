@@ -1,0 +1,410 @@
+#*************************************************************************
+* CLASS 명   : officeMetricResultList
+* 작 업 자      : 김민주
+* 작 업 일      : 2013년 06월 25일 
+* 기    능      : 공공기관 경영평가지표 결과입력
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김민주      2013년 06월 25일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/gov/office/officeMetricResult/officeMetricResultList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formList').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/gov/office/officeMetricResult/officeMetricResultList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :[
+			   			   '년도', '공공기관정평지표코드', '공공기관코드', '공공기관명', '공공기관경영지표POOL코드'
+			   			   , '공공기관경영지표POOL명', '가중치', '점수', '실적', '가중치합'
+						  ],
+			colModel     :[
+							{name:'YEAR'				,index:'YEAR'      			,width:100   ,align:'center'	,sortable:false }, 
+                            {name:'GOV_OFF_METRIC_ID'	,index:'GOV_OFF_METRIC_ID'	,width:100   ,align:'center'	,sortable:false }, 
+                            {name:'OFFICE_ID'			,index:'OFFICE_ID'        	,width:100   ,align:'center'	,sortable:false },
+                            {name:'OFFICE_NM'        	,index:'OFFICE_NM'        	,width:250   ,align:'center'	,sortable:false },
+                            {name:'GOV_METRIC_GRP_ID'   ,index:'GOV_METRIC_GRP_ID'	,width:100   ,align:'center' 	,sortable:false , formatter:linkGovMetricGrpId }, 
+                            {name:'GOV_METRIC_GRP_NM'   ,index:'GOV_METRIC_GRP_NM'	,width:250   ,align:'center'	,sortable:false }, 
+                            {name:'WEIGHT'				,index:'WEIGHT'             ,width:100   ,align:'center'	,sortable:false ,formatter:setWeightInput}, 
+                            {name:'SCORE'				,index:'SCORE'             	,width:100   ,align:'center'	,sortable:false ,formatter:setScoreInput},
+                            {name:'ACT'					,index:'ACT'             	,width:100   ,align:'center'	,sortable:false ,formatter:setActInput},
+                            {name:'TOT_WEIGHT'			,index:'TOT_WEIGHT'         ,width:20   ,align:'center'		,sortable:false ,formatter:linkWeight}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			footerrow	 : true,
+			userDataOnFooter : true,
+			loadComplete : function() {
+			    				var grid = J("#list");
+
+								grid.jqGrid('footerData', 'set', showTotSum());
+
+								/******************************************
+			                	 * 가중치에 숫자(정수)만 입력받기
+			                	 ******************************************/
+			            		J("#formList input[name=officeMetricWeights]").numeric({allow:"."}).css("ime-mode", "disabled"); //숫자만 입력받기
+								
+								J("#formList input[name=officeMetricWeights]").each(function(){
+			            			var keyupStatus = "N";
+			            			$(this).bind('keyup',function(){
+			            				if( ((event.keyCode >= 48) && (event.keyCode <= 57)) || ((event.keyCode >= 96) && (event.keyCode <= 105)) ){
+			            					keyupStatus = "Y";
+			            				}
+			            			});
+			            		});
+			            		
+								/******************************************
+			                	 * 점수에 숫자(정수)만 입력받기
+			                	 ******************************************/
+			            		J("#formList input[name=officeMetricScores]").numeric({allow:"."}).css("ime-mode", "disabled"); //숫자만 입력받기
+								
+								J("#formList input[name=officeMetricScores]").each(function(){
+			            			var keyupStatus = "N";
+			            			$(this).bind('keyup',function(){
+			            				if( ((event.keyCode >= 48) && (event.keyCode <= 57)) || ((event.keyCode >= 96) && (event.keyCode <= 105)) ){
+			            					keyupStatus = "Y";
+			            				}
+			            			});
+			            		});
+			            		
+								/******************************************
+			                	 * 실적에 숫자(정수)만 입력받기
+			                	 ******************************************/
+			            		J("#formList input[name=officeMetricActs]").numeric({allow:"."}).css("ime-mode", "disabled"); //숫자만 입력받기
+								
+								J("#formList input[name=officeMetricActs]").each(function(){
+			            			var keyupStatus = "N";
+			            			$(this).bind('keyup',function(){
+			            				if( ((event.keyCode >= 48) && (event.keyCode <= 57)) || ((event.keyCode >= 96) && (event.keyCode <= 105)) ){
+			            					keyupStatus = "Y";
+			            				}
+			            			});
+			            		});
+			            		
+			                }
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"GOV_OFF_METRIC_ID").jqGrid('hideCol',"OFFICE_ID").jqGrid('hideCol',"OFFICE_NM")
+		.jqGrid('hideCol',"GOV_METRIC_GRP_ID").jqGrid('hideCol',"TOT_WEIGHT").setGridWidth($!{jqGrid_width});
+				
+		/******************************************
+		 * 저장 
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			saveChk();
+		});
+		
+		/******************************************
+		 * 점수/등급 초기화 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnInit").click(function() {
+			goInit();
+			return false;
+		});
+		
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#formList").attr("action", "$!{context_path}/gov/office/officeMetricResult/officeMetricList.vw?type=template").submit();
+		});
+	});
+	
+	/******************************************
+	 * 가중치 input 설정
+	 ******************************************/
+	function setWeightInput(cellvalue, options, rowObject){
+		var retVal = cellvalue;
+		var gmGovOffMetricId = rowObject.GOV_OFF_METRIC_ID;
+		if( null != gmGovOffMetricId  ){
+			retVal = "<input type='text' id='officeMetricWeights_" + options.rowId + "' name='officeMetricWeights' class='inputbox w100' onkeyup='showTotSum()' value='" + cellvalue + "' maxlength='10'/>";
+		}
+		return retVal;
+	}
+
+	/******************************************
+	 * 점수 input 설정
+	 ******************************************/
+	function setScoreInput(cellvalue, options, rowObject){
+		var retVal = cellvalue;
+		var gmGovOffMetricId = rowObject.GOV_OFF_METRIC_ID;
+		if( null != gmGovOffMetricId  ){
+			retVal = "<input type='text' id='officeMetricScores_" + options.rowId + "' name='officeMetricScores' class='inputbox w100' onkeyup='showTotSum()' value='" + cellvalue + "' maxlength='10'/>";
+		}
+		return retVal;
+	}
+	
+	/******************************************
+	 * jqGrid 공공기관경영지표POOL코드
+	 ******************************************/
+	function linkGovMetricGrpId(cellvalue, options, rowObject) {
+		if(options.rowId==""){
+			return cellvalue;
+		}else{
+			var str = '';
+			str += '<input type="hidden" id="govMetricGrpId" name="govMetricGrpId" value="' + cellvalue + '" class="inputbox wp70;" />';
+			return str;
+		}
+	}
+	
+	/******************************************
+	 * jqGrid 가중치 총점
+	 ******************************************/
+	function linkWeight(cellvalue, options, rowObject) { 
+		if(options.rowId==""){
+			return cellvalue;
+		}else{
+			var str = '';
+			str += '<input type="hidden" id="totWeights" name="totWeights" value="' + cellvalue + '" class="inputbox wp70;" readonly="readonly" style="text-align:center" maxlength="5" />';
+			return str;
+		}
+	}
+	
+	/******************************************
+	 * 계산실행
+	 ******************************************/
+	function showTotSum() {
+		var ids = J("#list").getDataIDs();
+		var total_weight=0;
+		var temp_weight=0;
+		var total_score=0;
+		var temp_score=0;
+		
+		for(var i=0;i<=ids.length-1;i++) {
+			if(J("input[name=govMetricGrpId]").eq(i).val() != "") {
+				if( J("input[name=officeMetricWeights]").eq(i).val() == "") {
+					temp_weight += 0;
+				}else {
+					temp_weight += parseFloat(J("input[name=officeMetricWeights]").eq(i).val());
+				}
+				if( J("input[name=officeMetricScores]").eq(i).val() == "") {
+					temp_score += 0;
+				}else {
+					temp_score += parseFloat(J("input[name=officeMetricScores]").eq(i).val());
+				}
+			}
+		}		
+		//total_weight = Math.round(parseInt(temp_weight)*100)/100;
+		//total_score = Math.round(parseInt(temp_score)*100)/100;
+		total_weight = temp_weight;
+		total_score = temp_score;
+		
+		J("#list").jqGrid('footerData', 'set', {GOV_METRIC_GRP_NM: "합계"});
+		J("#list").jqGrid('footerData', 'set', {WEIGHT: total_weight.toFixed(5)});
+		J("#list").jqGrid('footerData', 'set', {SCORE: total_score.toFixed(3)});
+	}
+	
+	/******************************************
+	 * 실적 input 설정
+	 ******************************************/
+	function setActInput(cellvalue, options, rowObject){
+		var retVal = cellvalue;
+		var gmGovOffMetricId = rowObject.GOV_OFF_METRIC_ID;
+		if( null != gmGovOffMetricId  ){
+			retVal = "<input type='text' id='officeMetricActs_" + options.rowId + "' name='officeMetricActs' class='inputbox w100' value='" + cellvalue + "' maxlength='10'/>";
+		}
+		return retVal;
+	}
+	
+	/******************************************
+     * 필수입력 체크
+     ******************************************/
+    function saveChk() {
+		var ids	= J("#list").jqGrid('getDataIDs');
+		
+		for (var i = 0; i < ids.length; i++) {
+			var val = J("input[name='officeMetricWeights']").eq(i).val();
+			
+			if(isNaN(val) == true) {
+				alert("가중치를 확인하십시오.");
+				J("input[name='officeMetricWeights']").eq(i).focus();
+				return false;
+			}
+		}
+		
+		for (var i = 0; i < ids.length; i++) {
+			var val = J("input[name='officeMetricScores']").eq(i).val();
+			
+			if(isNaN(val) == true) {
+				alert("점수를 확인하십시오.");
+				J("input[name='officeMetricScores']").eq(i).focus();
+				return false;
+			}
+		}
+		
+		for (var i = 0; i < ids.length; i++) {
+			var val = J("input[name='officeMetricActs']").eq(i).val();
+			
+			if(isNaN(val) == true) {
+				alert("실적을 확인하십시오.");
+				J("input[name='officeMetricActs']").eq(i).focus();
+				return false;
+			}
+		}
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+		
+    }
+	
+	/******************************************
+	 * 저장처리
+	 ******************************************/
+	function saveDo() {
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var govOffMetricIds = "";
+		var weights = "";
+		var weight  = "";
+        var scores  = "";
+		var score   = ""; 
+        var acts 	= "";
+		var act  	= ""; 
+        
+		for (var i = 0; i < ids.length; i++) {
+			rowdata = J("#list").getRowData(ids[i]);
+			govOffMetricIds += rowdata.GOV_OFF_METRIC_ID + '|';
+		}
+		
+		J("#formList input[name=officeMetricWeights]").each(function(){
+			weight = $(this).val()==""?"none":$(this).val();
+			weights += weight + '|';
+		});
+		
+		J("#formList input[name=officeMetricScores]").each(function(){
+			score = $(this).val()==""?"none":$(this).val();
+			score = Number(score).toFixed(5);
+			scores += score.toString() + '|';
+		});
+		
+		J("#formList input[name=officeMetricActs]").each(function(){
+			act = $(this).val()==""?"none":$(this).val();
+			acts += act + '|';
+		});
+		
+		J("#govOffMetricIds").val(govOffMetricIds);
+		J("#govOffWeights").val(weights);
+		J("#govOffScores").val(scores);
+		J("#govOffActs").val(acts);
+		J("#year").val(J("#year").val());
+		J("#mode").val("ADD");
+		
+		J("#formList").attr("action", "$!{context_path}/gov/office/officeMetricResult/officeMetricResultProcess.vw?type=template").submit();
+		return false;
+	}
+	
+	/******************************************
+	 * 점수/등급 초기화
+	 ******************************************/
+	function goInit() {
+		J.showConfirmBox("점수/등급을 초기화 하시겠습니까?", "initDo"); //initDo() 콜백함수 호출
+	}
+	
+	/******************************************
+	 * 가중치/점수/실적 초기화 실행
+	 ******************************************/
+	function initDo() {
+		J("#formList input[name=officeMetricWeights]").each(function(){
+  			$(this).val("");
+		});
+
+		J("#formList input[name=officeMetricScores]").each(function(){
+  			$(this).val("");
+		});
+
+		J("#formList input[name=officeMetricActs]").each(function(){
+  			$(this).val("");
+		});
+	}
+	
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">공공기관</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+		<!-- 검색 테이블 Start -->                   
+            <div class="searchBox">
+            <div><div><div>
+                <table summary="검색조건">
+                    <caption class="none">검색조건</caption>
+                    <thead><tr><th></th><th></th></tr></thead>
+                    <tbody>
+                        <tr>
+                        	<td class="searchBox_tit w300">평가년도 : <span class="searchBar">$!{CS_HTML.txt2html($officeDetail.YEAR)}</span></td>
+							<td class="searchBox_tit w300">공공기관명 : <span class="searchBar">$!{CS_HTML.txt2html($officeDetail.OFFICE_NM)}</span></td>
+						</tr>
+                    </tbody>
+                </table>
+            </div></div></div>
+            </div>
+        <!--// 검색 테이블 End -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/gov/office/officeMetricResult/officeMetricResultProcess.vw?type=template">
+			<input type="hidden" id="mode"      	 	name="mode" 			value="" />
+			<input type="hidden" id="year"			 	name="year" 			value="$!{CS_HTML.txt2html($officeDetail.YEAR)}" />
+			<input type="hidden" id="yearNm"			name="yearNm"			value="" />
+			<input type="hidden" id="officeEvalGrpNm"	name="officeEvalGrpNm"	value="" />
+			<input type="hidden" id="officeIds" 		name="officeIds" 		value="" />
+			<input type="hidden" id="officeId"  		name="officeId" 		value="$!{CS_HTML.txt2html($officeDetail.OFFICE_ID)}"/>
+			<input type="hidden" id="officeNm"  		name="officeNm"			value="$!{CS_HTML.txt2html($officeDetail.OFFICE_NM)}" />
+			<input type="hidden" id="govOffMetricIds" 	name="govOffMetricIds" 	value="$!{CS_HTML.txt2html($officeDetail.OFFICE_ID)}"/>
+			<input type="hidden" id="govOffWeights"	 	name="govOffWeights" 	/>
+			<input type="hidden" id="govOffScores"	 	name="govOffScores" 	/>
+			<input type="hidden" id="govOffActs"	 	name="govOffActs" 		/>
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="공공기관 조회결과">
+							<caption class="none">공공기관 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+								<li><input type="button" id="btnInsert" value="저장" /></li>
+								<li><input type="submit" id="btnInit" value="초기화" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

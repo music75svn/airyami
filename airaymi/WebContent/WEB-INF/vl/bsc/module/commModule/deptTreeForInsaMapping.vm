@@ -1,0 +1,90 @@
+#*************************************************************************
+* CLASS 명      : deptTreeForDeptMapping.vm
+* 작 업 자      : 형광민
+* 작 업 일      : 2012년 7월 19일 
+* 기    능      : 성과조직 매핑에서 사용하는 실조직트리.
+* 			commonTree와 구조는 동일하게 해야 하고,  디폴트 선택 엘리먼트 설정을 복수형으로 변경.
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호  작 업 자     작   업   일           변 경 내 용             비고
+* ----  --------  -----------------  -------------------------    --------
+*   1    형광민     2012년 7월 19일         최 초 작 업 
+**************************************************************************#
+
+<script language="javascript" type="text/javascript">
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		//하위 노드가 없는 엘리먼트 삭제
+		J("#treeData2 ul:empty").remove();
+		
+		//디폴트 선택 엘리먼트 설정
+		var choiceElement = "";
+
+		#foreach($list in $mappingDeptList)
+			choiceElement = J("#$!{CS_HTML.txt2html($list.DEPT_CD)}");
+			
+			choiceElement.children().addClass("choiceTreeNode");
+			choiceElement.addClass("selected");
+		
+    		//디폴트 선택된 엘리먼트의 상위 엘리먼트를 펼쳐진 상태로 설정
+    		for(var i = 0; i < 10; i++) {
+    			choiceElement.addClass("expanded");
+    			choiceElement = choiceElement.parent().parent();
+    			
+    			if(choiceElement.attr("id") == "tree2") break;
+    		}
+		#end
+		
+		//1레벨은 기본적으로 펼침
+		J("#treeData > li").first().addClass("expanded");
+		
+		//dyna 트리 기본설정
+		J(".deptTree2").dynatree({
+			checkbox: $!{searchMap.get("tree2CheckboxYn")},
+			selectMode: 2,
+			onActivate: function(node) {
+				try {
+					J(".deptTree2 div").removeClass("choiceTreeNode");
+					goActionDept(node.data.key, node.data.title);
+				} catch(error) {}
+			},
+			onDblClick: function(node, event) {
+				try {
+					goDblClickAction(node.data.key, node.data.title);
+				} catch(error) {}
+			},
+			onClick: function(node, event) {
+				try {
+					goClickAction(node.data.key, node.data.title);
+				} catch(error) {}
+			}
+		});
+		
+	});
+	
+//]]>
+</script>
+<div id="tree2" class="deptTree2">
+    <ul id="treeData" class="none">
+	#foreach($list1 in $treeList2)
+		#if($list1.LEVEL_ID == '1')	
+		<li id="$!{CS_HTML.txt2html($list1.CODE_ID)}" class="expanded"><div>$!{CS_HTML.txt2html($list1.CODE_NM)}</div>
+			#if($!{CS_HTML.checkSubTreeExist($list1.CODE_ID, $treeList2)}) <ul> #end
+			#foreach($list2 in $treeList2)
+				#if($list2.LEVEL_ID == '2' && $list1.CODE_ID == $list2.UP_CODE_ID)
+				<li id="$!{CS_HTML.txt2html($list2.CODE_ID)}" class="expanded"><div>$!{CS_HTML.txt2html($list2.CODE_NM)}</div>
+				</li>
+				#end
+			#end
+			#if($!{CS_HTML.checkSubTreeExist($list1.CODE_ID, $treeList2)}) </ul> #end
+		</li>
+		#end
+	#end	
+    </ul>
+</div>
+
+
+ 

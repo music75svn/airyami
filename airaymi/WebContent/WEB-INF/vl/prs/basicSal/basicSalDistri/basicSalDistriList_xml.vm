@@ -1,0 +1,35 @@
+#*************************************************************************
+* CLASS 명     : basicSalDistriList_xml
+* 작 업 자      : 박선혜
+* 작 업 일      : 2013년 06월 20일 
+* 기    능      : 등급배분표 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      박선혜     2013년 06월 20일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"ITEM_CNT"                 : "$!{CS_HTML.txt2html($list.ITEM_CNT)}" 
+		#foreach($gradeList in $gradeList)
+		, "$!{CS_HTML.txt2html($gradeList.GRADE)}" : "$!{CS_HTML.txt2html($list.get($gradeList.GRADE))}"
+		#end
+		, "VALIDATE_SUM_YN"        : "$!{CS_HTML.txt2html($list.VALIDATE_SUM_YN)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

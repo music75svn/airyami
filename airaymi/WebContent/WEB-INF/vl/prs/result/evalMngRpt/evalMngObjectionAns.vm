@@ -1,0 +1,469 @@
+#*************************************************************************
+* CLASS 명     : evalMngObjectionAns
+* 작 업 자      : 박선혜 
+* 작 업 일      : 2013년 6월 19일 
+* 기    능      : 이의제기 답변서    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용          비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    박선혜      2013년 6월 19일           최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript">
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});	
+
+		/******************************************
+		 * 답변완료 버튼 이벤트
+		 ******************************************/
+		J("#btnSuccess").click(function(e) {
+			e.preventDefault();
+			successChk();
+		});	
+		
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form1").submit(function(){
+			J("#btnInsert").unbind();
+		});		
+	
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/prs/result/evalMngRpt/evalMngRptList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			
+		});
+		
+		/******************************************
+		 * 요약 byte 체크
+		 ******************************************/
+		J("#objSum").checkbyte({
+			indicator:J("#objSumIndicator"),
+			limit:2000
+		});
+		J("#objSum").trigger("keyup");
+		
+		/******************************************
+		 * 세부내용 byte 체크
+		 ******************************************/
+		
+		#foreach($list in $detail)
+        	#set($num = $velocityCount )
+	        J("#objTypeAnswer$num").checkbyte({
+				indicator:J("#objTypeAnswerIndicator$num"),
+				limit:2000
+			});
+			J("#objTypeAnswer$num").trigger("keyup");
+        #end
+#*		
+		J("#objTypeAnswer1").checkbyte({
+			indicator:J("#objTypeAnswerIndicator1"),
+			limit:2000
+		});
+		J("#objTypeAnswer1").trigger("keyup");
+				
+		J("#objTypeAnswer2").checkbyte({
+			indicator:J("#objTypeAnswerIndicator2"),
+			limit:2000
+		});
+		J("#objTypeAnswer2").trigger("keyup");		
+		J("#objTypeAnswer3").checkbyte({
+			indicator:J("#objTypeAnswerIndicator3"),
+			limit:2000
+		});
+		J("#objTypeAnswer3").trigger("keyup");		
+		
+		J("#objTypeAnswer4").checkbyte({
+			indicator:J("#objTypeAnswerIndicator4"),
+			limit:2000
+		});
+		J("#objTypeAnswer4").trigger("keyup");		
+*#
+		/******************************************
+		 * 화면 초기셋팅
+		 ******************************************/
+		init();
+	});
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+     
+        #foreach($list in $detail)
+        	#set($num = $velocityCount )
+        	if( !LengthCheck(J("#objTypeAnswer$num").val(), J("#codeNm$num").val(), 0, 2000 ) ) {
+	            J("#objTypeAnswer$num").focus();
+	            return;
+	        }
+        #end
+        
+        
+	#***************    
+		if( J("#objTypeAnswer1").val() ) {
+	        if( !LengthCheck(J("#objTypeAnswer1").val(), "답변", 0, 2000 ) ) {
+	            J("#objTypeAnswer1").focus();
+	            return;
+	        }
+        {
+        
+        if( J("#objTypeAnswer2").val() ) {
+	        if( !LengthCheck(J("#objTypeAnswer2").val(), "답변", 0, 2000 ) ) {
+	            J("#objTypeAnswer2").focus();
+	            return;
+	        }
+	    }
+	    if( !J("#objTypeAnswer3").val() ) {
+	        if( !LengthCheck(J("#objTypeAnswer3").val(), J("#codeNm3").val(), 0, 2000 ) ) {
+	            J("#objTypeAnswer3").focus();
+	            return;
+	        }
+	    }
+	    
+	    if( !J("#objTypeAnswer4").val() ) {
+	        if( !LengthCheck(J("#objTypeAnswer4").val(), J("#codeNm4").val(), 0, 2000 ) ) {
+	            J("#objTypeAnswer4").focus();
+	            return;
+	        }
+	    } 
+	********************#   
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+	/******************************************
+	 * 답변완료 체크
+	 ******************************************/
+	function successChk() {
+		J.showConfirmBox("답변완료를 하면 더이상 수정 할 수 없습니다. 답변완료하시겠습니까?", "successDo"); //successDo() 콜백함수 호출
+	}
+	
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		var objTypes= "";
+		J("input[name=objType]:checked").each(function() {
+			objTypes += $(this).val() + '|';
+		});
+		
+		J("#objTypes").val(objTypes);
+		
+		J("#form1").attr("action", "$!{context_path}/prs/result/evalMngRpt/evalMngObjextionRegProcess.vw?type=template").submit();
+	}		
+
+	/******************************************
+	 * 답변완료
+	 ******************************************/
+	function successDo() {
+		var objTypes= "";
+		J("input[name=objType]:checked").each(function() {
+			objTypes += $(this).val() + '|';
+		});
+		
+		J("#objTypes").val(objTypes);
+		J("#mode").val("SUCCESS");
+		
+		J("#form1 input").attr("disabled",false);
+		J("#form1 select").attr("disabled",false);
+		J("#form1 checkbox").attr("disabled",false);
+		J("#form1 textarea").attr("disabled",false);
+		
+		J("#form1").attr("action", "$!{context_path}/prs/result/evalMngRpt/evalMngObjextionRegProcess.vw?type=template").submit();
+	}		
+	
+	/*****************************************************
+	 * 화면초기셋팅
+	 *****************************************************/ 
+	function init() {
+		var initFlag = false;
+	  #foreach($list in $detail)
+		if("$!{CS_HTML.txt2html($list.OBJ_TYPE_ANSWER_DT)}" != "") {
+			initFlag = true;
+		}else {
+			initFlag = false;
+			return false;
+		}	
+	  #end
+	  
+		if( initFlag == true ) {
+			//신청버튼 hidden
+			#if($!{CS_LOGIN.chkAuthGrp("01")} == true)
+				J("#btnInsert").show();
+				J("#btnSuccess").show();
+			#else
+				J("#btnInsert").hide();
+				J("#btnSuccess").hide();
+			
+			#end
+			
+			//checkbox, textarea
+			#if($!{CS_LOGIN.chkAuthGrp("01")} == true) 
+        		J("input:checkbox, textarea").attr("disabled", false);
+			#else		
+				J("input:checkbox, textarea").attr("disabled", true);
+			#end
+			
+		}
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+			<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/result/evalMngRpt/evalMngRptList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"	id="findCnt"		name="findCnt"			value="$!{searchMap.txt2html("findCnt")}" />
+				
+				<div class="searchBox" id="searchDiv" style="display:none">
+    				<div><div><div>
+    				<table summary="평가대상자 검색 조건">
+						<caption class="none">평가대상자 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w200">
+            						<span>$!{YEAR}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            					<td>
+            					<td class="searchBox_tit w250">
+    								
+    								<input type="radio" id="findCastTc1" name="findCastTc" onchange="reNew();" value="" $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '')} /> 전체 &nbsp;
+    								<input type="radio" id="findCastTc2" name="findCastTc" onchange="reNew();" value="10" $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '10')} /> 1급 &nbsp;
+    								<input type="radio" id="findCastTc3" name="findCastTc" onchange="reNew();" value="20" $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '20')} /> 2급 &nbsp;
+    								<input type="radio" id="findCastTc4" name="findCastTc" onchange="reNew();" value="30" $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '30')} /> 3급 &nbsp;
+    							</td>
+								<td class="searchBox_tit w200">
+            						<span><label for="findKorNm">이름 </label></span>
+										<input type="text" title="이름" name="findKorNm" id="findKorNm" value="$!{searchMap.txt2html("findKorNm")}" maxlength="10" class="inputbox w100"/>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		<div id="mainContent">
+    		<form id="form1" name="form1" method="post" action="$!{context_path}/prs/org/orgEvalItem/orgEvalItemProcess.vw?type=template">
+                <input type="hidden" id="mode"				name="mode"					value="$!{searchMap.txt2html("mode")}" />
+            	<input type="hidden" id="year"				name="year"					value="$!{searchMap.txt2html("year")}" />
+            	<input type="hidden" id="empn"				name="empn"					value="$!{searchMap.txt2html("empn")}" />
+            	<input type="hidden" id="castTc"			name="castTc"				value="$!{searchMap.txt2html("castTc")}" />
+                <input type="hidden" id="evalCastTc"        name="evalCastTc"           value="$!{searchMap.txt2html("evalCastTc")}" />
+            	<input type="hidden" id="deptCd"			name="deptCd"				value="$!{searchMap.txt2html("deptCd")}" />
+            	<input type="hidden" id="evalGrpId"			name="evalGrpId"				value="$!{searchMap.txt2html("evalGrpId")}" />
+            	
+            	$!{searchMap.makeHiddenFind()}
+            	<div id="rptTitle" class="rptTitleTable">
+					<table width="100%" style="height:23px" border="0" cellpadding="0" cellspacing="0">
+            			<tr>
+                			<th>
+                				이의제기 답변서
+                            </th>
+            			</tr>
+                    </table>
+				</div>				
+    			<div>
+    				<table width="100%" style="height:23px" border="0" cellpadding="0" cellspacing="0">
+            			<tr>
+                			<td class="bodybox_deptTit" style="width:1050px;border-bottom:1px solid #e3e3e3; padding:0px 0px 0px 30px;">
+                				<span id="basicTitle" style='cursor:hand;overflow:hidden;text-overflow:ellipsis;width:140;'>인적사항</span>
+                            </td>
+            			</tr>
+                    </table>
+                </div>
+				<div id="basicDetailArea" class="blockDetail2">
+        			<table summary="인적사항">
+    					<caption class="none">인적사항</caption>
+        				<colgroup>
+        					<col width="25%" />
+        					<col width="25%" />
+    						<col width="25%" />
+    						<col width="25%" />
+        				</colgroup>
+        				<tbody>
+        					<tr id="basicDetail">
+        						<th scope="row">사번</th>
+        						<th scope="row">성명</th>
+    							<th scope="row">소속</th>
+    							<th scope="row">직급</th>
+        					</tr>
+    						<tr>
+        						<td>
+									$!{CS_HTML.txt2html($basic.EMPN)}
+								</td>
+        						<td>
+									$!{CS_HTML.txt2html($basic.KOR_NM)}
+								</td>
+    							<td>
+									$!{CS_HTML.txt2html($basic.DEPT_FULL_NM)}
+								</td>
+    							<td>
+									$!{CS_HTML.txt2html($basic.CAST_TC_NM)}
+								</td>
+        					</tr>
+        				</tbody>
+        			</table>
+        		</div>
+          		<div id="objDetailArea" class="blockDetail2">
+        			<table summary="이의제기 세부내역">
+    					<caption class="none">이의제기 세부내역</caption>
+        				<colgroup>
+        					<col width="20%" />
+							#foreach($list in $objList)
+								<col width="20%" />
+							#end
+        				</colgroup>
+        				<tbody>
+        					<tr id="obgDetail">
+        						<th scope="row" rowspan="2">이의제기항목</th>
+								#foreach($list in $objList)
+									<th scope="row">$!{list.CODE_NM}</th>
+								#end
+        					</tr>
+    						<tr>
+			 					#foreach($list in $objList)
+									<td>
+										#foreach($list2 in $detailList)
+											#if($!{list.CODE_ID}== $!{list2.OBJ_TYPE})
+												○
+											#else
+												&nbsp;
+											#end
+										#end
+										&nbsp;
+									</td>
+								#end
+        					</tr>
+#*        					<tr>
+        						<th scope="row" >이의제기<br/>답변요약</th>
+        						<td scope="row" colspan=$objList.size() style='text-align:left;'>
+									<textarea id="objSum" name="objSum" class="tabletext" title="이의제기 세부내용" cols="10" rows="5">$!{CS_HTML.txt2html($objSum.OBJ_SUM)}</textarea>
+									<span id="objSumIndicator">0</span>/2000byte										
+								</td>									
+        					</tr>	
+*#        				
+        				#foreach($list in $detail)
+        					#set($num = $velocityCount )
+        					<tr>
+        						<th scope="row" >$!{CS_HTML.txt2html($list.CODE_NM)} 답변</th>
+        						<td scope="row" colspan="4" style='text-align:left;'>
+        						#if( $!{CS_LOGIN.chkAuthGrp("60")} == true ) 
+        							#if($!{CS_HTML.txt2html($list.OBJ_TYPE)} == "03")
+								    	<textarea id="objTypeAnswer$num" name="objTypeAnswer" class="tabletext" title="답변" cols="10" rows="10" readonly="readonly" class="disable">$!{CS_HTML.txt2html($list.OBJ_TYPE_ANSWER)}</textarea>
+							        #else
+							        	<textarea id="objTypeAnswer$num" name="objTypeAnswer" class="tabletext" title="답변" cols="10" rows="10">$!{CS_HTML.txt2html($list.OBJ_TYPE_ANSWER)}</textarea>
+							        #end
+									<input type="hidden" id="codeNm$num" name="codeNm" value="$!{CS_HTML.txt2html($list.CODE_NM)}"/>
+									<input type="hidden" id="objType$num" name="objType" value="$!{CS_HTML.txt2html($list.OBJ_TYPE)}"/>
+									<span id="objTypeAnswerIndicator$num">0</span>/2000byte
+								#else
+									<textarea id="objTypeAnswer$num" name="objTypeAnswer" class="tabletext" title="답변" cols="10" rows="10">$!{CS_HTML.txt2html($list.OBJ_TYPE_ANSWER)}</textarea>
+									<input type="hidden" id="codeNm$num" name="codeNm" value="$!{CS_HTML.txt2html($list.CODE_NM)}"/>
+									<input type="hidden" id="objType$num" name="objType" value="$!{CS_HTML.txt2html($list.OBJ_TYPE)}"/>
+									<span id="objTypeAnswerIndicator$num">0</span>/2000byte
+								#end										
+								</td>
+        					</tr>
+						#end
+        	#*******
+        				#if( $!{CS_LOGIN.chkAuthGrp("84")} != true ) 							
+        					<tr>
+        						<th scope="row" >조직역량평가 답변</th>
+        						<td scope="row" colspan=$objList.size() style='text-align:left;'>
+								    <textarea id="objAnswer1" name="objAnswer1" class="tabletext" title="조직역량평가 답변" cols="10" rows="10">$!{CS_HTML.txt2html($detail.OBJ_TYPE_ANSWER)}</textarea>
+									<span id="objAnswerIndicator1">0</span>/2000byte										
+								</td>
+        					</tr>							
+        					<tr>
+        						<th scope="row" >개인업적평가 답변</th>
+        						<td scope="row" colspan=$objList.size() style='text-align:left;'>
+								    <textarea id="objAnswer2" name="objAnswer2" class="tabletext" title="개인업적평가 답변" cols="10" rows="10">$!{CS_HTML.txt2html($detail.OBJ_TYPE_ANSWER)}</textarea>
+									<span id="objAnswerIndicator2">0</span>/2000byte										
+								</td>
+        					</tr>	
+        				#end						
+        				#if( $!{CS_LOGIN.chkAuthGrp("60")} != true )						
+        					<tr>
+        						<th scope="row" >조직관리역량평가 답변</th>
+        						<td scope="row" colspan=$objList.size() style='text-align:left;'>
+								    <textarea id="objAnswer3" name="objAnswer3" class="tabletext" title="조직관리역량평가 답변" cols="10" rows="10">$!{CS_HTML.txt2html($detail.OBJ_TYPE_ANSWER)}</textarea>
+									<span id="objAnswerIndicator3">0</span>/2000byte										
+								</td>
+        					</tr>
+        				#end	
+        				#if( ( $!{CS_LOGIN.chkAuthGrp("84")} != true ) ) 						
+        					<tr>
+        						<th scope="row" >기타 답변</th>
+        						<td scope="row" colspan=$objList.size() style='text-align:left;'>
+								    <textarea id="objAnswer4" name="objAnswer4" class="tabletext" title="기타 답변" cols="10" rows="10">$!{CS_HTML.txt2html($detail.OBJ_TYPE_ANSWER)}</textarea>
+									<span id="objAnswerIndicator4">0</span>/2000byte										
+								</td>
+        					</tr>
+        				#end
+        				********************#
+        				</tbody>
+        			</table>
+        		</div>
+				<div class="filedown">
+				#foreach($list in $detail)
+					<ul>
+						#if( $!{CS_FORMAT.dateFormat($list.OBJ_TYPE_ANSWER_DT)} != "" )<li>$!{CS_HTML.txt2html($list.CODE_NM)} 답변일자 : $!{CS_FORMAT.dateFormat($list.OBJ_TYPE_ANSWER_DT)}&nbsp;</li>
+						#end
+					</ul>
+				#end
+                </div>
+				<div class="blockButton_all floatLeft">
+            		<div class="blockButton">
+            			<ul>
+            				<li><input type="button" id="btnBack"   value="돌아가기"/></li>
+						#if($!{CS_LOGIN.chkAuthGrp("01")} == true || $!{CS_LOGIN.chkAuthGrp("60")} == true || ( $!{CS_LOGIN.chkAuthGrp("84")} == true && $!{searchMap.txt2html("findCnt")} == 1 ) )
+							<li><input type="button" id="btnInsert" value="저장"/></li>	
+								<li><input type="button" id="btnSuccess" value="답변완료"/></li>
+						#end
+            			</ul>
+            		</div>	
+				</div>
+    			
+    		</form>	
+		</div>	
+	</div>
+	<div class="clear"></div>
+</div>
+
+

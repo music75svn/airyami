@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.greenGasVerify">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+            , MON
+            , DEPT_CD
+            , DEPT_NM
+            , INSP_KIND_TC_NM
+            , REQ_QTY
+            , REQ_AMT
+             FROM V_GHF0221D_002 A
+		LEFT OUTER JOIN BSC_DEPTINFO B
+		ON A.DEPT_CD = B.DEPT_ID
+		WHERE 1 = 1
+		AND ROLE_TC = '10'
+		AND INSP_KIND_TC = '08'
+		AND YEAR = #findYear#
+		AND MON = #findMon#
+		ORDER BY YEAR, MON, DEPT_CD
+	</select>
+
+</sqlMap>
+
+

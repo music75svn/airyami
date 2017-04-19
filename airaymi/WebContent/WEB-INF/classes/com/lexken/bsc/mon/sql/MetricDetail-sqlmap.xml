@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.mon.metricDetail">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 지표실적상세 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getSummary" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+		SELECT   AA.TYPE_ID
+			   , AA.STRATEGY_ID                                                                                                                                                                                                         
+               , AA.STRATEGY_NM                                                                                                                                                                                                               
+               , AA.METRIC_ID                                                                                                                                                                                                                 
+               , AA.METRIC_NM                                                                                                                                                                                                                 
+               , AA.UNIT_NM                                                                                                                                                                                                                   
+               , AA.MEDIUM_TARGETY                                                                                                                                                                                                            
+               , DECODE(AA.TYPE_ID, '01', TO_CHAR(AA.TARGET), AA.TARGET_TXT) AS TARGET                                                                                                                                                                                                           
+               , DECODE(AA.MON ,'01', NVL(TO_CHAR(AA.TARGET_M),DECODE(AA.MON,'01',PLAN_NM_1MON,C.PRV_PLAN_NM)),DECODE('01','01',PLAN_NM_1MON,C.PRV_PLAN_NM)) AS TARGET_M                                                                    
+               , DECODE(AA.MON ,'01', NVL(TO_CHAR(AA.TARGET_Y),C.PLAN_NM_Y)  , C.PLAN_NM_Y ) AS TARGET_Y                                                                                                                                      
+               , DECODE(AA.MON, '01', NVL(TO_CHAR(AA.ACTUAL_M),C.ACT_NM)     , C.ACT_NM   ) AS ACTUAL_M                                                                                                                                       
+               , DECODE(AA.MON, '01', NVL(TO_CHAR(AA.ACTUAL_Y),C.ACT_NM_Y)   , C.ACT_NM_Y ) AS ACTUAL_Y                                                                                                                                       
+               , NVL(AA.SCORE_Y, C.FINAL_EVAL) AS SCORE_Y                                                                                                                                                                                 
+               , NVL(AA.SCORE_M, C.FINAL_EVAL) AS SCORE_M                                                                                                                                                                                 
+               , AA.STATUS_Y                                                                                                                                                                                                                    
+               , AA.STATUS_M                                                                                                                                                                                                                    
+               , AA.SC_DEPT_ID                                                                                                                                                                                                                
+               , AA.SC_DEPT_NM                                                                                                                                                                                                                
+               , AA.CURREN_LEVEL                                                                                                                                                                                                              
+               , (SELECT USER_NM FROM V_ROLE_USER WHERE USER_ID=(SELECT INSERT_USER_ID FROM BSC_METRIC WHERE YEAR=AA.YEAR AND DELETE_DT IS NULL AND METRIC_ID=AA.METRIC_ID)) USER_NM                                                          
+       FROM                                                                                                                                                                                                                                   
+       (SELECT     (SELECT TYPE_ID FROM BSC_METRIC AB WHERE AB.YEAR = A.YEAR AND AB.METRIC_ID = A.METRIC_ID AND AB.STRATEGY_ID = A.STRATEGY_ID AND AB.DELETE_DT IS NULL) AS TYPE_ID                                                           
+                   ,A.YEAR,B.MON                                                                                                                                                                                                              
+                   ,A.STRATEGY_ID                                                                                                                                                                                                             
+                   , A.STRATEGY_NM                                                                                                                                                                                                            
+                   , A.METRIC_ID                                                                                                                                                                                                              
+                   , A.METRIC_NM                                                                                                                                                                                                              
+                   , A.UNIT_NM                                                                                                                                                                                                                
+                   , A.MEDIUM_TARGETY                                                                                                                                                                                                         
+                   , (SELECT TARGET FROM BSC_METRICSCORE WHERE YEAR = #year# AND METRIC_ID =  #metricId#   AND MON = '12' AND ANAL_CYCLE = 'Y') AS TARGET                                                                                
+                   , (SELECT TARGETY_TXT FROM BSC_METRICSCORE WHERE YEAR = #year# AND METRIC_ID =  #metricId#   AND MON = '12' AND ANAL_CYCLE = 'Y') AS TARGET_TXT                                                                      
+                   , MAX(DECODE(A.ANAL_CYCLE, 'M', A.TARGET,NULL)) AS TARGET_M                                                                                                                                                                
+                   , MAX(DECODE(A.ANAL_CYCLE, 'Y', A.TARGET,NULL)) AS TARGET_Y                                                                                                                                                                
+                   , MAX(DECODE(A.ANAL_CYCLE, 'M', A.ACTUAL,NULL)) AS ACTUAL_M                                                                                                                                                                
+                   , MAX(DECODE(A.ANAL_CYCLE, 'Y', A.ACTUAL,NULL)) AS ACTUAL_Y                                                                                                                                                                
+                   , (select ACTUAL_Y from bsc_metric t where t.year = a.year and t.metric_id = a.metric_id and t.delete_dt is null)  as CURREN_LEVEL                                                                                         
+                   , MAX(DECODE(A.ANAL_CYCLE, 'Y', A.SCORE,NULL)) AS SCORE_Y                                                                                                                                                            
+                   , MAX(DECODE(A.ANAL_CYCLE, 'M', A.SCORE,NULL)) AS SCORE_M                                                                                                                                                            
+                   , MAX(DECODE(A.ANAL_CYCLE, 'Y', A.STATUS,NULL)) AS STATUS_Y                                                                                                                                                                  
+                   , MAX(DECODE(A.ANAL_CYCLE, 'M', A.STATUS,NULL)) AS STATUS_M                                                                                                                                                                  
+                   , A.ACTIVITY_SCORE, A.ACTIVITY_STATUS                                                                                                                                                                                      
+                   , A.SC_DEPT_ID                                                                                                                                                                                                             
+                   , A.SC_DEPT_NM                                                                                                                                                                                                             
+         FROM BSC_METRICSCORE A , BSC_ACT_REG_DEF_MON B                                                                                                                                                                                       
+        WHERE A.YEAR              = #year#                                                                                                                                                                                                         
+             AND A.MON            = #mon#                                                                                                                                                                                                         
+             AND A.SC_DEPT_ID     = #scDeptId#                                                                                                                                                                                                         
+             AND A.STRATEGY_ID    = #strategyId#                                                                                                                                                                                                        
+             AND A.METRIC_ID      = #metricId#                                                                                                                                                                                                         
+             AND A.DISPLAY_GBN    = 'T'                                                                                                                                                                                                       
+             AND A.BSC_METRIC_GBN IN ('01','03')                                                                                                                                                                                              
+             AND (A.SUB_METRIC_YN <> 'Y' OR A.SUB_METRIC_YN IS NULL)                                                                                                                                                                          
+             AND A.YEAR      = B.YEAR(+)                                                                                                                                                                                                      
+             AND A.METRIC_ID = B.METRIC_ID(+)                                                                                                                                                                                                 
+             AND B.MON(+) = '01'                                                                                                                                                                                                                 
+        GROUP BY  A.YEAR,B.MON                                                                                                                                                                                                                
+                   , A.STRATEGY_ID                                                                                                                                                                                                            
+                   , A.STRATEGY_NM                                                                                                                                                                                                            
+                   , A.METRIC_ID                                                                                                                                                                                                              
+                   , A.METRIC_NM                                                                                                                                                                                                              
+                   , A.UNIT_NM                                                                                                                                                                                                                
+                   , A.MEDIUM_TARGETY                                                                                                                                                                                                         
+                   , A.SC_DEPT_ID                                                                                                                                                                                                             
+                   , A.SC_DEPT_NM                                                                                                                                                                                                             
+                   ,A.ACTIVITY_SCORE, A.ACTIVITY_STATUS )AA,                                                                                                                                                                                    
+        (SELECT METRIC_ID, PLAN_NM_1MON,                                                                                                                                                                                                      
+             (SELECT NEXT_PLAN_NM FROM BSC_INIT_ACTIVITY WHERE YEAR || MON = TO_CHAR((ADD_MONTHS(TO_DATE('201101','YYYYMM'),-1)),'YYYYMM') AND METRIC_ID = T1.METRIC_ID ) AS PRV_PLAN_NM,                                                            
+                 PLAN_NM_Y,                                                                                                                                                                                                                   
+                 ACT_NM,                                                                                                                                                                                                                      
+                 ACT_NM_Y,                                                                                                                                                                                                                    
+                 FINAL_EVAL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+          FROM BSC_INIT_ACTIVITY T1                                                                                                                                                                                                           
+           WHERE T1.YEAR  = #year#                                                                                                                                                                                                                 
+             AND T1.MON   = #mon#                                                                                                                                                                                                                
+          )C                                                                                                                                                                                                                                  
+         WHERE AA.METRIC_ID = C.METRIC_ID(+)
+	]]>
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 ACTIVITY 상세 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getActivity" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+		SELECT T1.YEAR,                                                                               
+		        T1.MON,                                                                                
+		        T1.METRIC_ID AS METRIC_ID,                                                             
+		           (SELECT NEXT_PLAN_NM FROM BSC_INIT_ACTIVITY T2                                                                   
+		            WHERE T1.YEAR = T2.YEAR AND T2.MON = T1.MON-1 AND T2.METRIC_ID = T1.METRIC_ID) as PLAN_NM_1MON,                 
+		           (SELECT NEXT_PLAN_CONTENTS FROM BSC_INIT_ACTIVITY T2                                                              
+		            WHERE T1.YEAR = T2.YEAR AND T2.MON = T1.MON-1 AND T2.METRIC_ID = T1.METRIC_ID) as PLAN_CONTENTS_1MON,        
+		        T1.ACT_NM,                                                                             
+		        T1.ACT_CONTENTS,                                                                       
+		        T1.ACT_NM_Y,                                                                           
+		        T1.NEXT_PLAN_NM,                                                                       
+		        T1.NEXT_PLAN_CONTENTS,                                                                 
+		        T1.PLAN_NM_Y,                                                                          
+		        T1.SELF_EVAL,                                                                          
+		        T1.FINAL_EVAL,                                                                         
+		        T1.EVAL_REASON,                                                                                                                                                                                                                           
+		        T1.CREATE_DT                                                                           
+        FROM BSC_INIT_ACTIVITY T1                                                                    
+        WHERE T1.YEAR = #year#                                                                            
+		    AND T1.MON = #mon#                                                                               
+		    AND T1.METRIC_ID = #metricId# 
+    	]]>          
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 미진사유 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getCause" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+		SELECT YEAR,
+		       MON,
+		       METRIC_ID,
+		       CAUSE_DESC,
+		       CATCH_UP
+        FROM BSC_CAUSE
+        WHERE YEAR = #year#                                                                            
+		    AND MON = #mon#                                                                               
+		    AND METRIC_ID = #metricId#
+     	]]>           
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 상위자코칭 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getCoaching" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+		SELECT YEAR,
+			   MON,
+	           SC_DEPT_ID,                          
+               METRIC_ID,                           
+			   COACH_ID,                                                           
+               CONTENT,                             
+               REGUSER_ID, 
+               (SELECT USER_NM FROM V_ROLE_USER WHERE USER_ID = REGUSER_ID AND ROWNUM='1') AS REGUSER_NM, 
+               ANSWER,                              
+               ANSUSER_ID,                          
+               (SELECT USER_NM FROM V_ROLE_USER WHERE USER_ID = ANSUSER_ID  AND ROWNUM='1') AS ANSUSER_NM,  
+               TO_CHAR(CREATE_DT,'yyyy-mm-dd HH24:MI:SS') AS CREATE_DT,                           
+               TO_CHAR(ANSWER_DT,'yyyy-mm-dd HH24:MI:SS') AS ANSWER_DT                            
+        FROM BSC_COACHING                         
+        WHERE YEAR = #year#                                                                            
+		    AND MON = #mon#
+		    AND SC_DEPT_ID =#scDeptId#                                                                                         
+		    AND METRIC_ID = #metricId#
+		    ORDER BY COACH_ID, YEAR, MON, CREATE_DT,ANSWER_DT
+	    ]]>               
+   </select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 실무자의견 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getOpinion" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[	
+		SELECT YEAR,
+			   MON
+               SC_DEPT_ID,
+               METRIC_ID,
+               OPINION_ID,                               
+               CONTENT,                                
+               REGUSER_ID, 
+               (SELECT USER_NM FROM V_ROLE_USER WHERE USER_ID = REGUSER_ID AND ROWNUM='1' ) AS REGUSER_NM, 
+               ANSWER,                                 
+               ANSUSER_ID,                             
+               (SELECT USER_NM FROM V_ROLE_USER WHERE USER_ID = ANSUSER_ID AND ROWNUM='1' ) AS ANSUSER_NM,  
+               TO_CHAR(CREATE_DT,'yyyy-mm-dd HH24:MI:SS') AS CREATE_DT,                              
+               TO_CHAR(ANSWER_DT,'yyyy-mm-dd HH24:MI:SS') AS ANSWER_DT                               
+        FROM BSC_OPINION                             
+        WHERE YEAR = #year#                                                                            
+		    AND MON = #mon#
+		    AND SC_DEPT_ID =#scDeptId#                                                                                         
+		    AND METRIC_ID = #metricId#
+      		ORDER BY OPINION_ID, YEAR, MON, CREATE_DT,ANSWER_DT         
+    	]]>     
+   </select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 실무자의견 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_OPINION
+	==================================================================
+	-->
+	<select id="getOpinionContent" parameterClass="hashMap" resultClass="hashMap">
+           SELECT CONTENT, ANSWER
+           FROM BSC_OPINION
+           WHERE OPINION_ID=#id#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 상위자코칭 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_COACHING
+	==================================================================
+	-->
+	<select id="getCoachingContent" parameterClass="hashMap" resultClass="hashMap">
+           SELECT CONTENT, ANSWER
+           FROM BSC_COACHING
+           WHERE COACH_ID=#id#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표실적상세 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 실무자의견 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertOpinion" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('BSC_OPINION','','','','','') SEQ FROM DUAL
+		</selectKey> 
+		
+		<![CDATA[
+        INSERT INTO BSC_OPINION                         
+                 (YEAR, MON, SC_DEPT_ID, METRIC_ID, OPINION_ID, CONTENT, REGUSER_ID, CREATE_DT)    
+        VALUES (#year#, #mon#, #scDeptId#, #metricId#, #SEQ#, #opinion#, #regUserId#, SYSDATE)       
+    	]]>    
+	</insert>	
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 상위자코칭 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertCoaching" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('BSC_COACHING','','','','','') SEQ FROM DUAL
+		</selectKey> 
+		
+		<![CDATA[
+        INSERT INTO BSC_COACHING                         
+                 (YEAR, MON, SC_DEPT_ID, METRIC_ID, COACH_ID, CONTENT, REGUSER_ID, CREATE_DT)    
+        VALUES (#year#, #mon#, #scDeptId#, #metricId#, #SEQ#, #coaching#, #regUserId#, SYSDATE)       
+    	]]>    
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 실무자의견 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_OPINION
+	==================================================================
+	-->	
+	<update id="updateOpinion" parameterClass="hashMap">
+		<![CDATA[
+        UPDATE BSC_OPINION SET CONTENT = #content#
+        WHERE OPINION_ID = #id#                        
+    	]]>    
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 상위자코칭 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_COACHING
+	==================================================================
+	-->	
+	<update id="updateCoaching" parameterClass="hashMap">
+		<![CDATA[
+        UPDATE BSC_COACHING SET CONTENT = #content#
+        WHERE COACH_ID = #id#                        
+    	]]>    
+	</update>		
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 실무자의견 답변
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_OPINION
+	==================================================================
+	-->	
+	<update id="answerOpinion" parameterClass="hashMap">
+		<![CDATA[
+			UPDATE BSC_OPINION    
+				SET	ANSWER = #content#,    
+				ANSUSER_ID = #ansUserId#,    
+				ANSWER_DT=SYSDATE     
+			WHERE OPINION_ID = #id#    	
+		]]>    
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 상위자코칭 답변
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_COACHING
+	==================================================================
+	-->	
+	<update id="answerCoaching" parameterClass="hashMap">
+		<![CDATA[
+			UPDATE BSC_COACHING    
+				SET	ANSWER = #content#,    
+				ANSUSER_ID = #ansUserId#,    
+				ANSWER_DT=SYSDATE     
+			WHERE COACH_ID = #id#    	
+    	]]>    
+	</update>		
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 실무자의견 댓글 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_OPINION
+	==================================================================
+	-->	
+	<update id="updateOpinionAnswer" parameterClass="hashMap">
+		<![CDATA[
+        UPDATE BSC_OPINION SET ANSWER = #content#
+        WHERE OPINION_ID = #id#                        
+    	]]>    
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 상위자코칭 댓글 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_COACHING
+	==================================================================
+	-->	
+	<update id="updateCoachingAnswer" parameterClass="hashMap">
+		<![CDATA[
+        UPDATE BSC_COACHING SET ANSWER = #content#
+        WHERE COACH_ID = #id#                        
+    	]]>    
+	</update>
+			
+	<!--
+	==================================================================   
+	  # 설명	: 지표 실무자의견 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_OPINION
+	==================================================================
+	-->	
+	<delete  id="deleteOpinion" parameterClass="hashMap">
+		<![CDATA[
+        DELETE FROM BSC_OPINION
+        WHERE OPINION_ID = #id#                        
+    	]]>    
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 상위자코칭 댓글 수정
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_COACHING
+	==================================================================
+	-->	
+	<delete id="deleteCoaching" parameterClass="hashMap">
+		<![CDATA[
+        DELETE FROM BSC_COACHING
+        WHERE COACH_ID = #id#                        
+    	]]>    
+	</delete>		
+
+	<!--
+
+	==================================================================   
+	  # 설명	: 지표 월별 ACTIVITY 실적 첨부파일 목록
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INITIATIVE_ACT_ATTACH
+	==================================================================
+	-->
+	<select id="getFileList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+			   A.MON, 
+			   A.METRIC_ID, 
+			   A.SEQ
+             , A.ATTACH_FILE_NM
+             , A.ATTACH_FILE_SUFFIX
+    	     , F_ENCRYPT(A.ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+        FROM BSC_INITIATIVE_ACT_ATTACH A
+        WHERE 1=1
+        	AND YEAR = #year#
+        	AND MON = #mon#
+        	AND METRIC_ID = #metricId#
+        ORDER BY SEQ
+	</select>
+			
+</sqlMap>
+
+

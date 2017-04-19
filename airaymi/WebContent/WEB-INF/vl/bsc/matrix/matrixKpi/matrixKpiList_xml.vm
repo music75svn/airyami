@@ -1,0 +1,38 @@
+#*************************************************************************
+* CLASS 명      : matrixKpiList_xml
+* 작 업 자      : 박경태
+* 작 업 일      : 2012년 10월 23일 
+* 기    능      : 평가단별지표 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      박경태     2012년 10월 23일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"EVAL_USER_GRP_ID"     : "$!{CS_HTML.txt2html($list.EVAL_USER_GRP_ID)}", 
+		"EVAL_USER_GRP_NM"     : "$!{CS_HTML.txt2html($list.EVAL_USER_GRP_NM)}", 
+		"POOL_GUBUN_NM"        : "$!{CS_HTML.txt2html($list.POOL_GUBUN_NM)}", 
+		"METRIC_GRP_NM"        : "$!{CS_HTML.txt2html($list.METRIC_GRP_NM)}",
+		"METRIC_GRP_ID"        : "$!{CS_HTML.txt2html($list.METRIC_GRP_ID)}",
+		"CHOICE_YN"            : "$!{CS_HTML.txt2html($list.CHOICE_YN)}",
+		"SUBMIT_CNT"           : "$!{CS_HTML.txt2html($list.SUBMIT_CNT)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

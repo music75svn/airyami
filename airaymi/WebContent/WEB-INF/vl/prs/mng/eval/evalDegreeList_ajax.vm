@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+#*************************************************************************
+* CLASS 명		: evalDegreeList_ajax.vm
+* 작 업 자		: 심준혁
+* 작 업 일		: 2014년 12월 29일 
+* 기    능      	: 
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용         비고
+* -----  ----------  -------------------  ---------------------- ---------
+*  1      심 준 혁       2014년 12월 29일         최 초 작 업 
+**************************************************************************# 
+
+<dataset>
+
+#foreach($list in $evalDegreeList)
+	<data>
+		<evalDegreeId>$!{CS_HTML.txt2html($list.EVAL_DEGREE_ID)}</evalDegreeId>
+		<evalDegreeNm>$!{CS_HTML.txt2html($list.EVAL_DEGREE_NM)}</evalDegreeNm>
+	</data>	
+#end
+
+</dataset>

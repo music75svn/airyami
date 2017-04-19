@@ -1,0 +1,109 @@
+#*************************************************************************
+* CLASS 명      : popSearchUser.vm
+* 작 업 자      : 안요한
+* 작 업 일      : 2013.06.28
+* 기    능      : 사용자검색
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     안 요 한      2013.06.28          최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		try {
+			$("input", ".blockButton" ).button(); //버튼 ui 적용
+		} catch(err) { }
+	
+    	/******************************************
+    	 * 성명 검색 엔터키 이벤트
+    	 ******************************************/
+		J("#findUserNm").keyup(function(e)  {
+        	if(e.keyCode == 13) {
+        		goAction1('','');
+        	}
+        });
+        
+        /******************************************
+		 * 화면 초기셋팅
+		 ******************************************/
+		init();
+		
+	});
+	
+	/******************************************
+	 * 사용자 setting
+	 ******************************************/
+	function setSearchUserInfo() {
+		$!{searchMap.txt2html("callBack")}(arguments);  //콜백함수 설정
+	}
+	
+	/******************************************
+	* 화면 초기셋팅
+	******************************************/
+	function init() {
+		var deptId = $!{searchMap.txt2html("findSearchCodeId")};
+		goAction1(deptId);
+	}
+		
+	
+	/******************************************
+	 * 조직선택 클릭이벤트
+	 ******************************************/
+	function goAction1(deptId, deptNm) {
+	
+		var findUserNm = J("#findUserNm").val();
+		
+		if("" != deptId) findUserNm = "";
+		
+		J.ajax({
+			url        : "$!{searchMap.txt2html("context")}/prs/emp/empEvalAssessor/deptUserInfo_ajax.vw",
+        	type       : "POST",
+			data       : "deptId=" + deptId + "&amp;findUserNm=" + findUserNm,
+        	dataType   : "xml",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success    : function (xml) {
+				J("#userData ul").empty();
+				if(J(xml).find("items").find("item").length > 0) {
+					$(xml).find("items").find("item").each(function() {  
+                    	var userId   = $(this).find("userId").text();
+                    	var userNm   = $(this).find("userNm").text();
+						var deptId   = $(this).find("deptId").text();
+						var deptNm   = $(this).find("deptNm").text();
+						var posNm    = $(this).find("posNm").text();
+						
+						if(findUserNm == "") {
+							J("#userData ul").append("<li><a href=\"javascript:setSearchUserInfo('" + userId + "', '" + userNm + "', '" + deptId + "', '" + deptNm + "');\">" + posNm +" "+ userNm + "</a></li>");
+						} else {
+							J("#userData ul").append("<li><a href=\"javascript:setSearchUserInfo('" + userId + "', '" + userNm + "', '" + deptId + "', '" + deptNm + "');\">" + deptNm +" "+ userNm + "</a></li>");
+						}
+                    });
+				}
+        	},  
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+    	});
+	}
+
+//]]>
+</script>
+
+<div style="width:515px;height:350px;">
+	<div id="popSearchUserArea">
+		<h1 class="none">실조직트리</h1>
+		<div class="blockGridTreeTable">
+			#parse("/WEB-INF/vl/prs/emp/empEvalAssessor/deptTree.vm")
+		</div>
+		<div style="margin-left:20px;margin-bottom:10px;float:left;"><span class="strong">성명 : </span><input type="text" id="findUserNm" name="findUserNm"/></div>
+		<div id="userData" class="blockGridTreeTable" style="margin-left:30px;height:353px;width:240px;">
+			<ul>
+			</ul>
+		</div>
+	</div>
+</div>

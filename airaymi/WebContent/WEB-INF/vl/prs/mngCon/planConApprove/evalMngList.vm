@@ -1,0 +1,457 @@
+#*************************************************************************
+* CLASS 명      : evalMngList
+* 작 업 자      : 김효은
+* 작 업 일      : 2014년 4월 4일 
+* 기    능      : 직원개인업무성과 주관부서확인
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김효은      2014년 4월 4일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/prs/mngCon/planConApprove/evalMngList.vw")
+#set($findGubun = $!{searchMap.txt2html("findGubun")})
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+    var J = jQuery;
+    
+    J(document).ready(function(){
+	
+		if(J("#findGubun").val() == "02"){
+		J("#userCheck").css("display","");
+		}
+    
+        /******************************************
+         * 데이터 그리드 출력
+         ******************************************/
+        var str = J('#formFind').serialize();
+		
+        jQuery("#list").jqGrid({
+            url          :"$!{context_path}/prs/mngCon/planConApprove/evalMngList_xml.vw" + "?" + str,
+            mtype        :"POST",
+            datatype     :"json",
+            jsonReader   : {   
+                            page   : "page",
+                            total  : "total",
+                            root   : "rows", 
+                            records: function(obj){return obj.length;},
+                            repeatitems: false, 
+                            id     : "id"
+                           },
+            height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+            colNames     :['평가년도', '사원번호', '평가대상자 순번', '확인자 명', '이름', '부서코드', '부서 명', '직급코드','직급', '직위코드', '직위' ,'개인업적 평가 여부', '평가군 ID','부서장확인일자','계획서상태', '계획서상태'],
+            colModel     :[
+                            {name:'YEAR'                 ,index:'YEAR'                 ,width:150   ,align:'center' }, 
+                            {name:'EVAL_MEMB_EMPN'       ,index:'EVAL_MEMB_EMPN'       ,width:100   ,align:'center' }, 
+                            {name:'EVAL_MEMB_EMPN_SEQ'   ,index:'EVAL_MEMB_EMPN_SEQ'   ,width:150   ,align:'center' }, 
+                            {name:'APPROVE_USER_ID'      ,index:'APPROVE_USER_ID'      ,width:100   ,align:'center' }, 
+                            {name:'KOR_NM'               ,index:'KOR_NM'               ,width:100   ,align:'center'  ,formatter:linkUpdate}, 
+                            {name:'DEPT_CD'              ,index:'DEPT_CD'              ,width:150   ,align:'center' }, 
+                            {name:'DEPT_FULL_NM'         ,index:'DEPT_FULL_NM'         ,width:300   ,align:'left'   }, 
+                            {name:'CAST_TC'              ,index:'CAST_TC'              ,width:150   ,align:'center' }, 
+                            {name:'CAST_TC_NM'           ,index:'CAST_TC_NM'           ,width:100   ,align:'center' }, 
+                            {name:'POS_TC'               ,index:'POS_TC'               ,width:150   ,align:'center' }, 
+                            {name:'POS_TC_NM'            ,index:'POS_TC_NM'            ,width:100   ,align:'center'   }, 
+                            {name:'PRS_YN'               ,index:'PRS_YN'               ,width:150   ,align:'center' }, 
+                            {name:'EVAL_GRP_ID'          ,index:'EVAL_GRP_ID'          ,width:150   ,align:'center' }, 
+                            {name:'APPROVE_DT'           ,index:'APPROVE_DT'           ,width:250   ,align:'center' }, 
+                            {name:'PLAN_STATUS_ID'       ,index:'PLAN_STATUS_ID'       ,width:150   ,align:'center' }, 
+                            {name:'PLAN_STATUS_NM'       ,index:'PLAN_STATUS_NM'       ,width:150   ,align:'center'  ,formatter:linkReturnReason}
+                            ],
+            rowNum       : $!{jqGrid_rownum},
+            autowidth    : false, 
+            viewrecords  : true,
+            loadonce     : true,
+            multiselect  : true,
+            cellEdit     : true,
+            gridview     : true,
+            caption:"성과계획서 관리",
+        }).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"EVAL_MEMB_EMPN_SEQ").jqGrid('hideCol',"APPROVE_USER_ID").jqGrid('hideCol',"DEPT_CD").jqGrid('hideCol',"DEPT_KOR_NM").jqGrid('hideCol',"CAST_TC").jqGrid('hideCol',"APPROVE_DT").jqGrid('hideCol',"POS_TC").jqGrid('hideCol',"PRS_YN").jqGrid('hideCol',"EVAL_GRP_ID").jqGrid('hideCol',"PLAN_STATUS_ID")
+		if(J("#findGubun").val() == "01"){
+		    J("#list").setGridWidth($!{jqGrid_width});
+	    }else if(J("#findGubun").val() == "02"){
+		    J("#list").setGridWidth($!{jqGrid_r_width});
+    		J("#userForm").addClass("floatRight");
+		}
+		
+        /******************************************
+         * 조회
+         ******************************************/
+        J("#formFind").submit(function(event) {
+            //submit 하기전 작업추가
+        });
+        
+        /******************************************
+         * 삭제 버튼 클릭 이벤트
+         ******************************************/
+        J("#btnDelete").click(function() {
+            goDelete();
+            return false;
+        });
+		
+		 /******************************************
+         * FANCYBOX
+         ******************************************/
+        J("#anchor").fancybox();      //상세팝업
+		
+		/******************************************
+         * 반려버튼 이벤트
+         ******************************************/
+    	J("#returnBtn").click(function(){
+    		popReturnReason();
+			return false;
+    	});
+		
+		/******************************************
+         * 반려버튼 이중 클릭 방지
+         ******************************************/
+        J("formFind").submit(function(){
+            J("#btnReturn").unbind();
+        });
+		
+		/******************************************
+         * 확인 버튼 클릭 이벤트
+         ******************************************/
+        J("#approveBtn").click(function() {
+            goApprove();
+            return false;
+        });
+		
+		 /******************************************
+         * 엑셀다운로드 버튼 클릭 이벤트
+         ******************************************/
+        J("#btnExcelDown").click(function() {
+            excelDownload();
+            return false;
+        });
+         
+    });
+	
+	/******************************************
+	 * 그리드 ajax 조회 (주관부서 확인)
+	 ******************************************/
+	function goGridSearch() {
+		J("#list").setGridParam({url:"$!{context_path}/prs/mngCon/planConApprove/evalMngList_xml.vw?"+J("#formFind").serialize(), datatype:"json"}); 
+		J("#list").trigger("reloadGrid");
+	}
+	
+	/******************************************
+	 * 조직선택 클릭이벤트 (주관부서 확인)
+	 ******************************************/
+	function goAction(deptCd, deptNm) {
+		setDeptInfo(deptCd, deptNm);
+	}
+	
+	/*****************************************************
+	 * 조직선택 설정 (주관부서 확인)
+	 *****************************************************/ 
+	function setDeptInfo(deptCd, deptNm) {
+		// 조직트리에서 조직 선택 시 Ajax로 데이터그리드만 다시 조회하므로 formList의 searchMap.makeHiddenFind() 가 다시 생성되지 않음.
+		// formList가 submit되는 경우(신규, 수정, 삭제) 조직트리에서 선택된 조직의 정보를  유지시켜주기 위해 설정.
+		J("#formList input[name=findDeptCd]").val(deptCd);
+		J("#formList input[name=findDeptNm]").val(J(deptNm).text());
+		//var findCastTc = J("input:radio[name=findCastTc]:checked").val();
+		J('input:radio[name=findCastTc]:input[value=""]').attr("checked", true);
+			// formFind의 변수들 설정.
+			J("#findDeptCd").val(deptCd);			// 조직Tree에서 선택한 조직코드를 설정.
+			J("#findDeptNm").val(J(deptNm).text());	// 조직Tree에서 선택한 조직명을 설정.(신규 등록시 사용함.)
+			goGridSearch();
+	}
+	
+    /******************************************
+     * jqGrid 수정페이지 링크
+     ******************************************/
+    function linkUpdate(cellvalue, options, rowObject) { 
+        return '<a href=javascript:goModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+    }
+	
+	 /******************************************
+     * jqGrid 반려사유 링크
+     ******************************************/
+    function linkReturnReason(cellvalue, options, rowObject) {
+        var returnValue = cellvalue;
+        if(rowObject.PLAN_STATUS_ID == "05")
+            returnValue += '&nbsp;<img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="반려사유선택" style="cursor:pointer;" onClick="goReturnReason(\''+rowObject.YEAR + '\', \''+ rowObject.EVAL_MEMB_EMPN+'\', \''+rowObject.EVAL_MEMB_EMPN_SEQ+'\')" />'
+            
+        return returnValue;
+    }
+    
+    /******************************************
+     * 반려사유 조회
+     ******************************************/
+    function goReturnReason(year, evalMembEmpn, evalMembEmpnSeq){
+        J("#anchor").attr("href","$!{context_path}/prs/mngCon/planConApprove/popReturnReason.vw?findYear="+year+"&amp;evalMembEmpns="+evalMembEmpn+"&amp;evalMembEmpnSeqs="+evalMembEmpnSeq);
+        J("#anchor").click();
+        return false;
+    }
+    
+    /******************************************
+     * 수정
+     ******************************************/
+    function goModify(rowId) {
+        var ret = J("#list").jqGrid('getRowData',rowId);
+        J("#evalMembEmpnSeq").val(ret.EVAL_MEMB_EMPN_SEQ);
+        J("#evalMembEmpn").val(ret.EVAL_MEMB_EMPN);
+        J("#planStatusId").val(ret.PLAN_STATUS_ID);
+        J("#year").val(J("#findYear").val());
+        J("#gubun").val(J("#findGubun").val());
+        J("#formList").attr("action", "$!{context_path}/prs/mngCon/planConApprove/planConApproveList.vw?type=template").submit();
+	}
+	
+	/******************************************
+     * 반려사유 선택
+     ******************************************/
+	function popReturnReason(){
+		var savechk = true; //validation Chk
+	    var id = J("#list").getGridParam('selarrrow');
+        var ids = J("#list").jqGrid('getDataIDs');
+        var evalMembEmpns = "";
+        var evalMembEmpnSeqs = "";
+        var approveUserIds = "";
+		
+    	 if(!J.gridSelectChk("list")){
+            J.showMsgBox("반려 할 데이터를 선택하십시요.", null, null); 
+			savechk = false;
+			return false;
+         }else{
+        	for (var i = 0; i < ids.length; i++) {
+        	J.each(id, function (index, value) {
+              if (value == ids[i]) {
+                rowdata = J("#list").getRowData(ids[i]);
+				var isChecked = J("#list input:checkbox[name=jqg_list_" + ids[i] + "]").attr("checked");
+				
+		  	if(isChecked) {
+				
+				 if(evalMembEmpns == ""){
+                    evalMembEmpns += rowdata.EVAL_MEMB_EMPN;
+                    evalMembEmpnSeqs += rowdata.EVAL_MEMB_EMPN_SEQ;
+        	        approveUserIds += rowdata.APPROVE_USER_ID ;
+                } else {
+				 	evalMembEmpns += "|" + rowdata.EVAL_MEMB_EMPN;
+                    evalMembEmpnSeqs += "|" + rowdata.EVAL_MEMB_EMPN_SEQ;
+        	        approveUserIds += "|" + rowdata.APPROVE_USER_ID;
+                }
+				
+        		 if(J("#findGubun").val() == "01"){
+        			if(rowdata.PLAN_STATUS_ID != "02"){
+        				J.showMsgBox("["+rowdata.KOR_NM+"] 확인요청 상태가 아닙니다.<br/> 반려 할 수 없습니다.", null, null);
+        				savechk = false;
+        				return false;
+        			}
+        		 }else{
+            		if(rowdata.PLAN_STATUS_ID == "" || rowdata.PLAN_STATUS_ID == "01" || rowdata.PLAN_STATUS_ID == "02" || rowdata.PLAN_STATUS_ID == "05"|| rowdata.PLAN_STATUS_ID == "06"){
+            			J.showMsgBox("["+rowdata.KOR_NM+"] 최종승인 상태가 아닙니다.<br/> 반려 할 수 없습니다.", null, null);
+        				savechk = false;
+        				return false;
+            		}
+        		  }
+				  }
+        	    }
+              });
+        	 }
+    	   }
+	   if(savechk){
+		J("#evalMembEmpns").val(evalMembEmpns);
+		J("#evalMembEmpnSeqs").val(evalMembEmpnSeqs);
+		J("#approveUserIds").val(approveUserIds);
+		J("#anchor").attr("href","$!{context_path}/prs/mngCon/planConApprove/popReturnReason.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;evalMembEmpns="+J("#evalMembEmpns").val()+"&amp;evalMembEmpnSeqs="+J("#evalMembEmpnSeqs").val()+"&amp;approveUserIds="+J("#approveUserIds").val());
+		J("#anchor").click();
+		}
+	}
+	
+	/******************************************
+     * 반려사유 처리(팝업)
+     ******************************************/
+	function returnDo(){
+		 J("#mode").val("LISTRETURN");
+		 J("#userId").val(J("#findUserId").val());
+		 J("#formList").attr("action", "$!{searchMap.txt2html("context")}/prs/mngCon/planConApprove/planConMngProcess.vw?type=template").submit();
+		 return false;
+	}
+    
+	/******************************************
+     * 확인
+     ******************************************/
+    function goApprove() {
+		var id = J("#list").getGridParam('selarrrow');
+        var ids = J("#list").jqGrid('getDataIDs');
+		#if("$closingPlan.MNG_PLAN_YN" == 'N')
+    		J.showMsgBox("성과계획 제출 일정이 마감되었습니다.", null, null); 
+    		return false;
+		#else
+		if(!J.gridSelectChk("list")){
+            J.showMsgBox("확인할 데이터를 선택하십시요", null, null); 
+        }else{
+		 for (var i = 0; i < ids.length; i++) {
+            J.each(id, function (index, value) {
+                if (value == ids[i]) {
+                    rowdata = J("#list").getRowData(ids[i]);
+				if(J("#findGubun").val() == "01"){	
+    			  if(rowdata.PLAN_STATUS_ID == '02'){
+                    J.showConfirmBox("확인하시겠습니까?", "approveDo"); //deleteDo() 콜백함수 호출
+        		  }else{
+				    J.showMsgBox("["+rowdata.KOR_NM+"] 확인요청 상태가 아닙니다.<br/> 확인 할 수 없습니다.", null, null);
+				  }
+				}else{
+    			  if(rowdata.PLAN_STATUS_ID == '03'){
+                    J.showConfirmBox("확인하시겠습니까?", "approveDo"); //deleteDo() 콜백함수 호출
+    		      }else{
+				    J.showMsgBox("["+rowdata.KOR_NM+"] 주관부서 확인요청 상태가 아닙니다.<br/> 확인 할 수 없습니다.", null, null);
+				  }
+				}
+                }
+            });
+          }
+        }
+		#end
+    }
+	
+	/******************************************
+     * 확인처리
+     ******************************************/
+    function approveDo() {
+        var id = J("#list").getGridParam('selarrrow');
+        var ids = J("#list").jqGrid('getDataIDs');
+        var rowdata = "";
+        var evalMembEmpns = "";
+        var evalMembEmpnSeqs = "";
+        
+        for (var i = 0; i < ids.length; i++) {
+            J.each(id, function (index, value) {
+                if (value == ids[i]) {
+                    rowdata = J("#list").getRowData(ids[i]);
+                    evalMembEmpns += rowdata.EVAL_MEMB_EMPN + '|';
+                    evalMembEmpnSeqs += rowdata.EVAL_MEMB_EMPN_SEQ + '|';
+                }
+            });
+        }
+        
+        J("#evalMembEmpns").val(evalMembEmpns);
+        J("#evalMembEmpnSeqs").val(evalMembEmpnSeqs);
+        J("#mode").val("LISTAPPROVE");
+        J("#year").val(J("#findYear").val());
+        J("#gubun").val(J("#findGubun").val());
+		J("#userId").val(J("#findUserId").val());
+        J("#formList").attr("action", "$!{context_path}/prs/mngCon/planConApprove/planConMngProcess.vw?type=template").submit();
+        return false;
+    }
+	
+	 /******************************************
+     * 엑셀다운로드
+     ******************************************/
+    function excelDownload(){
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#planStatusNm").val(J("#findPlanStatusId > option:selected").text());
+        J("#formList").attr("action", "$!{context_path}/prs/mngCon/planConApprove/evalMngListExcel.vw?type=excel").submit();
+        return false;
+    }
+	
+
+//]]>
+</script>
+
+<div id="Table">
+    <div id="Table_blockContainer">
+        <h1 class="none">성과계획서 관리</h1>
+        <div class="tableTop">
+            #parse("/WEB-INF/vl/common/template/tabs.vm")
+            
+            <!-- search S -->
+            <form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/mngCon/planConApprove/evalMngList.vw?type=template">
+                <input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+                <input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+                <input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+                <input type="hidden"    id="findGubun"      name="findGubun"        value="$!{searchMap.txt2html("findGubun")}" />
+                <input type="hidden" 	id="findDeptCd"		name="findDeptCd"		value="$!{searchMap.txt2html("findDeptCd")}" />
+				<input type="hidden" 	id="findDeptNm"		name="findDeptNm"		value="$!{searchMap.txt2html("findDeptNm")}" />
+				<input type="hidden"    id="findUserId"     name="findUserId"       value="$!{CS_LOGIN.getUser_id()}" />
+				
+				<div class="searchBox">
+                    <div><div><div>
+                    <table summary="성과계획서 관리검색 조건">
+                        <caption class="none">성과계획서 관리 검색 조건</caption> 
+                        <thead><tr><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td class="searchBox_tit w250">
+                                    <span><label for="findYear">$!{YEAR}</label></span>
+                                    <span class="searchBar">
+                                        <select id="findYear" name="findYear" class="select w80">
+                                            $!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+                                        </select>
+                                    </span>
+                                </td>
+                                <td class="searchBox_tit w250">
+                                    <span><label for="findPlanStatusId">계약서상태</label></span>
+                                    <span class="searchBar">
+                                        <select id="findPlanStatusId" name="findPlanStatusId" class="select w130">
+                                            <option value="">전체</option>
+											$!CS_CODE.getCodeOption("217", $!{searchMap.txt2html("findPlanStatusId")})
+                                        </select>
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+                </div>
+            </form>
+            <!-- search E -->
+            <div class="clear"></div>
+        </div>
+        
+        <form id="formList" name="formList" method="post" action="$!{context_path}/prs/mngCon/planConApprove/planConMngProcess.vw?type=template">
+            <input type="hidden" id="mode"        		  name="mode" />
+            <input type="hidden" id="year"       	      name="year" />
+            <input type="hidden" id="yearNm"     		  name="yearNm" />
+            <input type="hidden" id="evalMembEmpns"       name="evalMembEmpns" />
+            <input type="hidden" id="evalMembEmpnSeqs"    name="evalMembEmpnSeqs" />
+            <input type="hidden" id="evalMembEmpn"        name="evalMembEmpn" />
+            <input type="hidden" id="evalMembEmpnSeq"     name="evalMembEmpnSeq" />
+            <input type="hidden" id="approveUserIds"      name="approveUserIds" />
+            <input type="hidden" id="approveUserId"       name="approveUserId" />
+            <input type="hidden" id="planStatusId"        name="planStatusId" />
+            <input type="hidden" id="planStatusNm"        name="planStatusNm" />
+            <input type="hidden" id="gubun"        		  name="gubun" />
+            <input type="hidden" id="userId"        	  name="userId" />
+			<input type="hidden" id="returnCause"	      name="returnCause" />
+            
+            $!{searchMap.makeHiddenFind()}
+            <div id="splitterBox">
+                <div>
+					<div class="blockGridTreeTable" id="userCheck" style="height:385px;display:none;">
+						#parse("/WEB-INF/vl/prs/mng/evalMng/deptTree.vm")
+					</div>
+                    <!-- 데이터그리드 Start -->
+                    <div class="blockGridListTable floatRight">
+                        <table id="list" summary="성과계획서 관리 조회결과">
+                            <caption class="none">성과계획서 관리 조회</caption>
+                            <thead><tr><th></th></tr></thead>
+                            <tbody><tr><td></td></tr></tbody>
+                        </table>
+                        <div id="pager"></div>
+                    </div>
+                    <!-- 데이터그리드 End-->
+					<div class="blockButton_all floatLeft">
+						#if($findGubun=="02")
+						<div class="blockButton" style="float:left; text-align:left; width:170px;">
+							<input type="button" id="btnExcelDown" value="엑셀변환" />
+						</div>
+						#end
+						<div class="blockButton">
+                            <ul>
+                                <li><input type="button" id="returnBtn"  value="반려" /></li>
+                                <li><input type="button" id="approveBtn" value="확인" /></li>
+                            </ul>
+                        </div>
+					</div>
+                </div>
+            </div>
+        </form>
+        
+    </div>
+    <a id="anchor"></a>
+    <div class="clear"></div>
+</div>

@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.eval.memNonMetricEval">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MEM_MEET
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 평가기간
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EVAL_SCHEDULE
+	==================================================================
+	-->
+	<select id="getPeriodInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+		       TO_CHAR(TO_DATE(EVAL_START_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS EVAL_START_DT
+		     , TO_CHAR(TO_DATE(EVAL_END_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS EVAL_END_DT
+             , CASE WHEN
+             			 EVAL_START_DT <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMMDD') 
+             	     AND EVAL_END_DT <![CDATA[ >= ]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+        			THEN
+                         'Y'
+                    ELSE
+                         'N'
+                    END AS EVAL_IN_TERM
+		  FROM MEM_EVAL_SCHEDULE
+		 WHERE YEAR = #year#
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가상태
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_NON_METRIC_EVAL_STATE
+	==================================================================
+	-->
+	<select id="getStateInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+		     NVL((
+		         SELECT
+		                EVAL_STATE
+		           FROM MEM_NON_METRIC_EVAL_STATE
+		          WHERE YEAR = #year#
+		            AND EVAL_GUBUN = #evalGubun#
+		            AND EVAL_EMP_NO = #evalEmpNo#
+		            AND EVAL_DEPT_CD = #deptCd#
+		     ), 'N') AS EVAL_STATE
+		  FROM DUAL
+	</select>
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 비계량지표평가 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_USER, MEM_METRIC, MEM_NON_METRIC_EVAL_STATE, BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+			   A.*
+			 , DECODE(B.EVAL_STATE, '', 'N', B.EVAL_STATE) AS EVAL_STATE
+			 , DECODE(B.EVAL_STATE, '', '평가미완료', F_CODE_NM('246', B.EVAL_STATE , A.YEAR)) AS EVAL_STATE_NM
+		  FROM(
+				SELECT
+				       A.YEAR
+				     , #findEvalGubun# AS EVAL_GUBUN
+		<isEqual property="findEvalGubun" compareValue="01">
+				     , A.DEPT_CD
+				     , F_DEPT_LEV2_NM(A.YEAR, A.DEPT_CD) AS DEPT_NM
+				     , A.EVAL_1_EMP_NO AS EVAL_EMP_NO
+				     , A.EVAL_1_EMP_NM AS EVAL_EMP_NM
+		</isEqual>
+		<isEqual property="findEvalGubun" compareValue="02">
+				     , C.UP_DEPT_ID AS DEPT_CD
+				     , F_DEPT_LEV2_NM(A.YEAR, C.UP_DEPT_ID) AS DEPT_NM
+				     , A.EVAL_2_EMP_NO AS EVAL_EMP_NO
+				     , A.EVAL_2_EMP_NM AS EVAL_EMP_NM
+		</isEqual>
+				     , COUNT(A.EMP_NO) AS TARGET_COUNT
+				     , COUNT(B.METRIC_ID) AS NON_METRIC_COUNT
+				  FROM MEM_USER A
+				     , MEM_METRIC B
+				     , BSC_DEPTINFO C
+				 WHERE 1 = 1
+				   AND A.YEAR = B.YEAR
+				   AND A.EMP_NO = B.EMP_NO
+				   AND A.DEPT_CD = C.DEPT_ID
+				   AND A.EVAL_TGT_YN = 'Y'
+		<isEqual property="findEvalGubun" compareValue="01">
+			<isNotEmpty prepend="AND" property="findEvalEmpNm">
+			           A.EVAL_1_EMP_NM LIKE '%' || TRIM(#findEvalEmpNm#) || '%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="sEmpNo">
+					   A.EVAL_1_EMP_NO = #sEmpNo#
+			</isNotEmpty>
+		</isEqual>
+		<isEqual property="findEvalGubun" compareValue="02">
+			<isNotEmpty prepend="AND" property="findEvalEmpNm">
+			           A.EVAL_2_EMP_NM LIKE '%' || TRIM(#findEvalEmpNm#) || '%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="sEmpNo">
+					   A.EVAL_2_EMP_NO = #sEmpNo#
+			</isNotEmpty>
+		</isEqual>
+				   AND B.EVAL_GBN_ID != '03'
+				   AND B.TYPE_ID = '02'
+				   AND A.YEAR = #findYear#
+		
+				   AND B.DELETE_DT IS NULL
+		<isEqual property="findEvalGubun" compareValue="01">
+			     GROUP BY A.YEAR, A.DEPT_CD, A.EVAL_1_EMP_NO, A.EVAL_1_EMP_NM
+		</isEqual>
+		<isEqual property="findEvalGubun" compareValue="02">
+			     GROUP BY A.YEAR, C.UP_DEPT_ID, A.EVAL_2_EMP_NO, A.EVAL_2_EMP_NM
+		</isEqual>
+		) A
+		, MEM_NON_METRIC_EVAL_STATE B
+		 WHERE 1 = 1
+		   AND A.YEAR = B.YEAR(+)
+		   AND B.EVAL_GUBUN(+) = #findEvalGubun#
+		   AND A.EVAL_EMP_NO = B.EVAL_EMP_NO(+)
+		   AND A.DEPT_CD = B.EVAL_DEPT_CD(+)
+	<isNotEmpty prepend="AND" property="findEvalGubun">
+	           B.EVAL_GUBUN(+) = #findEvalGubun#
+	</isNotEmpty>
+		 ORDER BY A.EVAL_EMP_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자 목록조회
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_USER, MEM_METRIC, MEM_EVAL_EMP
+	==================================================================
+	-->
+	<select id="getNonMetricEvalMemberList" parameterClass="hashMap" resultClass="hashMap">
+	SELECT
+	       A.*
+	     , B.EVAL_SCORE
+		 , REPLACE( REPLACE ( B.EVAL_OPINION, CHR(13), '' ), CHR(10), '<![CDATA[<BR>]]>' ) AS EVAL_OPINION
+	  FROM(
+				SELECT
+				       A.YEAR
+			<isEqual property="evalGubun" compareValue="01">
+				     , D.DEPT_ID AS DEPT_CD
+				     , F_DEPT_LEV2_NM(A.YEAR, D.DEPT_ID) AS DEPT_NM
+				     , A.EVAL_1_EMP_NO AS EVAL_EMP_NO
+			</isEqual>
+			<isEqual property="evalGubun" compareValue="02">
+				     , D.UP_DEPT_ID AS DEPT_CD
+				     , F_DEPT_LEV2_NM(A.YEAR, D.UP_DEPT_ID) AS DEPT_NM
+				     , A.EVAL_2_EMP_NO AS EVAL_EMP_NO
+			</isEqual>
+				     , A.EMP_NO
+				     , A.EMP_NM
+				     , B.METRIC_ID
+				     , B.METRIC_NM
+				     , B.TYPE_ID
+				  FROM MEM_USER A
+				     , MEM_METRIC B
+					 , BSC_DEPTINFO D
+				 WHERE 1 = 1
+				   AND A.YEAR = B.YEAR
+				   AND A.EMP_NO = B.EMP_NO
+				   AND B.EVAL_GBN_ID != '03'
+				   AND B.TYPE_ID = '02'
+				   AND A.YEAR = #year#
+				   AND A.EVAL_TGT_YN = 'Y'
+			<isEqual property="evalGubun" compareValue="01">
+				   AND A.EVAL_1_EMP_NO = #evalEmpNo#
+				   AND D.DEPT_ID = #deptCd#
+			</isEqual>
+			<isEqual property="evalGubun" compareValue="02">
+				   AND A.EVAL_2_EMP_NO = #evalEmpNo#
+				   AND D.UP_DEPT_ID = #deptCd#
+			</isEqual>
+				   AND A.DEPT_CD = D.DEPT_ID
+				   AND B.DELETE_DT IS NULL
+		    ) A
+		    , MEM_NON_METRIC_EVAL_ITEM B
+		WHERE 1 = 1
+	      AND A.YEAR = B.YEAR(+)
+	      AND A.EMP_NO = B.EMP_NO(+)
+	      AND B.EVAL_GUBUN(+) = #evalGubun#
+	      AND A.DEPT_CD = B.EVAL_DEPT_CD(+)
+	      AND A.METRIC_ID = B.METRIC_ID(+)
+	      AND A.EVAL_EMP_NO = B.EVAL_EMP_NO(+)
+	    ORDER BY EVAL_SCORE DESC, A.EMP_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량지표평가등록
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_NON_METRIC_EVAL_ITEM
+	==================================================================
+	-->	
+	<update id="insertNonMetricEvalData" parameterClass="hashMap">
+	MERGE INTO MEM_NON_METRIC_EVAL_ITEM A
+		USING DUAL
+		ON (A.YEAR = #year# AND A.EMP_NO = #empNo# AND A.EVAL_GUBUN = #evalGubun# AND EVAL_EMP_NO = #evalEmpNo# AND A.METRIC_ID = #metricId# AND A.EVAL_DEPT_CD = #deptCd#)
+	WHEN MATCHED THEN 
+    UPDATE SET 
+           EVAL_SCORE = #evalScore#
+         , EVAL_OPINION = #evalOpinion#
+         , CREATE_DT = SYSDATE
+	WHEN NOT MATCHED THEN
+	INSERT (
+               YEAR
+             , EMP_NO
+             , EVAL_GUBUN
+             , EVAL_EMP_NO
+             , EVAL_DEPT_CD
+             , METRIC_ID
+             , EVAL_SCORE
+             , EVAL_OPINION
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #empNo#
+             , #evalGubun#
+             , #evalEmpNo#
+             , #deptCd#
+             , #metricId#
+             , #evalScore#
+             , #evalOpinion#
+             , SYSDATE
+    	   )
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가상태 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_NON_METRIC_EVAL_STATE
+	==================================================================
+	-->	
+	<update id="updateNonMetricEvalStateData" parameterClass="hashMap">
+	MERGE INTO MEM_NON_METRIC_EVAL_STATE A
+		USING DUAL
+		ON (A.YEAR = #year# AND A.EVAL_GUBUN = #evalGubun# AND EVAL_EMP_NO = #evalEmpNo# AND EVAL_DEPT_CD = #deptCd#)
+	WHEN MATCHED THEN 
+    UPDATE SET 
+           EVAL_STATE = #evalState#
+         , CREATE_DT = SYSDATE
+	WHEN NOT MATCHED THEN
+	INSERT (
+               YEAR
+             , EVAL_GUBUN
+             , EVAL_EMP_NO
+             , EVAL_DEPT_CD
+             , EVAL_STATE
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #evalGubun#
+             , #evalEmpNo#
+             , #deptCd#
+             , #evalState#
+             , SYSDATE
+    	   )
+	</update>
+</sqlMap>
+
+

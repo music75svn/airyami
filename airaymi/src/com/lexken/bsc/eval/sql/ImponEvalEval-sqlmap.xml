@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.eval.imponEvalEval">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT T2.METRIC_GRP_ID, T2.METRIC_GRP_NM, T3.SC_DEPT_ID, T3.SC_DEPT_NM, T1.METRIC_ID, T5.SCORE FROM BSC_METRIC T1 
+			INNER JOIN BSC_METRIC_GRP T2
+			    ON T1.YEAR=T2.YEAR
+			    AND T1.METRIC_GRP_ID=T2.METRIC_GRP_ID
+			    AND T2.DELETE_DT IS NULL
+			LEFT OUTER JOIN BSC_SC_DEPT T3
+				ON T1.YEAR=T3.YEAR
+			   	AND T1.SC_DEPT_ID=T3.SC_DEPT_ID
+			   	AND T3.DELETE_DT IS NULL
+		    INNER JOIN BSC_IMPON_APPRAISER T4
+		       	ON T1.YEAR=T4.YEAR
+		       	AND T4.MON = #findCycle#
+		       	AND T2.METRIC_GRP_ID=T4.METRIC_GRP_ID
+		       	AND T4.EVAL_EMP_ID = #findEvalEmpId#    			   
+			LEFT OUTER JOIN (
+			        SELECT T1.YEAR,
+			                    T1.MON,
+			                    T2.METRIC_GRP_ID,
+			                    T2.METRIC_ID,
+			                    SUM(T1.GRADE_SCORE * T3.ITEM_WEIGHT/100)  SCORE       
+			        FROM BSC_IMPON_DETAIL T1 INNER JOIN BSC_METRIC T2
+			            ON T1.YEAR=T2.YEAR
+			            AND T1.METRIC_ID=T2.METRIC_ID
+			            AND T2.DELETE_DT IS NULL
+			        INNER JOIN BSC_IMPON_ITEM T3
+			            ON T1.YEAR=T3.YEAR
+			            AND T1.MON=T3.MON
+			            AND T2.METRIC_GRP_ID=T3.METRIC_GRP_ID
+			            AND T1.ITEM_CD=T3.ITEM_CD
+					WHERE T1.YEAR = #findYear#
+					AND T1.MON = #findCycle#
+			        AND T1.EVAL_EMP_ID = #findEvalEmpId#
+			        AND T1.DELETE_DT IS NULL
+			    GROUP BY T1.YEAR, T1.MON,T2.METRIC_GRP_ID,T2.METRIC_ID
+			) T5
+		    ON T1.YEAR=T5.YEAR
+		    AND T5.MON = #findCycle#
+		    AND T1.METRIC_GRP_ID=T5.METRIC_GRP_ID
+		    AND T1.METRIC_ID=T5.METRIC_ID
+		WHERE T1.YEAR = #findYear#
+		AND T1.TYPE_ID='02'
+		AND T1.DELETE_DT IS NULL
+		ORDER BY T1.METRIC_GRP_ID, T3.SORT_ORDER
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시 평가자 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getEvalEmpList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT DISTINCT T1.EVAL_EMP_ID,
+        	   T3.NAME_HAN EVAL_EMP_NM, 
+        	   T2.END_YN 
+        FROM BSC_IMPON_APPRAISER T1 
+        LEFT OUTER JOIN BSC_IMPON_STATUS T2
+            ON T1.YEAR=T2.YEAR
+            AND T1.MON=T2.MON
+            AND T1.EVAL_EMP_ID=T2.EVAL_EMP_ID
+            AND T1.DELETE_DT IS NULL
+        INNER JOIN V_ROLE_USER T3
+            ON T1.EVAL_EMP_ID=T3.USER_ID
+		WHERE T1.YEAR = #findYear#
+			AND T1.MON = #findCycle#
+	        AND T1.DELETE_DT IS NULL
+        ORDER BY T3.NAME_HAN   				
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시 평가완료 여부
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="isSubmitted" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT END_YN FROM BSC_IMPON_STATUS
+        WHERE YEAR = #findYear#
+        AND MON  = #findCycle#
+        AND EVAL_EMP_ID = #findEvalEmpId#
+        AND DELETE_DT IS NULL
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시 모든 지표 평가완료 여부
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getAllEvaled" parameterClass="hashMap" resultClass="hashMap">
+	    SELECT T1.YEAR, 
+	            T1.MON, 
+	            COUNT(T2.METRIC_ID) TOTAL_CNT, 
+	            CASE WHEN T3.CNT IS NULL THEN 0 ELSE T3.CNT  END EVAL_CNT,
+	            CASE WHEN COUNT(T2.METRIC_ID) = T3.CNT THEN 'Y' ELSE 'N' END ALL_EVALED
+	            FROM BSC_IMPON_APPRAISER T1
+	    INNER JOIN BSC_METRIC T2
+	        ON T1.YEAR=T2.YEAR
+	        AND  T1.METRIC_GRP_ID=T2.METRIC_GRP_ID
+	        AND T2.TYPE_ID='02'
+	        AND T2.DELETE_DT IS NULL
+	        LEFT OUTER JOIN (SELECT YEAR, MON, COUNT(METRIC_ID) CNT FROM (
+	                SELECT DISTINCT YEAR, MON, METRIC_ID  FROM BSC_IMPON_DETAIL
+	                WHERE YEAR = #findYear#
+	                AND MON  = #findCycle#
+	                AND EVAL_EMP_ID = #findEvalEmpId#
+	                AND DELETE_DT IS NULL
+	            ) GROUP BY YEAR, MON) T3
+	            ON T1.YEAR=T3.YEAR
+	            AND T1.MON=T3.MON 
+		WHERE T1.YEAR = #findYear#
+			AND T1.MON  = #findCycle#
+			AND T1.EVAL_EMP_ID = #findEvalEmpId#
+			AND T1.DELETE_DT IS NULL
+		GROUP BY T1.YEAR, T1.MON, T3.CNT
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT * FROM (
+		    SELECT 
+		        T1.ITEM_CD,
+		        T1.ITEM_NM,
+		        T1.ITEM_WEIGHT,
+		        #metricId# METRIC_ID,
+		        T2.CONTENT,
+		        T4.CODE_ID GRADE,
+		        T4.CODE_NM GRADE_SCORE,
+		        T3.GRADE FLAG,
+		        T4.SORT_ORDER,
+		        (SELECT COUNT(GRADE)+1 FROM BSC_IMPON_ITEM_DETAIL WHERE YEAR=T1.YEAR AND MON=T1.MON AND METRIC_GRP_ID=T1.METRIC_GRP_ID AND ITEM_CD=T1.ITEM_CD)  CNT   
+		    FROM BSC_IMPON_ITEM T1
+		    LEFT OUTER JOIN BSC_IMPON_ITEM_DETAIL T2
+		        ON T1.YEAR=T2.YEAR
+		        AND T1.MON=T2.MON
+		        AND T1.METRIC_GRP_ID=T2.METRIC_GRP_ID
+		        AND T1.ITEM_CD=T2.ITEM_CD
+		    LEFT OUTER JOIN BSC_IMPON_DETAIL T3
+		        ON T1.YEAR=T3.YEAR
+		        AND T1.MON=T3.MON
+		        AND T3.METRIC_ID = #metricId#
+		        AND T3.EVAL_EMP_ID = #evalEmpId#
+		        AND T1.ITEM_CD=T3.ITEM_CD
+		        AND T2.GRADE=T3.GRADE
+		    LEFT OUTER JOIN BSC_CODE T4
+		        ON T1.YEAR = T4.YEAR
+		        AND T4.CODE_GRP_ID='026'
+		        AND T2.GRADE=T4.CODE_ID
+		        AND T4.DELETE_DT IS NULL
+		    WHERE T1.YEAR = #year#
+		    AND T1.MON = #cycle#
+		    AND T1.METRIC_GRP_ID = #metricGrpId#
+		    AND T1.DELETE_DT IS NULL            
+		UNION ALL
+			SELECT T1.ITEM_CD, '평가의견'  ITEM_NM, 0 ITEM_WEIGHT, #metricId# METRIC_ID, T2.SUGGEST, '' GRADE, '' GRADE_SCORE, '' FLAG,
+				(SELECT MAX(SORT_ORDER) + 1 FROM BSC_CODE WHERE YEAR='2011' AND CODE_GRP_ID='026' AND DELETE_DT IS NULL) SORT_ORDER , 0 CNT
+			FROM BSC_IMPON_ITEM T1 LEFT OUTER JOIN BSC_IMPON_SUGGEST T2
+				ON T1.YEAR=T2.YEAR
+				AND T1.MON=T2.MON
+				AND T2.METRIC_ID = #metricId#
+				AND T2.EVAL_EMP_ID = #evalEmpId#
+				AND T1.ITEM_CD=T2.ITEM_CD
+			WHERE T1.YEAR = #year#
+				AND T1.MON = #cycle#
+				AND T1.METRIC_GRP_ID = #metricGrpId#)
+	    ORDER BY ITEM_CD, SORT_ORDER         	
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시 상세 평가의견 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getSuggests" parameterClass="hashMap" resultClass="hashMap">
+		SELECT T1.YEAR,
+			   T1.MON, 
+			   T1.METRIC_GRP_ID, 
+			   T1.ITEM_CD,
+			   T2.SUGGEST FROM BSC_IMPON_ITEM T1
+	    LEFT JOIN BSC_IMPON_SUGGEST T2
+	    	ON T1.YEAR=T2.YEAR
+	        AND T1.MON=T2.MON
+	        AND T2.METRIC_ID = #metricId#
+	        AND T1.ITEM_CD=T2.ITEM_CD
+        WHERE T1.YEAR = #year#
+			AND T1.MON = #mon#
+			AND T1.METRIC_GRP_ID = #metricGrpId#
+		ORDER BY T1.ITEM_CD
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시  평가
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		INSERT INTO BSC_IMPON_DETAIL (YEAR, MON, EVAL_EMP_ID, METRIC_ID, ITEM_CD, GRADE, GRADE_SCORE, CREATE_DT, DELETE_DT)
+		     VALUES (#year#, #cycle#, #evalEmpId#, #metricId#, #itemCd#, #grade#, #gradeScore#, SYSDATE, '')
+	</update>	
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시  평가의견 입력
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="updateSuggest" parameterClass="hashMap">
+		INSERT INTO BSC_IMPON_SUGGEST (YEAR, MON, EVAL_EMP_ID, METRIC_ID, ITEM_CD, SUGGEST, CREATE_DT, DELETE_DT)
+		     VALUES (#year#, #cycle#, #evalEmpId#, #metricId#, #itemCd#, #suggest#, SYSDATE, '')
+	</update>	
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시 평가상태 변경
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="submitData" parameterClass="hashMap">
+		UPDATE BSC_IMPON_STATUS
+		SET END_YN = #status#
+		WHERE YEAR = #year#
+		AND MON = #cycle#
+		AND EVAL_EMP_ID = #evalEmpId#
+		AND DELETE_DT IS NULL		
+	</update>	
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시 평가 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IMPON_DETAIL
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE BSC_IMPON_DETAIL
+		WHERE YEAR = #year#
+		AND MON = #cycle#
+		AND METRIC_ID = #metricId#
+		AND EVAL_EMP_ID = #evalEmpId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시 평가의견 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IMPON_DETAIL
+	==================================================================
+	-->	
+	<update id="deleteSuggest" parameterClass="hashMap">
+		DELETE BSC_IMPON_SUGGEST
+		WHERE YEAR = #year#
+		AND MON = #cycle#
+		AND METRIC_ID = #metricId#
+		AND EVAL_EMP_ID = #evalEmpId#
+	</update>
+</sqlMap>
+
+

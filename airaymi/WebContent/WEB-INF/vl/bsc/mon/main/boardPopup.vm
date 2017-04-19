@@ -1,0 +1,113 @@
+#*************************************************************************
+* CLASS 명      : qnaPopup
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 10월 01일 
+* 기    능      : 자료실팝업
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김윤기      2012년 10월 01일             최 초 작 업
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+<head >
+	#parse("/WEB-INF/vl/common/template/head.vm")
+    <script type="text/javascript" language="javascript" >
+	
+		var J = jQuery;
+    
+    	J(document).ready(function(){
+    	
+    		J("#close").click(function(){
+    			self.close();
+    		});
+    		
+    	});
+
+    </script>
+</head>
+<body>	
+<table width="100%" border="0" align="center" cellpadding="0" cellspacing="0">
+<tr valign="top">
+	<td class="bodyframe">
+		<table width="100%" border="0" cellspacing="5" cellpadding="0">
+		<tr>
+			<td>
+				<table width="100%" border="0" cellpadding="0" cellspacing="0" class="popup_tit_c">
+				<tr>
+					<td class="popup_tit_l"></td>
+					<td class="popup_tit_r">
+						
+						#if($!{searchMap.txt2html("findBbsId")}=="FREE")
+							QnA
+						#else
+							자료실
+						#end
+					</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+        <tr>
+			<td>
+           		<div class="blockDetail">
+        			<table summary="게시물 상세정보">
+        				<caption class="none">게시물 상세정보</caption>
+        				<colgroup>
+        					<col width="15%" />
+        					<col width="85%" />
+        				</colgroup>
+        				<tbody>
+        					<tr>
+        						<th scope="row"><label>제목</label></th>
+        						<td>$!{CS_HTML.txt2html($detail.BBS_TITLE)}</td>
+        					</tr>
+        					<tr>
+        						<th scope="row"><label>등록일자</label></th>
+        						<td>$!{CS_HTML.txt2html($detail.CREATE_DT)}</td>
+        					</tr>
+        					<tr>
+        						<th scope="row"><label>소속부서</label></th>
+        						<td>$!{CS_HTML.txt2html($detail.DEPT_NM)}</td>
+        					</tr>
+        					<tr>
+        						<th scope="row"><label>작성자</label></th>
+        						<td>$!{CS_HTML.txt2html($detail.BBS_REGISTER_NAME)}</td>
+        					</tr>
+        					<tr>
+        						<th scope="row"><label>내용 </label></th>
+        						<td>$!{CS_HTML.txt2htmlbr2($detail.BBS_CONTENTS)}</td>
+        					</tr>
+        					<tr>
+        						<th scope="row"><label for="bbs_file">첨부파일</label></th>
+        						<td>
+        							#foreach($fileList in $fileList)
+        								$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))} 
+        							#end
+        						</td>
+        					</tr> 
+        				</tbody>
+        			</table>
+        		</div>	
+			</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td>
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td width="*" align="right">
+				<img src="$!{img_path}/btn_close.gif" id="close" name="close" style="cursor:pointer;hand"/>&nbsp;&nbsp;
+			</td>
+		</tr>
+		<tr><td height="5"></td></tr>
+		</table>
+	</td>
+</tr>
+
+
+</table>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.tam.actualSearch">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 실적조회 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+				SELECT /*+ ordered */
+				       A.METRIC_ID
+				     , A.METRIC_NM
+				     , A.STRATEGY_ID
+				     , D.STRATEGY_NM
+				     , A.CSF_ID
+				     , H.CSF_NM
+				     , A.EVAL_CYCLE
+				     , F_CODE_NM('008', A.EVAL_CYCLE, A.YEAR) AS EVAL_CYCLE_NM
+				     , A.UNIT
+				     , F_CODE_NM('013', A.UNIT, A.YEAR) AS UNIT_NM 
+				     , A.INSERT_USER_ID
+				     , G.USER_NM INSERT_USER_NM
+				     , TO_CHAR(E.TGT_VALUE) TGT_VALUE
+				     , TO_CHAR(F.VALUE) VALUE
+				     , TO_CHAR(F.SCORE) SCORE
+				     , F.ACT_STATUS_ID 
+				     , F_CODE_NM('015', F.ACT_STATUS_ID, A.YEAR) AS ACT_STATUS_NM
+				     , (SELECT COUNT(1) 
+				     	  FROM BSC_ACTUAL_HISTORY 
+				     	 WHERE YEAR = A.YEAR 
+				     	   AND METRIC_ID = A.METRIC_ID 
+				     	   AND MON = #findMon# 
+				     	   AND ANAL_CYCLE =#findAnalCycle#) CNT 
+				FROM BSC_METRIC A 
+		  INNER JOIN BSC_SC_DEPT B 
+				  ON A.YEAR = B.YEAR 
+				 AND A.SC_DEPT_ID = B.SC_DEPT_ID 
+				 AND B.DELETE_DT IS NULL		        
+	 LEFT OUTER JOIN BSC_STRATEGY D 
+	 			  ON A.YEAR = D.YEAR 
+	 			 AND A.STRATEGY_ID = D.STRATEGY_ID 
+	 			 AND D.DELETE_DT IS NULL
+	 LEFT OUTER JOIN BSC_CSF H 
+	 			  ON A.YEAR = H.YEAR 
+	 			 AND A.CSF_ID = H.CSF_ID 
+	 			 AND H.DELETE_DT IS NULL
+	 LEFT OUTER JOIN BSC_TARGET E 
+	 			  ON A.YEAR = E.YEAR 
+	 			 AND E.MON = #findMon# 
+	 			 AND E.ANAL_CYCLE = #findAnalCycle# 
+	 			 AND A.METRIC_ID = E.METRIC_ID
+	 LEFT OUTER JOIN BSC_ACTUAL F 
+	 			  ON A.YEAR = F.YEAR 
+	 			 AND F.MON = #findMon# 
+	 			 AND F.ANAL_CYCLE = #findAnalCycle# 
+	 			 AND A.METRIC_ID = F.METRIC_ID
+	 LEFT OUTER JOIN V_ROLE_USER G 
+	 			  ON A.INSERT_USER_ID = G.USER_ID
+				WHERE A.YEAR = #findYear#
+		
+		<isNotEmpty prepend="AND" property="findScDeptId">
+	    	A.SC_DEPT_ID = #findScDeptId#
+	    </isNotEmpty>
+	    
+	    <isNotEmpty prepend="AND" property="findBscMetricGbn">
+			A.BSC_METRIC_GBN = #findBscMetricGbn#
+		</isNotEmpty>
+		  AND A.DELETE_DT IS NULL
+		ORDER BY A.SORT_ORDER, D.SORT_ORDER, A.METRIC_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적조회 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getListExcel" parameterClass="hashMap" resultClass="hashMap">
+				SELECT /*+ ordered */
+				       A.METRIC_ID
+				     , A.METRIC_NM
+				     , A.STRATEGY_ID
+				     , D.STRATEGY_NM
+				     , A.CSF_ID
+				     , H.CSF_NM
+				     , A.EVAL_CYCLE
+				     , F_CODE_NM('008', A.EVAL_CYCLE, A.YEAR) AS EVAL_CYCLE_NM
+				     , A.UNIT
+				     , F_CODE_NM('013', A.UNIT, A.YEAR) AS UNIT_NM 
+				     , A.INSERT_USER_ID
+				     , G.USER_NM INSERT_USER_NM
+				     , TO_CHAR(E.TGT_VALUE) TGT_VALUE
+				     , TO_CHAR(F.VALUE) VALUE
+				     , TO_CHAR(F.SCORE) SCORE
+				     , F.ACT_STATUS_ID 
+				     , F_CODE_NM('015', F.ACT_STATUS_ID, A.YEAR) AS ACT_STATUS_NM
+				     , (SELECT COUNT(1) 
+				     	  FROM BSC_ACTUAL_HISTORY 
+				     	 WHERE YEAR = A.YEAR 
+				     	   AND METRIC_ID = A.METRIC_ID 
+				     	   AND MON = #findMon# 
+				     	   AND ANAL_CYCLE =#findAnalCycle#) CNT 
+				     , F_DEPT_FULL_NM(#findYear#, B.SC_DEPT_ID, 'BSC_SC_DEPT') SC_DEPT_NM
+				FROM BSC_METRIC A 
+		  INNER JOIN BSC_SC_DEPT B 
+				  ON A.YEAR = B.YEAR 
+				 AND A.SC_DEPT_ID = B.SC_DEPT_ID 
+				 AND B.DELETE_DT IS NULL		        
+	 LEFT OUTER JOIN BSC_STRATEGY D 
+	 			  ON A.YEAR = D.YEAR 
+	 			 AND A.STRATEGY_ID = D.STRATEGY_ID 
+	 			 AND D.DELETE_DT IS NULL
+	 LEFT OUTER JOIN BSC_CSF H 
+	 			  ON A.YEAR = H.YEAR 
+	 			 AND A.CSF_ID = H.CSF_ID 
+	 			 AND H.DELETE_DT IS NULL
+	 LEFT OUTER JOIN BSC_TARGET E 
+	 			  ON A.YEAR = E.YEAR 
+	 			 AND E.MON = #findMon# 
+	 			 AND E.ANAL_CYCLE = #findAnalCycle# 
+	 			 AND A.METRIC_ID = E.METRIC_ID
+	 LEFT OUTER JOIN BSC_ACTUAL F 
+	 			  ON A.YEAR = F.YEAR 
+	 			 AND F.MON = #findMon# 
+	 			 AND F.ANAL_CYCLE = #findAnalCycle#
+	 			 AND A.METRIC_ID = F.METRIC_ID
+	 LEFT OUTER JOIN V_ROLE_USER G 
+	 			  ON A.INSERT_USER_ID = G.USER_ID
+				WHERE A.YEAR = #findYear#
+		  AND A.DELETE_DT IS NULL
+		ORDER BY B.SORT_ORDER, A.SORT_ORDER, D.SORT_ORDER, A.METRIC_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적조회 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+	        , A.METRIC_ID
+	        , A.METRIC_NM
+	        , A.SC_DEPT_ID
+	        , B.SC_DEPT_NM
+	        , A.ACT_CAL_TYPE
+		FROM BSC_METRIC A
+		         LEFT OUTER JOIN BSC_SC_DEPT B ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID AND B.DELETE_DT IS NULL
+		WHERE A.YEAR = #year#
+		  AND A.METRIC_ID = #metricId#
+		  AND A.DELETE_DT IS NULL
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적 히스토리 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ACTUAL_HISTORY
+	==================================================================
+	-->
+	<select id="getHistoryList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.MON
+		     , A.ANAL_CYCLE
+		     , A.METRIC_ID
+		     , A.SEQ
+		     , A.A , A.B , A.C , A.D , A.E , A.F , A.G
+		     , A.H , A.I , A.J , A.K , A.L , A.M , A.N
+		     , A.O , A.P , A.Q , A.R , A.S , A.T , A.U
+		     , A.V , A.W , A.X , A.Y , A.Z
+		     , B.USER_NM AS INSERT_USERT_NM
+             , TO_CHAR(A.CREATE_DT, 'YYYY-MM-DD HH24:MI:SS') CREATE_DT
+		FROM BSC_ACTUAL_HISTORY A
+				LEFT OUTER JOIN V_ROLE_USER B ON A.INSERT_USER_ID = B.USER_ID 
+		WHERE A.YEAR = #findYear#
+		  AND A.MON = #findMon#
+		  AND A.ANAL_CYCLE= 'M'
+		  AND A.METRIC_ID = #metricId#
+		ORDER BY A.SEQ
+	</select>
+
+	
+</sqlMap>
+
+

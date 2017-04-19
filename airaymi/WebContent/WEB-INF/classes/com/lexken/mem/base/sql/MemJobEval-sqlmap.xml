@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.base.memJobEval">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MEM_JOB_EVAL_ITEM
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 업무수행평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.JOB_EVAL_ITEM_ID
+             , A.JOB_EVAL_ITEM_NM
+             , A.WEIGHT
+             , (SELECT 
+             		COUNT(*)
+             	FROM MEM_DETAIL_EVAL_METRIC
+               WHERE YEAR=#findYear#
+                 AND JOB_EVAL_ITEM_ID = A.JOB_EVAL_ITEM_ID
+                 AND DELETE_DT IS NULL) AS DETAIL_EVAL_METRIC_COUNT
+             , A.SORT_ORDER
+          FROM MEM_JOB_EVAL_ITEM A
+         WHERE A.YEAR=#findYear#
+           AND DELETE_DT IS NULL
+          ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 업무수행평가항목 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_JOB_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , JOB_EVAL_ITEM_ID           
+			 , JOB_EVAL_ITEM_NM
+			 , CONTENT          
+			 , WEIGHT             
+			 , SORT_ORDER            
+			 , CASE WHEN DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USE_YN     
+		  FROM MEM_JOB_EVAL_ITEM 
+		 WHERE YEAR = #year#
+		   AND JOB_EVAL_ITEM_ID = #jobEvalItemId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 업무수행평가항목 그룹ID 조회
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_JOB_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getJobEvalItemId" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+			   'JEI'||NVL(LPAD(MAX(SUBSTR(JOB_EVAL_ITEM_ID,4,4))+1,4,'0'),'0001') AS JOB_EVAL_ITEM_ID
+		  FROM MEM_JOB_EVAL_ITEM
+		 WHERE YEAR = #year#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 업무수행평가항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_JOB_EVAL_ITEM
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">		
+		INSERT INTO MEM_JOB_EVAL_ITEM (
+		       YEAR
+		     , JOB_EVAL_ITEM_ID
+		     , JOB_EVAL_ITEM_NM
+		     , CONTENT
+		     , WEIGHT
+		     , SORT_ORDER
+		     , CREATE_DT		     
+			 ) VALUES ( 
+			   #year#
+			 , #jobEvalItemId#
+			 , #jobEvalItemNm#
+			 , #content#
+			 , #weight#
+			 , #sortOrder#
+			 , sysdate			
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 업무수행평가항목 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_JOB_EVAL_ITEM
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE MEM_JOB_EVAL_ITEM 
+		   SET JOB_EVAL_ITEM_NM = #jobEvalItemNm#
+		     , CONTENT = #content#
+		     , WEIGHT = #weight#
+		     , SORT_ORDER = #sortOrder#
+		     , MODIFY_DT      = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND JOB_EVAL_ITEM_ID = #jobEvalItemId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 업무수행평가항목 정렬순서 일괄 저장
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_JOB_EVAL_ITEM
+	==================================================================
+	-->	
+	<update id="allSaveData" parameterClass="hashMap">
+		UPDATE MEM_JOB_EVAL_ITEM 
+		   SET SORT_ORDER             = #sortOrder# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND JOB_EVAL_ITEM_ID = #jobEvalItemId#		
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 업무수행평가항목 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_JOB_EVAL_ITEM
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE MEM_JOB_EVAL_ITEM 
+		   SET DELETE_DT      = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND JOB_EVAL_ITEM_ID = #jobEvalItemId#
+	</update>
+	
+
+</sqlMap>
+
+

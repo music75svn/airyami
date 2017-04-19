@@ -1,0 +1,339 @@
+#*************************************************************************
+* CLASS 명      : popMetricCopy.vm
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012.08.26
+* 기    능      : 사용지표 조직조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     하 윤 식      2012.08.26          최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		/******************************************
+		 * 실적산식 가져오기
+		 ******************************************/
+		J("#actCalTypeContent").text(J("#actCalType").val());
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#actCalTypeContent").checkbyte({
+			indicator:J("#indicatorPop"),
+			limit:500
+		});
+		J("#actCalTypeContent").trigger("keyup");
+		
+		/******************************************
+		 * 산식검증 버튼 이벤트
+		 ******************************************/
+		J("#btnConfirm").click(function(e) {
+			actCalTypeConfirm();
+		});
+		
+		/******************************************
+		 * 산식적용 버튼 이벤트
+		 ******************************************/
+		J("#btnApply").click(function(e) {
+			var chk = J("#checkConfirm").text();
+			
+			if(chk == "F") {
+				alert("산식검증을 실행하십시요.");
+				return;			
+			}
+		
+			var content = J("#actCalTypeContent").text();
+			J("#actCalType").val(content);
+			
+			checkModifyCalType();
+			J.fancybox.close();
+		});
+		
+		/******************************************
+		 * 닫기 버튼 이벤트
+		 ******************************************/
+		J("#btnClose").click(function(e) {
+			J.fancybox.close();
+		});
+		
+		/******************************************
+    	 * 마우스 out시 기존 선택 함수 설명 보이기
+    	 ******************************************/
+		J("#funcListData").bind("mouseleave", function() {
+			var codeId = J("#selectExplan").text();
+			showExplain(codeId);
+		});
+		
+		/******************************************
+    	 * 산식 변경시 이벤트
+    	 ******************************************/
+		J("#actCalTypeContent").bind('keyup', function() {
+			J("#checkConfirm").text("F");
+		});
+		
+		try {
+			$("input", ".blockButton" ).button(); //버튼 ui 적용
+		} catch(err) { }
+		
+	});
+	
+	
+	/*****************************************************
+	 * 산식검증
+	 *****************************************************/ 
+	function actCalTypeConfirm() {
+		
+		//산식 대소문자 변경
+		calTypeTranseform(); 
+	
+		var actCalType = J("#actCalTypeContent").val();
+		actCalType = actCalType.replace(/[+]/g,'|');
+		
+		J.ajax({
+			url        : "$!{searchMap.txt2html("context")}/bsc/module/CommModule/actCalTypeConfirm.vw",
+        	type       : "POST",
+			data       : {"actCalType" : actCalType},
+        	dataType   : "xml",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success    : function (xml) {
+				
+				if(J(xml).find("items").find("item").length > 0) {
+					J(xml).find("items").find("item").each(function() {
+                        var result = J(this).find("result").text();
+						//alert(result);
+						
+						if("T" == result) {
+							alert("산식검증에 성공하였습니다.");
+						} else {
+							alert("산식검증에 실패하였습니다.");
+						}
+						
+						J("#checkConfirm").text(result);
+                    });
+				}
+        	},  
+			error : function(xhr, status, error) {
+				//alert(error);
+				J("#checkConfirm").text("F");
+				alert("산식검증에 실패하였습니다.");
+			}
+    	});
+	}
+	
+	
+	/*****************************************************
+	 * 실적산식 대소문자 변환 
+	 *****************************************************/
+	function calTypeTranseform() {
+		var actCalType = J.trim(J("#actCalTypeContent").val());
+		var str = "";
+		var result = "";
+		
+		//모두 소문자로 변경
+		for(var i = 0; i < actCalType.length; i++) {
+			str = str + actCalType.charAt(i).toLowerCase();
+		}
+		
+		//함수인지 산식인지 체크
+		for(var i = 0; i < str.length; i++) {
+			result = result + calTypeChk(str, i);
+		}
+		
+		J("#actCalTypeContent").text(result);
+
+	}
+	
+	/*****************************************************
+	 * 함수인지 산식인지 체크 
+	 *****************************************************/
+	function calTypeChk(str, index) {
+		var re = new RegExp("[a-zA-Z_]");
+		var chkStr = str.charAt(index);
+		var nextStr = "";
+		var prevStr = "";
+		
+		//영문자가 아닌 기호일 경우
+		if(!re.test(chkStr)) return chkStr;
+		
+		//문자열의 길이가 1일경우
+		if(str.length == 1) return chkStr.toUpperCase();
+		
+		
+		if(index == 0) { //첫번째 문자일 경우
+			nextStr = str.charAt(index + 1); 
+			if(re.test(nextStr)) return chkStr.toLowerCase();  //다음 문자가 영문자라면 함수
+		} else if(index == (str.length - 1)) {  //마지막 문자일 경우
+			prevStr = str.charAt(index - 1);
+			if(re.test(prevStr)) return chkStr.toLowerCase(); //이전 문자가 영문자라면 함수
+		} else {
+
+			//이전 문자가 영문자라면 함수			
+			prevStr = str.charAt(index - 1);
+			if(re.test(prevStr)) return chkStr.toLowerCase();
+			
+			//다음 문자가 영문자라면 함수
+			nextStr = str.charAt(index + 1); 
+			if(re.test(nextStr)) return chkStr.toLowerCase();  
+		}
+		
+		//실적산식명 대문자
+		return chkStr.toUpperCase();		
+	}
+	
+	
+	/*****************************************************
+	 * 히스토리 산식 클릭시 이벤트
+	 *****************************************************/
+	function setActCalType(actCalType) {
+		J("#actCalTypeContent").text(actCalType);
+		J("#checkConfirm").text("F");
+		
+		J("#actCalTypeContent").keyup();
+	}
+	
+	/*****************************************************
+	 * 함수 해설 보이기
+	 *****************************************************/
+	function showExplain(codeId) {
+		J("#explain ul li").addClass("none");
+		J("#explain_" + codeId).removeClass("none");
+	}
+	
+	/*****************************************************
+	 * 함수 적용하기
+	 *****************************************************/
+	function setFunc(func, codeId) {
+		var content = "";
+		content = J("#actCalTypeContent").text();
+		content = content + func;
+		J("#actCalTypeContent").text(content);
+		
+		//현재 선택된 함수
+		J("#selectExplan").text(codeId);
+		J("#checkConfirm").text("F");
+		
+		J("#actCalTypeContent").keyup();
+	}
+	
+//]]>
+</script>
+<!--blockContainer Start-->
+<div id="blockContainer">
+	<!--blockMain Start-->
+	<div id="blockMain">
+		<div id="blockCalTypeMainTop">
+			<h1 class="none">컨텐츠영역</h1>
+			<table width="99%" cellspacing="0" cellpadding="0" border="0">
+				<tbody>
+					<tr>
+						<td valign="top" style="width: 250px; padding-right: 10px;">
+							<div class="bodybox" style="height: 461px;">
+								<div class="bodybox_titbg">
+									<div class="bodybox_tit">함수</div>
+										<div class="bodybox_contents">
+											<div class="blockListTable">					
+                                				<table summary="" >
+                                					<caption></caption>
+                                					<colgroup >
+                                						<col width="140px"/> 
+                                						<col width="*"/>
+                                                    </colgroup>					
+                                					<thead>
+                                						<tr>
+                                							<th scope="col">함수명</th>
+                                							<th scope="col">내 용</th>
+                                						</tr>
+                                					</thead>
+                                				</table>
+                                			</div>
+                                			<div id="funcListData" class="blockListTable" style="height:380px;overflow:auto;overflow-x:hidden">					
+                                				<table summary="" >
+                                					<caption></caption>
+                                					<colgroup >
+                                						<col width="140px"/>
+                                						<col width="*"/>
+                                                    </colgroup>
+                                					<tbody>
+                                                        #foreach($list in $funcList)
+        													<tr onclick="javascript:setFunc('$!{CS_HTML.txt2html($list.ETC1)}', '$!{CS_HTML.txt2html($list.CODE_ID)}')" onmouseover="javascript:showExplain('$!{CS_HTML.txt2html($list.CODE_ID)}')">
+        														<td>$!{CS_HTML.txt2html($list.ETC1)}</td>
+        														<td>$!{CS_HTML.txt2html($list.CODE_NM)}</td>	
+        													</tr>
+														#end
+                                					</tbody>
+                                				</table>
+                                			</div>
+										</div>
+								</div>
+							</div>
+						</td>
+						<td valign="top" style="width: 400px; padding-right: 10px;">
+							<div class="bodybox" style="height: 300px;">
+								<div class="bodybox_titbg">
+									<div class="bodybox_tit">실적산식<span id="checkConfirm" class="none">T</span></div>
+									<div class="bodybox_contents">
+										<textarea id="actCalTypeContent" style="height: 200px;width:98%;font-size:14px;line-height:17px;"></textarea>
+										<div class="textRight"><span id="indicatorPop">0</span>/500byte</div>
+									</div>
+									<div class="bodybox_contents textLeft" style="margin-top:2px;">
+										<span class="txt_blue2">※ 함수명은 소문자로 입력, 산식은 대문자로 입력하십시요.</span>
+										<div class="blockButton" style="width:120px;">
+                    						<ul>
+                    							<li><input type="button" id="btnConfirm" value="산식검증" /></li>
+                    						</ul>
+                    					</div>
+									</div>
+								</div>
+							</div>
+							<div class="bodybox" style="height: 150px;">
+								<div class="bodybox_titbg">
+									<div class="bodybox_tit">사용예<span id="selectExplan" class="none"></span></div>
+									<div id="explain" class="bodybox_contents">
+										<ul class="textLeft">
+											#foreach($list in $funcList)
+												<li id="explain_$!{CS_HTML.txt2htmlbr($list.CODE_ID)}" class="none">$!{CS_HTML.txt2htmlbr($list.CONTENT)}</li>
+											#end
+										</ul>
+									</div>
+								</div>
+							</div>
+						</td>
+						<td valign="top" style="width: 300px;">
+							<div class="bodybox" style="height:461px;">
+								<div class="bodybox_titbg">
+									<div class="bodybox_tit">History</div>
+									<div id="actCalTypeHistory" class="bodybox_contents2" style="height:420px;width:300px;overflow:auto;">
+										<ul class="textLeft">
+											#foreach($list in $historyList)
+                                				<li><a href="javascript:setActCalType('$!{CS_HTML.txt2html($list.ACT_CAL_TYPE)}');">$!{CS_HTML.txt2html($list.ACT_CAL_TYPE)}</a></li>
+											#end
+                        				</ul>
+									</div>
+								</div>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div class="blockButton_all">			
+				<div class="blockButton_l"><span class="strong"></span></div>
+					<div class="blockButton" style="margin-right:10px;">			
+						<ul>
+							<!-- <li><input type="button" id="btnClose" value="닫기" /></li> -->
+							<li style="margin-left:5px;"><input type="button" id="btnApply" value="산식적용" /></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+</div>
+<!--//blockContainer End-->
+
+<div id="dialogPop" title="확인"><p>&nbsp;</p></div>    <!-- 다이어로그 -->

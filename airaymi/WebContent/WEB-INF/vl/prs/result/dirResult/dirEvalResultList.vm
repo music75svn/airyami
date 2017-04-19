@@ -1,0 +1,164 @@
+#*************************************************************************
+* CLASS 명      : dirEvalList
+* 작 업 자      : 방승현
+* 작 업 일      : 2013년 06월 25일 
+* 기    능      : 임원평가 리더쉽 평가
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  -----------  -----------------  -------------------------  --------
+*  1       방승현      2013년 06월 25일         최 초 작 업
+**************************************************************************# 
+                                           
+#set($curr_url = $!{context_path} + "/prs/result/dirResult/dirEvalResultList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+    
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/prs/result/dirResult/dirEvalResultList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_r_width},
+			colNames     :['년도', '사번', '이름','직무성과<br>기술서', '평가확정여부', '대상여부', '부서코드', '직급코드', '직급', '직위코드', '직위', '근무기간','평점','순위','최종등급','퇴직이사유무'],
+			colModel     :[
+							{name:'YEAR'			,index:'YEAR'				,width:50		,align:'center'},
+							{name:'EMPN'			,index:'EMPN'				,width:50		,align:'center'},
+							{name:'KOR_NM'			,index:'KOR_NM'				,width:50		,align:'center'},
+						    {name:'RPT_SUBMIT_YN'	,index:'RPT_SUBMIT_YN'		,width:50		,align:'center'},
+							{name:'LEADERSHIP_YN'	,index:'LEADERSHIP_YN'		,width:50		,align:'center'},
+							{name:'EVAL_YN'			,index:'EVAL_YN'			,width:70		,align:'center'},
+							{name:'DEPT_CD'			,index:'DEPT_CD'			,width:70		,align:'center'},
+							{name:'CAST_TC'			,index:'CAST_TC'			,width:70		,align:'center'},
+							{name:'CAST_NM'			,index:'CAST_NM'			,width:40		,align:'center'},
+							{name:'POS_TC'			,index:'POS_TC'				,width:70		,align:'center'},
+							{name:'POS_NM'			,index:'POS_NM'				,width:50		,align:'center'},
+							{name:'DUTY_DT'			,index:'DUTY_START_DT'		,width:100		,align:'center'},
+						    {name:'FINAL_SCORE'		,index:'FINAL_SCORE'		,width:40		,align:'center'},
+							{name:'FINAL_RANKING'	,index:'FINAL_RANKING'		,width:40		,align:'center'},
+							{name:'FINAL_GRADE'		,index:'FINAL_GRADE'		,width:40		,align:'center'},
+						    {name:'RETIRE_YN'		,index:'RETIRE_YN'			,width:40		,align:'center'}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : false,
+			multiselect  : false,
+			cellEdit     : true,
+			##cmTemplate: {sortable:false},
+			loadComplete : function() {
+
+                var id         = J("#list").getGridParam('selarrrow');
+      	},
+			caption:"임원평가"
+		}).jqGrid('hideCol', "RPT_SUBMIT_YN").jqGrid('hideCol', "RETIRE_YN").jqGrid('hideCol', "YEAR").jqGrid('hideCol', "LEADERSHIP_YN").jqGrid('hideCol', "EVAL_YN").jqGrid('hideCol', "DEPT_CD").jqGrid('hideCol', "CAST_TC").jqGrid('hideCol', "POS_TC").setGridWidth($!{jqGrid_width});
+        
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+		
+		
+	});
+
+	
+
+  
+   
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">평가대상자</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->                                                                        
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/result/dirResult/dirEvalResultList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="임원평가대상자 검색 조건">
+						<caption class="none">임원평가대상자 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w200">
+            						<span>$!{YEAR}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            				#if($!{CS_LOGIN.chkAuthGrp("01")} == true || $!{CS_LOGIN.chkAuthGrp("60")} == true)
+							#else
+        						<input type="hidden" name="findEmpn" id="findEmpn" value="$!{CS_LOGIN.getSabun()}" />
+							#end
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/prs/dir/dirFinalEval/dirEvalResultProcess.vw?type=template">
+			<input type="hidden" id="mode"       	name="mode" />
+			<input type="hidden" id="year"       	name="year" />
+			<input type="hidden" id="evalYn"  name="evalYn" />
+				$!{searchMap.makeHiddenFind()}
+			
+			<div id="splitterBox">
+				<div>
+						
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="평가대상자 조회결과">
+							<caption class="none">평가대상자 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					
+					<div class="blockButton_all floatLeft">
+						<div class="blockButton">
+                            <ul>
+                            	
+                            </ul>
+                        </div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+	</div>
+	<div class="clear"></div>
+</div>

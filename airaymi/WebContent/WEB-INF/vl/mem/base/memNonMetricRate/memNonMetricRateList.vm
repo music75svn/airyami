@@ -1,0 +1,215 @@
+#*************************************************************************
+* CLASS 명      : memNonMetricRateList
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년04월 18일 
+* 기    능      : 비계량지표평가자비율설정
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     유연주     2017년04월 18일              최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/mem/base/memNonMetricRate/memNonMetricRateList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/mem/base/memNonMetricRate/memNonMetricRateList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['기준년도', '평가자구분코드', '평가자구분', '평가비율'],
+			colModel     :[
+							{name:'YEAR'                     ,index:'YEAR'                       ,width:100   ,align:'center' },
+                            {name:'EVAL_USER_GUBUN_ID'       ,index:'EVAL_USER_GUBUN_ID'         ,width:100   ,align:'center' },
+                            {name:'EVAL_USER_GUBUN_NM'       ,index:'EVAL_USER_GUBUN_NM'         ,width:100   ,align:'center' },
+							{name:'EVAL_RATE'                ,index:'EVAL_RATE'                  ,width:100   ,align:'center' ,formatter:goEvalRate}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			cellEdit     : true,
+			gridview     : true,
+			##cmTemplate   : {sortable:false},
+			loadComplete : function() {
+					J("input[name=gEvalRates]").numeric({allow:"."});        	//특정문자 허용(.)
+					J("input[name=gEvalRates]").css("ime-mode", "disabled"); 	//한글사용 비활성화
+				  },
+			caption:"비계량지표평가자비율설정"
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"EVAL_USER_GUBUN_ID").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 저장
+		 ******************************************/
+		J("#btnAllSave").click(function() {
+			goAllSave();
+			return false;
+		});
+
+	});
+	
+	/******************************************
+	 * jqGrid 평가비율
+	 ******************************************/
+	function goEvalRate(cellvalue, options, rowObject) {
+		if(options.rowId==""){
+			return cellvalue;
+		}else{
+			var str = '';
+			str += '<input type="text" id="gEvalRates" name="gEvalRates" value="' + cellvalue + '" class="inputbox wp70" maxlength="5"/> %';
+
+			return str;
+		}
+	}
+	
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function goAllSave() {
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+
+		if(ids.length == 0){
+			alert("저장할 항목이 없습니다.");
+			return false;
+		}
+
+		for (var i = 0; i < ids.length; i++) {
+			rowdata = J("#list").getRowData(ids[i]);
+			/*
+			if(J("#formList input[name=gEvalRates]").eq(i).val() == ""){
+				alert("평가비울을 입력하세요.");
+				J("#formList input[name=gEvalRates]").eq(i).focus();
+				return false;
+			}
+			*/
+		}
+		J.showConfirmBox("저장하시겠습니까?", "allSaveDo"); //allSaveDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 일괄저장 처리
+	 ******************************************/
+	function allSaveDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var evalUserGubunIds = "";
+		var evalRates = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			rowdata = J("#list").getRowData(ids[i]);
+			evalUserGubunIds += rowdata.EVAL_USER_GUBUN_ID + '|';
+			evalRates += J("#formList input[name=gEvalRates]").eq(i).val() + '|';
+		}
+
+		J("#evalUserGubunIds").val(evalUserGubunIds);
+		J("#evalRates").val(evalRates);
+		J("#mode").val("SAVE");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/mem/base/memNonMetricRate/memNonMetricRateProcess.vw?type=template").submit();
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">비계량지표평가자비율설정</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/mem/base/memNonMetricRate/memNonMetricRateList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"      name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"       name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"          name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="비계량지표평가자비율설정검색 조건">
+						<caption class="none">비계량지표평가자비율설정 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">기준년도</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/mem/base/memNonMetricRate/memNonMetricRateProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"       		name="year" value="$!{searchMap.txt2html("findYear")}"/>
+			<input type="hidden" id="yearNm"     		name="yearNm" />
+			<input type="hidden" id="evalUserGubunIds" 	name="evalUserGubunIds" />
+			<input type="hidden" id="evalRates" 	    name="evalRates" />
+			
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="비계량지표평가자비율설정 조회결과">
+							<caption class="none">비계량지표평가자비율설정 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							##<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnAllSave" value="저장" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="clear"></div>
+</div>

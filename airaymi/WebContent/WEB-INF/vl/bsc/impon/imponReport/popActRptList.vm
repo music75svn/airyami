@@ -1,0 +1,116 @@
+#*************************************************************************
+* CLASS 명      : popActRptList
+* 작 업 자      : 정철수 
+* 작 업 일      : 2012년 12월 5일 
+* 기    능      : 비계량 실적보고서    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    정철수      2012년 12월 5일             최 초 작 업 
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/bsc/impon/imponReport/popActRptList.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+        /******************************************
+		 * 닫기버튼 이벤트
+		 ******************************************/
+		J("#btnClose").click(function(e) {
+			self.close();
+		});
+
+	});
+	
+
+//]]>
+</script>    
+</head>
+<body>
+<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/impon/imponReport/popActRptList.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	
+    $!{searchMap.makeHiddenFind()}
+	
+    <div>
+    	<div id="Table_blockContainer_w600">
+			<div class="clear h10"></div>
+			
+			<div>
+			<table width="100%" border="0" cellspacing="0" cellpadding="0">
+    		<tr>
+    			<td>
+    				<table width="100%" border="0" cellpadding="0" cellspacing="0" class="popup_tit_c">
+    				<tr>
+    					<td class="popup_tit_l"></td>
+    					<td class="popup_tit_r">비계량평가 실적보고서</td>
+    				</tr>
+    				</table>
+    			</td>
+    		</tr>
+    		</table>	
+			</div>
+			
+			<div class="clear h10"></div>
+			
+    		<div class="blockDetail">
+    			<table summary="비계량평가 실적보고서 ">
+					<caption class="none">비계량평가 실적보고서 </caption>
+    				<colgroup>
+    					<col width="20%" />
+    					<col width="80%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+							<th scope="row"><label for="itemGbn">지표Pool</label></th>
+							<td>$!{CS_HTML.txt2html($detailMetricGrp.METRIC_GRP_NM)}</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="actualBase">평가조직/항목</label></th>
+							<td>$!{CS_HTML.txt2html($detailMetric.ITEM_NM)}</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="content">비고</label></th>
+							<td>
+								<textarea id="actualBase" name="actualBase" class="tabletext" title="비고" cols="" rows="5" readonly="readonly">$!{CS_HTML.txt2html($detail.ACTUAL_BASE)}</textarea>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="attachFileNm">첨부파일</label></th>
+							<td>
+								#foreach($fileList in $fileList)
+            						$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))} 
+            						&nbsp;&nbsp;
+									<br/>
+								#end
+            					<br/>
+							</td>
+						</tr>
+					</tbody>
+    			</table>
+    		</div>
+			
+			
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnClose"   value="닫기" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+		<a id="anchor"></a>
+    	<div class="clear"></div>
+    </div>
+</form>
+
+</body>
+</html>

@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.mng.rpt">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+    <typeAlias alias="detailMap" 		type="java.util.HashMap"/>
+    <typeAlias alias="detailContentMap" type="java.util.HashMap"/>
+    <typeAlias alias="rptParam" 		type="java.util.HashMap"/>
+
+	<!--
+	==================================================================   
+	  # 설명	: 간부개인업적평가 자기성과기술서 제출기간 조회  
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_SCHEDULE
+	==================================================================
+	-->
+	<select id="getRptSchedule" parameterClass="hashMap" resultClass="hashMap">
+		SELECT MNG_RPT_START_DT, MNG_RPT_END_DT
+		     , CASE WHEN SYSDATE BETWEEN TO_DATE(MNG_RPT_START_DT, 'rrrr-mm-dd') AND TO_DATE(MNG_RPT_END_DT || '23:59:59', 'rrrr-mm-dd hh24:mi:ss') THEN 'T'
+		            ELSE 'N' END RPT_YN
+		  FROM PRS_EVAL_SCHEDULE
+		 WHERE 1 = 1
+		 <isNotEmpty prepend="AND" property="findYear">
+			YEAR = #findYear#
+		 </isNotEmpty>
+		 <isNotEmpty prepend="AND" property="year">
+			YEAR = #year#
+		 </isNotEmpty>
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 개인간부평가 마감여부
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_CLOSING
+	==================================================================
+	-->
+	<select id="getClosing" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT  NVL(MNG_EVAL_YN,'N') MNG_EVAL_YN
+		  FROM PRS_CLOSING
+		 WHERE YEAR = #findYear#
+	</select>
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 간부개인업적평가 자기성과기술서 목록 보기 
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_MEMBER
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	 SELECT A.YEAR
+             , A.EVAL_MEMB_EMPN
+             , A.EVAL_MEMB_EMPN_SEQ
+             , A.KOR_NM
+             , A.DEPT_CD
+             , F_DEPT_FULL_NM(A.YEAR,A.DEPT_CD,'BSC_INSA_DEPT') DEPT_FULL_NM
+             , A.CAST_TC
+             , A.POS_TC
+             , F_CODE_NM('170', A.CAST_TC , A.YEAR) CAST_TC_NM 
+             , F_CODE_NM('171', A.POS_TC , A.YEAR) POS_TC_NM 
+             , A.PRS_YN
+             , A.EVAL_GRP_ID
+             , A.FROM_DT
+             , A.TO_DT
+             , B.PLAN_STATUS_ID
+             , CASE WHEN B.PLAN_STATUS_ID IS NULL THEN '미입력' ELSE  F_CODE_NM('217', B.PLAN_STATUS_ID , B.YEAR)  END PLAN_STATUS_NM
+             , CASE WHEN C.SUBMIT_YN IS NULL THEN '미작성' ELSE  F_CODE_NM('222', C.SUBMIT_YN , C.YEAR)  END SUBMIT_YN_NM
+             , B.APPROVE_DT  
+        FROM PRS_MNG_MEMBER A
+         LEFT OUTER JOIN PRS_MNG_PLAN B ON A.YEAR = B.YEAR AND A.EVAL_MEMB_EMPN = B.EVAL_MEMB_EMPN AND A.EVAL_MEMB_EMPN_SEQ = B.EVAL_MEMB_EMPN_SEQ
+         LEFT OUTER JOIN PRS_MNG_RPT C ON A.YEAR = C.YEAR AND A.EVAL_MEMB_EMPN = C.EVAL_MEMB_EMPN AND A.EVAL_MEMB_EMPN_SEQ = C.EVAL_MEMB_EMPN_SEQ
+        WHERE A.YEAR= #findYear#
+          <!-- AND A.PRS_YN ='Y' -->
+          <isNotEmpty prepend="AND" property="findSubmitYn" >
+		      <isEqual property="findSubmitYn" compareValue="NON"> <!-- 제출여부 미작성 -->
+			 	  C.SUBMIT_YN IS NULL
+			  </isEqual>
+			  <isNotEqual property="findSubmitYn" compareValue="NON"> <!-- 제출여부 미작성 -->
+			 	  C.SUBMIT_YN = #findSubmitYn#
+			  </isNotEqual>
+		 </isNotEmpty>
+		 <isNotEmpty prepend="AND" property="findKorNm">
+             UPPER(A.KOR_NM) LIKE  '%' || TRIM(UPPER(#findKorNm#)) ||'%'
+	   	 </isNotEmpty>
+         <isNotEmpty prepend="AND" property="findEvalMembEmpn" >
+		      A.EVAL_MEMB_EMPN = #findEvalMembEmpn#
+		 </isNotEmpty>
+		  ORDER BY A.KOR_NM, A.EVAL_MEMB_EMPN, A.EVAL_MEMB_EMPN_SEQ
+	</select>
+    
+	<!--
+	==================================================================   
+	  # 설명	: 자기성과기술서 상세목록 리스트 조회 
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_RPT
+	==================================================================
+	-->
+	<resultMap id="detailContentMap" class="java.util.HashMap">
+        <result property="YEAR"					column="YEAR" />                                   
+		<result property="EVAL_MEMB_EMPN"		column="EVAL_MEMB_EMPN" />                         
+		<result property="EVAL_MEMB_EMPN_SEQ"	column="EVAL_MEMB_EMPN_SEQ" />
+		<result property="CAST_TC_NM"			column="CAST_TC_NM" />
+		<result property="POS_TC_NM"			column="POS_TC_NM" />
+		<result property="KOR_NM"				column="KOR_NM" />
+		<result property="DEPT_CD"				column="DEPT_CD" />
+		<result property="DEPT_CUR_NM"		    column="DEPT_CUR_NM" />
+		<result property="DUTY_FROM_DT"			column="DUTY_FROM_DT" />
+		<result property="DUTY_END_DT"			column="DUTY_END_DT" />
+		<result property="MANAGER_USER_ID"		column="MANAGER_USER_ID" />
+		<result property="APPROVE_USER_NM"		column="APPROVE_USER_NM" />
+		<result property="FINAL_APPROVE_DT"		column="FINAL_APPROVE_DT" />
+		<result property="SUBMIT_YN"			column="SUBMIT_YN" />
+		<result property="CONTENT"              column="CONTENT"			jdbcType="CLOB"		javaType="String"	/>
+    </resultMap>
+	<select id="getRptMember" parameterClass="java.util.HashMap" resultClass="detailContentMap">
+		   SELECT  	  A.YEAR  
+		  			, A.EVAL_MEMB_EMPN 
+		  			, A.EVAL_MEMB_EMPN_SEQ   
+		  			, F_CODE_NM('170', B.CAST_TC , B.YEAR) CAST_TC_NM 
+		  			, F_CODE_NM('171', B.POS_TC	 , B.YEAR) POS_TC_NM 
+                    , B.KOR_NM
+                    , B.DEPT_CD
+                    , F_DEPT_FULL_NM(B.YEAR,B.DEPT_CD,'BSC_INSA_DEPT') DEPT_CUR_NM
+                    , B.FROM_DT
+             		, B.TO_DT
+                    , B.MANAGER_USER_ID
+                    , D.APPROVE_USER_NM
+                    , D.FINAL_APPROVE_DT
+                    , A.SUBMIT_YN
+                    , CASE WHEN A.CONTENT IS NULL THEN EMPTY_CLOB() ELSE A.CONTENT END CONTENT
+        FROM PRS_MNG_RPT A
+        LEFT OUTER JOIN PRS_MNG_MEMBER B
+        ON A.YEAR = B.YEAR AND A.EVAL_MEMB_EMPN = B.EVAL_MEMB_EMPN AND A.EVAL_MEMB_EMPN_SEQ = B.EVAL_MEMB_EMPN_SEQ
+        LEFT OUTER JOIN PRS_MNG_PLAN D
+         ON A.YEAR = D.YEAR AND A.EVAL_MEMB_EMPN = D.EVAL_MEMB_EMPN AND A.EVAL_MEMB_EMPN_SEQ = D.EVAL_MEMB_EMPN_SEQ
+         WHERE A.YEAR = #findYear#
+         AND A.EVAL_MEMB_EMPN      = #evalMembEmpn#
+		 AND  A.EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#   
+    </select>
+    
+   	<!--
+	==================================================================   
+	  # 설명	: 자기성과기술서 상세목록 리스트 조회
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_MEMBER
+	==================================================================
+	-->
+	<select id="getRptReMember" parameterClass="hashMap" resultClass="hashMap">
+		   SELECT   A.YEAR  
+		  		  , A.EVAL_MEMB_EMPN 
+		  		  , A.EVAL_MEMB_EMPN_SEQ   
+		   		  , F_CODE_NM('170', A.CAST_TC , A.YEAR) CAST_TC_NM 
+		   		  , F_CODE_NM('171', A.POS_TC  , A.YEAR) POS_TC_NM 
+			      , A.KOR_NM  
+			      , A.DEPT_CD
+			      , F_DEPT_FULL_NM(A.YEAR, A.DEPT_CD,  'BSC_INSA_DEPT') DEPT_CUR_NM
+			      , A.FROM_DT
+			      , A.TO_DT 
+			      , D.APPROVE_USER_ID 
+			      , D.APPROVE_USER_NM
+			      , D.FINAL_APPROVE_DT
+			      , C.SUBMIT_YN         
+			    FROM PRS_MNG_MEMBER  A         
+			    LEFT OUTER JOIN V_PRS_MNG_PCMT B ON A.YEAR = B.YEAR AND A.EVAL_MEMB_EMPN = B.EMPN AND A.DEPT_CD = B.DEPT_CD
+			    LEFT OUTER JOIN PRS_MNG_RPT C ON A.YEAR = C.YEAR AND A.EVAL_MEMB_EMPN = C.EVAL_MEMB_EMPN AND A.EVAL_MEMB_EMPN_SEQ = C.EVAL_MEMB_EMPN_SEQ
+			    LEFT OUTER JOIN PRS_MNG_PLAN D ON A.YEAR = D.YEAR AND A.EVAL_MEMB_EMPN = D.EVAL_MEMB_EMPN AND A.EVAL_MEMB_EMPN_SEQ = D.EVAL_MEMB_EMPN_SEQ
+	         WHERE A.YEAR = #findYear#
+	           AND A.EVAL_MEMB_EMPN      = #evalMembEmpn#
+			  AND  A.EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#   
+		 GROUP BY A.CAST_TC ,A.YEAR, A.KOR_NM  ,A.DEPT_CD ,  A.FROM_DT  , A.TO_DT , D.APPROVE_USER_ID , D.APPROVE_USER_NM , D.FINAL_APPROVE_DT, A.YEAR, A.EVAL_MEMB_EMPN, A.EVAL_MEMB_EMPN_SEQ, C.SUBMIT_YN, A.POS_TC           
+    </select>
+    
+	<!--
+	==================================================================   
+	  # 설명	: 자기성과기술서 상세목록 부서리스트 조회 
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_RPT_LAST_YEAR_DEPT
+	==================================================================
+	-->
+	<select id="getRptDept" parameterClass="hashMap" resultClass="hashMap">
+		     SELECT   EVAL_MEMB_EMPN
+                    , EVAL_MEMB_EMPN_SEQ
+                    , SEQ
+                    , DEPT_CD
+                    , F_DEPT_FULL_NM(YEAR,DEPT_CD,'BSC_INSA_DEPT') DEPT_FULL_NM
+                    , FROM_DT
+                    , TO_DT
+        FROM PRS_MNG_RPT_LAST_YEAR_DEPT 
+	         WHERE YEAR = #findYear#
+	         AND EVAL_MEMB_EMPN      = #evalMembEmpn#
+			 AND  EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#   
+			 ORDER BY SEQ
+    </select>
+    
+	<!--
+	==================================================================   
+	  # 설명	: 자기성과기술서 상세 성과목표목록 리스트 조회  
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_TARGET
+	==================================================================
+	-->
+	<select id="getRptDetail" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT  A.YEAR
+                , A.DIRECTION_CD
+                , F_CODE_NM('218', A.DIRECTION_CD , A.YEAR) DIRECTION_NM 
+                , A.TARGET_ID
+                , A.TARGET_NM
+                , A.METRIC_NM
+                , CASE WHEN B.MON = '10' THEN A.Q1_TARGET_VALUE
+			           WHEN B.MON = '20' THEN A.Q2_TARGET_VALUE
+			           WHEN B.MON = '30' THEN A.Q3_TARGET_VALUE
+			           WHEN B.MON = '40' THEN A.Q4_TARGET_VALUE
+			      END TARGET_VALUE
+                , A.UNIT
+                , F_CODE_NM('013', A.UNIT , A.YEAR) UNIT_NM 
+				, B.MON
+				, F_ROUND(B.VALUE,2) AS VALUE
+				, F_ROUND(B.SCORE,2) AS SCORE
+				, B.EVAL_GRADE
+				, A.WEIGHT
+				, (SELECT ETC1 FROM BSC_CODE WHERE CODE_GRP_ID = '231' AND A.YEAR = YEAR AND A.DFFLY = CODE_ID) AS DFFLY_NM
+                , ROUND(B.EVAL_SCORE,3) EVAL_SCORE
+         FROM  PRS_MNG_TARGET A
+         LEFT OUTER JOIN (
+	       SELECT * FROM PRS_MNG_ACTUAL S 
+	       WHERE S.YEAR                = #findYear#
+              AND S.EVAL_MEMB_EMPN      = #evalMembEmpn#
+              AND S.EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#  
+	           AND S.MON = (SELECT MAX(MON) FROM PRS_MNG_ACTUAL
+                            WHERE YEAR                = #findYear#
+                              AND EVAL_MEMB_EMPN      = #evalMembEmpn#
+                              AND EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq# 
+                               AND ACT_STATUS_ID = '04'
+                )
+	     ) B  
+	       ON A.YEAR = B.YEAR AND A.EVAL_MEMB_EMPN = B.EVAL_MEMB_EMPN AND A.EVAL_MEMB_EMPN_SEQ = B.EVAL_MEMB_EMPN_SEQ AND A.TARGET_ID = B.TARGET_ID
+ 		    WHERE A.YEAR                = #findYear#
+              AND A.EVAL_MEMB_EMPN      = #evalMembEmpn#
+              AND A.EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq# 
+        ORDER BY A.DIRECTION_CD, A.TARGET_ID
+    </select>
+    
+    <!--
+	==================================================================   
+	  # 설명	: 자기성과기술서 전년도 소속부서 보기  
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_PCMT
+	==================================================================
+	-->
+	<select id="getLastYearDeptFromPcmt" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+			 , A.EMPN AS EVAL_MEMB_EMPN
+			 , A.START_PCMT_DATE AS FROM_DT
+			 , A.END_PCMT_DATE AS TO_DT
+			 , A.DEPT_CD
+		     , F_DEPT_FULL_NM(A.YEAR,A.DEPT_CD,'BSC_INSA_DEPT') DEPT_FULL_NM
+		  FROM BSC_INSA_PCMT A
+		 WHERE A.YEAR = #findYear#
+		   AND A.EMPN = #evalMembEmpn#
+		   AND A.USE_YN = 'T'
+		<![CDATA[
+           AND ((A.PCMT_TC <> '41') OR (A.PCMT_TC = '41' AND WORK_DAY > 1))
+		]]>
+    </select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 자기성과기술서 저장  
+	  #	기능	: MERGE INTO 
+	  #	TABLE	: PRS_MNG_RPT
+	==================================================================
+	-->	
+	<parameterMap id="rptParam" class="java.util.HashMap">
+        <parameter property="year" 			jdbcType="VARCHAR2" 		javaType="String"	mode="IN"/>        
+        <parameter property="evalGrpId"		jdbcType="VARCHAR2" 		javaType="String"	mode="IN"/>
+        <parameter property="empn"			jdbcType="VARCHAR2" 		javaType="String"	mode="IN"/>
+        <parameter property="curDeptCd"		jdbcType="VARCHAR2" 		javaType="String"	mode="IN"/>
+        <parameter property="dutyFromDt"	jdbcType="VARCHAR2" 		javaType="String"	mode="IN"/>
+        <parameter property="dutyEndDt"		jdbcType="VARCHAR2" 		javaType="String"	mode="IN"/>
+        <parameter property="submitYn" 		jdbcType="VARCHAR2" 		javaType="String"	mode="IN"/>
+        <parameter property="content" 		jdbcType="CLOB" 			javaType="String"	mode="IN"/>
+    </parameterMap>
+    
+	<insert id="saveData" parameterClass="hashMap">
+		MERGE INTO PRS_MNG_RPT
+		     USING DUAL
+		        ON (YEAR = #year# AND EVAL_GRP_ID = #evalGrpId# AND EMPN = #empn#)
+		      WHEN MATCHED THEN
+		            UPDATE SET
+		                   DUTY_FROM_DT = #dutyFromDt#
+		                 , DUTY_END_DT = #dutyEndDt#
+		                 , CONTENT = #content:CLOB#
+		                 , MODIFY_DT = SYSDATE
+		                 , SUBMIT_YN = #submitYn#
+		      WHEN NOT MATCHED THEN
+		            INSERT (YEAR, EVAL_GRP_ID, EMPN, CUR_DEPT_CD, DUTY_FROM_DT, DUTY_END_DT, CONTENT, SUBMIT_YN, CREATE_DT)
+		            VALUES (#year#, #evalGrpId#, #empn#, #curDeptCd#, #dutyFromDt#, #dutyEndDt#, #content:CLOB#, #submitYn#, SYSDATE)
+	</insert>	
+	
+	<insert id="insertData" parameterClass="hashMap">
+            INSERT into PRS_MNG_RPT (YEAR, EVAL_MEMB_EMPN, EVAL_MEMB_EMPN_SEQ, CUR_DEPT_CD, DUTY_FROM_DT, DUTY_END_DT, CONTENT, SUBMIT_YN, CREATE_DT)
+            VALUES (#year#, #evalMembEmpn#, #evalMembEmpnSeq#, #curDeptCd#, #dutyFromDt#, #dutyEndDt#, #content:CLOB#, #submitYn#, SYSDATE)
+	</insert>	
+	
+	<update id="updateData" parameterClass="hashMap">
+            UPDATE PRS_MNG_RPT SET CONTENT = #content:CLOB#
+              WHERE YEAR = #year#   
+	           AND EVAL_MEMB_EMPN      = #evalMembEmpn#
+			  AND  EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq# 
+	</update>	
+	
+	<delete id="deleteData" parameterClass="hashMap">
+	        DELETE FROM PRS_MNG_RPT
+	         WHERE YEAR = #year#   
+	           AND EVAL_MEMB_EMPN      = #evalMembEmpn#
+			  AND  EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#   
+	</delete>
+	
+	<!--
+    ==================================================================
+      # 설명    : 전년도 소속부서 삭제
+      # 기능    : DELETE
+      # TABLE   : PRS_MNG_RPT_LAST_YEAR_DEPT
+    ==================================================================
+    -->
+    <delete id="deleteLastYearDept" parameterClass="hashMap">
+		DELETE FROM PRS_MNG_RPT_LAST_YEAR_DEPT
+		 WHERE YEAR = #year#
+	       AND EVAL_MEMB_EMPN       = #evalMembEmpn#
+		   AND  EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#  
+    </delete>
+
+	<!--
+    ==================================================================
+      # 설명    : 전년도 소속부서 입력  
+      # 기능    : INSERT
+      # TABLE   : PRS_MNG_RPT_LAST_YEAR_DEPT
+    ==================================================================
+    -->
+	<insert id="insertLastYearDept" parameterClass="rptParam">
+		INSERT INTO PRS_MNG_RPT_LAST_YEAR_DEPT (
+		            YEAR
+		          , EVAL_MEMB_EMPN
+		          , EVAL_MEMB_EMPN_SEQ
+		          , SEQ
+		          , DEPT_CD
+		          , FROM_DT
+		          , TO_DT
+		          ) VALUES ( 
+		            #year#
+		          , #evalMembEmpn#
+		  		  , #evalMembEmpnSeq#  
+		          , #seq#
+		          , #lastDeptCd#
+		          , #fromDt#
+		          , #toDt#
+		          )
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 첨부파일 삭제  
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_MNG_RPT_ATTACH
+	==================================================================
+	-->	
+	<delete id="deleteFileInfo" parameterClass="hashMap">
+		DELETE FROM PRS_MNG_RPT_ATTACH
+		 WHERE YEAR = #year#
+		   AND EVAL_MEMB_EMPN      = #evalMembEmpn#
+		   AND EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#  
+		   AND SEQ = #seq#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 첨부파일 등록 
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_MNG_RPT_ATTACH
+	==================================================================
+	-->	
+	<insert id="insertFileInfo" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+	        SELECT NVL(MAX(SEQ)+1,1) SEQ
+	          FROM PRS_MNG_RPT_ATTACH
+	         WHERE YEAR = #year# 
+	           AND EVAL_MEMB_EMPN      = #evalMembEmpn#
+		       AND EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#  
+		</selectKey>
+		INSERT INTO PRS_MNG_RPT_ATTACH (
+               YEAR
+			 , EVAL_MEMB_EMPN
+			 , EVAL_MEMB_EMPN_SEQ
+			 , SEQ
+			 , ATTACH_FILE_NM
+			 , ATTACH_FILE_FNM
+			 , ATTACH_FILE_SUFFIX
+			 , ATTACH_FILE_PATH
+            ) VALUES (
+               #year#
+             , #evalMembEmpn#
+             , #evalMembEmpnSeq#
+             , #SEQ#
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSufix#
+             , #attachFilePath#
+    	   )       
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 첨부파일 보기  
+	  #	기능	: SELECT  
+	  #	TABLE	: PRS_MNG_RPT_ATTACH
+	==================================================================
+	-->
+	<select id="getFileList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+			 , EVAL_MEMB_EMPN
+			 , EVAL_MEMB_EMPN_SEQ
+			 , SEQ
+			 , ATTACH_FILE_NM
+		     , ATTACH_FILE_FNM
+		     , ATTACH_FILE_SUFFIX
+		     , ATTACH_FILE_PATH 
+		  FROM PRS_MNG_RPT_ATTACH
+		 WHERE YEAR = #findYear#
+         AND   EVAL_MEMB_EMPN      = #evalMembEmpn#
+		 AND   EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#   
+		 ORDER BY SEQ                                			                       
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 자기성과기술서 제출취소  
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_MNG_RPT
+	==================================================================
+	-->
+	<update id="cancelData" parameterClass="rptParam">
+		UPDATE PRS_MNG_RPT
+		   SET SUBMIT_YN = 'N'
+		 WHERE YEAR = #year# 
+		 AND   EVAL_MEMB_EMPN      = #evalMembEmpn#
+		 AND   EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#  
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군별 평가항목 보기  
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP_ITEM, PRS_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getEvalItem" parameterClass="hashMap" resultClass="hashMap">
+		SELECT B.EVAL_ITEM_ID, B.EVAL_ITEM_NM
+		  FROM PRS_EVAL_GRP_ITEM A
+		     , PRS_EVAL_ITEM B
+		 WHERE A.YEAR = #year#
+		   AND A.YEAR = B.YEAR
+		   AND A.EVAL_ITEM_ID = B.EVAL_ITEM_ID
+		   AND A.EVAL_GRP_ID = #evalGrpId#
+		 ORDER BY B.SORT_ORDER
+ 	</select>
+</sqlMap>
+
+

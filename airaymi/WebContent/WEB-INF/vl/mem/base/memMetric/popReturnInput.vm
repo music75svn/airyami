@@ -1,0 +1,149 @@
+#*************************************************************************
+* CLASS 명      : popReturnInput.vm
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012.07.17
+* 기    능      : 지표반려 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     하 윤 식      2012.07.17          최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		/******************************************
+		 * 입력완료 버튼 이벤트
+		 ******************************************/
+		J("#btnCompleate").click(function(e) {
+			/*
+			e.preventDefault();
+			J("#statusCause").val(J("#statusPop").val());
+			J.fancybox.close();
+			statusDo();
+			*/
+			
+			var fileChk = true;
+
+			//첨부파일 확장자 체크
+			J(":file", "#formFindPop").each(function(index, item) {
+				var fileFullName = J("input[name=" + item.name + "]").val();
+				var src = getFileExtension(fileFullName);
+	
+				if (!((src.toLowerCase() == "xls") || (src.toLowerCase() == "xlsx") || (src.toLowerCase() == "ppt") || (src.toLowerCase() == "pptx")||
+					  (src.toLowerCase() == "doc") || (src.toLowerCase() == "docx") || (src.toLowerCase() == "hwp") || (src.toLowerCase() == "pdf") ||
+					  (src.toLowerCase() == "zip") || (src.toLowerCase() == "txt")  || (src.toLowerCase() == "gif") || (src.toLowerCase() == "jpg") ||
+				      (src.toLowerCase() == "png") || (src.toLowerCase() == "png")
+				    )) {
+	
+					fileChk = false;
+	    		}
+			});
+
+			if(fileChk == false) {
+				J.showMsgBox("허용되지 않는 파일형식입니다<br/>허용되는 파일형식 : <br/>xls, xlsx, ppt, pptx, doc, docx, hwp <br/> pdf, zip, txt, gif, jpg, png, jpeg", null, null);
+	    		return;
+			}else{
+
+				J("#formFindPop").attr("action", "$!{context_path}/mem/base/memMetric/memMetricProcess.vw?type=template").submit();
+				return false;
+				
+				J.fancybox.close();
+			
+			}
+		});
+	
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#actionDesc").checkbyte({
+			indicator:J("#actionDescIndicator"),
+			limit:1000
+		});
+		J("#actionDesc").trigger("keyup");
+		
+		try {
+			$("input", ".blockButton" ).button(); //버튼 ui 적용
+		} catch(err) { }
+		
+	});
+	
+	/******************************************
+	 * 파일추가
+	 ******************************************/
+	var fileIndex = 0;
+
+	function fileAttachAdd() {
+		
+		if(fileIndex == 1){
+			alert("파일첨부는 하나만 가능 합니다.");
+		}else{
+			J("#fileAttach").append("<li id=\"fileRow" + fileIndex + "\"><input type=\"file\" name=\"file" + fileIndex + "\" class=\"input\" size=\"30\" /> <input type=\"button\" value=\"삭제\" onclick=\"deleteRow(" + fileIndex + ")\" class=\"input\" size=\"70\"></li>");
+			fileIndex++;
+		}
+		
+	}
+
+	function deleteRow(fileIndex)	{
+    	J("#fileRow" + fileIndex).remove();
+    }
+
+//]]>
+</script>
+
+<form id="formFindPop" name="formFindPop" method="post" enctype="multipart/form-data" action="$!{searchMap.txt2html("context")}/mem/base/memMetric/memMetricProcess.vw?type=template">
+	<input type="hidden" id="year"     name="year"     value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden" id="empNo"    name="empNo"    value="$!{searchMap.txt2html("empNo")}" />
+	<input type="hidden" id="status"   name="status"   value="$!{searchMap.txt2html("status")}" />
+	<input type="hidden" id="mode"     name="mode"     value="$!{searchMap.txt2html("mode")}" />
+	
+	<input type="hidden" id="findYear"     name="findYear"     value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden" id="findHighPgmId"     name="findHighPgmId"     value="$!{searchMap.txt2html("findHighPgmId")}" />
+	<input type="hidden" id="findSubPgmId"     name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+	<input type="hidden" id="findPgmId"     name="findPgmId"     value="$!{searchMap.txt2html("findPgmId")}" />
+	<input type="hidden" id="findEmpNo"    name="findEmpNo"    value="$!{searchMap.txt2html("empNo")}" />
+	<input type="hidden" id="findEmpNm"    name="findEmpNm"    value="$!{searchMap.txt2html("findEmpNm")}" />
+	
+	
+    <div style="width:430px;height:270px;">
+    	<div id="popReturnReasonArea">
+    		<h1 class="none">내용입력</h1>
+    		<div style="margin-left:15px;margin-bottom:10px;" class="strong">내용입력</div>
+    		<div id="userData" style="margin-left:10px;width:410px;">
+				<textarea id="actionDesc" name="actionDesc" class="tabletext" title="내용" cols="" rows="13"></textarea>
+				<span id="actionDescIndicator">0</span>/1000byte
+    		</div>
+    		<br />
+    		
+    		<div style="margin-left:15px;margin-bottom:10px;" class="strong">파일첨부 <font color="red">(*파일업로드시 기존파일은 삭제됩니다.)</font></div>
+    		<div id="userData" style="margin-left:10px;width:410px;;border: 1px solid #BDBDBD;">
+    			#foreach($fileList in $fileList)
+					$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))}
+					&nbsp;&nbsp;
+							<input type="checkbox" name="delAttachFiles" id="delAttachFile$!{fileList.get("ATTACH_SEQ")}" value="$!{fileList.get("ATTACH_SEQ")}" />&nbsp;
+							<label for="delAttachFile$!{fileList.get("SEQ")}">첨부파일 삭제</label> <br/>
+				#end
+				<br/>
+				<a href="javascript:fileAttachAdd();"><img src="$!{searchMap.txt2html("context")}/images/common/btn_file.gif" class="valign_middle" alt="파일추가" /></a>&nbsp;(첨부파일 용량제한은 100M입니다)<br/>
+
+				<div>
+					<ul id="fileAttach">
+					</ul>
+				</div>
+    		</div>
+    		
+			<div class="blockButton_all">			
+				<div class="blockButton_l"></div>
+				<div class="blockButton">			
+					<ul>
+						<li><input type="button" id="btnCompleate" value="완료" /></li>
+					</ul>
+				</div>
+			</div>
+    	</div>
+    </div>
+</form>

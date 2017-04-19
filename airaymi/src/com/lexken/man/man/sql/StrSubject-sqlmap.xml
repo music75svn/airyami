@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="man.man.strSubject">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MAN_STRATEGY
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_STRATEGY
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	SELECT A.YEAR
+             ,  A.STRAT_ID
+             ,  A.STRAT_NM
+             ,  A.CONTENT
+             ,  A.SORT_ORDER
+             ,  (SELECT COUNT(1)
+                 FROM  MAN_CSF  B
+                WHERE A.YEAR=B.YEAR
+                  AND A.STRAT_ID=B.STRAT_ID
+                  AND B.DELETE_DT IS NULL) CNT
+             , C.MAN_NM
+             , C.MAN_ID                  
+    FROM MAN_STRATEGY A
+    INNER JOIN MAN_TARGET C
+                  ON A.MAN_ID = C.MAN_ID
+                  AND A.YEAR = C.YEAR
+                  AND C.DELETE_DT IS NULL
+                  
+	WHERE A.YEAR=#findYear#
+			<isNotEmpty prepend="AND" property="findManId">
+	            C. MAN_ID = #findManId#
+		   	</isNotEmpty>
+			<isNotEmpty prepend="AND" property="findStratNm">
+	            UPPER(A.STRAT_NM) LIKE  '%' || TRIM(UPPER(#findStratNm#)) ||'%'
+		   	</isNotEmpty>
+		   <isEqual prepend="AND" property="findUseYn" compareValue="Y">
+       	   A.DELETE_DT IS NULL
+           </isEqual>
+           <isEqual prepend="AND" property="findUseYn" compareValue="N">
+           A.DELETE_DT IS NOT NULL
+           </isEqual>
+        ORDER BY C.SORT_ORDER, A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경영목표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_TARGET
+	==================================================================
+	-->
+	<select id="getManagement" parameterClass="hashMap" resultClass="hashMap">
+	SELECT A.YEAR, A.MAN_ID, A.MAN_NM, A.SORT_ORDER
+	FROM MAN_TARGET A
+	WHERE A.YEAR = #findYear#
+	   AND A.DELETE_DT IS NULL
+	 ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_STRATEGY
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		   SELECT YEAR                  
+			 , STRAT_ID      
+			 , STRAT_NM      
+			 , CONTENT               
+			 , SORT_ORDER
+			 , (SELECT COUNT(1)
+                FROM  MAN_CSF  B
+               WHERE A.YEAR=B.YEAR
+                  AND A.STRAT_ID=B.STRAT_ID
+                  AND B.DELETE_DT IS NULL) CNT
+			 , CASE WHEN DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USE_YN            
+		  FROM MAN_STRATEGY A 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND STRAT_ID = #stratId#	       
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MAN_STRATEGY
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			<!-- SELECT F_PGM_SERI('MAN_STRATEGY','','','','','') SEQ FROM DUAL -->
+			SELECT 'SSS'||LPAD(NVL(MAX(SUBSTR(STRAT_ID,4,6)),0)+1,4,'0') SEQ FROM MAN_STRATEGY
+		</selectKey>
+		INSERT INTO MAN_STRATEGY ( 
+			   YEAR
+			 , STRAT_ID
+			 , STRAT_NM
+			 , MAN_ID
+			 , CONTENT
+			 , SORT_ORDER
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #stratNm#
+			 , #manId#
+			 , #content#
+			 , #sortOrder#
+			 , SYSDATE
+			 )
+	</insert>	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MAN_STRATEGY
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE MAN_STRATEGY 
+		   SET STRAT_NM					= #stratNm# 
+		   	 , MAN_ID				    = #manId#
+			 , CONTENT					= #content# 
+			 , SORT_ORDER				= #sortOrder# 
+			 , MODIFY_DT				= SYSDATE
+			 <isEqual property="useYn" compareValue="Y">
+	         , DELETE_DT = NULL
+	         </isEqual>
+	         <isEqual property="useYn" compareValue="N">
+	         , DELETE_DT = SYSDATE
+	         </isEqual>
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND STRAT_ID = #stratId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: MAN_STRATEGY
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE MAN_STRATEGY 
+		   SET DELETE_DT       = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND STRAT_ID = #stratId#
+	</update>
+	
+</sqlMap>
+
+

@@ -1,0 +1,380 @@
+#*************************************************************************
+* CLASS 명      : annSalModify
+* 작 업 자      : 박종호
+* 작 업 일      : 2013년 7월 26일 
+* 기    능      : 성과연봉 통지서    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용          비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    박종호      2013년 7월 26일           최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript">
+//<![CDATA[
+
+	var J = jQuery;
+	
+	#set($findYearPlus  = $!{searchMap.txt2html("findYear")} + 1)
+	//findYear에 + 1 한 값을 컬럼 명으로 사용합니다.
+	var findYearPlus = $!{searchMap.txt2html("findYear")};
+	findYearPlus = findYearPlus + 1;
+	J("#yearPlus").val(findYearPlus);
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/prs/annSal/annSal/annSalList.vw?type=template").submit();
+		});
+		
+		/******************************************
+		 * 이의제기 신청
+		 ******************************************/
+		J("#btnObjReg").click(function() {
+			J("#mode").val("REG");
+			J("#form1").attr("action", "$!{context_path}/prs/result/evalMngRpt/evalMngObjectionReg.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			
+		});
+		
+		/******************************************
+		 * 화면 초기셋팅
+		 ******************************************/
+		init();
+	});
+	/*****************************************************
+	 * 화면초기셋팅
+	 *****************************************************/ 
+	function init() {
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+			<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/annSal/annSal/annSalList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				<div class="searchBox" id="searchDiv" style="display:none">
+    				<div><div><div>
+    				<table summary="성과연봉 검색 조건">
+						<caption class="none">성과연봉 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w200">
+            						<span>$!{YEAR}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            					<td>
+								<td class="searchBox_tit w200">
+            						<span><label for="findKorNm">이름 </label></span>
+										<input type="text" title="이름" name="findKorNm" id="findKorNm" value="$!{searchMap.txt2html("findKorNm")}" maxlength="10" class="inputbox w100"/>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		<div id="mainContent">
+    		<form id="form1" name="form1" method="post" action="$!{context_path}/prs/annSal/annSal/annSalProcess.vw?type=template">
+                <input type="hidden" id="mode"				name="mode"					value="$!{searchMap.txt2html("mode")}" />
+            	<input type="hidden" id="year"				name="year"					value="$!{searchMap.txt2html("year")}" />
+            	<input type="hidden" id="empn"				name="empn"					value="$!{searchMap.txt2html("empn")}" />
+            	<input type="hidden" id="evalCastTc"			name="evalCastTc"				value="$!{searchMap.txt2html("evalCastTc")}" />
+				$!{searchMap.makeHiddenFind()}				
+            	<div id="rptTitle" class="rptTitleTable">
+					<table width="100%" style="height:23px" border="0" cellpadding="0" cellspacing="0">
+            			<tr>
+                			<th>
+                				$!{searchMap.txt2html("yearPlus")} 년 성과연봉 통보서
+                            </th>
+            			</tr>
+                    </table>
+				</div>
+				
+				<div>
+					<table width="100%">
+            			<tr>
+                			<th>
+                				<span style="text-align:center;font-size:16px;">공사 연봉제운영지침 제7조에 따라 $!{CS_HTML.txt2html($detail.YEAR)}년 업무평가(BSC),<br/>조직업적평가 및 개인업적평가 등을 반영한 귀하의 성과연봉 내역을 아래와 같이 통보합니다.</span><br/>
+                				<br/>
+                            </th>
+            			</tr>
+                    </table>
+				</div>
+				
+    			<div>
+    				<table width="100%" style="height:23px" border="0" cellpadding="0" cellspacing="0">
+            			<tr>
+                			<td class="bodybox_deptTit" style="width:1050px;border-bottom:1px solid #e3e3e3; padding:0px 0px 0px 30px;">
+                				<span id="basicTitle" style='cursor:hand;overflow:hidden;text-overflow:ellipsis;width:140;'>기준정보</span>
+                            </td>
+            			</tr>
+                    </table>
+                </div>
+				<div id="basicDetailArea" class="blockDetail2">					
+        			<table summary="기준정보">
+    					<caption class="none">기준정보</caption>
+        				<colgroup>
+        					<col width="15%" />
+        					<col width="21%" />
+        					<col width="21%" />
+    						<col width="21%" />
+    						<col width="22%" />
+        				</colgroup>
+        				<tbody>
+        					<tr id="basicDetail">
+        						<th rowspan="2" scope="row">일반현황</th>
+        						<th scope="row">소속</th>
+        						<th scope="row">사번</th>
+    							<th scope="row">직급</th>
+    							<th scope="row">성명</th>
+        					</tr>
+    						<tr>
+    						#if("" != $!{CS_HTML.txt2html($basic.SABUN)} )
+        						<td>
+        							#if("" != $!{CS_HTML.txt2html($basic.UP_DEPT_NM)})
+        							$!{CS_HTML.txt2html($basic.UP_DEPT_NM)}<br/>
+									#end
+        							$!{CS_HTML.txt2html($basic.DEPT_NM)}
+								</td>
+        						<td>
+        							$!{CS_HTML.txt2html($basic.SABUN)}
+								</td>
+    							<td>
+    								$!{CS_HTML.txt2html($basic.CAST_TC_NM)}
+								</td>
+    							<td>
+    								$!{CS_HTML.txt2html($basic.USER_NM)}									
+								</td>
+							#else
+								<td colspan="4">
+									퇴  직  자
+								</td>
+							#end
+        					</tr>
+        				</tbody>
+        			</table>
+        		</div>
+        		
+        		<div>
+    				<table width="100%" style="height:23px" border="0" cellpadding="0" cellspacing="0">
+            			<tr>
+                			<td class="bodybox_deptTit" style="width:1050px;border-bottom:1px solid #e3e3e3; padding:0px 0px 0px 30px;">
+                				<span id="evalResultTitle" style='cursor:hand;overflow:hidden;text-overflow:ellipsis;width:140;'>평가결과 및 차등성과연봉</span>
+                            </td>
+            			</tr>
+                    </table>
+                </div>
+    			<div id="evalResultArea" class="blockDetail2">					
+        			<table summary="평가결과및차등성과연봉">
+    					<caption class="none">평가결과 및 차등성과연봉</caption>
+        				<colgroup>
+        					<col width="16%" />
+        					<col width="14%" />
+        					<col width="14%" />
+    						<col width="14%" />
+    						<col width="14%" />
+    						<col width="14%" />
+    						<col width="14%" />
+        				</colgroup>
+        				<tbody>
+        					<tr id="evalResult">
+        						<th rowspan="3" scope="row">평가등급,<br/>차등적용율 및<br/>기준성과연봉</th>
+        						<th scope="row">평가직급<sup>주1)</sup></th>
+        						<th scope="row">평가등급<sup>주2)</sup></th>
+    							<th scope="row">차등지급율<sup>주3)</sup><br/>(a)</th>
+    							<th scope="row">기준성과연봉<br/>(b)</th>
+    							<th scope="row">근무월수<br/>(c)</th>
+    							<th scope="row">차등성과연봉<br/>(c=a*b*c/12)</th>
+        					</tr>
+    						#foreach($detail in $detail)
+	    						<tr>
+	        						<td>
+	        							$!{CS_HTML.txt2html($detail.EVAL_CAST_NM)}
+									</td>
+	        						<td>
+	        							$!{CS_HTML.txt2html($detail.GRADE)}
+									</td>
+	    							<td>
+	    								$!{CS_HTML.txt2html($detail.RATE)} %
+									</td>
+	    							<td>
+	    								$!{CS_FORMAT.numberFormat($detail.ANN_SAL)} 원									
+									</td>
+									<td>
+	    								$!{CS_HTML.txt2html($detail.WORK_MON)} 개월								
+									</td>
+									<td>
+	    								$!{CS_FORMAT.numberFormat($detail.DIF_ANN_SAL)} 원								
+									</td>
+	        					</tr>
+        					#end        					
+        				</tbody>
+        			</table>
+        		</div>
+        		<div>
+        			<table>
+        				<tr>
+        					<td>
+        						주1) 평가직급은 $!{searchMap.txt2html("findYear")}.12.31 기준 직급입니다.<br/>
+        						주2) 적용등급은 BSC(80%), 조직업적평가(10%), 개인업적평가(10%)를 반영하며 직급별 5등급(S,A,B,C,D등급)으로 구분하여 평가합니다.<br/>
+        						주3) 차등지급율은  S등급 a*$!CS_CODE.getCodeName("186","S",$!{searchMap.txt2html("year")})%, A등급 a*$!CS_CODE.getCodeName("186","A",$!{searchMap.txt2html("year")})%, B등급 a*$!CS_CODE.getCodeName("186","B",$!{searchMap.txt2html("year")})%, C등급 a*$!CS_CODE.getCodeName("186","C",$!{searchMap.txt2html("year")})%, D등급 a*$!CS_CODE.getCodeName("186","D",$!{searchMap.txt2html("year")})%입니다.(a=기준성과연봉으로 총연봉의 $!CS_CODE.getCodeEtc1("190","01",$!{searchMap.txt2html("year")})% 해당액)<br/>
+        						<br/>   
+					        </td>
+				        </tr>
+			        </table>
+		        </div>
+        		
+        		<div>
+    				<table width="100%" style="height:23px" border="0" cellpadding="0" cellspacing="0">
+            			<tr>
+                			<td class="bodybox_deptTit" style="width:1050px;border-bottom:1px solid #e3e3e3; padding:0px 0px 0px 30px;">
+                				<span id="annSalTitle" style='cursor:hand;overflow:hidden;text-overflow:ellipsis;width:140;'>항목별 성과연봉 지급내역</span>
+                            </td>
+            			</tr>
+                    </table>
+                </div>
+        		<div id="annSalArea" class="blockDetail2">					
+        			<table summary="항목별성과연봉지급내역">
+    					<caption class="none">항목별 성과연봉 지급내역</caption>
+        				<colgroup>
+        					<col width="15%" />
+        					<col width="17%" />
+        					<col width="17%" />
+    						<col width="17%" />
+    						<col width="17%" />
+    						<col width="17%" />
+        				</colgroup>
+        				<tbody>
+        					<tr id="annSal"> 
+        						<th rowspan="3" scope="row">$!{searchMap.txt2html("year")}년<br/>성과연봉 지급내역</th>
+        						<th scope="row">차등성과연봉<br/>(a=b+c+d+e)</th>
+        						<th scope="row">연간중식보조비<br/>(b)</th>
+    							<th scope="row">내부평가급<br/>(c)</th>
+    							<th scope="row">정평성과급<br/>(d)</th>
+    							<th scope="row">인건비<sup>주1)</sup><br/>(e)</th>
+        					</tr>
+        					#foreach($detail in $detail)
+	    						<tr>
+	        						<td>
+	        							$!{CS_FORMAT.numberFormat($detail.DIF_ANN_SAL)} 원
+									</td>
+	        						<td>
+	        							$!{CS_FORMAT.numberFormat($detail.LUNCH_ALLO)} 원
+									</td>
+	    							<td>
+	    								$!{CS_FORMAT.numberFormat($detail.INSIDE_PAY)} 원
+									</td>
+	    							<td>
+	    								$!{CS_FORMAT.numberFormat($detail.GOV_PAY)} 원						
+									</td>
+									<td>
+	    								$!{CS_FORMAT.numberFormat($detail.LABOR_PAY)} 원	
+									</td>
+	        					</tr>
+	        				#end
+        				</tbody>
+        			</table>
+        		</div>
+        		<div>
+        			<table>
+        				<tr>
+        					<td>
+        						주1) 인건비는 차등성과연봉 계산액에서 연간중식보조비 및 성과급을 제외한 금액입니다.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        						인건비는 당해연도 인건비로 당해연도 재직기간에 따라 일할 계산됩니다.<br/>
+        						<br/>   
+					        </td>
+				        </tr>
+			        </table>
+		        </div>
+        		
+        		<div>
+    				<table width="100%" style="height:23px" border="0" cellpadding="0" cellspacing="0">
+            			<tr>
+                			<td class="bodybox_deptTit" style="width:1050px;border-bottom:1px solid #e3e3e3; padding:0px 0px 0px 30px;">
+                				<span id="totleTitle" style='cursor:hand;overflow:hidden;text-overflow:ellipsis;width:140;'>최종 지급내역</span>
+                            </td>
+            			</tr>
+                    </table>
+                </div>
+				<div id="totleArea" class="blockDetail2">					
+        			<table summary="최종지급내역">
+    					<caption class="none">최종 지급내역</caption>
+        				<colgroup>
+        					<col width="15%" />
+        					<col width="21%" />
+        					<col width="21%" />
+    						<col width="21%" />
+    						<col width="22%" />
+        				</colgroup>
+        				<tbody>
+        					<tr id="totle">
+        						<th rowspan="2" scope="row">최종<br/>총지급내역</th>
+        						<th scope="row">총지급액<br/>(a=b-c)</th>
+        						<th scope="row">총차등성과연봉<br/>(b)</th>
+    							<th scope="row">총연간중식보조비<br/>(c)</th>
+    							<th scope="row">비고</th>
+        					</tr>
+    						<tr>
+        						<td>
+        							$!{CS_FORMAT.numberFormat($totalCount.ANN_SAL_FIN)} 원
+								</td>
+        						<td>
+        							$!{CS_FORMAT.numberFormat($totalCount.DIF_ANN_SAL)} 원
+								</td>
+    							<td>
+    								$!{CS_FORMAT.numberFormat($totalCount.LUNCH_ALLO)} 원
+								</td>
+    							<td>
+    								중식비는 매월 지급									
+								</td>
+        					</tr>
+        				</tbody>
+        			</table>
+        		</div>
+        		
+				<div class="blockButton_all floatLeft">
+            		<div class="blockButton">
+            			<ul>
+            				<li><input type="button" id="btnBack"   value="돌아가기"/></li>
+				#if ("T" == "$!{objectionSchedule.OBJECTION_YN}")
+            				<li><input type="button" id="btnObjReg" value="이의신청"/></li>
+				#end
+            			</ul>
+            		</div>	
+				</div>
+    			
+    		</form>	
+		</div>	
+	</div>
+	<div class="clear"></div>
+</div>
+
+

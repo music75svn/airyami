@@ -1,0 +1,39 @@
+#*************************************************************************
+* CLASS 명      : archiveMonList_xml
+* 작 업 자      : 현걸욱
+* 작 업 일      : 2012년 11월 8일 
+* 기    능      : 기관장지표총괄표 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      현걸욱     2012년 11월 8일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"EVAL_CAT_GRP_NM"               : "$!{CS_HTML.txt2html($list.EVAL_CAT_GRP_NM)}", 
+		"BOSS_METRIC_NM"       			: "$!{CS_HTML.txt2html($list.BOSS_METRIC_NM)}", 
+		"BOSS_WEIGHT"      				: "$!{CS_HTML.txt2html($list.BOSS_WEIGHT)}", 
+		"GOV_WEIGHT"       				: "$!{CS_HTML.txt2html($list.GOV_WEIGHT)}", 
+		"SC_DEPT_NM"        			: "$!{CS_HTML.txt2html($list.SC_DEPT_NM)}", 
+		"INSERT_USER_NM"              	: "$!{CS_HTML.txt2html($list.INSERT_USER_NM)}", 
+		"GRP_CNT"               		: "$!{CS_HTML.txt2html($list.GRP_CNT)}", 
+		"GRP_NUM"             			: "$!{CS_HTML.txt2html($list.GRP_NUM)}", 
+		"BOSS_METRIC_ID"      			: "$!{CS_HTML.txt2html($list.BOSS_METRIC_ID)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

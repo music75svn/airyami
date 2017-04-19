@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="man.tam.actualStatus">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MAN_ACTUAL
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 실적입력승인현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_ACTUAL
+	==================================================================
+	-->
+	<select id="getInsertList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT *
+          FROM (
+            SELECT YEAR,
+                    INSERT_USER_ID
+                  , INSERT_USER_NM
+                  , EMAIL
+                  , INSERT_DEPT_ID
+                  , INSERT_DEPT_NM
+                  , COUNT(DISTINCT MAN_KPI_ID) TOT_CNT
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '01' THEN 1 END) AS CNT01
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '02' THEN 1 END) AS CNT02
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '03' THEN 1 END) AS CNT03
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '04' THEN 1 END) AS CNT04
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '05' THEN 1 END) AS CNT05
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '06' THEN 1 END) AS CNT06
+               FROM(
+                        SELECT A.YEAR,
+                                A.MAN_KPI_ID
+                              , A.INSERT_USER_ID
+                              , B.USER_NM AS INSERT_USER_NM
+                              , B.EMAIL
+                              , C.DEPT_CD AS INSERT_DEPT_ID
+                              , E.DEPT_KOR_NM AS INSERT_DEPT_NM
+                              , NVL(D.ACT_STATUS_ID, '01') AS ACT_STATUS_ID
+                          FROM MAN_METRIC A
+<!--
+                LEFT OUTER JOIN MAN_METRIC_MAPPING F
+                          	 ON A.MAN_KPI_ID = F.MAN_KPI_ID
+                  			AND A.YEAR = F.YEAR
+ -->
+                LEFT OUTER JOIN BSC_USERINFO B
+                    		 ON A.INSERT_USER_ID = B.USER_ID
+            	LEFT OUTER JOIN BSC_INSA C
+                    		 ON A.INSERT_USER_ID = C.EMPN
+                    		 AND A.YEAR = C.YEAR
+	            LEFT OUTER JOIN BSC_INSA_DEPT E
+                    		 ON C.DEPT_CD = E.DEPT_CD
+                    		 AND A.YEAR = E.YEAR
+                LEFT OUTER JOIN MAN_METRIC_TARGET T
+               				ON A.YEAR = T.YEAR
+               			   AND A.MAN_KPI_ID = T.MAN_KPI_ID
+               			   AND T.MON = #findMon#
+               			   AND T.TGT_TARGET IS NOT NULL
+               			   AND T.ANAL_CYCLE = 'M'
+               LEFT OUTER JOIN MAN_ACTUAL D
+               				ON A.YEAR = D.YEAR
+               			   AND A.MAN_KPI_ID = D.MAN_KPI_ID
+               			   AND D.MON = #findMon#
+               			   AND D.ANAL_CYCLE = 'M'
+               			     , MAN_ACT_REG_DEF_MON Z
+                         WHERE A.YEAR	=	#findYear#
+                           AND A.DELETE_DT IS NULL
+                           AND A.TGT_STATUS_ID = '04'
+                   		   AND A.YEAR = Z.YEAR
+                   		   AND A.MAN_KPI_ID = Z.MAN_KPI_ID
+                   		   AND Z.MON = #findMon#
+                        )
+                	  GROUP BY YEAR
+              				 , INSERT_USER_ID
+              				 , INSERT_USER_NM
+              				 , EMAIL
+              				 , INSERT_DEPT_ID
+              				 , INSERT_DEPT_NM
+           )
+         WHERE 1=1
+         <dynamic>
+		   	<isEqual prepend="AND" property="findStatus" compareValue="Y">
+            	TOT_CNT = CNT04
+		    </isEqual>
+		    <isEqual prepend="AND" property="findStatus" compareValue="N">
+            	TOT_CNT != CNT04
+		    </isEqual>
+	    </dynamic>
+         ORDER BY INSERT_USER_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 실적확인현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_ACTUAL
+	==================================================================
+	-->
+	<select id="getCheckList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT *
+          FROM (
+	        SELECT YEAR,
+                    APPROVE_USER_ID
+                  , APPROVE_USER_NM
+                  , EMAIL
+                  , APPROVE_DEPT_ID
+                  , APPROVE_DEPT_NM
+                  , COUNT(DISTINCT MAN_KPI_ID) TOT_CNT
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '01' THEN 1 END) AS CNT01
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '02' THEN 1 END) AS CNT02
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '03' THEN 1 END) AS CNT03
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '04' THEN 1 END) AS CNT04
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '05' THEN 1 END) AS CNT05
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '06' THEN 1 END) AS CNT06
+	           FROM(
+	                    SELECT A.YEAR
+	                  		 , A.MAN_KPI_ID
+                             , A.APPROVE_USER_ID
+                             , B.USER_NM AS APPROVE_USER_NM
+                             , B.EMAIL
+                             , C.DEPT_CD AS APPROVE_DEPT_ID
+                             , E.DEPT_KOR_NM AS APPROVE_DEPT_NM
+               				 , NVL(D.ACT_STATUS_ID, '01') AS ACT_STATUS_ID
+	                      FROM MAN_METRIC A
+<!--
+               LEFT OUTER JOIN MAN_METRIC_MAPPING F
+                          	ON A.MAN_KPI_ID = F.MAN_KPI_ID
+                  		   AND A.YEAR = F.YEAR
+ -->
+	           LEFT OUTER JOIN BSC_USERINFO B
+                    		ON A.APPROVE_USER_ID = B.USER_ID
+               LEFT OUTER JOIN BSC_INSA C
+                    		ON A.APPROVE_USER_ID = C.EMPN
+                    		AND A.YEAR = C.YEAR
+               LEFT OUTER JOIN BSC_INSA_DEPT E
+                    		ON C.DEPT_CD = E.DEPT_CD
+                    		AND A.YEAR = E.YEAR
+	           LEFT OUTER JOIN MAN_METRIC_TARGET T
+	           				ON A.YEAR = T.YEAR
+	           			   AND A.MAN_KPI_ID = T.MAN_KPI_ID
+	           			   AND T.MON = #findMon#
+	           			   AND T.ANAL_CYCLE = 'M'
+               LEFT OUTER JOIN MAN_ACTUAL D
+               			    ON A.YEAR = D.YEAR
+               			   AND A.MAN_KPI_ID = D.MAN_KPI_ID
+               			   AND D.MON = #findMon#
+               			   AND D.ANAL_CYCLE = 'M'
+               			     , MAN_ACT_REG_DEF_MON Z
+	                     WHERE A.YEAR=#findYear#
+	                       AND A.DELETE_DT IS NULL
+	                       AND A.TGT_STATUS_ID = '04'
+	                       AND A.YEAR = Z.YEAR
+	                       AND A.MAN_KPI_ID = Z.MAN_KPI_ID
+	                       AND Z.MON = #findMon#
+	                    )
+	         GROUP BY YEAR
+	            	, APPROVE_USER_ID
+	            	, APPROVE_USER_NM
+	            	, EMAIL
+	            	, APPROVE_DEPT_ID
+	            	, APPROVE_DEPT_NM
+		   )
+		 WHERE 1=1
+		 <dynamic>
+		   	<isEqual prepend="AND" property="findStatus" compareValue="Y">
+            	TOT_CNT = CNT04
+		    </isEqual>
+		    <isEqual prepend="AND" property="findStatus" compareValue="N">
+            	TOT_CNT != CNT04
+		    </isEqual>
+	    </dynamic>
+		 ORDER BY APPROVE_USER_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 실적확인현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_ACTUAL
+	==================================================================
+	-->
+	<select id="getApproveList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT *
+          FROM (
+	        SELECT YEAR
+                  , COUNT(DISTINCT MAN_KPI_ID) TOT_CNT
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '01' THEN 1 END) AS CNT01
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '02' THEN 1 END) AS CNT02
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '03' THEN 1 END) AS CNT03
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '04' THEN 1 END) AS CNT04
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '05' THEN 1 END) AS CNT05
+                  , COUNT(CASE WHEN ACT_STATUS_ID = '06' THEN 1 END) AS CNT06
+	           FROM(
+	                    SELECT A.YEAR
+	                  		 , A.MAN_KPI_ID
+               				 , NVL(D.ACT_STATUS_ID, '01') AS ACT_STATUS_ID
+	                      FROM MAN_METRIC A
+<!--
+	           LEFT OUTER JOIN MAN_METRIC_MAPPING F
+                            ON A.MAN_KPI_ID = F.MAN_KPI_ID
+                           AND A.YEAR = F.YEAR
+ -->
+	           LEFT OUTER JOIN MAN_ACTUAL D
+               			    ON A.YEAR = D.YEAR
+               			   AND A.MAN_KPI_ID = D.MAN_KPI_ID
+               			   AND D.ANAL_CYCLE = 'M'
+               			   AND D.MON = #findMon#
+                     		 , MAN_ACT_REG_DEF_MON E
+	                     WHERE A.YEAR = #findYear#
+	                       AND A.DELETE_DT IS NULL
+                   		   AND A.YEAR = E.YEAR
+                   		   AND A.MAN_KPI_ID = E.MAN_KPI_ID
+                   		   AND E.MON = #findMon#
+<!--
+	                       AND F.METRIC_ID IS NULL
+ -->
+	                    )
+	         GROUP BY YEAR
+		   )
+		 WHERE 1=1
+		 <dynamic>
+		   	<isEqual prepend="AND" property="findStatus" compareValue="Y">
+            	TOT_CNT = CNT04
+		    </isEqual>
+		    <isEqual prepend="AND" property="findStatus" compareValue="N">
+            	TOT_CNT != CNT04
+		    </isEqual>
+	    </dynamic>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 실적입력승인현황 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_ACTUAL
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+			 , MON
+			 , MAN_KPI_ID
+			 , VALUE
+			 , CONTENT
+			 , INSERT_USER_ID
+			 , APPROVE_USER_ID
+			 , APPROVE_DT
+			 , RETURN_DT
+			 , RETURN_REASON
+			 , ACT_STATUS_ID
+		  FROM MAN_ACTUAL
+		 WHERE 1 = 1
+		   AND YEAR = #year#
+		   AND MON = #mon#
+		   AND MAN_KPI_ID = #manKpiId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 실적입력승인현황 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MAN_ACTUAL
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('MAN_ACTUAL','','','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO MAN_ACTUAL (
+			   YEAR
+			 , MON
+			 , MAN_KPI_ID
+			 , VALUE
+			 , CONTENT
+			 , INSERT_USER_ID
+			 , APPROVE_USER_ID
+			 , APPROVE_DT
+			 , RETURN_DT
+			 , RETURN_REASON
+			 , ACT_STATUS_ID
+			 , CREATE_DT
+			 ) VALUES (
+			   #year#
+			 , #SEQ#
+			 , #manKpiId#
+			 , #actual#
+			 , #actualBase#
+			 , #insertUserId#
+			 , #approveUserId#
+			 , #approveDt#
+			 , #returnDt#
+			 , #returnReason#
+			 , #actualStatusId#
+			 , SYSDATE
+			 )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 실적입력승인현황 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MAN_ACTUAL
+	==================================================================
+	-->
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE MAN_ACTUAL
+		   SET VALUE                  = #actual#
+			 , CONTENT	              = #actualBase#
+			 , INSERT_USER_ID         = #insertUserId#
+			 , APPROVE_USER_ID        = #approveUserId#
+			 , APPROVE_DT             = #approveDt#
+			 , RETURN_DT              = #returnDt#
+			 , RETURN_REASON          = #returnReason#
+			 , ACT_STATUS_ID       	  = #Id#
+			 , MODIFY_DT              = SYSDATE
+		 WHERE 1 = 1
+		   AND YEAR = #year#
+		   AND MON = #mon#
+		   AND MAN_KPI_ID = #manKpiId#
+	</update>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 실적입력승인현황 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: MAN_ACTUAL
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM MAN_ACTUAL
+		 WHERE 1 = 1
+		   AND YEAR = #year#
+		   AND MON = #mon#
+		   AND MAN_KPI_ID = #manKpiId#
+	</update>
+
+
+
+	<!--
+	==================================================================
+	  # 설명	: 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<parameterMap id="paramMap" class="java.util.HashMap">
+		<parameter property="year" 			jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="mon" 			jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+
+	<!--
+	==================================================================
+	  # 설명	: 데이터집계관리 프로시저 호출
+	  #	기능	: CALL PROCEDURE
+	  #	TABLE	:
+	==================================================================
+	-->
+	<procedure id="callSpManScoreProc"  parameterMap="paramMap">
+		{CALL  SP_MAN_TOTAL_PROC_KGS(?, ?)}
+    </procedure>
+
+    <!--
+	==================================================================
+	  # 설명	: 데이터집계관리 프로시저 호출
+	  #	기능	: CALL PROCEDURE
+	  #	TABLE	:
+	==================================================================
+	-->
+	<procedure id="callSpManActualProc"  parameterMap="paramMap">
+		{CALL  SP_MAN_TRANS_ACTUAL(?, ?)}
+    </procedure>
+
+
+</sqlMap>
+
+

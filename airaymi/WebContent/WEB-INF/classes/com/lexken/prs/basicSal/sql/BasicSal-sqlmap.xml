@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.basicSal.basicSal">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 기초연봉 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT   A.EMPN
+		       , A.KOR_NM
+		       ,    (SELECT DEPT_KOR_NM
+		               FROM BSC_INSA_DEPT
+		              WHERE YEAR = A.YEAR
+		                AND DEPT_CD = (SELECT UP_DEPT_CD
+		                                 FROM BSC_INSA_DEPT
+		                                WHERE YEAR = A.YEAR
+		                                  AND DEPT_CD = A.DEPT_CD))
+		         || ' '
+		         || (SELECT DEPT_KOR_NM
+		               FROM BSC_INSA_DEPT
+		              WHERE YEAR = A.YEAR
+		                AND DEPT_CD = A.DEPT_CD)
+		            DEPT_FULL_NM
+		       , G.JCOM_DATE
+		       , C.CODE_NM CAST_TC_NM
+		       , E.CODE_NM POS_TC_NM
+		       , RANK() OVER(ORDER BY C.CODE_ID, D.RANK) RANK
+		       , F.GRADE
+		       , F_CODE_NM ('188', F.GRADE, A.YEAR) AS DIFF_RATE
+		       , F_CODE_NM ('188', F.GRADE, A.YEAR)
+		         + (SELECT CODE_NM
+		              FROM BSC_CODE
+		             WHERE CODE_GRP_ID = '191'
+		               AND YEAR = A.YEAR)
+		            AS GR_RATE
+		       , TO_CHAR(NVL(F.BF_BASIC_SAL, '')) BF_BASIC_SAL
+		       , TO_CHAR(NVL(F.ST_BASIC_SAL, '')) ST_BASIC_SAL
+		       , TO_CHAR(NVL(( F.ST_BASIC_SAL - F.BF_BASIC_SAL ),'')) GROWTHPAY
+		  FROM BASIC_SAL F
+	LEFT OUTER JOIN BSC_INSA A 
+			ON A.YEAR = F.YEAR
+		   AND A.EMPN = F.EMPN
+	LEFT OUTER JOIN BSC_INSA_DEPT B
+			ON A.YEAR = B.YEAR
+		   AND A.DEPT_CD = B.DEPT_CD
+	LEFT OUTER JOIN BSC_CODE C
+			ON C.CODE_GRP_ID = '170'
+		   AND C.CODE_ID = A.CAST_TC
+		   AND C.YEAR = A.YEAR
+	LEFT OUTER JOIN BASIC_SAL_RANK D
+			ON A.YEAR = D.YEAR
+		   AND A.EMPN = D.EMPN
+	LEFT OUTER JOIN BSC_CODE E
+			ON A.YEAR = E.YEAR
+		   AND E.CODE_GRP_ID = '171'
+		   AND A.POS_TC = E.CODE_ID
+	LEFT OUTER JOIN HRORA01.HBB0102V G
+			ON A.EMPN = G.EMPN
+		 WHERE A.YEAR = #findYear#
+		   AND A.CAST_TC IN ('10', '20', '30')
+		   AND A.POS_TC NOT IN ('06', '08')
+		   AND A.DEPT_CD IN ( SELECT DEPT_CD
+								FROM BSC_INSA_DEPT
+							   WHERE YEAR = #findYear#
+		                       START WITH DEPT_CD = #findDeptCd#
+		                       CONNECT BY PRIOR YEAR = YEAR
+		                              AND PRIOR DEPT_CD = UP_DEPT_CD)
+	<isNotEmpty prepend ="AND" property="findCastTc">
+		 C.CODE_ID =#findCastTc#
+	</isNotEmpty>		                              
+	<isNotEmpty prepend="AND" property="findResult" >
+			<isEqual property="findResearch" compareValue="korNms">
+				UPPER(A.KOR_NM) LIKE  '%' || TRIM(UPPER(#findResult#)) ||'%'
+			</isEqual>
+			<isNotEqual  property="findResearch" compareValue="korNms">
+			A.EMPN = #findResult#
+		</isNotEqual>
+		</isNotEmpty>
+	  ORDER BY RANK, A.CAST_TC, A.DEPT_CD, A.EMPN
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 기초연봉 엑셀다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: BASIC_SAL_RANK
+	==================================================================
+	-->
+	<select id="getBasicSalSetExcelList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT   A.YEAR
+		       , A.EMPN
+		       , A.KOR_NM
+		       , A.DEPT_CD
+		       ,    (SELECT DEPT_KOR_NM
+		               FROM BSC_INSA_DEPT
+		              WHERE YEAR = A.YEAR
+		                AND DEPT_CD = (SELECT UP_DEPT_CD
+		                                 FROM BSC_INSA_DEPT
+		                                WHERE YEAR = A.YEAR
+		                                  AND DEPT_CD = A.DEPT_CD))
+		         || ' '
+		         || (SELECT DEPT_KOR_NM
+		               FROM BSC_INSA_DEPT
+		              WHERE YEAR = A.YEAR
+		                AND DEPT_CD = A.DEPT_CD)
+		            DEPT_FULL_NM
+		       , C.CODE_NM CAST_TC_NM
+		       , E.CODE_NM POS_TC_NM
+		       , D.RANK
+		  FROM BSC_INSA A
+	LEFT OUTER JOIN BSC_INSA_DEPT B
+			ON A.YEAR = B.YEAR
+		   AND A.DEPT_CD = B.DEPT_CD
+	LEFT OUTER JOIN BSC_CODE C
+			ON C.CODE_GRP_ID = '170'
+		   AND C.CODE_ID = A.CAST_TC
+		   AND C.YEAR = A.YEAR
+	LEFT OUTER JOIN BASIC_SAL_RANK D
+			ON A.YEAR = D.YEAR
+		   AND A.EMPN = D.EMPN
+	LEFT OUTER JOIN BSC_CODE E
+         	ON A.YEAR = E.YEAR
+		   AND E.CODE_GRP_ID = '171'
+		   AND A.POS_TC = E.CODE_ID
+		 WHERE A.YEAR = #findYear#
+		   AND A.CAST_TC IN ('10', '20', '30')
+		   AND A.POS_TC NOT IN ('06', '08')
+	  ORDER BY A.CAST_TC, A.DEPT_CD, A.EMPN
+
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 기초연봉 엑셀전환다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: BASIC_SAL
+	==================================================================
+	-->
+	<select id="getBasicSalChangeExcelList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.EMPN
+		     , B.KOR_NM
+		     , C.DEPT_CD
+		     , C.DEPT_KOR_NM
+		     , D.CODE_NM AS CAST_TC_NM
+		     , E.CODE_NM AS POS_TC_NM
+		     , F.JCOM_DATE
+		     , G.RANK
+		     , A.GRADE
+		     , F_CODE_NM ('188', A.GRADE, A.YEAR) AS DIFF_RATE
+		     , A.BF_BASIC_SAL
+		     , F_CODE_NM ('188', A.GRADE, A.YEAR)
+		       + (SELECT CODE_NM
+		            FROM BSC_CODE
+		           WHERE CODE_GRP_ID = '191'
+		             AND YEAR = A.YEAR)
+		          AS GR_RATE
+			 , A.ST_BASIC_SAL
+			 , ( A.ST_BASIC_SAL - A.BF_BASIC_SAL ) AS GROWTHPAY
+		  FROM BASIC_SAL A
+	LEFT OUTER JOIN BSC_INSA B
+			ON A.YEAR = B.YEAR
+		   AND A.EMPN = B.EMPN
+	LEFT OUTER JOIN BSC_INSA_DEPT C
+			ON B.YEAR = C.YEAR
+		   AND B.DEPT_CD = C.DEPT_CD
+		   AND C.USE_YN = 'T'
+	LEFT OUTER JOIN BSC_CODE D
+			ON B.YEAR = D.YEAR
+		   AND D.CODE_GRP_ID = '170'
+		   AND B.CAST_TC = D.CODE_ID
+	LEFT OUTER JOIN BSC_CODE E
+			ON B.YEAR = E.YEAR
+		   AND E.CODE_GRP_ID = '171'
+		   AND B.POS_TC = E.CODE_ID
+	LEFT OUTER JOIN HRORA01.HBB0102V F
+			ON A.EMPN = F.EMPN
+	LEFT OUTER JOIN BASIC_SAL_RANK G
+			ON A.YEAR = G.YEAR
+		   AND A.EMPN = G.EMPN
+		 WHERE A.YEAR = #findYear#
+	  ORDER BY B.CAST_TC, B.DEPT_CD, A.EMPN
+
+	</select>
+
+	<!--
+    ==================================================================
+      # 설명    : 기초연봉 순위 엑셀업로드 삭제
+      # 기능    : DELETE
+      # TABLE   : BASIC_SAL_RANK
+    ==================================================================
+    -->
+    <delete id="deleteData" parameterClass="hashMap">
+        DELETE FROM BASIC_SAL_RANK
+         WHERE YEAR				= #findYear#
+
+    </delete>
+
+	<!--
+    ==================================================================
+      # 설명    : 기초연봉 데이터 유무 조회
+      # 기능    : SELECT
+      # TABLE   : BASIC_SAL
+    ==================================================================
+    -->
+    <select id="getDataCount" parameterClass="hashMap" resultClass="hashMap">
+
+        SELECT COUNT(1) CNT FROM BASIC_SAL WHERE YEAR = #findYear#
+    </select>
+
+    <!--
+    ==================================================================
+      # 설명  : 기초연봉 순위 수정
+      # 기능  : INSERT
+      # TABLE : BASIC_SAL_RANK
+    ==================================================================
+    -->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BASIC_SAL_RANK (YEAR
+                       , EMPN
+                       , RANK
+                       , CREATE_DT
+                       , MODIFY_DT)
+			     VALUES (#year#
+			           , #empn#
+			           , #rank#
+					   , sysdate
+			           , sysdate)
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 기초연봉 집계
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<parameterMap id="paramMap" class="java.util.HashMap">
+		<parameter property="year" 		jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+
+	<!--
+	==================================================================
+	  # 설명	: 기초연봉 집계 실행
+	  #	기능	: PROCEDURES
+	  #	TABLE	: SP_BASIC_SAL_SET
+	==================================================================
+	-->
+	<procedure id="basicSalSet" parameterMap="paramMap">
+		{CALL SP_BASIC_SAL_SET(?)}
+	</procedure>
+
+</sqlMap>

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.system.govMetricGrp">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: GOV_METRIC_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표POOL 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC_GRP
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">		
+		SELECT A.YEAR
+             , A.GOV_METRIC_GRP_ID
+             , A.GOV_METRIC_GRP_NM
+             , A.EVAL_CAT_GRP_ID
+             , B.EVAL_CAT_GRP_NM
+             , A.EVAL_CAT_ID
+             , C.EVAL_CAT_NM
+             , A.SORT_ORDER
+             , A.CONTENT
+             , A.CREATE_DT
+             , A.DELETE_DT
+             , NVL(D.CNT,'0') CNT
+          FROM GOV_METRIC_GRP A
+	LEFT OUTER JOIN GOV_EVAL_CAT_GRP B
+			ON A.YEAR = B.YEAR
+		   AND A.EVAL_CAT_GRP_ID = B.EVAL_CAT_GRP_ID
+	LEFT OUTER JOIN GOV_EVAL_CAT C
+			ON A.YEAR = C.YEAR
+		   AND A.EVAL_CAT_ID = C.EVAL_CAT_ID
+	LEFT OUTER JOIN (
+					 SELECT YEAR, GOV_METRIC_GRP_ID, SUM (CNT) CNT
+                              FROM (  
+					 SELECT YEAR 
+					      , GOV_METRIC_GRP_ID
+					      , COUNT(*) CNT 
+					   FROM GOV_METRIC 
+					  WHERE YEAR = #findYear#
+					    AND DELETE_DT IS NULL
+					  GROUP BY YEAR
+					         , GOV_METRIC_GRP_ID
+					 UNION ALL
+					 SELECT YEAR 
+					      , GOV_METRIC_GRP_ID
+					      , COUNT(*) CNT 
+					   FROM GOV_OFFICE_METRIC 
+					  WHERE YEAR = #findYear#
+					  GROUP BY YEAR
+					         , GOV_METRIC_GRP_ID
+					 )
+                          GROUP BY YEAR, GOV_METRIC_GRP_ID
+					) D	  
+            ON A.YEAR = D.YEAR
+           AND A.GOV_METRIC_GRP_ID = D.GOV_METRIC_GRP_ID					 
+		 WHERE A.YEAR = #findYear#
+		     <isEqual prepend="AND" property="findUseYn" compareValue="Y">
+	       	 	A.DELETE_DT IS NULL
+	         </isEqual>
+	         <isNotEqual prepend="AND" property="findUseYn" compareValue="Y">
+	         	A.DELETE_DT IS NOT NULL
+	         </isNotEqual>
+		  ORDER BY SORT_ORDER
+		
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표POOL 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC_GRP
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR           
+	         , GOV_METRIC_GRP_ID           
+	         , GOV_METRIC_GRP_NM
+	         , EVAL_CAT_GRP_ID
+	         , EVAL_CAT_ID           
+	         , SORT_ORDER           
+	         , CONTENT           
+	         , CREATE_DT           
+	         , DELETE_DT
+	         , DECODE(DELETE_DT,'','Y','N') USE_YN            
+	  	  FROM GOV_METRIC_GRP 
+	 	 WHERE YEAR = #year#
+	   	   AND GOV_METRIC_GRP_ID = #govMetricGrpId#        
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표POOL 등록
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_METRIC_GRP
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('GOV_METRIC_GRP',#year#,'','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO GOV_METRIC_GRP ( 
+               YEAR
+             , GOV_METRIC_GRP_ID
+             , GOV_METRIC_GRP_NM
+             , EVAL_CAT_GRP_ID
+	         , EVAL_CAT_ID
+             , SORT_ORDER
+             , CONTENT
+             , CREATE_DT
+             ) VALUES ( 
+               #year#
+             , #SEQ#
+             , #govMetricGrpNm#
+             , #evalCatGrpId#
+             , #evalCatId#
+			 , #sortOrder#
+             , #content#
+             , SYSDATE
+             )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표POOL 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_METRIC_GRP
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE GOV_METRIC_GRP 
+	       SET GOV_METRIC_GRP_NM		= #govMetricGrpNm#
+	         , SORT_ORDER				= #sortOrder#
+	         , EVAL_CAT_GRP_ID			= #evalCatGrpId#
+	         , EVAL_CAT_ID				= #evalCatId#
+	         , CONTENT					= #content#
+			 ,
+			 <isEqual property="useYn" compareValue="Y">
+	         DELETE_DT = NULL
+	         </isEqual>
+	         <isNotEqual property="useYn" compareValue="Y">
+	         DELETE_DT = SYSDATE
+	         </isNotEqual>	         
+	 	 WHERE YEAR = #year#
+	       AND GOV_METRIC_GRP_ID = #govMetricGrpId#    	
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표POOL 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_METRIC_GRP
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE GOV_METRIC_GRP
+		   SET DELETE_DT = SYSDATE    
+		 WHERE YEAR = #year#
+		   AND GOV_METRIC_GRP_ID = #govMetricGrpId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 하위 사용 중 지표풀 코드 채번
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getMetricGrpCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT TO_NUMBER(COUNT(1)) AS CNT
+  		  FROM GOV_METRIC MM
+  		 INNER JOIN GOV_METRIC_GRP MMG
+            ON MM.GOV_METRIC_GRP_ID = MMG.GOV_METRIC_GRP_ID
+           AND MM.GOV_METRIC_GRP_ID = #govMetricGrpId#
+           AND MMG.YEAR = MM.YEAR
+           AND MM.DELETE_DT IN NULL
+           AND MMG.YEAR = #findYear#
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 동일 지표pool 지표 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->	
+	<update id="updateMetricData" parameterClass="hashMap">
+		UPDATE GOV_METRIC MM
+		   SET MM.EVAL_CAT_GRP_ID	= ( SELECT EVAL_CAT_GRP_ID
+		            			  FROM GOV_METRIC_GRP MMG
+		           				 WHERE MMG.YEAR = MM.YEAR AND MMG.GOV_METRIC_GRP_ID = MM.GOV_METRIC_GRP_ID),
+		       MM.EVAL_CAT_ID	= (SELECT EVAL_CAT_ID
+		             			   FROM GOV_METRIC_GRP MMG
+		            			  WHERE MMG.YEAR = MM.YEAR AND MMG.GOV_METRIC_GRP_ID = MM.GOV_METRIC_GRP_ID)
+		 WHERE MM.YEAR = #year# AND MM.GOV_METRIC_GRP_ID = #govMetricGrpId#
+	</update>
+	
+</sqlMap>
+
+

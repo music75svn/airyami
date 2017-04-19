@@ -1,0 +1,167 @@
+#*************************************************************************
+* CLASS 명      : evalExceUserModify
+* 작 업 자      : 박경태 
+* 작 업 일      : 2012년 12월 10일 
+* 기    능      : 예외인원    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    박경태      2012년 12월 10일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/cbe/eval/evalExceUser/evalExceUserList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("#workTerm").numeric();
+		J("#workTerm").css("ime-mode", "disabled");
+		
+		J("#insertChargeUserSearch").fancybox();    		//담당자 조회
+
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(!J.checkLength("evalMembUserNm", "성명", 1, 50)) {
+			return;
+		}
+		
+		if(!J.checkLength("exceEvalReason", "예외평가 사유", 1, 250)) {
+			return;
+		}
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/cbe/eval/evalExceUser/evalExceUserProcess.vw?type=template").submit();
+	}
+	
+	/*****************************************************
+	 * 설정
+	 *****************************************************/ 
+	function setChargeUserInfo(arguments) {
+		J("#evalMembUserId").val(arguments[0]);
+		J("#evalMembUserNm").val(arguments[1]);
+		J("#scDeptNm").html(arguments[3]);
+		J.fancybox.close();
+	}
+	
+	/*****************************************************
+	 * 설정
+	 *****************************************************/ 
+	function setChargeInit(arguments) {
+		J.setInit('evalMembUserId','evalMembUserNm');
+		J("#scDeptNm").html("");
+	}
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/cbe/eval/evalExceUser/evalExceUserProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="evalDegreeId"   name="evalDegreeId"   value="$!{searchMap.txt2html("evalDegreeId")}" />
+	
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+								<td class="searchBox_tit w250">평가구분 <span class="searchBar">$!{CS_HTML.txt2html($detailGubun.EVAL_DEGREE_NM)}</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="예외인원 등록">
+					<caption class="none">예외인원 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="name">성명</label></th>
+							<td>
+								<input type="hidden" id="evalMembUserId" name="evalMembUserId" value="$!{CS_HTML.txt2html($detail.EVAL_MEMB_USER_ID)}" />
+								<input type="text" id="evalMembUserNm" name="evalMembUserNm" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.NAME)}' maxlength="20" readonly="readonly"/>
+								#if($!{searchMap.txt2html("mode")}=="ADD")
+								<a id="insertChargeUserSearch" href="$!{context_path}/bsc/module/commModule/popSearchUser.vw?findYear=$!{searchMap.txt2html("year")}&amp;callBack=setChargeUserInfo"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="사용자선택" /></a> 
+								<a href="javascript:setChargeInit();"><img src="$!{img_path}/common/board/ic_cancel.gif" class="valign_middle" alt="사용자선택 취소" /></a>
+								#end
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="scDeptNm">평가조직</label></th>
+							<td>
+								<span id="scDeptNm">$!{CS_HTML.txt2html($detail.SC_DEPT_NM)}</span>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="exceEvalReason">예외평가 사유</label></th>
+							<td><input type="text" id="exceEvalReason" name="exceEvalReason" class="inputbox wp98" value='$!{CS_HTML.txt2html($detail.EXCE_EVAL_REASON)}' maxlength="250"/></td>
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

@@ -1,0 +1,46 @@
+#*************************************************************************
+* CLASS 명      : bosActionResultList_xml
+* 작 업 자      : 김상용
+* 작 업 일      : 2013년 7월 16일
+* 기    능      : 기관장평가지표실행결과관리 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김상용     2013년 7월 16일          최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+#foreach($list in $list)
+	{
+		"BOSS_METRIC_ID"		: "$!{CS_HTML.txt2html($list.BOSS_METRIC_ID)}", 
+		"BOSS_METRIC_NM"        : "$!{CS_HTML.txt2html($list.BOSS_METRIC_NM)}", 
+		"DETAIL_EVAL_ID"		: "$!{CS_HTML.txt2html($list.DETAIL_EVAL_ID)}", 
+		"DETAIL_EVAL_NM"		: "$!{CS_HTML.txt2html($list.DETAIL_EVAL_NM)}", 
+		"CONCEPT_ID"			: "$!{CS_HTML.txt2html($list.CONCEPT_ID)}", 
+		"CONCEPT_NM"			: "$!{CS_HTML.txt2html($list.CONCEPT_NM)}", 
+		"PLAN_ID"				: "$!{CS_HTML.txt2html($list.PLAN_ID)}", 
+		"PLAN_NM"				: "$!{CS_HTML.txt2htmlbr2_forList($list.PLAN_NM)}", 
+		"RESULT"				: "$!{CS_HTML.txt2htmlbr2_forList($list.RESULT)}", 
+		"SC_DEPT_NM"			: "$!{CS_HTML.txt2html($list.SC_DEPT_NM)}", 
+		"INSERT_USER_NM"		: "$!{CS_HTML.txt2html($list.INSERT_USER_NM)}",
+		"BOSS_METRIC_INDEX"		: "$!{CS_HTML.txt2html($list.BOSS_METRIC_INDEX)}",
+		"BOSS_METRIC_CNT"		: "$!{CS_HTML.txt2html($list.BOSS_METRIC_CNT)}",
+		"DETAIL_EVAL_INDEX"		: "$!{CS_HTML.txt2html($list.DETAIL_EVAL_INDEX)}",
+		"DETAIL_EVAL_CNT"		: "$!{CS_HTML.txt2html($list.DETAIL_EVAL_CNT)}",
+		"CONCEPT_INDEX"			: "$!{CS_HTML.txt2html($list.CONCEPT_INDEX)}",
+		"CONCEPT_CNT"			: "$!{CS_HTML.txt2html($list.CONCEPT_CNT)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.mngCon.scoreUpload">
+
+    <!--
+    ==================================================================   
+      # 설명    : typeAlias 선언
+      #    기능    : SETTING
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <typeAlias alias="hashMap"             type="java.util.HashMap" />
+     
+
+    <!--
+    ==================================================================   
+      # 설명    : 업무성과점수 업로드 목록 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getList" parameterClass="hashMap" resultClass="hashMap">
+         SELECT A.YEAR
+             , A.EVAL_MEMB_EMPN
+             , A.KOR_NM
+             , A.DEPT_CD
+             , F_DEPT_FULL_NM(A.YEAR,A.DEPT_CD,'BSC_INSA_DEPT') DEPT_FULL_NM
+             , A.CAST_TC
+             , A.POS_TC
+             , F_CODE_NM('170', A.CAST_TC , A.YEAR) CAST_TC_NM 
+             , F_CODE_NM('171', A.POS_TC , A.YEAR) POS_TC_NM 
+             , D.EVAL_GRP_ID
+             , I.EVAL_ITEM_ID
+             , I.EVAL_ITEM_NM
+             , C.SCORE
+             , A.PLAN_YN 
+        FROM V_CON_MNG_MEMBER A
+         LEFT OUTER JOIN PRS_EVAL_GRP D ON A.YEAR = D.YEAR 
+         <!-- AND A.PLAN_YN = D.PLAN_YN   -->
+         LEFT OUTER JOIN CON_EVAL_ITEM I ON A.YEAR = I.YEAR 
+         LEFT OUTER JOIN CON_EMP_EVAL_GRADE C ON D.YEAR = C.YEAR AND D.EVAL_GRP_ID = C.EVAL_GRP_ID
+           AND  I.EVAL_ITEM_ID = C.EVAL_ITEM_ID AND A.EVAL_MEMB_EMPN = C.EMPN
+	    WHERE   A.YEAR		  = #findYear#
+	        AND D.EVAL_GRP_ID = #findEvalGrpId#
+	        AND I.EVAL_ITEM_ID = #findEvalItemId#
+	        AND I.EVAL_GBN 	  = '02'
+	        AND A.EVAL_YN 	  = 'Y'     
+	        <!-- AND A.PLAN_YN 	  = 'Y'               -->         
+	    ORDER BY  A.DEPT_CD ,  A.EVAL_MEMB_EMPN, I.EVAL_ITEM_ID
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 업무성과점수 업로드 평가군 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getEvalGrpId" parameterClass="hashMap" resultClass="hashMap">
+        SELECT EVAL_GRP_ID, EVAL_GRP_NM,EVAL_TYPE  FROM PRS_EVAL_GRP A
+        LEFT OUTER JOIN BSC_CODE B ON A.YEAR = B.YEAR AND A.EVAL_TYPE  = B.CODE_ID
+        				AND B.CODE_GRP_ID ='166' 
+        WHERE A.YEAR = #findYear#  AND A.EVAL_TYPE ='09'        
+    </select>
+
+
+    <!--
+    ==================================================================   
+      # 설명    : 업무성과점수 업로드 평가항목 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getEvalItemId" parameterClass="hashMap" resultClass="hashMap">
+        SELECT EVAL_ITEM_ID
+	         , EVAL_ITEM_NM  
+		  FROM CON_EVAL_ITEM
+	  	 WHERE  1=1 
+		   AND YEAR = #findYear# 
+		   AND EVAL_GBN = '02'
+		 ORDER BY SORT_ORDER
+    </select>
+        
+    
+    <!--
+    ==================================================================   
+      # 설명    : 업무성과점수 업로드 수정
+      #    기능    : UPDATE
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <update id="updateData" parameterClass="hashMap">
+    <!--  
+      UPDATE CON_EMP_EVAL_GRADE
+			SET SCORE = #score#
+			WHERE YEAR = #findYear#
+			AND EVAL_GRP_ID = #findEvalGrpId#
+			AND EVAL_ITEM_ID = #evalItemId#
+			AND EMPN = #empn#
+	-->			
+	MERGE INTO CON_EMP_EVAL_GRADE A
+    USING (SELECT #findYear# AS YEAR, #findEvalGrpId# AS EVAL_GRP_ID, #empn# AS EMPN, #evalItemId# AS EVAL_ITEM_ID, #deptCd# AS DEPT_CD FROM DUAL) B
+        ON (A.YEAR = B.YEAR 
+        AND A.EVAL_GRP_ID = B.EVAL_GRP_ID 
+        AND A.EMPN = B.EMPN 
+        AND A.EVAL_ITEM_ID = B.EVAL_ITEM_ID)
+    WHEN MATCHED THEN 
+        UPDATE SET 
+              A.SCORE = #score#
+            , A.CREATE_DT = SYSDATE 
+    WHEN NOT MATCHED THEN
+        INSERT (YEAR, EVAL_GRP_ID, EMPN, EVAL_ITEM_ID, ASSESSOR_EMPN, GRADE, CREATE_DT, SCORE)
+        VALUES (B.YEAR, B.EVAL_GRP_ID, B.EMPN, B.EVAL_ITEM_ID, (SELECT
+                        EMPN 
+                    FROM
+                        BSC_INSA 
+                    WHERE
+                        YEAR = #findYear# 
+                        AND ROWNUM = '1'                       
+                        AND DEPT_CD = #deptCd#
+                        AND POS_TC IN (
+                            '12', '21', '22', '2C', '31', '32', '34', '39'
+                        )                       
+                        AND EMPN IN (
+                            SELECT
+                                EMPN 
+                            FROM
+                                BSC_INSA_PCMT 
+                            WHERE
+                                YEAR =  #findYear#                     
+                                AND END_PCMT_DATE =  #findYear#||'1231' 
+                                and pcmt_tc NOT IN '34'
+                        )), '', SYSDATE, #score#
+                        )
+    </update>    
+    
+</sqlMap>
+
+

@@ -1,0 +1,143 @@
+#*************************************************************************
+* CLASS 명      : popAttachScDeptDiagBackground
+* 작 업 자      : 형광민
+* 작 업 일      : 2012년 9월 05일 
+* 기    능      : 조직성과도 배경 업로드 팝업
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     형광민      2012년 9월 5일             최 초 작 업
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/bsc/base/scDeptDiagMng/popAttachScDeptDiagBackground.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+    <script type="text/javascript" language="javascript" >
+	
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		/******************************************
+		 * 닫기버튼 (창닫기)
+		 ******************************************/
+		J("#btnClose").click(function() {
+			self.close();
+		});
+		
+		/******************************************
+		 * 첨부버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+		
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+	});
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		var src = getFileExtension(J("#fileInput").val());
+		
+		if(!J.checkLength("fileInput", "첨부파일", 1, 2000)) {
+			return;
+		}
+		
+		if (src == "") {
+			alert("올바른 파일을 입력하세요.");
+			return;
+		} else if (!(src.toLowerCase() == "jpg")) {
+			alert("jpg 파일만 지원합니다.");
+			return;
+		}
+		
+		document.charset='utf-8';
+         
+		J.showConfirmBox("첨부하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+	
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/bsc/base/deptStrategyDiagMng/popAttachDeptStrategyDiagBackgroundProcess.vw").submit();
+	}
+	
+    </script>
+</head>
+<body>
+	
+<div>
+	<div style="padding-top:0px; padding-left:40px; padding-right:40px; position:relative; width="100%">
+	<form id="form1" name="form1" method="post" enctype="multipart/form-data" action="$!{context_path}/bsc/base/deptStrategyDiagMng/popAttachDeptStrategyDiagBackgroundProcess.vw">
+		<input type="hidden" id="mode"			name="mode"				value="$!{searchMap.txt2html("mode")}" />
+		<input type="hidden" id="findYear"		name="findYear"			value="$!{searchMap.txt2html("findYear")}" />
+		<input type="hidden" id="findScDeptId"	name="findScDeptId"		value="$!{searchMap.txt2html("findScDeptId")}" />
+		
+		<!--페이지 타이틀 시작 -->
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td height="20">
+            </td>
+        </tr>
+		<tr>
+			<td>
+				<table width="100%" border="0" cellspacing="0" cellpadding="0" class="popup_tit_c">
+				<tr>
+					<td class="popup_tit_l"></td>
+					<td class="popup_tit_r">전략체계도 배경 로딩</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td height="7">
+			</td>
+		</tr>
+		</table>
+		<!--페이지 타이틀 끝 -->
+		
+		<div class="blockDetail">
+			<table summary="전략체계도 배경 로딩">
+				<caption class="none">전략체계도 배경 로딩</caption>
+				<colgroup>
+					<col width="20%" />
+					<col width="*" />
+				</colgroup>
+				<tbody>
+					<tr>
+						<th scope="row"><label for="user">파일첨부</label></th>
+						<td>
+							<input type="file" id="fileInput" name="fileInput" class="inputbox w400">
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="blockButton"> 
+			<ul>
+				<li><input type="submit" id="btnInsert"  value="첨부"/></li>
+				<li><input type="button" id="btnClose"   value="닫기"/></li>
+			</ul>
+		</div>
+	</form>
+	</div>
+	<div class="clear"></div>
+</div>
+
+<div id="dialog" title="확인"><p>&nbsp;</p></div>    <!-- 다이어로그 -->
+
+</body>
+</html>

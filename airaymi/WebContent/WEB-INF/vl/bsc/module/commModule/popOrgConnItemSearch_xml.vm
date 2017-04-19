@@ -1,0 +1,37 @@
+#*************************************************************************
+* CLASS 명      : popOrgConnItemSearch_xml
+* 작 업 자      : 박선혜
+* 작 업 일      : 2013년 6월 11일 
+* 기    능      : 연계항목 json 데이터 조회 
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     박선혜      2013.06.11         최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"ITEM_CD"      : "$!{CS_HTML.txt2html($list.ITEM_CD)}",
+		"ITEM_NM"      : "$!{CS_HTML.txt2html($list.ITEM_NM)}",
+		"ITEM_DIVI_NM" : "$!{CS_HTML.txt2html($list.ITEM_DIVI_NM)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}
+
+
+ 
+

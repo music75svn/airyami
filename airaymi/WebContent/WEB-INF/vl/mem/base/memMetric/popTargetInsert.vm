@@ -1,0 +1,242 @@
+#*************************************************************************
+* CLASS 명      : popTargetInsert.vm
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012.06.30
+* 기    능      : 지표목표 입력
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     하 윤 식      2012.06.30          최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		/******************************************
+		 * 입력완료 버튼 이벤트
+		 ******************************************/
+		J("#btnTargetInsert").click(function(e) {
+			e.preventDefault();
+			
+			//년 목표값 계산
+			sumTgtValue();
+			
+			J("#tgtPopInfo").empty();
+			J("#popTargetValue").clone().prependTo("#tgtPopInfo");
+			
+			//select box 해당월 설정
+			J("#targetInsertInfo select[name=tgtMons]").each(function(i){
+				J("#tgtPopInfo select[name=tgtMons]").eq(i).val(J(this).val());
+			});
+			
+			J("#tgtValueUpdateByPop").val("Y");
+			J.fancybox.close();
+		});
+		
+		/******************************************
+		 * 화면에서 수정됬을시 db에서 가져온 값이
+		 * 아니라 화면에서 수정된 값을 불러옴
+		 ******************************************/
+		if(J("#tgtValueUpdateByPop").val() == "Y") {
+			J("#targetInsertInfo").empty();
+			
+			J("#tgtPopInfo > table").clone().removeClass("none").prependTo("#targetInsertInfo");
+			
+			//select box 해당월 설정
+			J("#tgtPopInfo select[name=tgtMons]").each(function(i){
+				J("#targetInsertInfo select[name=tgtMons]").eq(i).val(J(this).val());
+			});
+		}
+		
+		/******************************************
+		 * 목표값 숫자만 입력받기
+		 ******************************************/
+		J("#popTargetInsertArea input[name=tgtValues]").numeric({allow:"."});
+		J("#popTargetInsertArea input[name=tgtValues]").css("ime-mode", "disabled"); //한글사용 비활성화
+		
+		
+		/************************************************
+		 * 목표/실적 공유여부 설정이 "Y" 인경우 disabled
+		 ************************************************/
+		if(J(":input:radio[name=tamShareYn]:checked").val() == "Y" && "" != J("#upMetricId").val()) {
+			J("#popTargetValue select[name=tgtMons]").attr("disabled", true);   //목표입력 기준월
+			J("#popTargetValue input[name=tgtValues]").attr("disabled", true);  //목표값
+		}
+		
+		try {
+			$("input", ".blockButton" ).button(); //버튼 ui 적용
+		} catch(err) { }
+	});
+	
+	/******************************************
+	 * 년 목표 계산
+	 ******************************************/
+	function sumTgtValue() {
+		var addboolean;
+    	var weightboolean = false;
+    
+    	var timeRollup = J("#timeRollup").val();
+    
+    	if(timeRollup == "S")  timeRollup = "ACT_A";
+    	if(timeRollup == "SS") timeRollup = "L";
+    
+		var sum = 0;
+		var cnt = 0;
+		var tgtValue = ""; 
+		
+		if(timeRollup == "ACT_A") {
+			J("#popTargetInsertArea input[name=tgtValues]").each(function(index, item) {
+				if(J(item).val() != "" && J(item).val() != "0") {
+    				sum = parseFloat(sum) + parseFloat(J(item).val());
+    			}
+				cnt++;
+    		});
+
+			tgtValue = Math.round((sum/cnt)*100)/100;
+			
+		} else if(timeRollup == "ACT_S") {
+			J("#popTargetInsertArea input[name=tgtValues]").each(function(index, item) {
+				if(J(item).val() != "" && J(item).val() != "0") {
+    				sum = parseFloat(sum) + parseFloat(J(item).val());
+    			}
+    		});
+
+			tgtValue = Math.round((sum)*100)/100;
+		
+		} else if(timeRollup == "L") {
+			J("#popTargetInsertArea input[name=tgtValues]").each(function(index, item) {
+				if(J(item).val() != "") {
+    				tgtValue = parseFloat(J(item).val());
+    			}
+    		});
+			
+			tgtValue = Math.round((tgtValue)*100)/100;
+		}
+		
+		J("#targetY").text(tgtValue);
+	}
+ 
+//]]>
+</script>
+
+#set($popHeight = "380")
+
+#if("M" == $!{searchMap.txt2html("evalCycle")})     <!-- 주기가 월일 경우 --> 
+	#set($popHeight = "380")
+#elseif("Q" == $!{searchMap.txt2html("evalCycle")}) <!-- 주기가 분기일 경우 -->
+	#set($popHeight = "180")
+#elseif("H" == $!{searchMap.txt2html("evalCycle")}) <!-- 주기가 반기일 경우 -->
+	#set($popHeight = "100")
+#elseif("Y" == $!{searchMap.txt2html("evalCycle")}) <!-- 주기가 년일 경우 -->
+	#set($popHeight = "100")
+#end
+
+
+#set($yhStr = ["상반기","하반기"])
+#set($yqStr = ["1분기","2분기","3분기","4분기"])
+ 
+<div style="width:320px;height:$!{popHeight}px;">
+	<div id="popTargetInsertArea">
+		<h1 class="none">목표입력</h1>
+		<div id="userData" style="margin-left:15px;">
+			<!-- 데이터그리드 Start -->
+			<div id="targetInsertInfo" class="blockGridListTable">
+				<table id="popTargetValue" summary="목표 등록">
+    				<caption class="none">목표 등록</caption>
+    				<colgroup>
+    					<col width="20%" />
+    					<col width="30%" />
+						<col width="50%" />
+    				</colgroup>
+    				<tbody>
+    					<tr class="h30">
+    						<th scope="row">주기</th>
+							<th scope="row">기준월</th>
+							<th scope="row">주기별 목표</th>
+    					</tr>
+						
+						#if("M" == $!{searchMap.txt2html("evalCycle")})  <!-- 주기가 월일 경우 --> 
+							
+							#foreach($i in [1..12])
+        						<tr class="h25">
+            						<td class="textCenter">$!{CS_FORMAT.monthOrDayFormat($i)}월</td>
+        							<td class="textCenter">
+    									<select name="tgtMons" class="select w60">
+    										$!{CS_HTML.getEvalCycleCalendar("M", $i, $targetList)}
+    									</select>
+    								</td>
+        							<td>
+										<input type="text" name="tgtValues" class="inputbox wp90" value="$!{CS_HTML.getSelectMonTarget("M", $i, $targetList)}" maxlength="15"/>
+    								</td>
+            					</tr>
+							#end
+						
+						#elseif("Q" == $!{searchMap.txt2html("evalCycle")}) <!-- 주기가 분기일 경우 -->
+							
+							#foreach($i in [1..4])
+								#set($paramIndex = ${i} - 1)
+        						<tr class="h25">
+            						<td class="textCenter">$!{yqStr.get($paramIndex)}</td>
+        							<td class="textCenter">
+    									<select name="tgtMons" class="select w60">
+    										$!{CS_HTML.getEvalCycleCalendar("Q", $i, $targetList)}
+    									</select>
+    								</td>
+        							<td>
+    									<input type="text" name="tgtValues" class="inputbox wp90" value="$!{CS_HTML.getSelectMonTarget("Q", $i, $targetList)}" maxlength="15"/>
+    								</td>
+            					</tr>
+							#end
+							
+						#elseif("H" == $!{searchMap.txt2html("evalCycle")}) <!-- 주기가 반기일 경우 -->
+								
+							#foreach($i in [1..2])
+								#set($paramIndex = ${i} - 1)
+        						<tr class="h25">
+            						<td class="textCenter">$!{yhStr.get($paramIndex)}</td>
+        							<td class="textCenter">
+    									<select name="tgtMons" class="select w60">
+    										$!{CS_HTML.getEvalCycleCalendar("H", $i, $targetList)}
+    									</select>
+    								</td>
+        							<td>
+										<input type="text" name="tgtValues" class="inputbox wp90" value="$!{CS_HTML.getSelectMonTarget("H", $i, $targetList)}" maxlength="15"/>
+    								</td>
+            					</tr>
+							#end
+							
+						#elseif("Y" == $!{searchMap.txt2html("evalCycle")}) <!-- 주기가 년일 경우 -->
+							
+    						<tr class="h25">
+        						<td class="textCenter">년말</td>
+    							<td class="textCenter">
+									<select name="tgtMons" class="select w60">
+										$!{CS_HTML.getEvalCycleCalendar("Y", 1, $targetList)}
+									</select>
+								</td>
+    							<td>
+									<input type="text" name="tgtValues" class="inputbox wp90" value="$!{CS_HTML.getSelectMonTarget("Y", 1, $targetList)}" maxlength="15"/>
+								</td>
+        					</tr>
+							
+						#end
+						
+    				</tbody>
+    			</table>
+			</div>
+			<!--// 데이터그리드 End -->
+			<div class="blockButton_all">			
+				<div class="blockButton_l"></div>
+				<div class="blockButton">			
+					<ul>
+						<li><input type="button" id="btnTargetInsert" value="입력완료" /></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

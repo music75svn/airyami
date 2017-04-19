@@ -1,0 +1,44 @@
+#*************************************************************************
+* CLASS 명      : imponAdjustList_xml
+* 작 업 자      : 박경태
+* 작 업 일      : 2012년 12월 5일 
+* 기    능      : 가감점반영 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      박경태     2012년 12월 5일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"METRIC_GRP_ID"        : "$!{CS_HTML.txt2html($list.METRIC_GRP_ID)}", 
+		"METRIC_GRP_NM"        : "$!{CS_HTML.txt2html($list.METRIC_GRP_NM)}", 
+		"METRIC_ID"            : "$!{CS_HTML.txt2html($list.METRIC_ID)}", 
+		"METRIC_NM"            : "$!{CS_HTML.txt2html($list.METRIC_NM)}", 
+		"SC_DEPT_ID"           : "$!{CS_HTML.txt2html($list.SC_DEPT_ID)}", 
+		"SC_DEPT_NM"           : "$!{CS_HTML.txt2html($list.SC_DEPT_NM)}", 
+		"EVAL_DEGREE_ID"       : "$!{CS_HTML.txt2html($list.EVAL_DEGREE_ID)}", 
+		"EVAL_METRIC_SCORE"    : "$!{CS_HTML.txt2html($list.EVAL_METRIC_SCORE)}", 
+		"ADJUST_SCORE"         : "$!{CS_HTML.txt2html($list.ADJUST_SCORE)}", 
+		#foreach($itemlist in $itemList)
+		"CODE_$!{CS_HTML.txt2html($itemlist.CODE_ID)}" : "$!{CS_HTML.txt2html($list.get($itemlist.COL_NM))}",
+		#end
+		"FINAL_METRIC_SCORE"   : "$!{CS_HTML.txt2html($list.FINAL_METRIC_SCORE)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

@@ -1,0 +1,42 @@
+#*************************************************************************
+* CLASS 명      : resultTargetList_xml
+* 작 업 자      : 현걸욱
+* 작 업 일      : 2012년 11월 7일 
+* 기    능      : 비계량성과목표 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      현걸욱     2012년 11월 7일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($measList.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($measList in $measList)
+	{
+		"GOV_METRIC_NM"         : "$!{CS_HTML.txt2html($measList.GOV_METRIC_NM)}", 
+		"MEAS_NM"        		: "$!{CS_HTML.txt2html($measList.MEAS_NM)}", 
+		"UNIT_NM"              	: "$!{CS_HTML.txt2html($measList.UNIT_NM)}", 
+		"RES_OF_PROPER"         : "$!{CS_HTML.txt2html($measList.RES_OF_PROPER)}", 
+		"RES_OF_1_BEF"          : "$!{CS_HTML.txt2html($measList.RES_OF_1_BEF)}", 
+		"RES_OF_1_AFT"        	: "$!{CS_HTML.txt2html($measList.RES_OF_1_AFT)}", 
+		"TARGET_BASE"     		: "$!{CS_HTML.txt2html($measList.TARGET_BASE)}", 
+		"SORT_ORDER"        	: "$!{CS_HTML.txt2html($measList.SORT_ORDER)}", 
+		"INSERT_USER_NM"        : "$!{CS_HTML.txt2html($measList.INSERT_USER_NM)}", 
+		"GOV_METRIC_ID"         : "$!{CS_HTML.txt2html($measList.GOV_METRIC_ID)}",
+		"INSERT_USER_ID"        : "$!{CS_HTML.txt2html($measList.INSERT_USER_ID)}", 
+		"MEAS_ID"       		: "$!{CS_HTML.txt2html($measList.MEAS_ID)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

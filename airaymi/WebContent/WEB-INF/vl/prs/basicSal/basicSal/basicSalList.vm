@@ -1,0 +1,358 @@
+#*************************************************************************
+* CLASS 명      : basicSalList
+* 작 업 자      : 안요한
+* 작 업 일      : 2013년 06월 20일
+* 기    능      : 기초연봉 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  -----------  -----------------  -------------------------  --------
+*  1       안요한      2013년 06월 20일         최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/prs/basicSal/basicSal/basicSalList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/prs/basicSal/basicSal/basicSalList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['사번','성명', '평가소속부서', '평가직급', '평가직위', '평가등급', '차등율<br>(%)','전년도<br>기초연봉(원)','최종<br>차등율(%)', '차등적용<br>기초연봉(원)', '증가액(원)'],
+			colModel     :[
+							{name:'EMPN'   			,index:'EMPN'				,width:70		,align:'center' },
+							{name:'KOR_NM'   		,index:'KOR_NM'				,width:70   	,align:'center' },
+							{name:'DEPT_FULL_NM'	,index:'DEPT_FULL_NM'		,width:190		,align:'left'   },
+							{name:'CAST_TC_NM'		,index:'CAST_TC_NM'			,width:60		,align:'center' },
+							{name:'POS_TC_NM'		,index:'POS_TC_NM'			,width:60		,align:'center' },
+							{name:'GRADE'			,index:'GRADE'				,width:60		,align:'center' },
+							{name:'DIFF_RATE'		,index:'DIFF_RATE'			,width:50		,align:'center' },
+							{name:'BF_BASIC_SAL'	,index:'SCORE'				,width:100		,align:'right'  },
+							{name:'GR_RATE'			,index:'ANNGR_RATE_SAL'		,width:60		,align:'center' },
+							{name:'ST_BASIC_SAL'	,index:'ST_BASIC_SAL'		,width:100		,align:'right'  },
+							{name:'GROWTHPAY'		,index:'GROWTHPAY'			,width:100		,align:'right'  }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : false,
+			multiselect  : false,
+			cellEdit     : false,
+			##cmTemplate: {sortable:false},
+			caption:"기초연봉"
+		}).setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			var findYear = J("#findYear").val();
+
+			// 연도가 변경되지 않는 경우 Ajax로 데이터그리드만 다시 조회하므로 formList의 searchMap.makeHiddenFind() 가 다시 생성되지 않음.
+			// formList가 submit되는 경우(신규, 수정, 삭제) 검색조건의 사용여부를  유지시켜주기 위해 설정.
+			J("#formList input[name=findUseYn]").val(J("#findUseYn").val());
+
+			J("#findScDeptId").val("");
+			J("#findLevelId").val("");
+		});
+
+
+		/******************************************
+         * 기초연봉 엑셀다운로드 버튼 클릭 이벤트
+         ******************************************/
+        J("#btnExcelDown").click(function() {
+            ExcelDownload();
+            return false;
+        });
+
+		/******************************************
+         * 기초연봉 엑셀변환 버튼 클릭 이벤트
+         ******************************************/
+        J("#btnExcelChange").click(function() {
+            ExcelChange();
+            return false;
+        });
+
+        /******************************************
+         * 엑셀업로드 버튼 클릭 이벤트
+         ******************************************/
+        J("#btnExcelUpload").click(function() {
+            J.showConfirmBox("엑셀업로드를 하시면 기존에 입력한 데이터가 삭제됩니다. 진행하시겠습니까?", "excelUpload");
+            return false;
+        });
+
+        /******************************************
+         * 집계 버튼 클릭 이벤트
+         ******************************************/
+        J("#btnCount").click(function() {
+            J.showConfirmBox("집계를 하시면 재집계됩니다. 진행하시겠습니까?", "basicSalSet");
+            return false;
+        });
+
+        /******************************************
+         * fancy Box 팝업호출
+         ******************************************/
+        J("#anchor").fancybox();            //엑셀업로드 팝업
+
+          /******************************************
+    	 * 조직선택 팝업호출
+    	 ******************************************/
+    	J("#icSearch").fancybox();
+
+    });
+
+	 /******************************************
+     * 기초연봉 엑셀다운로드
+     ******************************************/
+    function ExcelDownload(){
+        J("#yearNm").val(J("#findYear > option:selected").text());
+        J("#formList").attr("action", "$!{context_path}/prs/basicSal/basicSal/basicSalExcel.vw?type=excel").submit();
+        return false;
+    }
+
+	 /******************************************
+     * 기초연봉 엑셀변환다운로드
+     ******************************************/
+    function ExcelChange(){
+    	J("#yearNm").val(J("#findYear > option:selected").text());
+        J("#formList").attr("action", "$!{context_path}/prs/basicSal/basicSal/basicSalChangeExcel.vw?type=excel").submit();
+        return false;
+    }
+
+
+	/******************************************
+	 * 그리드 ajax 조회
+	 ******************************************/
+	function goGridSearch() {
+		J("#list").setGridParam({url:"$!{context_path}/prs/basicSal/basicSal/basicSalList_xml.vw?" + J("#formFind").serialize()});
+		J("#list").trigger("reloadGrid");
+	}
+
+	/******************************************
+	 * 조직선택 클릭이벤트
+	 ******************************************/
+
+	function goAction(deptCd, deptNm) {
+		setDeptInfo(deptCd, deptNm);
+	}
+	/*****************************************************
+	 * 조직선택 설정
+	 *****************************************************/
+	function setDeptInfo(deptCd, deptNm) {
+		// 조직트리에서 조직 선택 시 Ajax로 데이터그리드만 다시 조회하므로 formList의 searchMap.makeHiddenFind() 가 다시 생성되지 않음.
+		// formList가 submit되는 경우(신규, 수정, 삭제) 조직트리에서 선택된 조직의 정보를  유지시켜주기 위해 설정.
+		J("#formList input[name=findDeptCd]").val(deptCd);
+		J("#formList input[name=findDeptNm]").val(J(deptNm).text());
+		J("#formFind input[name=findResult]").val("");
+
+			// formFind의 변수들 설정.
+			J("#findDeptCd").val(deptCd);			// 조직Tree에서 선택한 조직코드를 설정.
+			J("#findDeptNm").val(J(deptNm).text());	// 조직Tree에서 선택한 조직명을 설정.(신규 등록시 사용함.)
+			J("#findResult").val("");	// 조직Tree에서 선택하면 검색결과 초기화함.
+
+			goGridSearch();
+
+	}
+
+
+	/******************************************
+     * 기초연봉순위 엑셀업로드
+     ******************************************/
+    function excelUpload(){
+
+        var year = J("#findYear").val();
+        var findHighPgmId = J("#findHighPgmId").val();
+        var findSubPgmId = J("#findSubPgmId").val();
+        var findPgmId = J("#findPgmId").val();
+        J("#anchor").attr("href","$!{context_path}/prs/basicSal/basicSal/popExcelUpload.vw?findYear=" + year  +  "&amp;findHighPgmId=" + findHighPgmId + "&amp;findSubPgmId=" + findSubPgmId + "&amp;findPgmId=" + findPgmId);
+        J("#anchor").click();
+    }
+
+    /******************************************
+     * 기초연봉 집계
+     ******************************************/
+    function basicSalSet(){
+
+        J("#year").val(J("#findYear").val());
+        J("#mode").val("COUNT");
+        J("#formList").attr("action", "$!{context_path}/prs/basicSal/basicSal/basicSalProcess.vw?type=template").submit();
+
+        return false;
+    }
+
+    /*****************************************************
+	 * 조직선택 설정
+	 *****************************************************/
+	function setDeptInfoPop(deptCd, deptNm) {
+		deptNm = J(deptNm).text();
+		deptCd = deptCd.substring(1);
+
+		J("#findDeptCd").val(deptCd);
+		J("#findDeptNm").val(deptNm);
+		J.fancybox.close();
+	}
+
+	/*****************************************************
+	 * 조직선택 취소
+	 *****************************************************/
+	function cancleDept() {
+		J("#findDeptCd").val("");
+		J("#findDeptNm").val("");
+		J("#findDeptOpt").val("search");
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">기초연봉</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/basicSal/basicSal/basicSalList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="기초연봉 검색 조건">
+						<caption class="none">기초연봉 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w180">
+            						<span>$!{YEAR}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60") || $CS_LOGIN.chkAuthGrp("61"))
+            					<td class="searchBox_tit w180">
+									<span><label for="findCastTc">직급</label></span>
+            						<span class="searchBar">
+                                        <input type="radio" id="findCastTc2" name="findCastTc" value="10" $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '10')} $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '')} /><label for="findCastTc2">1급</label>&nbsp;
+                                        <input type="radio" id="findCastTc3" name="findCastTc" value="20" $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '20')} /><label for="findCastTc3">2급</label>&nbsp;
+                                        <input type="radio" id="findCastTc4" name="findCastTc" value="30" $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '30')} /><label for="findCastTc4">3급</label>&nbsp;
+                                    </span>
+    							</td>
+            					<td class="searchBox_tit w150">
+            						<span>검색</span>
+            						<span class="searchBar">
+            							<select id="findResearch" name="findResearch" class="select w80">
+												<option value="korNms" $searchMap.getSelected("findResearch", "korNms")>성명</option>
+												<option value="empns" $searchMap.getSelected("findResearch", "empns")>사원번호</option>
+            							<select>
+            						</span>
+    				            </td>
+    				            <td class="w150">
+            						<span><label for="findResult"></label></span>
+										<input type="text" title="검색내용" name="findResult" id="findResult" value="$!{searchMap.txt2html("findResult")}" maxlength="30" class="inputbox w100"/>
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w250">
+                                    <span><label for="findDeptNm">소속조직</label></span>
+									<span class="searchBar">
+										<input type="hidden" id="findDeptCd" name="findDeptCd" value="${CS_STATIC.nullToDefault($!{searchMap.txt2html("findDeptCd")},'')}" />
+										<input type="text" id="findDeptNm" name="findDeptNm" class="text" value="${CS_STATIC.nullToDefault($!{searchMap.txt2html("findDeptNm")},'')}" title="소속조직 " class="disable" readonly="readonly"/>
+										<a id="icSearch" href="$!{context_path}/bsc/module/commModule/popDeptTree.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;findSearchCodeId=$!{searchMap.txt2html("findDeptCd")}"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="조직검색"/></a>
+        								<a href="javascript:cancleDept();"><img src="$!{img_path}/common/board/ic_cancel.gif" id="icCancel" class="valign_middle" alt="검색 초기화"/></a>
+									</span>
+            					</td>
+            					#else
+            					<td class="searchBox_tit w150">
+            						<span>성명 </span>
+            						$!{CS_LOGIN.getUser_nm()}
+            						<input type="hidden" id="findResearch" 	name="findResearch" value="empns" />
+									<input type="hidden" id="findResult" 	name="findResult" 	value="$!{CS_LOGIN.getUser_id()}" />
+									<input type="hidden" id="findDeptCd" 	name="findDeptCd" 	value="${CS_STATIC.nullToDefault($!{searchMap.txt2html("findDeptCd")},'')}" />
+								</td>
+								#end
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+			<a id="anchor"></a>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/prs/basicSal/basicSal/basicSalListProcess.vw?type=template">
+			<input type="hidden" id="mode"       	name="mode" />
+			<input type="hidden" id="yearNm"       	name="yearNm" />
+			<input type="hidden" id="empn"       	name="empn" />
+			<input type="hidden" id="rank"       	name="rank" />
+			<input type="hidden" id="year"      	name="year" value="$!{searchMap.txt2html("findYear")}"/>
+
+			$!{searchMap.makeHiddenFind()}
+
+			<div id="splitterBox">
+				<div>
+#*
+					<!-- 조직트리 Start -->
+					<div class="blockGridTreeTable" style="height:400px;">
+						#parse("/WEB-INF/vl/prs/insa/dept/deptTree.vm")
+					</div>
+*#
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="기초연봉 조회결과">
+							<caption class="none">기초연봉 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+				#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60") || $CS_LOGIN.chkAuthGrp("61"))
+					<div class="blockButton_all floatLeft">
+
+						<div class="blockButton" style="float:left; text-align:left; width:125px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀양식다운로드", alt="엑셀양식 다운로드" />
+						</div>
+						<div class="blockButton" style="float:left; text-align:left; width:89px;">
+							<input id="btnExcelUpload" type="button" align="middle" value="엑셀업로드", alt="엑셀변환 업로드" />
+						</div>
+
+						#if ($!{CS_HTML.txt2html($detail.CNT)}!="" && $!{CS_HTML.txt2html($detail.CNT)}!="0")
+						<div class="blockButton" style="float:left; text-align:left; width:80px;">
+							<input id="btnExcelChange" type="button" align="middle" value="엑셀변환", alt="엑셀변환 다운로드" />
+						</div>
+						#end
+
+						<div class="blockButton" style="float:right; text-align:right; width:80px;">
+							<input id="btnCount" type="button" align="middle" value="집계", alt="집계" />
+						</div>
+					</div>
+				#end
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

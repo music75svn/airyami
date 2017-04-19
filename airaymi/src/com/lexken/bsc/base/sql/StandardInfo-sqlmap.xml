@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.base.standardInfo">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_STANDARD_INFO 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가기준 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_STANDARD_INFO 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR                  
+			 , A.COMM_METRIC_ADJUST_PER
+			 , A.UNIQ_METRIC_ADJUST_PER 
+		  FROM BSC_STANDARD_INFO A
+		 WHERE A.YEAR = #findYear#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가기준 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_STANDARD_INFO 
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , COMM_METRIC_ADJUST_PER
+			 , UNIQ_METRIC_ADJUST_PER
+		  FROM BSC_STANDARD_INFO  
+		 WHERE 1 = 1 
+		   AND YEAR = #year#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 등록 여부 확인
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_STANDARD_INFO
+	==================================================================
+	-->	
+	<select id="getKeyCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(1) CNT
+		  FROM BSC_STANDARD_INFO
+		 WHERE YEAR = #findYear#
+	</select>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가기준 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_STANDARD_INFO 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_STANDARD_INFO  ( 
+			   YEAR
+			 , COMM_METRIC_ADJUST_PER
+			 , UNIQ_METRIC_ADJUST_PER
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #commMetricAdjustPer#
+			 , #uniqMetricAdjustPer#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가기준 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_STANDARD_INFO 
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_STANDARD_INFO  
+		   SET COMM_METRIC_ADJUST_PER = #commMetricAdjustPer# 
+			 , UNIQ_METRIC_ADJUST_PER = #uniqMetricAdjustPer# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가기준 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_STANDARD_INFO 
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_STANDARD_INFO  
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+	</update>
+	
+	
+</sqlMap>
+
+

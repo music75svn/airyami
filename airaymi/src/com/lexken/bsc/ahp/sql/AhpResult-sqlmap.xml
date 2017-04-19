@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.ahp.ahpResult">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_AHP_EVAL_STATUS 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: AHP 평가결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_AHP_EVAL_STATUS 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.EVAL_USER_GRP_ID
+             , A.EVAL_USER_GRP_NM
+             , B.ITEM_GRP_ID 
+             , C.ITEM_GRP_NM
+             , B.TOT_WEIGHT
+             , B.EVAL_CLOSING_YN
+             , F_CODE_NM('152', B.EVAL_CLOSING_YN, A.YEAR) AS EVAL_CLOSING_YN_NM 
+             , (SELECT COUNT(1) FROM BSC_AHP_ITEM T WHERE A.YEAR = T.YEAR AND C.ITEM_GRP_ID = T.ITEM_GRP_ID) AS ITEM_CNT
+             , (SELECT COUNT(1) FROM BSC_AHP_EVAL_USER WHERE YEAR = A.YEAR AND EVAL_USER_GRP_ID = A.EVAL_USER_GRP_ID) AS TOT_CNT
+             , (SELECT COUNT(1) FROM BSC_AHP_EVAL_STATUS WHERE YEAR = A.YEAR AND ITEM_GRP_ID = C.ITEM_GRP_ID AND EVAL_USER_GRP_ID = A.EVAL_USER_GRP_ID) AS EVAL_CNT
+		FROM BSC_AHP_EVAL_USER_GRP A
+		          LEFT OUTER JOIN BSC_AHP_EVAL_MAPPING B ON A.YEAR = B.YEAR AND A.EVAL_USER_GRP_ID = B.EVAL_USER_GRP_ID
+		          LEFT OUTER JOIN BSC_AHP_ITEM_GRP C ON B.YEAR = C.YEAR AND B.ITEM_GRP_ID = C.ITEM_GRP_ID
+		WHERE A.YEAR = #findYear#
+		
+		<dynamic>
+		 	<isNotEmpty prepend="AND" property="findEvalUserGrpId">
+            	A.EVAL_USER_GRP_ID = #findEvalUserGrpId#
+		    </isNotEmpty>
+		    
+		    <isNotEmpty prepend="AND" property="findItemGrpId">
+            	B.ITEM_GRP_ID = #findItemGrpId#
+		    </isNotEmpty>
+		    
+		    <isNotEmpty prepend="AND" property="findEvalClosingYn">
+		    	B.EVAL_CLOSING_YN = #findEvalClosingYn#
+		    </isNotEmpty>
+	    </dynamic> 
+		
+		ORDER BY A.SORT_ORDER, C.SORT_ORDER
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: AHP 평가단 목록조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_AHP_EVAL_USER_GRP
+	==================================================================
+	-->
+	<select id="getEvalUserGrpList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.EVAL_USER_GRP_ID
+		     , A.EVAL_USER_GRP_NM
+		  FROM BSC_AHP_EVAL_USER_GRP A
+		 WHERE A.YEAR = #findYear#
+		 ORDER BY SORT_ORDER 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: AHP 평가대상 그룹 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_AHP_ITEM_GRP
+	==================================================================
+	-->
+	<select id="getItemGrpList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.ITEM_GRP_ID
+             , A.ITEM_GRP_NM
+          FROM BSC_AHP_ITEM_GRP A
+         WHERE A.YEAR = #findYear#
+         ORDER BY A.SORT_ORDER 
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: AHP 평가결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_AHP_ITEM 
+	==================================================================
+	-->
+	<select id="getDetailList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.ITEM_ID
+		     , A.ITEM_NM
+		     , B.AHP_CORFFI  
+		     , B.CONVERT_WEIGHT
+		     , B.ADJUST_WEIGHT
+		     , B.ADJUST_REFL_WEIGHT
+		FROM BSC_AHP_ITEM A
+		         LEFT OUTER JOIN BSC_AHP_RESULT B ON A.YEAR = B.YEAR AND B.EVAL_USER_GRP_ID = #evalUserGrpId# AND A.ITEM_ID = B.ITEM_ID
+		WHERE A.YEAR = #year#
+		  AND A.ITEM_GRP_ID = #itemGrpId#
+		ORDER BY A.SORT_ORDER
+	</select>	
+		
+	<!--
+	==================================================================   
+	  # 설명	: 평가단명 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_AHP_EVAL_USER_GRP
+	==================================================================
+	-->
+	<select id="getEvalUserGrpNm" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT EVAL_USER_GRP_NM
+		  FROM BSC_AHP_EVAL_USER_GRP
+		 WHERE YEAR = #year#
+           AND EVAL_USER_GRP_ID = #evalUserGrpId#
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상그룹명 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_AHP_ITEM_GRP
+	==================================================================
+	-->
+	<select id="getItemGrpNm" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT ITEM_GRP_NM
+		  FROM BSC_AHP_ITEM_GRP
+		 WHERE YEAR = #year# 
+		   AND ITEM_GRP_ID = #itemGrpId#
+	</select>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: AHP 평가마감
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_AHP_EVAL_MAPPING
+	==================================================================
+	-->	
+	<update id="closeData" parameterClass="hashMap">
+        UPDATE BSC_AHP_EVAL_MAPPING
+           SET EVAL_CLOSING_YN = #closeYn#
+		 WHERE YEAR = #year#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#
+		   AND ITEM_GRP_ID = #itemGrpId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: AHP 평가마감
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_AHP_EVAL_MAPPING
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_AHP_RESULT
+		   SET ADJUST_WEIGHT = #adjustWeight#
+		     , ADJUST_REFL_WEIGHT = NVL(CONVERT_WEIGHT, 0) + NVL(#adjustWeight#, 0)
+		WHERE YEAR = #year#
+		  AND EVAL_USER_GRP_ID = #evalUserGrpId#
+		  AND ITEM_ID = #itemId#
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: AHP 평가 총가중치 반환
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_AHP_EVAL_MAPPING
+	==================================================================
+	-->
+	<select id="getTotWeight" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT NVL(TOT_WEIGHT, 100) AS TOT_WEIGHT
+		  FROM BSC_AHP_EVAL_MAPPING
+		 WHERE YEAR = #year#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#
+		   AND ITEM_GRP_ID = #itemGrpId#
+	</select>		
+	
+	<!--
+	==================================================================   
+	  # 설명	: AHP 총가중치 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_AHP_EVAL_MAPPING
+	==================================================================
+	-->	
+	<update id="updateTotWeight" parameterClass="hashMap">
+		UPDATE BSC_AHP_EVAL_MAPPING
+		   SET TOT_WEIGHT = #totWeight#
+		 WHERE YEAR = #year#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#
+		   AND ITEM_GRP_ID = #itemGrpId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: AHP 평가점수 가중치환산 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_AHP_RESULT
+	==================================================================
+	-->		
+	<parameterMap id="ahpWeightConvertParamMap" class="java.util.HashMap">
+		<parameter property="year" 		    jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>	
+		<parameter property="evalUserGrpId" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="itemGrpId"     jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>			
+	
+	<!--
+	==================================================================   
+	  # 설명	: AHP 평가점수 가중치환산
+	  #	기능	: PROCEDURES
+	  #	TABLE	: BSC_AHP_RESULT
+	==================================================================
+	-->		
+	<procedure id="execAhpWeightConvert" parameterMap="ahpWeightConvertParamMap">  
+		{CALL SP_AHP_WEIGHT_CONVERT(?, ?, ?)}
+	</procedure>
+	
+	<!--
+	==================================================================   
+	  # 설명	: AHP 평가점수 집계 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_AHP_RESULT
+	==================================================================
+	-->		
+	<parameterMap id="ahpFinalScoreParamMap" class="java.util.HashMap">
+		<parameter property="year" 		    jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>	
+		<parameter property="evalUserGrpId" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="itemGrpId"     jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>			
+	
+	<!--
+	==================================================================   
+	  # 설명	: AHP 평가점수 집계
+	  #	기능	: PROCEDURES
+	  #	TABLE	: BSC_AHP_RESULT
+	==================================================================
+	-->		
+	<procedure id="execAhpFinalScore" parameterMap="ahpFinalScoreParamMap">  
+		{CALL SP_AHP_FINAL_SCORE(?, ?, ?)}
+	</procedure>
+	
+</sqlMap>
+
+

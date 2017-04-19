@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="cbe.eval.evalWeight">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: CBE_WEIGHT_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 가중치그룹 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_WEIGHT_GRP
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+               A.EVAL_DEGREE_ID,
+               A.WEIGHT_GRP_ID,
+               A.WEIGHT_GRP_NM,
+                (SELECT COUNT(*)
+                  FROM CBE_EVAL_MASTER B
+                WHERE B.YEAR=A.YEAR
+                    AND B.EVAL_DEGREE_ID = A.EVAL_DEGREE_ID
+                    AND B.WEIGHT_GRP_ID=A.WEIGHT_GRP_ID) USER_CNT,
+               CASE WHEN  A.FRS_DEPT_WEIGHT IS NULL THEN '' ELSE A.FRS_DEPT_WEIGHT||'%' END FRS_DEPT_WEIGHT ,
+               CASE WHEN  A.SEC_DEPT_WEIGHT IS NULL THEN '' ELSE A.SEC_DEPT_WEIGHT||'%' END SEC_DEPT_WEIGHT ,
+               CASE WHEN  A.TEAM_WEIGHT IS NULL THEN '' ELSE A.TEAM_WEIGHT||'%' END TEAM_WEIGHT ,
+               CASE WHEN  A.PRS_WEIGHT IS NULL THEN '' ELSE A.PRS_WEIGHT||'%' END PRS_WEIGHT ,
+               A.SORT_ORDER
+          FROM CBE_WEIGHT_GRP A
+         WHERE A.YEAR=#findYear#
+           AND A.EVAL_DEGREE_ID=#findEvalDegreeId#
+         ORDER BY A.SORT_ORDER  
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 가중치그룹 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_WEIGHT_GRP
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_DEGREE_ID        
+			 , WEIGHT_GRP_ID         
+			 , WEIGHT_GRP_NM         
+			 , FRS_DEPT_WEIGHT       
+			 , SEC_DEPT_WEIGHT       
+			 , TEAM_WEIGHT           
+			 , PRS_WEIGHT            
+			 , WORK_TERM             
+			 , SORT_ORDER            
+			 , REFL_DT               
+		  FROM CBE_WEIGHT_GRP 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND WEIGHT_GRP_ID = #weightGrpId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 가중치그룹 등록
+	  #	기능	: INSERT
+	  #	TABLE	: CBE_WEIGHT_GRP
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT 'WG'||LPAD(NVL(MAX(SUBSTR(WEIGHT_GRP_ID,3,6)),0)+1,5,'0') SEQ FROM CBE_WEIGHT_GRP WHERE YEAR=#year#
+		</selectKey>
+		INSERT INTO CBE_WEIGHT_GRP ( 
+			   YEAR
+			 , EVAL_DEGREE_ID
+			 , WEIGHT_GRP_ID
+			 , WEIGHT_GRP_NM
+			 , FRS_DEPT_WEIGHT
+			 , SEC_DEPT_WEIGHT
+			 , TEAM_WEIGHT
+			 , PRS_WEIGHT
+			 , SORT_ORDER
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #evalDegreeId#
+			 , #SEQ#
+			 , #weightGrpNm#
+			 , #frsDeptWeight#
+			 , #secDeptWeight#
+			 , #teamWeight#
+			 , #prsWeight#
+			 , #sortOrder#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 가중치그룹 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: CBE_WEIGHT_GRP
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE CBE_WEIGHT_GRP 
+		   SET WEIGHT_GRP_NM          = #weightGrpNm# 
+			 , FRS_DEPT_WEIGHT        = #frsDeptWeight# 
+			 , SEC_DEPT_WEIGHT        = #secDeptWeight# 
+			 , TEAM_WEIGHT            = #teamWeight# 
+			 , PRS_WEIGHT             = #prsWeight# 
+			 , SORT_ORDER             = #sortOrder# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND WEIGHT_GRP_ID = #weightGrpId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 가중치그룹 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: CBE_WEIGHT_GRP
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM CBE_WEIGHT_GRP 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND WEIGHT_GRP_ID = #weightGrpId#
+	</update>
+	
+	
+</sqlMap>
+
+

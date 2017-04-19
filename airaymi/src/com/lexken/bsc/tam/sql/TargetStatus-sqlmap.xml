@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.tam.targetStatus">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 목표입력 및 승인현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getInsertList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT * 
+		FROM ( 
+				SELECT YEAR
+                     , NVL(INSERT_USER_ID, 'N') INSERT_USER_ID
+                     , NVL(INSERT_USER_NM, 'N') INSERT_USER_NM
+                     , NVL(EMAIL, 'N') EMAIL
+                     , NVL(NVL(F_DEPT_FULL_NM(YEAR, DEPT_CD, 'V_DEPTINFO'), DEPT_NM), 'N') DEPT_NM
+                     , COUNT(DISTINCT METRIC_ID) TOT_CNT
+                     , COUNT(DISTINCT METRIC_ID) AS T_METRIC_CNT
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '01' THEN 1 END) AS CNT01
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '02' THEN 1 END) AS CNT02
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '03' THEN 1 END) AS CNT03
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '04' THEN 1 END) AS CNT04
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '05' THEN 1 END) AS CNT05  
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '06' THEN 1 END) AS CNT06  
+                FROM 
+                (
+                SELECT YEAR, INSERT_USER_ID, INSERT_USER_NM, EMAIL, DEPT_NM, DEPT_CD, METRIC_ID, MAX(TGT_STATUS_ID) AS TGT_STATUS_ID
+                  FROM 
+                    (SELECT
+                           A.YEAR
+                         , A.INSERT_USER_ID
+                         , A.METRIC_ID
+                         , A.METRIC_NM
+                         , A.SC_DEPT_ID
+                         , B.SC_DEPT_NM 
+                         , D.MON
+                         , E.TGT_VALUE
+                         , NVL(E.TGT_STATUS_ID, '01') AS TGT_STATUS_ID
+                         , F.USER_NM AS INSERT_USER_NM
+                         , F.EMAIL
+                         , F.DEPT_NM
+                         , F.DEPT_CD
+                    FROM BSC_METRIC A
+                             INNER JOIN BSC_SC_DEPT B ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID AND B.DELETE_DT IS NULL                             
+                             LEFT OUTER JOIN BSC_ACT_REG_DEF_MON D ON A.YEAR = D.YEAR AND A.METRIC_ID = D.METRIC_ID  AND D.DELETE_DT IS NULL
+                             LEFT OUTER JOIN BSC_TARGET E ON A.YEAR = E.YEAR AND A.METRIC_ID = E.METRIC_ID AND D.MON = E.MON AND E.ANAL_CYCLE = 'M'
+                             LEFT OUTER JOIN V_ROLE_USER F ON A.INSERT_USER_ID = F.USER_ID 
+                    WHERE A.YEAR = #findYear#
+                      AND A.TYPE_ID = '01' 
+                      AND A.TAM_SHARE_YN = 'N'
+                      AND A.TGT_INSERT_GUBUN = '02'
+             <!--           AND A.INSERT_USER_ID IS NOT NULL
+                      AND F.USER_NM IS NOT NULL  -->
+                      AND A.DELETE_DT IS NULL
+                    )
+                    GROUP BY YEAR, INSERT_USER_ID, INSERT_USER_NM, EMAIL, DEPT_CD, DEPT_NM, METRIC_ID
+                )                   
+                GROUP BY YEAR, INSERT_USER_ID, INSERT_USER_NM, EMAIL, DEPT_CD, DEPT_NM    
+		)
+		WHERE 1=1
+		
+		<dynamic>
+		   	<isEqual prepend="AND" property="findStatus" compareValue="Y">
+            	T_METRIC_CNT = CNT04
+		    </isEqual>
+		    <isEqual prepend="AND" property="findStatus" compareValue="N">
+            	T_METRIC_CNT != CNT04
+		    </isEqual>  
+	    </dynamic>
+	     
+		ORDER BY INSERT_USER_NM 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 목표확인현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getCheckList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT * 
+		FROM ( 
+				SELECT YEAR
+                     , NVL(APPROVE_USER_ID, 'N') APPROVE_USER_ID
+                     , NVL(APPROVE_USER_NM, 'N') APPROVE_USER_NM
+                     , NVL(EMAIL, 'N') EMAIL
+                     , NVL(NVL(F_DEPT_FULL_NM(YEAR, DEPT_CD, 'V_DEPTINFO'), DEPT_NM), 'N') DEPT_NM
+                     , COUNT(DISTINCT METRIC_ID) TOT_CNT
+                     , COUNT(DISTINCT METRIC_ID) AS T_METRIC_CNT
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '01' THEN 1 END) AS CNT01
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '02' THEN 1 END) AS CNT02
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '03' THEN 1 END) AS CNT03
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '04' THEN 1 END) AS CNT04
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '05' THEN 1 END) AS CNT05  
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '06' THEN 1 END) AS CNT06  
+                FROM 
+                (SELECT YEAR, APPROVE_USER_ID, APPROVE_USER_NM, EMAIL, DEPT_CD, DEPT_NM, METRIC_ID, MAX(TGT_STATUS_ID) AS TGT_STATUS_ID
+                  FROM 
+                    (SELECT  
+                           A.YEAR
+                         , A.APPROVE_USER_ID
+                         , A.METRIC_ID
+                         , A.METRIC_NM
+                         , A.SC_DEPT_ID
+                         , B.SC_DEPT_NM 
+                         , D.MON
+                         , E.TGT_VALUE
+                         , NVL(E.TGT_STATUS_ID, '01') AS TGT_STATUS_ID
+                         , F.USER_NM AS APPROVE_USER_NM
+                         , F.EMAIL
+                         , F.DEPT_NM
+                         , F.DEPT_CD
+                    FROM BSC_METRIC A
+                             INNER JOIN BSC_SC_DEPT B ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID AND B.DELETE_DT IS NULL
+                             LEFT OUTER JOIN BSC_ACT_REG_DEF_MON D ON A.YEAR = D.YEAR AND A.METRIC_ID = D.METRIC_ID  AND D.DELETE_DT IS NULL
+                             LEFT OUTER JOIN BSC_TARGET E ON A.YEAR = E.YEAR AND A.METRIC_ID = E.METRIC_ID AND D.MON = E.MON AND E.ANAL_CYCLE = 'M'
+                             LEFT OUTER JOIN V_ROLE_USER F ON A.APPROVE_USER_ID = F.USER_ID 
+                    WHERE A.YEAR = #findYear#
+                      AND A.TYPE_ID = '01' 
+                      AND A.TAM_SHARE_YN = 'N'
+                      AND A.TGT_INSERT_GUBUN = '02'
+                 <!--      AND A.INSERT_USER_ID IS NOT NULL
+                      AND F.USER_NM IS NOT NULL	 -->
+                      AND A.DELETE_DT IS NULL
+                    )
+                    GROUP BY YEAR, APPROVE_USER_ID, APPROVE_USER_NM, EMAIL, DEPT_CD, DEPT_NM, METRIC_ID
+                )                   
+                GROUP BY YEAR, APPROVE_USER_ID, APPROVE_USER_NM, EMAIL, DEPT_CD, DEPT_NM
+		)
+		WHERE 1=1
+		
+		<dynamic>
+		   	<isEqual prepend="AND" property="findStatus" compareValue="Y">
+            	T_METRIC_CNT = CNT04
+		    </isEqual>
+		    <isEqual prepend="AND" property="findStatus" compareValue="N">
+            	T_METRIC_CNT != CNT04
+		    </isEqual>  
+	    </dynamic>
+	     
+		ORDER BY APPROVE_USER_Nm 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 목표승인현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getApproveList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT * 
+		FROM ( 
+				SELECT YEAR
+                     , NVL(APPROVE_USER_ID, 'N') APPROVE_USER_ID
+                     , NVL(APPROVE_USER_NM, 'N') APPROVE_USER_NM
+                     , NVL(EMAIL, 'N') EMAIL
+                     , NVL(NVL(F_DEPT_FULL_NM(YEAR, DEPT_CD, 'V_DEPTINFO'), DEPT_NM), 'N') DEPT_NM
+                     , COUNT(DISTINCT METRIC_ID) TOT_CNT
+                     , COUNT(DISTINCT METRIC_ID) AS T_METRIC_CNT
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '01' THEN 1 END) AS CNT01
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '02' THEN 1 END) AS CNT02
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '03' THEN 1 END) AS CNT03
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '04' THEN 1 END) AS CNT04
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '05' THEN 1 END) AS CNT05  
+                     , COUNT(CASE WHEN TGT_STATUS_ID = '06' THEN 1 END) AS CNT06  
+                FROM 
+                (SELECT YEAR, APPROVE_USER_ID, APPROVE_USER_NM, EMAIL, DEPT_CD, DEPT_NM, METRIC_ID, MAX(TGT_STATUS_ID) AS TGT_STATUS_ID
+                  FROM 
+                    (SELECT  /*+ ORDERED */ 
+                           A.YEAR
+                         , A.APPROVE_USER_ID
+                         , A.METRIC_ID
+                         , A.METRIC_NM
+                         , A.SC_DEPT_ID
+                         , B.SC_DEPT_NM 
+                         , D.MON
+                         , E.TGT_VALUE
+                         , NVL(E.TGT_STATUS_ID, '01') AS TGT_STATUS_ID
+                         , F.USER_NM AS APPROVE_USER_NM
+                         , F.EMAIL
+                         , F.DEPT_NM
+                         , F.DEPT_CD
+                    FROM BSC_METRIC A
+                             INNER JOIN BSC_SC_DEPT B ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID AND B.DELETE_DT IS NULL
+                             LEFT OUTER JOIN BSC_ACT_REG_DEF_MON D ON A.YEAR = D.YEAR AND A.METRIC_ID = D.METRIC_ID  AND D.DELETE_DT IS NULL
+                             LEFT OUTER JOIN BSC_TARGET E ON A.YEAR = E.YEAR AND A.METRIC_ID = E.METRIC_ID AND D.MON = E.MON AND E.ANAL_CYCLE = 'M'
+                             LEFT OUTER JOIN V_ROLE_USER F ON A.APPROVE_USER_ID = F.USER_ID 
+                    WHERE A.YEAR = #findYear#
+                      AND A.TYPE_ID = '01' 
+                      AND A.TAM_SHARE_YN = 'N'
+                      AND A.TGT_INSERT_GUBUN = '02'
+                  <!--     AND A.INSERT_USER_ID IS NOT NULL
+                      AND F.USER_NM IS NOT NULL 	 -->
+                      AND A.DELETE_DT IS NULL
+                    )
+                    GROUP BY YEAR, APPROVE_USER_ID, APPROVE_USER_NM, EMAIL, DEPT_CD, DEPT_NM, METRIC_ID
+                )                   
+                GROUP BY YEAR, APPROVE_USER_ID, APPROVE_USER_NM, EMAIL, DEPT_CD, DEPT_NM
+		)
+		WHERE 1=1
+		
+		<dynamic>
+		   	<isEqual prepend="AND" property="findStatus" compareValue="Y">
+            	T_METRIC_CNT = CNT04
+		    </isEqual>
+		    <isEqual prepend="AND" property="findStatus" compareValue="N">
+            	T_METRIC_CNT != CNT04
+		    </isEqual>  
+	    </dynamic>
+	     
+		ORDER BY APPROVE_USER_Nm 
+	</select>
+	
+
+	
+</sqlMap>
+
+

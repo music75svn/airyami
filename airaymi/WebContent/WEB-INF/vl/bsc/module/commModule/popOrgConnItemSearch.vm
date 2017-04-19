@@ -1,0 +1,113 @@
+#*************************************************************************
+* CLASS 명      : popOrgConnItemSearch.vm
+* 작 업 자      : 박선혜
+* 작 업 일      : 2013.06.11
+* 기    능      : 연계항목 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     박선혜      2013.06.11          최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFindPop').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{searchMap.txt2html("context")}/bsc/module/commModule/popOrgConnItemSearch_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : 320,
+			colNames     :['연계항목ID', '연계항목명', '연계구분'],
+			colModel     :[
+							{name:'ITEM_CD'  	   ,index:'ITEM_CD' 	  ,width:100   ,align:'center'  },
+							{name:'ITEM_NM'  	   ,index:'ITEM_NM' 	  ,width:330   ,align:'left'  ,formatter:linkUpdate },
+							{name:'ITEM_DIVI_NM'   ,index:'ITEM_DIVI_NM'  ,width:80    ,align:'center'  }							
+							],
+			rowNum       : 100000,
+			autowidth    : true,
+			viewrecords  : true,
+			loadonce     : false,
+			cmTemplate	 : {sortable:false},
+			cellEdit     : true,
+			loadComplete : function() {
+    							J("#findItemNm").select();
+                           },
+			caption:"연계항목조회"
+		});
+        
+    	/******************************************
+    	 * 검색 엔터키 이벤트
+    	 ******************************************/
+		J("#findItemNm").keyup(function(e)  {
+        	if(e.keyCode == 13) {
+        		$("#formFindPop").submit();
+        	}
+        });
+		
+	});
+	
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) { 
+		return '<a href=javascript:setOrgConnItemSetPop(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	
+	/******************************************
+	 * setting
+	 ******************************************/
+	function setOrgConnItemSetPop(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var itemId = ret.ITEM_CD;
+		var itemNm = J(ret.ITEM_NM).text();
+		$!{searchMap.txt2html("callBack")}($!{searchMap.txt2html("index")} , itemId, itemNm);
+	}
+
+	$("#formFindPop").submit(function() { 
+		J("#list").setGridParam({url:"$!{searchMap.txt2html("context")}/bsc/module/commModule/popOrgConnItemSearch_xml.vw?"+J("#formFindPop").serialize()}); 
+		J("#list").trigger("reloadGrid");
+		return false;
+	});
+
+//]]>
+</script>
+
+<form id="formFindPop" name="formFindPop" method="post" action="$!{searchMap.txt2html("context")}/bsc/module/commModule/popOrgConnItemSearch.vw?type=template">
+	<input type="hidden" id="findYear" name="findYear" value="$!{searchMap.txt2html("findYear")}" />
+	
+    <div style="width:550px;height:400px;">
+    	<div id="popMetricGrpArea">
+    		<h1 class="none">연계항목 조회</h1>
+    		<div style="margin-left:30px;margin-bottom:10px;"><span class="strong">연계항목명</span> : <input type="text" id="findItemNm" name="findItemNm" value="$!{searchMap.txt2html("findItemNm")}" /></div>
+    		<div id="userData" style="margin-left:15px;height:340px;width:450px;">
+    			<!-- 데이터그리드 Start -->
+    			<div class="blockGridListTable">
+    				<table id="list" summary="연계항목 조회">
+    					<caption class="none">연계항목 조회</caption>
+    					<thead><tr><th></th></tr></thead>
+    					<tbody><tr><td></td></tr></tbody>
+    				</table>
+    				<div id="pager"></div>                    
+    			</div>
+    			<!--// 데이터그리드 End -->	
+    		</div>
+    	</div>
+    </div>
+</form>

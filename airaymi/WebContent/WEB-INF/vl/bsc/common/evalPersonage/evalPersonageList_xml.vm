@@ -1,0 +1,42 @@
+#*************************************************************************
+* CLASS 명      : evalPersonageList_xml
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 11월 28일 
+* 기    능      : 사외인사 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      정철수     2012년 11월 28일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"PERSONAGE_ID"         : "$!{CS_HTML.txt2html($list.PERSONAGE_ID)}", 
+		"PASSWD"               : "$!{CS_HTML.txt2html($list.PASSWD)}", 
+		"NAME"                 : "$!{CS_HTML.txt2html($list.NAME)}", 
+		"ORGAN"                : "$!{CS_HTML.txt2html($list.ORGAN)}", 
+		"POS"                  : "$!{CS_HTML.txt2html($list.POS)}", 
+		"MOBILE_NO"            : "$!{CS_HTML.txt2html($list.MOBILE_NO)}", 
+		"OFFICE_TEL_NO"        : "$!{CS_HTML.txt2html($list.OFFICE_TEL_NO)}", 
+		"HOME_TEL_NO"          : "$!{CS_HTML.txt2html($list.HOME_TEL_NO)}", 
+		"E_MAIL"               : "$!{CS_HTML.txt2html($list.E_MAIL)}", 
+		"ADDRESS"              : "$!{CS_HTML.txt2html($list.ADDRESS)}", 
+		"BIRTH_YMD"            : "$!{CS_FORMAT.dateFormat( $!{CS_HTML.txt2html($list.BIRTH_YMD)} )}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

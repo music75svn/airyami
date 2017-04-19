@@ -1,0 +1,39 @@
+#*************************************************************************
+* CLASS 명      : metricGrpList_xml
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 6월 13일 
+* 기    능      : 지표Pool관리 json 데이터 조회 
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     하윤식      2012년 6월 13일             최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"METRIC_GRP_ID"     : "$!{CS_HTML.txt2html($list.METRIC_GRP_ID)}",
+		"METRIC_GRP_NM"     : "$!{CS_HTML.txt2html($list.METRIC_GRP_NM)}",
+		"DESCRIPTION"       : "$!{CS_HTML.txt2html($list.DESCRIPTION)}",
+		"CHARGE_SC_DEPT_NM" : "$!{CS_HTML.txt2html($list.CHARGE_SC_DEPT_NM)}",
+		"TYPE_NM"           : "$!{CS_HTML.txt2html($list.TYPE_NM)}",
+		"UNIT_NM"           : "$!{CS_HTML.txt2html($list.UNIT_NM)}",
+		"EVAL_CYCLE_NM"     : "$!{CS_HTML.txt2html($list.EVAL_CYCLE_NM)}",
+		"COUNT"             : "$!{CS_HTML.txt2html($list.COUNT)}",
+		"COUNT_ID"          : "$!{CS_HTML.txt2html($list.COUNT)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

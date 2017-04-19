@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="str.mon.subjectDetail">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 세부과제 정의서 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_SUBJECT
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.SUBJECT_ID
+		     , A.SUBJECT_NM
+		     , A.STRAT_SUBJECT_ID
+		     , B.STRAT_SUBJECT_NM
+		     , A.STRAT_DIRECT_ID
+		     , C.STRAT_DIRECT_NM
+		     , A.SUBJECT_TARGET
+		     , A.CHARGE_USER_ID
+		     , D.USER_NM AS CHARGE_USER_NM
+		     , A.CHARGE_DEPT_ID
+		     , E.DEPT_NM AS CHARGE_DEPT_NM
+		     , A.YEAR + 1 AS Y_1
+             , A.YEAR + 5 AS Y_2 
+		     , A.YEAR_ACTUAL_PLAN
+		     , A.MULTY_YEAR_ACTUAL_PLAN 
+		     , A.SORT_ORDER
+		FROM STR_SUBJECT A
+		     LEFT OUTER JOIN STR_STRAT_SUBJECT B ON A.YEAR = B.YEAR AND A.STRAT_SUBJECT_ID = B.STRAT_SUBJECT_ID
+		     LEFT OUTER JOIN STR_STRAT_DIRECT C ON A.YEAR = C.YEAR AND A.STRAT_DIRECT_ID = C.STRAT_DIRECT_ID
+		     LEFT OUTER JOIN V_ROLE_USER D ON A.CHARGE_USER_ID = D.USER_ID
+		     LEFT OUTER JOIN V_DEPTINFO E ON A.CHARGE_DEPT_ID = E.DEPT_ID
+       WHERE A.YEAR = #findYear#
+         AND A.SUBJECT_ID = #findSubjectId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 세부과제 첨부파일 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_SUBJECT_ATTACH
+	==================================================================
+	-->
+	<select id="getFileList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+	         , SUBJECT_ID
+	         , SEQ
+	         , ATTACH_FILE_NM
+	         , ATTACH_FILE_FNM
+	         , ATTACH_FILE_SUFFIX
+	         , F_ENCRYPT(ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+		  FROM STR_SUBJECT_ATTACH             
+		 WHERE YEAR = #findYear#       
+		   AND SUBJECT_ID = #findSubjectId#
+		 ORDER BY SEQ      
+	</select>	
+	 
+	
+	
+</sqlMap>
+
+

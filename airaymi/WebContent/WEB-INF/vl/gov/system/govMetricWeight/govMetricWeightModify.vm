@@ -1,0 +1,251 @@
+#*************************************************************************
+* CLASS 명      : govMetricWeightModify
+* 작 업 자      : 박경태 
+* 작 업 일      : 2012년 11월 6일 
+* 기    능      : 정평가중치관리    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    박경태      2012년 11월 6일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/gov/system/govMetricWeight/govMetricWeightList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("#baseValue").numeric();
+		J("#baseValue").css("ime-mode", "disabled");
+		J("#bestTarget").numeric();
+		J("#bestTarget").css("ime-mode", "disabled");
+		J("#lowestTarget").numeric();
+		J("#lowestTarget").css("ime-mode", "disabled");
+		J("#stadConst").numeric();
+		J("#stadConst").css("ime-mode", "disabled");
+		J("#sortOrder").numeric();
+		J("#sortOrder").css("ime-mode", "disabled");
+		J("#weight").numeric();
+		J("#weight").css("ime-mode", "disabled");
+
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+	
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/gov/system/govMetricWeight/govMetricWeightProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/gov/system/govMetricWeight/govMetricWeightProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="govMetricId"    name="govMetricId"    value="$!{searchMap.txt2html("govMetricId")}" />
+
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="정평가중치관리 등록">
+					<caption class="none">정평가중치관리 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+							<th scope="row"><label for="evalCatId">평가부문코드</label></th>
+							<td><input type="text" id="evalCatId" name="evalCatId" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.EVAL_CAT_ID)}' maxlength="3"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="evalCatGrpId">평가범주코드</label></th>
+							<td><input type="text" id="evalCatGrpId" name="evalCatGrpId" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.EVAL_CAT_GRP_ID)}' maxlength="3"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="govMetricNm">정평지표명</label></th>
+							<td><input type="text" id="govMetricNm" name="govMetricNm" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.GOV_METRIC_NM)}' maxlength="33"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="content">지표정의</label></th>
+							<td><input type="text" id="content" name="content" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.CONTENT)}' maxlength="1333"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="gbnId">지표유형 코드</label></th>
+							<td><input type="text" id="gbnId" name="gbnId" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.GBN_ID)}' maxlength="3"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="direcId">지표방향성구분</label></th>
+							<td><input type="text" id="direcId" name="direcId" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.DIREC_ID)}' maxlength="3"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="evalMethodId">평가방법 코드</label></th>
+							<td><input type="text" id="evalMethodId" name="evalMethodId" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.EVAL_METHOD_ID)}' maxlength="3"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="unit">단위</label></th>
+							<td><input type="text" id="unit" name="unit" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.UNIT)}' maxlength="2"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="actCalType">평가산식</label></th>
+							<td><input type="text" id="actCalType" name="actCalType" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.ACT_CAL_TYPE)}' maxlength="166"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="detailEvalSummaryComment">성과지표관리방향</label></th>
+							<td><input type="text" id="detailEvalSummaryComment" name="detailEvalSummaryComment" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.DETAIL_EVAL_SUMMARY_COMMENT)}' maxlength="1333"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="scDeptId">주관부서</label></th>
+							<td><input type="text" id="scDeptId" name="scDeptId" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.SC_DEPT_ID)}' maxlength="3"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="insertUserId">담당자</label></th>
+							<td><input type="text" id="insertUserId" name="insertUserId" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.INSERT_USER_ID)}' maxlength="5"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="baseValue">기준치</label></th>
+							<td><input type="text" id="baseValue" name="baseValue" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.BASE_VALUE)}' maxlength="22"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="bestTarget">최고목표</label></th>
+							<td><input type="text" id="bestTarget" name="bestTarget" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.BEST_TARGET)}' maxlength="22"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="lowestTarget">최저목표</label></th>
+							<td><input type="text" id="lowestTarget" name="lowestTarget" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.LOWEST_TARGET)}' maxlength="22"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="stadConst">표준편차</label></th>
+							<td><input type="text" id="stadConst" name="stadConst" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.STAD_CONST)}' maxlength="22"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="sortOrder">정렬순서</label></th>
+							<td><input type="text" id="sortOrder" name="sortOrder" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.SORT_ORDER)}' maxlength="22"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="weight">가중치</label></th>
+							<td><input type="text" id="weight" name="weight" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.WEIGHT)}' maxlength="22"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="simulationYn">시뮬레이션여부</label></th>
+							<td><input type="text" id="simulationYn" name="simulationYn" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.SIMULATION_YN)}' maxlength="0"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="unmeasBestTarget">비계량최고목표</label></th>
+							<td><input type="text" id="unmeasBestTarget" name="unmeasBestTarget" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.UNMEAS_BEST_TARGET)}' maxlength="6"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="mainMetricYn">대표지표 여부</label></th>
+							<td><input type="text" id="mainMetricYn" name="mainMetricYn" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.MAIN_METRIC_YN)}' maxlength="0"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="upMetricId">대표지표 ID</label></th>
+							<td><input type="text" id="upMetricId" name="upMetricId" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.UP_METRIC_ID)}' maxlength="2"/></td>
+						</tr>
+
+						<!--
+    					<tr>
+    						<th scope="row"><label for="codeGrpId">코드그룹ID</label></th>
+    						<td>
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.CODE_GRP_ID)}
+									<input type="hidden" id="codeGrpId" name="codeGrpId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.CODE_GRP_ID)}" maxlength="3" readonly="readonly"/>
+								#else
+									<input type="hidden" id="codeGrpId" name="codeGrpId" class="inputbox w100" maxlength="3" />
+                                    ※ 저장시 자동으로 부여됩니다.
+								#end
+							</td>
+    					</tr>
+    					<tr>
+    						<th scope="row"><label for="codeDefId">코드부여구분</label></th>
+    						<td>
+    							<select id="codeDefId" name="codeDefId" class="select w100">
+    								$!CS_CODE.getCodeOption("014", $detail.CODE_DEF_ID, $!{searchMap.txt2html("year")})
+    							</select>
+    						</td>
+    					</tr>
+    					<tr>
+    						<th scope="row"><label for="codeGrpNm">코드그룹명</label></th>
+    						<td><input type="text" id="codeGrpNm" name="codeGrpNm" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.CODE_GRP_NM)}' maxlength="20"/></td>
+    					</tr>
+    					<tr>
+    						<th scope="row"><label for="yearYn1">연도별관리여부 </label></th>
+    						<td>
+    							<input type="radio" id="yearYn1" name="yearYn" value="Y" #if(!$detail.YEAR_YN || $detail.YEAR_YN == "Y") checked="checked" #end /> 예 &nbsp;&nbsp;&nbsp;
+    							<input type="radio" id="yearYn2" name="yearYn" value="N" #if($detail.YEAR_YN == "N") checked="checked" #end /> 아니오
+    						</td>
+    					</tr>
+						-->
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

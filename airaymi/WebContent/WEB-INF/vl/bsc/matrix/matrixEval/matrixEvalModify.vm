@@ -1,0 +1,179 @@
+#*************************************************************************
+* CLASS 명      : matrixEvalModify
+* 작 업 자      : 정철수 
+* 작 업 일      : 2012년 10월 23일 
+* 기    능      : 평가항목 입력    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    정철수      2012년 10월 23일             최 초 작 업 
+**************************************************************************# 
+#foreach($list in $itemScore)
+	#set($EVAL_MAX_SCORE = $list.MAX_SCORE)
+	#set($EVAL_MIN_SCORE = $list.MIN_SCORE)
+#end
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		// 평가자가 평가제출 했으면 평가항목을 입력 못 함
+		if( '$IS_EVAL_SUBMIT' == 'Y' ){
+			J(":input[name=evalItemScores]").attr("readonly",true);
+		}
+		
+		/******************************************
+    	 * 평가항목에 숫자(정수)만 입력받기
+    	 ******************************************/
+		J(":input[name=evalItemScores]").numeric().css("ime-mode", "disabled"); //숫자(정수)만 입력받기
+		
+		J(":input[name=evalItemScores]").each(function(){
+			var keyupStatus = "N";
+			$(this).bind('keyup',function(){
+				if(((event.keyCode >= 48) && (event.keyCode <= 57)) || ((event.keyCode >= 96) && (event.keyCode <= 105))){
+					keyupStatus = "Y";
+				}
+			});
+		
+		
+			$(this).bind('focusout',function(){
+				// 평가항목 점수 범위 확인
+    			var tmpVal = parseFloat($(this).val());
+    			var MAX_SCORE = parseFloat($EVAL_MAX_SCORE);
+    			var MIN_SCORE = parseFloat($EVAL_MIN_SCORE);
+    			if( keyupStatus == "Y" ){ 
+    				if( MAX_SCORE < tmpVal || MIN_SCORE > tmpVal ){
+    					$(this).val('');
+    					$(this).focus();
+    					J.showMsgBox("평가항목 점수 범위를 벗어났습니다.", null, null);
+    					
+    				}
+    			}
+				keyupStatus = "N";
+			});
+			
+			
+			// 화면 상 평가항목 그룹 별,전체 평점 계산
+			$(this).bind('focusout',function(){
+				var inputId = $(this).attr('id');
+				var inputIdGrp = inputId.substring(0,7);
+				
+				// 입력된 평가항목 그룹 점수 산출
+				var grpEvalResult = 0;
+				var grpEvalList = J(":input[id^=" + inputIdGrp + "]");
+				var totalGrpWeightVal = 0;
+				J.each(grpEvalList, function(index, item){
+					if( item.value != "" ){
+						var tempWeightId = "weight_" + item.id;
+						var tempWeightVal = parseFloat( J(":input[id="+ tempWeightId + "]" ).val() );
+						totalGrpWeightVal = totalGrpWeightVal + tempWeightVal; 
+						grpEvalResult = grpEvalResult + parseFloat( item.value ) * tempWeightVal;
+					}else {
+					}
+				});
+				var evalGrpTotal = Math.round( grpEvalResult / totalGrpWeightVal * 100 ) / 100; 
+				J("#"+inputIdGrp ).text( evalGrpTotal );
+				
+				
+				// 전체 평가항목 그룹 점수 산출
+				var allEvalResult = 0;
+				var allEvalList = J(":input[name=evalItemScores]");
+				var totalWeightVal = 0;
+				J.each(allEvalList, function(index, item){
+					if( item.value != "" ){
+						var tempWeightId = "weight_" + item.id;
+						var tempWeightVal = parseFloat( J(":input[id="+ tempWeightId + "]" ).val() );
+						totalWeightVal = totalWeightVal + tempWeightVal; 
+						allEvalResult = allEvalResult + parseFloat( item.value ) * tempWeightVal;
+					}else {
+					}
+				});
+				var evalAllTotal = Math.round( allEvalResult / totalWeightVal * 100 ) / 100; 
+				J("#ALL").text( evalAllTotal );
+
+			});
+			
+			
+		});
+	});
+	
+
+//]]>
+</script>
+<div class="tableTop">
+	#parse("/WEB-INF/vl/common/template/tabs.vm")
+	<div class="clear"></div>
+</div>
+<div class="blockDetail">
+	<table summary="평가실시">
+		<caption class="none">평가실시</caption>
+		<colgroup>
+			<col width="30" />
+			<col width="150" />
+		</colgroup>
+		<tbody>
+			<tr>
+                <th scope="row" class="textCenter" ><label for="year">평가대상지표 POOL 명</label></th>
+				<td scope="row" >
+					$!{CS_HTML.txt2html($searchMapMetricGrpNm)}
+				</td>
+			</tr>
+		</tbody>
+	</table>		
+</div>
+
+<div class="clear"></div>
+<div class="textLeft" >※평가항목 점수 : $EVAL_MAX_SCORE(매우적합) ~ $EVAL_MIN_SCORE(해당없음)</div>
+<div class="blockDetail">	
+	<table summary="평가실시">
+		<caption class="none">평가실시</caption>
+		<colgroup>
+			<col width="50" />
+			<col width="170" />
+			<col width="30" />
+		</colgroup>
+		<tbody>	
+			#set($tmpItemGrpId = "")
+			#foreach($list in $detail)
+			<tr>
+				#if( $list.ITEM_GRP_ID != $tmpItemGrpId )
+					#set($tmpItemGrpId = $list.ITEM_GRP_ID)
+					#if($list.ITEM_GRP_ID == 'ALL' )
+					<th scope="row" colspan="2" class="textCenter" >$!{CS_HTML.replace($!{CS_HTML.txt2html($list.ITEM_GRP_NM)},"TOTAL","평점")}($!{CS_HTML.txt2html($list.ITEM_ALL_WEIGHT)})</th>
+					#else
+					<th scope="row" rowspan="$list.ROWSPAN_CNT" class="textCenter">$!{CS_HTML.txt2html($list.ITEM_GRP_NM)}<br>($!{CS_HTML.txt2html($list.ITEM_GRP_WEIGHT)})</th>
+					#end
+				#end
+                #if($list.ITEM_GRP_ID != 'ALL' )
+				<th scope="row" class="textLeft">
+					<label for="$!{CS_HTML.txt2html($list.ITEM_GRP_ID)}_$!{CS_HTML.txt2html($list.ITEM_ID)}">
+						$!{CS_HTML.replace($!{CS_HTML.txt2html($list.ITEM_NM)},"TOTAL","평점")}
+						#if($list.ITEM_ID != 'ALL' )
+							($!{CS_HTML.txt2html($list.ITEM_WEIGHT)})
+						#end
+					</label>
+				</th>
+				#end
+				<td class="textRight">
+					#if($list.ITEM_GRP_ID != $list.ITEM_ID )
+                	<input type="text" id="$!{CS_HTML.txt2html($list.ITEM_GRP_ID)}_$!{CS_HTML.txt2html($list.ITEM_ID)}" name="evalItemScores" class="inputbox w100 textRight" value='$!{list.EVAL_SCORE}' maxlength="7" $IS_EVAL_SUBMIT />
+					<input type="hidden" id="weight_$!{CS_HTML.txt2html($list.ITEM_GRP_ID)}_$!{CS_HTML.txt2html($list.ITEM_ID)}" name="evalItemWeights" class="inputbox w100 textRight" value='$!{list.ITEM_WEIGHT}' maxlength="7"  />
+					#else
+					<span id="$!{CS_HTML.txt2html($list.ITEM_GRP_ID)}">$!{list.EVAL_SCORE}</span>
+					#end
+                </td>
+			</tr>
+			#end
+		</tbody>
+	</table>
+<input type="hidden" id="modYear"       	name="modYear" 				value="$!{searchMap.txt2html("findYear")}"/>
+<input type="hidden" id="modEvalUserGrpId"  name="modEvalUserGrpId" 	value="$!{searchMap.txt2html("findEvalUserGrpId")}"/>
+<input type="hidden" id="modEvalUserId"     name="modEvalUserId" 		value="$!{searchMap.txt2html("findEvalUserId")}"/>
+<input type="hidden" id="modMetricGrpId"    name="modMetricGrpId" 		value="$!{searchMap.txt2html("findMetricGrpId")}"/>
+<input type="hidden" id="modItemIds"    	name="modItemIds" 		/>
+<input type="hidden" id="modItemScores"    	name="modItemScores" 	/>
+</div>
+<div class="clear"></div>
+

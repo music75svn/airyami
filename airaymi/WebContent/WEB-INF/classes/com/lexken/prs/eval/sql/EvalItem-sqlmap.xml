@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.eval.evalItem">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 개인평가 평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR, A.EVAL_METHOD_ID, B.EVAL_METHOD_NM, A.EVAL_ITEM_ID, EVAL_ITEM_NM, A.CONTENT
+             , (SELECT COUNT(1) FROM PRS_EVAL_GRP_ITEM WHERE YEAR = A.YEAR AND EVAL_ITEM_ID = A.EVAL_ITEM_ID) EVAL_GRP_CNT
+		  FROM PRS_EVAL_ITEM A
+		     , BSC_ECM_EVAL_GRADE_CONVERT_TAB B
+		 WHERE A.YEAR = #findYear#
+		   AND A.YEAR = B.YEAR
+		   AND A.EVAL_METHOD_ID = B.EVAL_METHOD_ID
+		<isEqual prepend="AND" property="findUseYn" compareValue="Y">
+   				A.DELETE_DT IS NULL
+		</isEqual>
+		<isEqual prepend="AND" property="findUseYn" compareValue="N">
+   				A.DELETE_DT IS NOT NULL
+		</isEqual>
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 개인평가 평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getEvalMethodList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT EVAL_METHOD_ID, EVAL_METHOD_NM
+		  FROM BSC_ECM_EVAL_GRADE_CONVERT_TAB
+		 WHERE YEAR = #findYear# AND DELETE_DT IS NULL AND EVAL_METHOD_GBN_ID = '01'
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.EVAL_METHOD_ID, B.EVAL_METHOD_NM, A.EVAL_ITEM_ID, A.EVAL_ITEM_NM, A.CONTENT
+			 , CASE WHEN A.DELETE_DT IS NULL THEN 'Y'                        
+            		ELSE 'N' 
+        			END DELETE_DT
+		  FROM PRS_EVAL_ITEM A
+		     , BSC_ECM_EVAL_GRADE_CONVERT_TAB B
+		 WHERE A.YEAR = #year#
+		   AND A.YEAR = B.YEAR
+		   AND A.EVAL_ITEM_ID = #evalItemId#
+		   AND A.EVAL_METHOD_ID = B.EVAL_METHOD_ID     
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EVAL_ITEM
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT 'EI'||LPAD(NVL(MAX(SUBSTR(EVAL_ITEM_ID,3,5)),0)+1,5,'0') FROM PRS_EVAL_ITEM WHERE YEAR=#year#
+		</selectKey>
+		
+		INSERT INTO PRS_EVAL_ITEM (
+		            YEAR
+		          , EVAL_ITEM_ID
+		          , EVAL_ITEM_NM
+		          , SCORE
+		          , CONTENT
+		          , CREATE_DT
+		          , MODIFY_DT
+		          , DELETE_DT
+		          ) VALUES ( 
+		            #year#
+		          , #SEQ#
+		          , #evalItemNm#
+		          , #score#
+		          , #content#
+		          , SYSDATE
+		          , NULL
+			 	  , NULL
+			 	  )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_EVAL_ITEM
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE PRS_EVAL_ITEM
+		   SET EVAL_METHOD_ID = #evalMethodId#
+		     , EVAL_ITEM_NM   = #evalItemNm#
+		     , CONTENT        = #content#
+		     , MODIFY_DT      = SYSDATE
+		<isEqual property="useYn" compareValue="Y">
+		     , DELETE_DT      = NULL
+		</isEqual>
+		<isNotEqual property="useYn" compareValue="Y">
+		     , DELETE_DT      = SYSDATE
+		</isNotEqual>
+		     
+		 WHERE YEAR           = #year#
+		   AND EVAL_ITEM_ID   = #evalItemId#
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE PRS_EVAL_ITEM
+		   SET DELETE_DT      = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND EVAL_ITEM_ID = #evalItemId#
+	</update>
+</sqlMap>
+
+

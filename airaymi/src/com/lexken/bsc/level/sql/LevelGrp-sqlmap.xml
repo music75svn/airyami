@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.level.levelGrp">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_LEVEL_EVAL_USER_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 난이도평가 평가단 관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_EVAL_USER_GRP
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CREATE_DT, A.EVAL_USER_GRP_ID, A.EVAL_USER_GRP_NM, 
+		       A.MODIFY_DT, A.SORT_ORDER, A.EVAL_CLOSING_YN, A.CONTENT, 
+		       A.YEAR,
+		       (SELECT COUNT(1) 
+		          FROM BSC_LEVEL_EVAL_USER B
+		         WHERE B.YEAR = A.YEAR
+		           AND B.EVAL_USER_GRP_ID = A.EVAL_USER_GRP_ID) USER_CNT,
+		       (SELECT COUNT(1) 
+		          FROM BSC_LEVEL_EVAL_MAPPING C
+		               INNER JOIN BSC_METRIC D
+		               ON C.YEAR = D.YEAR
+		               AND C.METRIC_ID = D.METRIC_ID
+		               AND D.DELETE_DT IS NULL
+		         WHERE C.YEAR = A.YEAR
+		           AND C.EVAL_USER_GRP_ID = A.EVAL_USER_GRP_ID) MEM_CNT,
+		       CASE WHEN NVL(X.CNT,0) = 0 THEN 'N' ELSE 'Y' END EVAL_SUBMIT_YN         
+		  FROM BSC_LEVEL_EVAL_USER_GRP A
+		       LEFT OUTER JOIN  (SELECT YEAR, EVAL_USER_GRP_ID, COUNT(1) CNT              
+                                   FROM BSC_LEVEL_EVAL_USER             
+                                  WHERE YEAR = #findYear#
+                                    AND EVAL_SUBMIT_YN = 'Y'           
+                                  GROUP BY YEAR, EVAL_USER_GRP_ID) X
+               ON A.YEAR = X.YEAR
+               AND A.EVAL_USER_GRP_ID = X.EVAL_USER_GRP_ID
+		 WHERE A.YEAR = #findYear#
+		 ORDER BY A.SORT_ORDER ASC
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 난이도평가 평가단 관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_EVAL_USER_GRP
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_USER_GRP_ID      
+			 , EVAL_USER_GRP_NM      
+			 , SORT_ORDER            
+			 , EVAL_CLOSING_YN       
+			 , CONTENT         
+		  FROM BSC_LEVEL_EVAL_USER_GRP 
+		 WHERE 1 = 1 
+		   AND YEAR = #findYear#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 난이도평가 평가단 관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_LEVEL_EVAL_USER_GRP
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('BSC_LEVEL_EVAL_USER_GRP',#findYear#,'','','','') SEQ FROM DUAL 
+		</selectKey>
+		INSERT INTO BSC_LEVEL_EVAL_USER_GRP ( 
+			   YEAR
+			 , EVAL_USER_GRP_ID
+			 , EVAL_USER_GRP_NM
+			 , SORT_ORDER
+			 , CONTENT
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #findYear#
+			 , #SEQ#
+			 , #evalUserGrpNm#
+			 , #sortOrder#
+			 , #content#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 난이도평가 평가단 관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_LEVEL_EVAL_USER_GRP
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_LEVEL_EVAL_USER_GRP 
+		   SET EVAL_USER_GRP_NM       = #evalUserGrpNm# 
+			 , SORT_ORDER             = #sortOrder# 
+			 , CONTENT                = #content#
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE 1 = 1 
+		   AND YEAR = #findYear#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 난이도평가 평가단 관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_LEVEL_EVAL_USER_GRP
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_LEVEL_EVAL_USER_GRP 
+		 WHERE 1 = 1 
+		   AND YEAR = #findYear#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#
+	</update>
+	
+	
+</sqlMap>
+
+

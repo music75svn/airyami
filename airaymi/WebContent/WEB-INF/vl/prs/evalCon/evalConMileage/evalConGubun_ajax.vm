@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+#*************************************************************************
+* CLASS 명      : evalKpiModify
+* 작 업 자      : 김효은
+* 작 업 일      : 2013년 9월 10일 
+* 기    능      : KPI평가 관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김효은      2013년 9월 10일             최 초 작 업
+**************************************************************************# 
+<items>
+	#foreach($gubun in $gubun)
+	<item>
+		<gubunId>$!{CS_HTML.txt2html($gubun.GUBUN_ID)}</gubunId>
+		<gubunNm>$!{CS_HTML.txt2html($gubun.GUBUN_NM)}</gubunNm>
+		<content>$!{CS_HTML.txt2html($gubun.CONTENT)}</content>
+	</item>	
+	#end
+</items>

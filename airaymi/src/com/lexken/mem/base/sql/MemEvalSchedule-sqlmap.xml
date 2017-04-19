@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.base.memEvalSchedule">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MEM_EVAL_SCHEDULE
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 직원평가 평가일정 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EVAL_SCHEDULE
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+		       ,TO_CHAR(TO_DATE(IND_START_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS IND_START_DT
+		       ,TO_CHAR(TO_DATE(IND_END_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS IND_END_DT
+		       ,TO_CHAR(TO_DATE(ACT_START_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS ACT_START_DT
+		       ,TO_CHAR(TO_DATE(ACT_END_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS ACT_END_DT
+		       ,TO_CHAR(TO_DATE(STA_START_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS STA_START_DT
+		       ,TO_CHAR(TO_DATE(STA_END_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS STA_END_DT
+		       ,TO_CHAR(TO_DATE(EVAL_START_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS EVAL_START_DT
+		       ,TO_CHAR(TO_DATE(EVAL_END_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS EVAL_END_DT
+		       ,TO_CHAR(TO_DATE(OBJ_START_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS OBJ_START_DT
+		       ,TO_CHAR(TO_DATE(OBJ_END_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS OBJ_END_DT
+		       ,TO_CHAR(TO_DATE(LAST_RST_START_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS LAST_RST_START_DT
+		       ,TO_CHAR(TO_DATE(LAST_RST_END_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS LAST_RST_END_DT
+			 , CREATE_DT
+			 , MODIFY_DT
+		 FROM MEM_EVAL_SCHEDULE
+		WHERE YEAR = #findYear#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가일정 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EVAL_SCHEDULE
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+			 , IND_START_DT
+			 , IND_END_DT
+			 , ACT_START_DT
+			 , ACT_END_DT
+			 , STA_START_DT
+			 , STA_END_DT
+			 , EVAL_START_DT
+			 , EVAL_END_DT
+			 , OBJ_START_DT
+			 , OBJ_END_DT
+			 , LAST_RST_START_DT
+			 , LAST_RST_END_DT
+			 , CREATE_DT
+			 , MODIFY_DT
+		  FROM MEM_EVAL_SCHEDULE
+		 WHERE 1 = 1 	  
+		   AND YEAR = #year#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 직원 평가일정 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_EVAL_SCHEDULE
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		
+			INSERT INTO MEM_EVAL_SCHEDULE (
+			               YEAR
+						 , IND_START_DT
+						 , IND_END_DT
+						 , ACT_START_DT
+						 , ACT_END_DT
+						 , STA_START_DT
+						 , STA_END_DT
+						 , EVAL_START_DT
+						 , EVAL_END_DT
+						 , OBJ_START_DT
+						 , OBJ_END_DT
+						 , LAST_RST_START_DT
+						 , LAST_RST_END_DT
+						 , CREATE_DT
+			          ) VALUES (
+				          #year#
+				        , #indStartDt#             
+						, #indEndDt#               
+						, #actStartDt#              
+						, #actEndDt#                
+						, #staStartDt#                 
+						, #staEndDt#                   
+						, #evalStartDt#              
+						, #evalEndDt#                
+						, #objStartDt#
+						, #objEndDt#
+						, #lastRstStartDt#
+						, #lastRstEndDt#      
+			          	, SYSDATE
+			            )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 직원 평가일정 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_EVAL_SCHEDULE
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+			UPDATE MEM_EVAL_SCHEDULE
+			   SET IND_START_DT 		= #indStartDt#
+			     , IND_END_DT   		= #indEndDt#  
+			     , ACT_START_DT 		= #actStartDt# 
+			     , ACT_END_DT   		= #actEndDt#   
+			     , STA_START_DT     	= #staStartDt#    
+			     , STA_END_DT       	= #staEndDt#      
+			     , EVAL_START_DT 		= #evalStartDt# 
+			     , EVAL_END_DT   		= #evalEndDt#   
+			     , OBJ_START_DT  		= #objStartDt# 
+			     , OBJ_END_DT    		= #objEndDt#   
+			     , LAST_RST_START_DT	= #lastRstStartDt# 
+			     , LAST_RST_END_DT		= #lastRstEndDt#
+			     , MODIFY_DT			= SYSDATE
+			 WHERE YEAR = #year#
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가일정 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_EVAL_SCHEDULE
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM MEM_EVAL_SCHEDULE
+		 WHERE 1 = 1 
+		   AND YEAR = #year#  
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가일정 해당년도 일정입력체크
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EVAL_SCHEDULE
+	==================================================================
+	-->
+	<select id="getYearCheck" parameterClass="hashMap" resultClass="hashMap">
+		SELECT COUNT(YEAR) YEAR_CNT
+		  FROM MEM_EVAL_SCHEDULE
+		 WHERE YEAR = #findYear#
+	</select>
+		
+	
+</sqlMap>
+
+

@@ -1,0 +1,210 @@
+#*************************************************************************
+* CLASS 명      : memDetailEvalMetricModify
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년 03월 14일 
+* 기    능      : 세부평가지표관리  
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    유연주      2017년 03월 14일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	var grdRowId = 0;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#contentIndicator"),
+			limit:500
+		});
+		J("#content").trigger("keyup");
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/mem/base/memDetailEvalMetric/memDetailEvalMetricList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("#sortOrder").numeric();
+		J("#sortOrder").css("ime-mode", "disabled");
+		
+		J("#eval1Rate").numeric({allow:"."});
+		J("#eval1Rate").css("ime-mode", "disabled");
+		
+		J("#eval2Rate").numeric({allow:"."});
+		J("#eval2Rate").css("ime-mode", "disabled");
+		
+		J("#evalPeerRate").numeric({allow:"."});
+		J("#evalPeerRate").css("ime-mode", "disabled");
+	});
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(!J.checkLength("detailEvalMetricNm", "세부평가지표명", 1, 200)) {
+			return;
+		}
+		if(!J.checkLength("content", "설명", 0, 4000)) {
+			return;
+		}
+		if(!J.checkLength("sortOrder", "정렬순서", 0, 5)) {
+			return;
+		}
+		if(!J.checkLength("eval1Rate", "1차평가자비율", 0, 5)) {
+			return;
+		}
+		if(!J.checkLength("eval2Rate", "2차평가자비율", 0, 5)) {
+			return;
+		}
+		if(!J.checkLength("evalPeerRate", "동료평자비율", 0, 5)) {
+			return;
+		}
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/mem/base/memDetailEvalMetric/memDetailEvalMetricProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/mem/base/memDetailEvalMetric/memDetailEvalMetricProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		        name="mode"		          value="$!{searchMap.txt2html("mode")}" />
+	
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">기준년도 <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+								<td class="searchBox_tit w250">평가구분  <span class="searchBar">$!{searchMap.txt2html("jobEvalItemNm")}</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="세부평가지표항목 등록">
+					<caption class="none">세부평가지표항목 등록</caption>
+    				<colgroup>
+    					<col width="10%" />
+    					<col width="10%" />
+    					<col width="80%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row" colspan="2"><label for="detailEvalMetricId">세부평가지표코드</label></th>
+    						<td>
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.DETAIL_EVAL_METRIC_ID)}
+									<input type="hidden" id="detailEvalMetricId" name="detailEvalMetricId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.DETAIL_EVAL_METRIC_ID)}" maxlength="7" readonly="readonly"/>
+								#else
+									<input type="hidden" id="detailEvalMetricId" name="detailEvalMetricId" class="inputbox w100" maxlength="7" />
+									※ 저장시 자동으로 부여됩니다.
+								#end
+							</td>
+    					</tr>
+						<tr>
+							<th scope="row" colspan="2"><span class="txt_red">(*)</span> <label for="jobEvalItemNm">세부평가지표명</label></th>
+							<td><input type="text" id="detailEvalMetricNm" name="detailEvalMetricNm" class="inputbox w270" value='$!{CS_HTML.txt2html($detail.DETAIL_EVAL_METRIC_NM)}' maxlength="40"/></td>
+						</tr>
+						<tr>
+							<th scope="row" rowspan="3"><label for="content">비율</label></th>
+							<th scope="row"><label for="content">1차평가자</label></th>
+							<td>
+								<input type="text" id="eval1Rate" name="eval1Rate" class="inputbox w170" value='$!{CS_HTML.txt2html($detail.EVAL_1_RATE)}' maxlength="5"/>%
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="content">2차평가자</label></th>
+							<td>
+								<input type="text" id="eval2Rate" name="eval2Rate" class="inputbox w170" value='$!{CS_HTML.txt2html($detail.EVAL_2_RATE)}' maxlength="5"/>%
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="content">동료평가</label></th>
+							<td>
+								<input type="text" id="evalPeerRate" name="evalPeerRate" class="inputbox w170" value='$!{CS_HTML.txt2html($detail.EVAL_PEER_RATE)}' maxlength="5"/>%
+							</td>
+						</tr>
+						<tr>
+							<th scope="row" colspan="2"><label for="content">설명</label></th>
+							<td>
+								<textarea id="content" name="content" class="tabletext" title="설명" cols="" rows="3">$!{CS_HTML.txt2html($detail.CONTENT)}</textarea>
+								<span id="contentIndicator">0</span>/4000byte
+							</td>
+						</tr>
+						<tr>
+							<th scope="row" colspan="2"><label for="sortOrder">정렬순서</label></th>
+							<td><input type="text" id="sortOrder" name="sortOrder" class="inputbox w170" value='$!{CS_HTML.txt2html($detail.SORT_ORDER)}' maxlength="5"/></td>
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    	</div>
+		<div id="Table_blockContainer">
+			<div id="splitterBox">
+				<div>
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							##<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+			    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+			    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>

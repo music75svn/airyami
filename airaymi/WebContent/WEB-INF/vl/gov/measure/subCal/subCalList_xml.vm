@@ -1,0 +1,37 @@
+#*************************************************************************
+* CLASS 명      : subCalList_xml
+* 작 업 자      : 현걸욱
+* 작 업 일      : 2012년 11월 6일 
+* 기    능      : 경평계량 세부요소관리 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      현걸욱     2012년 11월 6일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"SUB_CAL_NM"               	: "$!{CS_HTML.txt2html($list.SUB_CAL_NM)}", 
+		"INSERT_USER_NM"           	: "$!{CS_HTML.txt2html($list.INSERT_USER_NM)}", 
+		"INSERT_DEPT_NM"           	: "$!{CS_HTML.txt2html($list.INSERT_DEPT_NM)}", 
+		"UNIT_NM"       			: "$!{CS_HTML.txt2html($list.UNIT_NM)}", 
+		"SORT_ORDER"                : "$!{CS_HTML.txt2html($list.SORT_ORDER)}", 
+		"SUB_CAL_ID"           		: "$!{CS_HTML.txt2html($list.SUB_CAL_ID)}",
+		"CAL_CNT"           		: "$!{CS_HTML.txt2html($list.CAL_CNT)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

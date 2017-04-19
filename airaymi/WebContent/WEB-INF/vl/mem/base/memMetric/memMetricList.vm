@@ -1,0 +1,953 @@
+#*************************************************************************
+* CLASS 명      : metricList
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 6월 26일
+* 기    능      : 조직별KPI관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     하윤식      2012년 6월 26일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/mem/base/memMetric/memMetricList.vw")
+<script type="text/javascript" language="javascript">
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+	 	var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/mem/base/memMetric/memMetricList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : '300',
+			width        : $!{jqGrid_width},
+			colModel     :[
+                            {name:'EVAL_GBN_ID'       	 ,index:'EVAL_GBN_ID'          ,width:60   ,align:'center' ,hidden:true  ,label:'평가구분코드'},
+                            {name:'EVAL_GBN_NM'          ,index:'EVAL_GBN_NM'          ,width:60   ,align:'center' ,hidden:false  ,label:'평가구분'},                            
+                            {name:'METRIC_ID'            ,index:'METRIC_ID'            ,width:50   ,align:'left'   ,hidden:true  ,label:'지표코드'},
+							{name:'METRIC_NM'            ,index:'METRIC_NM'            ,width:210  ,align:'left'   ,hidden:false  ,label:'지표' ,formatter:linkUpdate },
+							{name:'DEPT_METRIC_ID'       ,index:'DEPT_METRIC_ID'       ,width:60   ,align:'center' ,hidden:true  ,label:'부서지표코드'},
+                            {name:'DEPT_METRIC_NM'       ,index:'DEPT_METRIC_NM'       ,width:150  ,align:'left' ,hidden:false  ,label:'부서지표'},
+							{name:'TYPE_NM'       		 ,index:'TYPE_NM'       	   ,width:60   ,align:'center' ,hidden:false  ,label:'평가유형'},
+							{name:'EVAL_CYCLE_NM'        ,index:'EVAL_CYCLE_NM'        ,width:60   ,align:'center' ,hidden:false  ,label:'평가주기'},
+							{name:'TARGETY'        		 ,index:'TARGETY'        	   ,width:60   ,align:'center' ,hidden:false  ,label:'목표'},
+							{name:'UNIT_NM'              ,index:'UNIT_NM'              ,width:60   ,align:'center' ,hidden:false  ,label:'단위'},
+							{name:'PLAN_CNT'             ,index:'PLAN_CNT'             ,width:60   ,align:'center' ,hidden:false  ,label:'PLAN수'},
+							{name:'SCORE_CAL_TYPE_GUBUN' ,index:'SCORE_CAL_TYPE_GUBUN' ,width:80   ,align:'left'   ,hidden:true  ,label:'득점산식구분'},
+							{name:'WEIGHT'               ,index:'WEIGHT'               ,width:50   ,align:'center' ,hidden:true  ,label:'가중치'},
+							{name:'WEIGHT2'              ,index:'WEIGHT2'              ,width:80   ,align:'center' ,hidden:false  ,label:'가중치' ,formatter:linkWeight},
+							{name:'SORT_ORDER'           ,index:'SORT_ORDER'           ,width:80   ,align:'center' ,hidden:false  ,label:'정렬순서' ,formatter:linkSortOrder},
+							{name:'TAKE_OVER_EMP_NO'     ,index:'TAKE_OVER_EMP_NO'     ,width:80   ,align:'center' ,hidden:true  ,label:'승계자사번'},
+							{name:'TAKE_OVER_EMP_NM'     ,index:'TAKE_OVER_EMP_NM'     ,width:60   ,align:'center' ,hidden:false  ,label:'승계자'},
+							{name:'TAKE_OVER_METRIC_ID'  ,index:'TAKE_OVER_METRIC_ID'  ,width:70   ,align:'center' ,hidden:false  ,label:'승계내역' ,formatter:linkTransPop},
+							{name:'TAKE_OVER_METRIC_ID_VAL'  ,index:'TAKE_OVER_METRIC_ID_VAL'  ,width:70   ,align:'center' ,hidden:true  ,label:'승계내역'}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			gridview     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			loadComplete : function() {
+								getWeightSum();  //가중치 합계가져오기
+								getApproveInfo(); //확인자 및 확인상태 가져오기
+                           },
+			caption:"조직별$!{METRIC_NM}관리"
+		});
+		
+		
+		jQuery("#hisList").jqGrid({
+			url          :"$!{context_path}/mem/base/memMetric/memMetricHisList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : '150',
+			width        : $!{jqGrid_width},
+			colModel     :[
+                            {name:'YEAR'       	 		,index:'YEAR'          		,width:60   ,align:'center' ,hidden:true  ,label:'평가항목코드'},
+                            {name:'CREATE_DT'           ,index:'CREATE_DT'          ,width:80   ,align:'center' ,hidden:false  ,label:'일자'},
+                            {name:'STATUS_SEQ'          ,index:'STATUS_SEQ'         ,width:60   ,align:'center' ,hidden:true  ,label:'순번'},                            
+                            {name:'EMP_NO'            	,index:'EMP_NO'            	,width:50   ,align:'left'   ,hidden:true  ,label:'사번'},
+							{name:'METRIC_STATUS_ID'    ,index:'METRIC_STATUS_ID'   ,width:210  ,align:'left'   ,hidden:true  ,label:'상태코드' },
+							{name:'METRIC_STATUS_NM'    ,index:'METRIC_STATUS_NM'   ,width:60   ,align:'center' ,hidden:false  ,label:'상태'},
+                            {name:'EVAL_1_EMP_NO'       ,index:'EVAL_1_EMP_NO'      ,width:150  ,align:'center' ,hidden:true  ,label:'확인자사번'},
+							{name:'EVAL_1_EMP_NM'       ,index:'EVAL_1_EMP_NM'      ,width:80   ,align:'center' ,hidden:false  ,label:'대상자/확인자'},
+							{name:'ACTION_DESC'         ,index:'ACTION_DESC'        ,width:200   ,align:'left' ,hidden:false  ,label:'내용'},
+							{name:'ATTACH_FILE_ID'      ,index:'ATTACH_FILE_ID'     ,width:45   ,align:'center' ,hidden:true  ,label:'첨부파일코드'},
+							{name:'ATTACH_FILE_SUFFIX'  ,index:'ATTACH_FILE_SUFFIX' ,width:45   ,align:'center' ,hidden:true  ,label:'첨부파일코드'},
+							{name:'ATTACH_FILE_PATH'    ,index:'ATTACH_FILE_PATH'   ,width:45   ,align:'center' ,hidden:true  ,label:'첨부파일코드'},
+							{name:'ATTACH_FILE_NM'      ,index:'ATTACH_FILE_NM'     ,width:100   ,align:'left' ,hidden:false  ,label:'첨부파일' ,formatter:linkAttachDown }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			gridview     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			caption:"조직별$!{METRIC_NM}관리"
+		});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			var findYear = J("#findYear").val();
+			var oldYear = J("#oldYear").val();
+
+			if(findYear == oldYear) {
+    			goGridSearch();
+    			return false;
+			}
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+		
+			var formList = J("#formList")[0];
+		
+			J("#metricId").val("");
+			J("#mode").val("ADD");
+			J("#year").val(J("#findYear").val());
+			J("#scoreCalTypeGubun").val("01");
+			J("#empNo").val(J("#findEmpNo").val());
+			J("#empNm").val(J("#findEmpNm").val());
+
+			J("#formList").attr("action", "$!{context_path}/mem/base/memMetric/memMetricModify.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 일괄수정
+		 ******************************************/
+		J("#btnModify").click(function() {
+			/*
+			J("#metricId").val("");
+			J("#year").val(J("#findYear").val());
+			J("#empNo").val(J("#findempId").val());
+			J("#empNm").val(J("#findempNm").val());
+			J("#formList").attr("action", "$!{context_path}/mem/base/memMetric/memMetricBatchList.vw?type=template").submit();
+			*/
+			
+			goAllModify();
+			return false;
+		});
+
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+
+		/******************************************
+		 * 승인요청 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnRequest").click(function() {
+			var weightSum = J("#weightSum").text();
+
+			/*
+			if("100" != weightSum) {
+				J.showMsgBox("가중치 합계가 100이 되어야 확인요청을 할 수 있습니다.", null, null);
+				return;
+			}
+			*/
+
+			J("#status").val("02");
+			J.showConfirmBox("확인요청하시겠습니까?", "statusPop"); //statusDo() 콜백함수 호출
+			return false;
+		});
+		
+		/******************************************
+		 * 승인 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnModRequest").click(function() {
+			J("#status").val("05");
+			J.showConfirmBox("수정요청하시겠습니까?", "statusPop"); //statusDo() 콜백함수 호출
+			return false;
+		});
+
+		/******************************************
+		 * 승인 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnApprove").click(function() {
+			J("#status").val("03");
+			J.showConfirmBox("확인하시겠습니까?", "statusPop"); //statusDo() 콜백함수 호출
+			return false;
+		});
+
+		/******************************************
+		 * 반려 버튼 클릭 이벤트
+        ******************************************/
+		J("#btnReturn").click(function() {
+			J("#status").val("04");
+			J.showConfirmBox("반려하시겠습니까?", "statusPop"); //returnPop() 콜백함수 호출
+			return false;
+		});
+		
+
+		/******************************************
+		 * 지표복사 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnKpiCopy").click(function() {
+			goMetricCopy();
+			return false;
+		});
+
+		/******************************************
+		 * 지표이동 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnKpiMove").click(function() {
+			goMetricMove();
+			return false;
+		});
+
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchor").fancybox();
+		J("#empSearch").fancybox();
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+	});
+	
+	
+	/*****************************************************
+     * 부서장 설정
+     *****************************************************/
+    function setEmpInfo(arguments) {
+        J("input[name=findEmpNo]").val(arguments[0]);
+        J("input[name=findEmpNm]").val(arguments[1]);
+        J.fancybox.close();
+    }
+    
+    function urlencode(str) {
+
+	    str = (str + '').toString();
+	
+	    return encodeURIComponent(str)
+	        .replace(/!/g, '%21')
+	        .replace(/'/g, '%27')
+	        .replace(/\(/g, '%28')
+	        .replace(/\)/g, '%29')
+	        .replace(/\*/g, '%2A')
+	        .replace(/%20/g, '+');
+	
+	}
+	
+	function linkTransPop(cellvalue, options, rowObject){
+	
+		var str = "";
+
+		if(rowObject.TAKE_OVER_METRIC_ID != "") {
+			str = "<img src=\'$!{img_path}/btn_search2.gif\' align='absmiddle'>" + str
+		}
+
+		return '<a href=javascript:goTransPopup(' + options.rowId + ')>' + str + '<//a>';
+		
+	}
+	
+	function goTransPopup(rowId){
+	
+		var ret = J("#list").jqGrid('getRowData',rowId);
+	
+		var param = "&amp;year=$!{searchMap.txt2html("findYear")}&amp;metricId="+ret.TAKE_OVER_METRIC_ID_VAL;
+
+		var url = "$!{context_path}/mem/base/memMetric/popTransModify.vw?type=popup" + param;
+		openWinByName(url,'popTransHis','950','700','yes');
+	
+	}
+	
+	function linkAttachDown(cellvalue, options, rowObject){
+		
+		  var fileExt = rowObject.ATTACH_FILE_SUFFIX;
+		  var fileName = rowObject.ATTACH_FILE_NM;
+		  var filePath = rowObject.ATTACH_FILE_PATH;
+		  
+		  var sStr = "";
+		  if(fileName != ""){
+		  
+		  	sStr = "<a href='$!{context_path}/file/fileDownload.vw?file_name="+urlencode(filePath)+"&amp;real_file_name="+urlencode(fileName)+"' title = '"+fileName+"'>"+fileName;
+		  	sStr += "</a>";
+		  
+		  }
+		  
+		  return sStr;
+	}
+	
+	/******************************************
+	 * 상태팝업호출
+    ******************************************/
+	function statusPop() {
+		/*
+		J("#year").val(J("#findYear").val());
+		J("#scDeptId").val(J("#findScDeptId").val());
+		J("#scDeptNm").val(J("#findScDeptNm").val());
+		J("#mode").val("STATUS");
+		*/
+		
+		var str = "?year=$!{searchMap.txt2html("findYear")}&amp;status="+J("#status").val()+"&amp;empNo="+J("#findEmpNo").val()+"&amp;mode=STATUS"+
+		          "&amp;findHighPgmId=$!{searchMap.txt2html("findHighPgmId")}"+
+		          "&amp;findSubPgmId=$!{searchMap.txt2html("findSubPgmId")}&amp;findPgmId=$!{searchMap.txt2html("findPgmId")}";
+		
+		J("#anchor").attr("href","$!{context_path}/mem/base/memMetric/popReturnInput.vw"+str);
+		J("#anchor").click();
+	}
+	
+
+	/******************************************
+	 * 승인상태 처리
+	 ******************************************/
+	function statusDo() {
+		J("#year").val(J("#findYear").val());
+		J("#empNo").val(J("#findEmpNo").val());
+		J("#empNm").val(J("#findEmpNm").val());
+		J("#mode").val("STATUS");
+		J("#formList").attr("action", "$!{context_path}/mem/base/memMetric/memMetricProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 지표가중치 합계 가져오기
+	 ******************************************/
+	function getWeightSum() {
+		var findYear = J("#findYear").val();
+		var findEmpNo = J("#findEmpNo").val();
+		var findUseYn = J("#findUseYn").val();
+
+		J.ajax({
+			url        : "$!{context_path}/mem/base/memMetric/memMetricWeightSum_ajax.vw",
+        	type       : "POST",
+			data       : "findYear=" + findYear + "&amp;findEmpNo=" + findEmpNo + "&amp;findUseYn=" + findUseYn,
+        	dataType   : "xml",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success    : function (xml) {
+				if(J(xml).find("items").find("item").length > 0) {
+					J(xml).find("items").find("item").each(function() {
+                        var weightSum = J(this).find("weightSum").text();
+						J("#weightSum").text(weightSum);
+
+						if(weightSum != "100") {
+							J("#weightAlert").show();
+						} else {
+							J("#weightAlert").hide();
+						}
+                    });
+				}
+        	},
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+    	});
+	}
+
+	/******************************************
+	 * 조직별 담당자 및 KPI 승인상태 가져오기
+	 ******************************************/
+	function getApproveInfo() {
+		var findYear = J("#findYear").val();
+		var findEmpNo = J("#findEmpNo").val();
+
+		J.ajax({
+			url        : "$!{context_path}/mem/base/memMetric/approveInfo_ajax.vw",
+        	type       : "POST",
+			data       : "findYear=" + findYear + "&amp;findEmpNo=" + findEmpNo,
+        	dataType   : "xml",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success    : function (xml) {
+				var approveStatusId = "";
+				var approveStatusNm = "";
+				var managerUserId = "";
+
+				if(J(xml).find("items").find("item").length > 0) {
+					J(xml).find("items").find("item").each(function() {
+						approveStatusId = J(this).find("approveStatusId").text();
+						approveStatusNm = J(this).find("approveStatusNm").text();
+						managerUserId = J(this).find("managerUserId").text();
+
+						J("#approveStatus").text(approveStatusNm);
+						J("#managerUserId").val(managerUserId);
+                    });
+				}
+
+				//버튼설정
+				buttonEnableSet(approveStatusId);
+        	},
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+    	});
+	}
+
+
+	/******************************************
+	 * 버튼 설정
+	 ******************************************/
+	function buttonEnableSet(approveStatusId) {
+
+		J("#bKpiMove").hide();    //지표이동
+		J("#bKpiCopy").hide();    //지표복사
+		J("#bReturn").hide();     //반려
+		J("#bRequest").hide();    //확인요청
+		J("#bApprove").hide();    //확인
+		J("#bCancle").hide();     //확인취소
+		J("#bModify").hide();     //일괄수정
+		J("#bInsert").hide();     //신규
+		J("#bDelete").hide();     //삭제
+
+		if(approveStatusId.length == 0 || approveStatusId == "01") { //지표입력중
+
+			if($!{CS_LOGIN.chkAuthGrp("01")} || $!{CS_LOGIN.chkAuthGrp("60")}) { //전체관리자
+    			J("#bKpiMove").show();    //지표이동
+    			J("#bKpiCopy").show();    //지표복사
+				J("#bRequest").show();    //승인요청
+    			J("#bModify").show();     //일괄수정
+    			J("#bInsert").show();     //신규
+    			J("#bDelete").show();     //삭제
+			}else if($!{CS_LOGIN.chkAuthGrp("51")}){ //1,2차평가자
+			    
+			    if("Y" == "$!{searchMap.txt2html("evalYn")}"){
+			    	
+			    }else{
+			    
+			    }
+			}else{
+				J("#bKpiMove").show();    //지표이동
+    			J("#bKpiCopy").show();    //지표복사
+				J("#bRequest").show();    //승인요청
+    			J("#bModify").show();     //일괄수정
+    			J("#bInsert").show();     //신규
+    			J("#bDelete").show();     //삭제
+			}
+
+		} else if(approveStatusId == "02") { //지표확인요청시
+
+			if($!{CS_LOGIN.chkAuthGrp("01")} || $!{CS_LOGIN.chkAuthGrp("60")}) { //전체관리자
+				J("#bReturn").show();     //반려
+				J("#bApprove").show();    //확인
+			}else if($!{CS_LOGIN.chkAuthGrp("51")}){ //1,2차평가자
+			    
+			    if("Y" == "$!{searchMap.txt2html("evalYn")}"){
+			    	J("#bReturn").show();     //반려
+					J("#bApprove").show();    //확인
+			    }
+			    
+			}else{
+				
+			}    
+
+		} else if(approveStatusId == "03") { //지표확인완료시
+
+			if($!{CS_LOGIN.chkAuthGrp("01")} || $!{CS_LOGIN.chkAuthGrp("60")}) { //전체관리자
+    			J("#bKpiMove").show();    //지표이동
+    			J("#bKpiCopy").show();    //지표복사
+				J("#bReturn").show();     //반려
+    			J("#bModify").show();     //일괄수정
+    			J("#bInsert").show();     //신규
+    			J("#bDelete").show();     //삭제
+			
+			}else if($!{CS_LOGIN.chkAuthGrp("51")}){ //1,2차평가자
+			    
+			    if("Y" == "$!{searchMap.txt2html("evalYn")}"){
+			    	J("#bReturn").show();     //반려
+			    }
+			
+			}else{
+				J("#bModRequest").show(); //수정요청
+			}
+
+		} else if(approveStatusId == "04") { //지표반려시
+
+			if($!{CS_LOGIN.chkAuthGrp("01")} || $!{CS_LOGIN.chkAuthGrp("60")}) { //전체관리자
+    			J("#bKpiMove").show();    //지표이동
+    			J("#bKpiCopy").show();    //지표복사
+				J("#bRequest").show();    //승인요청
+    			J("#bModify").show();     //일괄수정
+    			J("#bInsert").show();     //신규
+    			J("#bDelete").show();     //삭제
+			}else if($!{CS_LOGIN.chkAuthGrp("51")}){ //1,2차평가자
+			    
+			    if("Y" == "$!{searchMap.txt2html("evalYn")}"){
+			    	
+			    }else{
+			    
+			    }
+			}else{
+				J("#bKpiMove").show();    //지표이동
+    			J("#bKpiCopy").show();    //지표복사
+				J("#bRequest").show();    //승인요청
+    			J("#bModify").show();     //일괄수정
+    			J("#bInsert").show();     //신규
+    			J("#bDelete").show();     //삭제
+			}
+		} else if(approveStatusId == "05") { //수정요청시
+
+			if($!{CS_LOGIN.chkAuthGrp("01")} || $!{CS_LOGIN.chkAuthGrp("60")}) { //전체관리자
+    			J("#bKpiMove").show();    //지표이동
+    			J("#bKpiCopy").show();    //지표복사
+				J("#bReturn").show();     //반려
+    			J("#bModify").show();     //일괄수정
+    			J("#bInsert").show();     //신규
+    			J("#bDelete").show();     //삭제
+			
+			}else if($!{CS_LOGIN.chkAuthGrp("51")}){ //1,2차평가자
+			    
+			    if("Y" == "$!{searchMap.txt2html("evalYn")}"){
+			    	J("#bReturn").show();     //반려
+			    }
+			
+			}else{
+			}
+		}
+	}
+
+	/******************************************
+	 * jqGrid 가중치
+	 ******************************************/
+	function linkWeight(cellvalue, options, rowObject) {
+		return '<input type="text" name="weights" value="' + cellvalue + '" class="wp70" maxlength="6" />'+
+		       '<input type="hidden" name="allMetricIds" value="' + rowObject.METRIC_ID + '" />';
+	}
+	
+	/******************************************
+	 * jqGrid 가중치
+	 ******************************************/
+	function linkSortOrder(cellvalue, options, rowObject) {
+		return '<input type="text" name="sortOrders" value="' + cellvalue + '" class="wp70" maxlength="6" />';
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) {
+		var str = cellvalue;
+
+		return '<a href=javascript:goModify(' + options.rowId + ')>' + str + '<//a>';
+	}
+
+	/******************************************
+	 * 그리드 ajax 조회
+	 ******************************************/
+	function goGridSearch() {
+		J("#list").setGridParam({url:"$!{context_path}/mem/base/memMetric/memMetricList_xml.vw?"+J("#formFind").serialize(), datatype:"json"});
+		J("#list").trigger("reloadGrid");
+		
+		J("#hisList").setGridParam({url:"$!{context_path}/mem/base/memMetric/memMetricHisList_xml.vw?"+J("#formFind").serialize(), datatype:"json"});
+		J("#hisList").trigger("reloadGrid");
+	}
+
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#metricId").val(ret.METRIC_ID);
+		J("#year").val(J("#findYear").val());
+		J("#empNo").val(J("#findEmpId").val());
+		J("#empNm").val(J("#findEmpNm").val());
+		J("#scoreCalTypeGubun").val(ret.SCORE_CAL_TYPE_GUBUN);
+		J("#mode").val("MOD");
+		J("#formList").attr("action", "$!{context_path}/mem/base/memMetric/memMetricModify.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 삭제
+	 ******************************************/
+	function goDelete() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("삭제할 데이터를 선택하십시요", null, null);
+		} else {
+			J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+	
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var metricIds = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					metricIds += rowdata.METRIC_ID + '|';
+				}
+			});
+		}
+
+		J("#year").val(J("#findYear").val());
+		J("#empNo").val(J("#findEmpNo").val());
+		J("#empNm").val(J("#findEmpNm").val());
+		J("#metricIds").val(metricIds);
+		J("#mode").val("DEL");
+		J("#formList").attr("action", "$!{context_path}/mem/base/memMetric/memMetricProcess.vw?type=template").submit();
+		return false;
+	}
+	
+	function goAllModify(){
+		J.showConfirmBox("일괄수정 하시겠습니까?", "allModifyDo"); //allModifyDo() 콜백함수 호출
+	}
+	
+	function allModifyDo(){
+	
+		/*
+		J("input[name=allMetricIds]").each(function(value,item){
+			alert(J(this).val());
+		});
+		
+		*/
+		
+	
+	
+		J("#year").val(J("#findYear").val());
+		J("#mode").val("ALLMOD");
+		J("#formList").attr("action", "$!{context_path}/mem/base/memMetric/memMetricProcess.vw?type=template").submit();
+		return false;
+	
+	}
+
+	/******************************************
+	 * 조직트리 선택
+	 ******************************************/
+	function goAction(code, name) {
+		var scDeptNm = J(name).text();
+		J("#findScDeptId").val(code);
+		J("#findScDeptNm").val(scDeptNm);
+		goGridSearch();
+	}
+
+	/******************************************
+	 * 지표복사체크
+	 ******************************************/
+	function goMetricCopy() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("복사할 $!{METRIC_NM}를 선택하십시요", null, null);
+		} else {
+			metricCopyPop();
+		}
+	}
+
+	/******************************************
+	 * 지표복사
+	 ******************************************/
+	function metricCopyPop() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var metricIds = "";
+		
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					metricIds += rowdata.METRIC_ID + '|';
+				}
+			});
+		}
+
+		J("#year").val(J("#findYear").val());
+		J("#empNo").val(J("#findEmpNo").val());
+		J("#empNm").val(J("#findEmpNm").val());
+		J("#metricIds").val(metricIds);
+
+		var year = J("#findYear").val();
+		var empNo = J("#findEmpNo").val();
+		/*
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popScDeptList.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;scDeptId=" + scDeptId);
+		*/
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popMemSearchUser.vw?findYear=" + year + "&amp;callBack=setCopyInfoPop");
+		J("#anchor").click();
+		return false;
+	}
+
+	/******************************************
+	 * 지표복사 처리
+	 ******************************************/
+	 /*
+	function metricCopyDo() {
+		J("#year").val(J("#findYear").val());
+		J("#scDeptId").val(J("#findScDeptId").val());
+		J("#scDeptNm").val(J("#findScDeptNm").val());
+		J("#mode").val("COPY");
+		J("#formList").attr("action", "$!{context_path}/mem/base/memMetric/memMetricProcess.vw?type=template").submit();
+		return false;
+	}
+	*/
+	
+	function setCopyInfoPop(arguments) {
+		J.fancybox.close();
+
+		J("#targetEmpNo").val(arguments[0]);
+		J("#year").val(J("#findYear").val());
+		J("#empNo").val(J("#findEmpNo").val());
+		J("#empNm").val(J("#findEmpNm").val());
+		J("#mode").val("COPY");
+		J("#formList").attr("action", "$!{context_path}/mem/base/memMetric/memMetricProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 지표이동체크
+	 ******************************************/
+	function goMetricMove() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("이동할 $!{METRIC_NM}를 선택하십시요", null, null);
+		} else {
+			metricMovePop();
+		}
+	}
+
+	/******************************************
+	 * 지표이동
+	 ******************************************/
+	function metricMovePop() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var metricIds = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					metricIds += rowdata.METRIC_ID + '|';
+				}
+			});
+		}
+
+		J("#year").val(J("#findYear").val());
+		J("#empNo").val(J("#findEmpNo").val());
+		J("#empNm").val(J("#findEmpNm").val());
+		J("#metricIds").val(metricIds);
+
+		var year = J("#findYear").val();
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popMemSearchUser.vw?findYear=" + year + "&amp;callBack=setMoveInfoPop");
+		
+		J("#anchor").click();
+		return false;
+	}
+
+	/*****************************************************
+	 * 지표이동 조직선택 설정
+	 *****************************************************/
+	function setMoveInfoPop(arguments) {
+		J.fancybox.close();
+
+		J("#targetEmpNo").val(arguments[0]);
+		J("#year").val(J("#findYear").val());
+		J("#empNo").val(J("#findEmpNo").val());
+		J("#empNm").val(J("#findEmpNm").val());
+		J("#mode").val("MOVE");
+		J("#formList").attr("action", "$!{context_path}/mem/base/memMetric/memMetricProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#year").val(J("#findYear").val());
+		J("#scDeptId").val(J("#findScDeptId").val());
+		J("#useYn").val(J("#findUseYn").val());
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#useYnNm").val(J("#findUseYn > option:selected").text());
+		J("#formList").attr("action", "$!{context_path}/mem/base/memMetric/memMetricListExcel.vw?type=excel").submit();
+		return false;
+	}
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">조직별$!{METRIC_NM}관리</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/mem/base/memMetric/memMetricList.vw?type=template">
+				<input type="hidden" 	id="oldYear"		name="oldYear"			value="$!{searchMap.txt2html("findYear")}" />
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="조직별$!{METRIC_NM} 관리검색 조건">
+						<caption class="none">조직별$!{METRIC_NM}관리 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w180">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+									
+            					#if($CS_LOGIN.chkAuthGrp("01"))
+            					<td class="searchBox_tit w250">
+            						<span><label for="findEmpNo">평가대상자</label></span>
+            						<span class="searchBar">
+	                                	<input type="hidden" id="findEmpNo" name="findEmpNo" value="$!{searchMap.txt2html("findEmpNo")}" />
+	                                	<input type="text" id="findEmpNm" name="findEmpNm" class="inputbox w100 disable" value='$!{searchMap.txt2html("findEmpNm")}' maxlength="20" readonly="readonly"/>
+	                                	<a id="empSearch" href="$!{context_path}/bsc/module/commModule/popMemSearchUser.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;callBack=setEmpInfo"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="평가대상자선택" /></a>
+	                                	<a href="javascript:J.setInit('findEmpNo','findEmpNm');"><img src="$!{img_path}/common/board/ic_cancel.gif" class="valign_middle" alt="평가대상자선택 취소" /></a>
+	                            	</span>
+	                            </td>
+            					#elseif($CS_LOGIN.chkAuthGrp("51"))
+            					<td class="searchBox_tit w250">
+            						<span><label for="findEmpNo">평가대상자</label></span>
+            						<select id="findEmpNo" name="findEmpNo" class="select w80">
+        								#foreach($empNoList in $empNoList)
+											<option value="$!{CS_HTML.txt2html($empNoList.EMP_NO)}" $searchMap.getSelected("findEmpNo", "$!{CS_HTML.txt2html($empNoList.EMP_NO)}")>$!{CS_HTML.txt2html($empNoList.EMP_NM)}</option>
+										#end
+        							</select>
+        						</td>	
+            					#else
+            					<td class="searchBox_tit w250">
+            						<span><label for="findEmpNo">평가대상자</label></span>
+            						<span class="searchBar">
+	                                	$!{searchMap.txt2html("findEmpNm")}
+	                                	<input type="hidden" id="findEmpNo" name="findEmpNo" value="$!{searchMap.txt2html("findEmpNo")}" />
+	                                	<input type="hidden" id="findEmpNm" name="findEmpNm" value="$!{searchMap.txt2html("findEmpNm")}" />
+	                            	</span>
+	                            </td>	
+            					#end
+            					
+            					<td class="searchBox_tit w200">
+                                    <span><label for="findUseYn">사용여부</label></span>
+            						<span class="searchBar">
+            							<select id="findUseYn" name="findUseYn" class="select w70">
+            								$!CS_CODE.getCodeOption("011", $!{searchMap.txt2html("findUseYn")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w140">
+									<span>$!{WEIGHT}합계 : </span>
+            						<span id="weightSum" class="searchBar"></span>
+            					</td>
+								<td class="searchBox_tit w140">
+									<span>$!{METRIC_NM}확인상태 : </span>
+            						<span id="approveStatus" class="searchBar"></span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/mem/base/memMetric/memMetricProcess.vw?type=template">
+			<input type="hidden" id="mode"       	    name="mode" />
+			<input type="hidden" id="year"		 	    name="year" />
+			<input type="hidden" id="metricIds"  	    name="metricIds" />
+			<input type="hidden" id="metricId"   	    name="metricId" />
+			<input type="hidden" id="empNo"   	        name="empNo" />
+			<input type="hidden" id="empNm"   	        name="empNm" />
+			<input type="hidden" id="status"    	    name="status" />
+			<input type="hidden" id="targetEmpNos"	    name="targetEmpNos" />
+			<input type="hidden" id="targetEmpNo"		name="targetEmpNo" />
+			<input type="hidden" id="managerUserId"		name="managerUserId" />
+			<input type="hidden" id="yearNm"        	name="yearNm" />
+			<input type="hidden" id="useYn"        		name="useYn" />
+			<input type="hidden" id="useYnNm"      	 	name="useYnNm" />
+			<input type="hidden" id="scoreCalTypeGubun" name="scoreCalTypeGubun" />
+			$!{searchMap.makeHiddenFind()}
+
+		<div id="splitterBox">
+			<div>
+				<div id="mainListData">
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable floatRight">
+						<table id="list" summary="조직별$!{METRIC_NM}관리 조회결과">
+							<caption class="none">조직별$!{METRIC_NM}관리 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all floatLeft">
+						<div class="blockButton" style="float:left; text-align:left; width:350px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" /><br/>
+								#if($!{kpiInputTermYn} == 'N')
+									<span id="closeAlert" class="txt_blue">※$!{METRIC_NM}입력 기한이 아닙니다.</span><br/>
+								#end
+								<span id="weightAlert" class="txt_red2 none">※$!{WEIGHT} 합계가 100이 되어야 합니다. 재조정 해주세요.</span><br/>
+						</div>
+						<div id="blockButton" class="blockButton">
+							<ul>
+								<!--
+								<li id="bKpiMove" style="display:none"><input type="button" id="btnKpiMove" value="$!{METRIC_NM}이동" /></li>
+								-->
+								<li id="bKpiCopy" style="display:none"><input type="button" id="btnKpiCopy" value="$!{METRIC_NM}승계(복사)" /></li>
+								<li id="bRequest" style="display:none"><input type="button" id="btnRequest" value="확인요청" /></li>
+								<li id="bModRequest" style="display:none"><input type="button" id="btnModRequest" value="수정요청" /></li>
+								<li id="bReturn"  style="display:none"><input type="button" id="btnReturn"  value="반려" /></li>
+								<li id="bApprove" style="display:none"><input type="button" id="btnApprove" value="확인" /></li>
+								<li id="bModify"  style="display:none"><input type="button" id="btnModify"  value="일괄수정" /></li>
+								<li id="bInsert"  style="display:none"><input type="button" id="btnInsert"  value="신규" /></li>
+								<li id="bDelete"  style="display:none"><input type="submit" id="btnDelete"  value="삭제" /></li>
+							</ul>
+						</div>
+					</div>
+					
+					<div class="blockGridListTable floatRight">
+						<table id="hisList" summary="조직별$!{METRIC_NM}관리 조회결과">
+							<caption class="none">조직별$!{METRIC_NM}관리 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					
+				</div>
+			</div>
+		</div>
+		</form>
+	</div>
+	<a id="anchor"></a>
+	<div class="clear"></div>
+</div>

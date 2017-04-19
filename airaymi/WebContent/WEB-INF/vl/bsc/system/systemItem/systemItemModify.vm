@@ -1,0 +1,306 @@
+#*************************************************************************
+* CLASS 명      : systemItemModify
+* 작 업 자      : 김기현
+* 작 업 일      : 2012년 6월 18일
+* 기    능      : 시스템항목관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    김기현      2012년 6월 18일             최 초 작 업
+*  2    김상용      2013년 7월  9일             시스템구분 삭제
+**************************************************************************#
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/bsc/system/systemItem/systemItemList.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#indicator"),
+			limit:1000
+		});
+		J("#content").trigger("keyup");
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+		/******************************************
+		 * 사용중이면서 하위코드 존재시 삭제못함
+		 ******************************************/
+		#if($!{CS_HTML.txt2html($detail.USE_YN)} == "Y" && $!{searchMap.txt2html("itemCnt")} != "0")
+			J("#useYn").attr("disabled", true);
+        #end
+
+		/******************************************
+		 * 등록구분이 엑셀인 경우 시스템구분 설정못함
+		 ******************************************/
+		##if($!{searchMap.txt2html("mode")} == "MOD" && $!{CS_HTML.txt2html($detail.ITEM_DIVI)} == "02")
+		##	J("#systemGbn").attr("disabled", true);
+        ##end
+
+		/******************************************
+		 * 항목코드 영문자, 숫자만 입력
+		 ******************************************/
+		J("#itemCd").alphanumeric(); //영문자, 숫자만 입력받기
+		J("#itemCd").css("ime-mode", "disabled"); //한글사용 비활성화
+
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchor").fancybox(); //엑셀담당자 설정 팝업
+
+		/******************************************
+		 * 등록구분 변경시 이벤트
+		 ******************************************/
+		J(":input:radio[name=itemDivi]").click(function(){
+			if(J(":input:radio[name=itemDivi]:checked").val() == "01") { //시스템
+				J.setInit('excelUserId','excelUserNm');
+				J("#deptApplyScope").val('01');
+				J("#deptApplyScope").attr("disabled", true);
+
+				J("#systemGbn").attr("disabled", false);
+			} else {
+				J("#systemGbn").val('');
+				J("#systemGbn").attr("disabled", true);
+			}
+        });
+
+		if(J(":input:radio[name=itemActualDivi]:checked").val() == "01") {
+			J("#deptApplyScope").val('01');
+			J("#deptApplyScope").attr("disabled", true);
+		} else {
+			J("#deptApplyScope").attr("disabled", false);
+		}
+
+		/******************************************
+		 * 등록구분 변경시 이벤트
+		 ******************************************/
+		J(":input:radio[name=itemActualDivi]").click(function(){
+			if(J(":input:radio[name=itemActualDivi]:checked").val() == "01") {
+				J("#deptApplyScope").val('01');
+				J("#deptApplyScope").attr("disabled", true);
+			} else {
+				J("#deptApplyScope").attr("disabled", false);
+			}
+        });
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+
+        if(!J.checkLength("year", "평가년도", 1, 4)) {
+            return;
+        }
+
+        if(!J.checkLength("itemCd", "항목코드", 1, 8)) {
+            return;
+        }
+
+        if(!J.checkLength("itemNm", "항목명", 1, 140)) {
+            return;
+        }
+
+		if (J("input[name='itemActualDivi']:checked").val() == undefined) {
+			J.showMsgBox("연계구분을 선택해 주십시요", null, "itemActualDivi1");
+			return;
+		}
+
+		if (J("input[name='itemDivi']:checked").val() == undefined) {
+			J.showMsgBox("등록구분을 선택해 주십시요", null, "itemDivi1");
+			return;
+		} else if(J("input[name='itemDivi']:checked").val() == "02") {
+			if(J("#excelUserId").val() == "") {
+				J.showMsgBox("등록구분이 엑셀인 경우에는 엑셀담당자를 선택해 주십시요", null, null);
+				return;
+			}
+		} /* else if(J("input[name='itemDivi']:checked").val() == "01") {
+			if(J("#systemGbn").val() == "") {
+				J.showMsgBox("시스템구분을 선택해 주십시요", null, null);
+				return;
+			}
+		} */
+
+        if(!J.checkLength("content", "연계설명", 0, 1000)) {
+            return;
+        }
+
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#useYn").attr("disabled", false);
+		J("#deptApplyScope").attr("disabled", false);
+		J("#form1").attr("action", "$!{context_path}/bsc/system/systemItem/systemItemProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 엑셀담당자 검색
+	 ******************************************/
+	function searchUserPop() {
+		if(J(":input:radio[name=itemDivi]:checked").val() == "02") {
+			J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popSearchUser.vw?findYear=$!{searchMap.txt2html("year")}&amp;callBack=setUserInfo");
+			J("#anchor").click();
+		} else {
+			J.showMsgBox("등록구분이 엑셀인 경우에만 선택가능합니다", null, null);
+			return;
+		}
+	}
+
+	/*****************************************************
+	 * 엑셀담당자 설정
+	 *****************************************************/
+	function setUserInfo(arguments) {
+		J("#excelUserId").val(arguments[0]);
+		J("#excelUserNm").val(arguments[1]);
+		J.fancybox.close();
+	}
+//]]>
+</script>
+
+<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/system/systemItem/systemItemProcess.vw?type=template">
+    <input type="hidden" id="mode"		name="mode"		value="$!{searchMap.txt2html("mode")}" />
+    <input type="hidden" id="year"		name="year"		value="$!{searchMap.txt2html("findYear")}" />
+    $!{searchMap.makeHiddenFind()}
+
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+    		<div class="blockDetail">
+    			<table summary="시스템항목관리 등록">
+					<caption class="none">시스템항목관리 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="itemCd">항목코드</label></th>
+    						<td>
+    						#if($!{searchMap.txt2html("mode")} == "MOD")
+    							$!{CS_HTML.txt2html($detail.ITEM_CD)}
+								<input type="hidden" id="itemCd" name="itemCd" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.ITEM_CD)}' maxlength="8"/>
+    						#else
+    							<input type="text" id="itemCd" name="itemCd" class="inputbox w100" value='' maxlength="8"/>
+    						#end
+    						</td>
+    					</tr>
+    					<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="itemNm">항목</label></th>
+    						<td><input type="text" id="itemNm" name="itemNm" class="inputbox wp98" value='$!{CS_HTML.txt2html($detail.ITEM_NM)}' maxlength="140"/></td>
+    					</tr>
+    					<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="itemActualDivi1">연계구분</label></th>
+    						<td>
+    							<input type="radio" id="itemActualDivi1" name="itemActualDivi" value="01" #if($detail.ITEM_ACTUAL_DIVI == "01") checked="checked" #end /> 목표 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    							<input type="radio" id="itemActualDivi2" name="itemActualDivi" value="02" #if(!$detail.ITEM_ACTUAL_DIVI || $detail.ITEM_ACTUAL_DIVI == "02") checked="checked" #end /> 실적
+    						</td>
+    					</tr>
+    					<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="itemDivi1">등록구분</label></th>
+    						<td>
+    							<input type="radio" id="itemDivi1" name="itemDivi" value="01" #if(!$detail.ITEM_DIVI || $detail.ITEM_DIVI == "01") checked="checked" #end /> 시스템 &nbsp;&nbsp;
+    							<input type="radio" id="itemDivi2" name="itemDivi" value="02" #if($detail.ITEM_DIVI == "02") checked="checked" #end /> 엑셀
+    						</td>
+    					</tr>
+						<!--
+						<tr>
+    						<th scope="row"><label for="systemGbn">시스템구분</label></th>
+    						<td>
+								<select id="systemGbn" name="systemGbn" class="select w100">
+                                    <option value="">===선택===</option>
+    								$!CS_CODE.getCodeOption("162", $detail.SYSTEM_GBN)
+    							</select>
+    						</td>
+    					</tr>
+						-->
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="deptApplyScope">실적적용단위</label></th>
+    						<td>
+    							<select id="deptApplyScope" name="deptApplyScope" class="select w100">
+    								$!CS_CODE.getCodeOption("157", $detail.DEPT_APPLY_SCOPE)
+    							</select>
+    						</td>
+    					</tr>
+    					<tr>
+    						<th scope="row"><label for="excelUserId">엑셀담당자</label></th>
+    						<td>
+								<input type="hidden" id="excelUserId" name="excelUserId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.EXCEL_USER_ID)}"/>
+								<input type="text" id="excelUserNm" name="excelUserNm" class="inputbox w100 readonly" value="$!{CS_HTML.txt2html($detail.EXCEL_USER_NM)}" readonly="readonly" maxlength="16" />
+								<input type="image" onclick="javascript:searchUserPop();return false;" class="valign_middle" src="$!{img_path}/common/board/ic_search.gif" alt="엑셀담당자선택"/>
+        						<input type="image" onclick="javascript:J.setInit('excelUserId','excelUserNm');return false;" class="valign_middle" src="$!{img_path}/common/board/ic_cancel.gif" alt="엑셀담당자선택취소"/>
+							</td>
+    					</tr>
+    					<tr>
+    						<th scope="row"><label for="useYn">사용여부</label></th>
+    						<td>
+    							<select id="useYn" name="useYn" class="select w100">
+    								$!CS_CODE.getCodeOption("011", $detail.USE_YN)
+    							</select>
+    						</td>
+    					</tr>
+    					<tr>
+    						<th scope="row"><label for="url">화면 URL</label></th>
+    						<td>
+    							<input type="text" id="url" name="url" class="inputbox w400" maxlength="80" value="$!{CS_HTML.txt2html($detail.URL)}"/>
+    						</td>
+    					</tr>
+						<tr>
+    						<th scope="row"><label for="url">상세데이터 조회 범위</label></th>
+    						<td>
+								<input type="radio" name="restricted" value="N" #if($detail.RESTRICTED == "N") checked="checked" #end > 전체&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+								<input type="radio" name="restricted" value="Y" #if($detail.RESTRICTED == "Y") checked="checked" #end> 지표 입력/승인 담당자만
+    						</td>
+    					</tr>
+    					<tr>
+    						<th scope="row"><label for="content">연계설명</label></th>
+    						<td>
+    							<textarea id="content" name="content" class="tabletext" title="연계설명" cols="" rows="10">$!{CS_HTML.txt2html($detail.CONTENT)}</textarea>
+								<span id="indicator">0</span>/1000byte
+    						</td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton">
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>
+    	</div>
+		<a id="anchor"></a>
+    	<div class="clear"></div>
+    </div>
+</form>

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.org.orgDeptEvalItemAct"> 
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+	<!--
+	==================================================================   
+	  # 설명	: 인사조직 트리 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getDeptList1" parameterClass="hashMap" resultClass="hashMap">
+		SELECT	  DEPT_CD AS CODE_ID
+                , DEPT_KOR_NM AS CODE_NM
+                , UP_DEPT_CD  AS UP_CODE_ID
+                , UP_USER_ID
+                , USE_YN
+                , DEPT_LEVL AS LEVEL_ID
+                , DISP_ORDER
+             FROM BSC_INSA_DEPT
+            WHERE YEAR = #findYear#
+       START WITH UP_DEPT_CD = '0000'
+       CONNECT BY PRIOR DEPT_CD = UP_DEPT_CD
+              AND PRIOR YEAR = YEAR
+ORDER SIBLINGS BY DEPT_CD
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 간부조직관리역량평가 기간 조회
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_SCHEDULE
+	==================================================================
+	-->
+	<select id="getRptSchedule" parameterClass="hashMap" resultClass="hashMap">
+		SELECT MNG_ORG_START_DT
+			 , MNG_ORG_END_DT
+		     , CASE 
+		     		WHEN SYSDATE BETWEEN TO_DATE(MNG_ORG_START_DT, 'rrrr-mm-dd') 
+		     						 AND TO_DATE(MNG_ORG_END_DT || '23:59:59'
+		     						 		  , 'rrrr-mm-dd hh24:mi:ss') 
+		     						THEN 'T'
+		            ELSE 'N' 
+		       END RPT_YN
+		  FROM PRS_EVAL_SCHEDULE
+		 WHERE 1 = 1
+		 <isNotEmpty prepend="AND" property="findYear">
+			YEAR = #findYear#
+		 </isNotEmpty>
+		 <isNotEmpty prepend="AND" property="year">
+			YEAR = #year#
+		 </isNotEmpty>
+	</select>
+	
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 조직별 세부평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT /*+ ordered */
+                A.YEAR
+              , A.DEPT_CD
+              , A.ORG_EVAL_ITEM_ID 
+              , B.ORG_EVAL_ITEM_NM
+              , A.ALLOC_SCORE              
+              , F_CODE_NM('183', B.EVAL_TYPE, B.YEAR) AS EVAL_TYPE_NM
+              , REPLACE( REPLACE ( B.CONTENT, CHR(13), '' ), CHR(10), ' ' ) CONTENT
+              , C.CAL_TYPE_COL
+              , D.CAL_TYPE_COL_NM              
+              , C.SCORE
+              , A.VALUE
+              , A.DEPT_SCORE
+              , COUNT (1) OVER (PARTITION BY A.YEAR, A.DEPT_CD,B.EVAL_TYPE) EVAL_TYPE_CNT
+              , ROW_NUMBER () OVER (PARTITION BY A.YEAR,  A.DEPT_CD,B.EVAL_TYPE ORDER BY B.EVAL_TYPE, A.ORG_EVAL_ITEM_ID, C.CAL_TYPE_COL)  EVAL_TYPE_INDEX
+              , COUNT (1) OVER (PARTITION BY  A.YEAR, A.DEPT_CD, B.ORG_EVAL_ITEM_ID ) ORG_EVAL_ITEM_CNT
+              , ROW_NUMBER () OVER (PARTITION BY A.YEAR, A.DEPT_CD,  B.ORG_EVAL_ITEM_ID ORDER BY B.EVAL_TYPE, A.ORG_EVAL_ITEM_ID, C.CAL_TYPE_COL) ORG_EVAL_ITEM_INDEX
+<!--
+        FROM ORG_DEPT_EVAL_ITEM A
+-->
+        FROM (SELECT A.*, ROUND (ALLOC_SCORE * SCORE / SUM (ALLOC_SCORE) OVER (PARTITION BY YEAR, DEPT_CD),5) DEPT_SCORE FROM ORG_DEPT_EVAL_ITEM A) A
+             LEFT OUTER JOIN ORG_EVAL_ITEM B ON A.YEAR = B.YEAR AND A.ORG_EVAL_ITEM_ID = B.ORG_EVAL_ITEM_ID AND B.DELETE_DT IS NULL
+             LEFT OUTER JOIN ORG_DEPT_EVAL_ITEM_COL_ACT C ON A.YEAR = C.YEAR AND A.DEPT_CD = C.DEPT_CD AND A.ORG_EVAL_ITEM_ID = C.ORG_EVAL_ITEM_ID AND C.DELETE_DT IS NULL
+             LEFT OUTER JOIN ORG_EVAL_ITEM_COL D ON C.YEAR = D.YEAR AND C.ORG_EVAL_ITEM_ID = D.ORG_EVAL_ITEM_ID AND C.CAL_TYPE_COL = D.CAL_TYPE_COL AND D.DELETE_DT IS NULL             
+	    WHERE A.YEAR = #findYear#
+	    
+	    <isNotEmpty prepend="AND" property="findDeptCd">
+	    	A.DEPT_CD = #findDeptCd#
+	    </isNotEmpty>
+	      
+        ORDER BY A.YEAR, A.ORG_EVAL_ITEM_ID, C.CAL_TYPE_COL
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직별 세부평가항목 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM_COL_ACT
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE ORG_DEPT_EVAL_ITEM_COL_ACT
+		   SET SCORE     		= #score#         
+		WHERE YEAR		 		= #year#
+		  AND DEPT_CD 			= #deptCd#
+		  AND ORG_EVAL_ITEM_ID 	= #orgEvalItemId#
+		  AND CAL_TYPE_COL 		= #calTypeCol#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<parameterMap id="paramMapActual" class="java.util.HashMap">
+		<parameter property="year" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="deptCd" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+	
+	<parameterMap id="paramMapActualAll" class="java.util.HashMap">
+		<parameter property="year" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 데이터집계관리 프로시저 호출
+	  #	기능	: CALL PROCEDURE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<procedure id="callSpOrgActualProc"  parameterMap="paramMapActual">
+		{CALL SP_ORG_ACTUAL_VALUE_KGS(?, ?)}
+    </procedure>
+    
+    <procedure id="callSpOrgActualProcAll"  parameterMap="paramMapActualAll">
+		{CALL SP_ORG_ACTUAL_VALUE_KGS(?, '')}
+    </procedure>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 세부평가항목 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_EVAL_ITEM
+	==================================================================
+		
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE ORG_EVAL_ITEM
+		   SET DELETE_DT = SYSDATE
+		 WHERE YEAR = #year#
+		   AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+	</update>
+	
+	
+	==================================================================   
+	  # 설명	: 세부평가항목 산식항목 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_EVAL_ITEM_COL
+	==================================================================
+		
+	<delete id="updateCalTypeCol" parameterClass="hashMap">
+		UPDATE ORG_EVAL_ITEM_COL 
+		   SET
+	    <isEqual property="useYn" compareValue="N">
+           	  DELETE_DT         = SYSDATE
+	    </isEqual>
+	    <isNotEqual property="useYn" compareValue="N">
+           	  DELETE_DT         = NULL
+	    </isNotEqual>  		   
+		WHERE YEAR = #year#
+		  AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+	</delete>	
+-->
+</sqlMap>
+
+

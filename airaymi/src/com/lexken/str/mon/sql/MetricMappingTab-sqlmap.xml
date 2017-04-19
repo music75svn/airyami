@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="str.mon.metricMappingTab">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 내부평가지표연계표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT ST.YEAR
+		     , ST.STRAT_SUBJECT_ID, ST.STRAT_SUBJECT_NM
+		     , ST.STRAT_SUBJECT_GOAL_RATE, ST.STRAT_SUBJECT_STATUS_ID
+		     , ST.STRAT_SUBJECT_SORT_ORDER
+		     , COUNT(ST.STRAT_SUBJECT_ID) OVER(PARTITION BY ST.YEAR, ST.STRAT_SUBJECT_ID) AS STRAT_SUBJECT_CNT
+		     , ROW_NUMBER() OVER(PARTITION BY ST.YEAR, ST.STRAT_SUBJECT_ID 
+		                             ORDER BY ST.STRAT_SUBJECT_SORT_ORDER NULLS LAST, ST.STRAT_SUBJECT_ID
+		                                    , SBJ.SUBJECT_SORT_ORDER NULLS LAST, SBJ.SUBJECT_ID
+		                                    , SME.SUBJECT_METRIC_SORT_ORDER NULLS LAST, SME.SUBJECT_METRIC_ID
+		                                    , BME.METRIC_SORT_ORDER NULLS LAST, BME.METRIC_ID) AS STRAT_SUBJECT_INDEX
+		     , SBJ.SUBJECT_ID, SBJ.SUBJECT_NM
+		     , SBJ.SUBJECT_GOAL_RATE, SBJ.SUBJECT_STATUS_ID
+		     , SBJ.SUBJECT_SORT_ORDER
+		     , COUNT(ST.STRAT_SUBJECT_ID) OVER(PARTITION BY ST.YEAR, ST.STRAT_SUBJECT_ID, SBJ.SUBJECT_ID) AS SUBJECT_CNT
+		     , ROW_NUMBER() OVER(PARTITION BY ST.YEAR, ST.STRAT_SUBJECT_ID, SBJ.SUBJECT_ID 
+		                             ORDER BY ST.STRAT_SUBJECT_SORT_ORDER NULLS LAST, ST.STRAT_SUBJECT_ID
+		                             		, SBJ.SUBJECT_SORT_ORDER NULLS LAST, SBJ.SUBJECT_ID
+		                             		, SME.SUBJECT_METRIC_SORT_ORDER NULLS LAST, SME.SUBJECT_METRIC_ID
+		                             		, BME.METRIC_SORT_ORDER NULLS LAST, BME.METRIC_ID) AS SUBJECT_INDEX
+		     , SME.SUBJECT_METRIC_ID, SME.SUBJECT_METRIC_NM
+		     , SME.SUBJECT_METRIC_TARGET
+		     , SME.SUBJECT_METRIC_ACTUAL
+		     , SME.SUBJECT_METRIC_GOAL_RATE
+		     , SME.SUBJECT_METRIC_STATUS_ID
+		     , SME.SUBJECT_METRIC_SORT_ORDER
+		     , COUNT(ST.STRAT_SUBJECT_ID) OVER(PARTITION BY ST.YEAR, ST.STRAT_SUBJECT_ID, SBJ.SUBJECT_ID, SME.SUBJECT_METRIC_ID) AS SUBJECT_METRIC_CNT
+		     , ROW_NUMBER() OVER(PARTITION BY ST.YEAR, ST.STRAT_SUBJECT_ID, SBJ.SUBJECT_ID, SME.SUBJECT_METRIC_ID
+		                             ORDER BY ST.STRAT_SUBJECT_SORT_ORDER NULLS LAST, ST.STRAT_SUBJECT_ID
+		                             		, SBJ.SUBJECT_SORT_ORDER NULLS LAST, SBJ.SUBJECT_ID
+		                                    , SME.SUBJECT_METRIC_SORT_ORDER NULLS LAST, SME.SUBJECT_METRIC_ID
+		                                    , BME.METRIC_SORT_ORDER NULLS LAST, BME.METRIC_ID) AS SUBJECT_METRIC_INDEX     
+		     , BME.METRIC_ID, BME.METRIC_NM
+		     , BME.SC_DEPT_ID
+		     , BME.SC_DEPT_NM
+		     , BME.METRIC_TARGET
+		     , BME.METRIC_ACTUAL
+		     , BME.METRIC_SCORE
+		     , BME.METRIC_STATUS_ID
+		     , BME.METRIC_SORT_ORDER
+		  FROM 
+		    (SELECT SST.YEAR, SST.STRAT_SUBJECT_ID, SST.STRAT_SUBJECT_NM
+		         , SS.GOAL_RATE AS STRAT_SUBJECT_GOAL_RATE, SS.STATUS_ID AS STRAT_SUBJECT_STATUS_ID
+		         , SST.SORT_ORDER AS STRAT_SUBJECT_SORT_ORDER
+		      FROM STR_STRAT_SUBJECT SST
+		           LEFT OUTER JOIN 
+		           (SELECT YEAR, STRAT_SUBJECT_ID, GOAL_RATE, STATUS_ID
+		              FROM STR_STRAT_SUBJECT_SCORE
+		             WHERE 1=1
+		               AND YEAR = #findYear#
+		               AND MON = #findMon#
+		           ) SS
+		           ON SST.YEAR = SS.YEAR
+		          AND SST.STRAT_SUBJECT_ID = SS.STRAT_SUBJECT_ID
+		     WHERE 1=1
+		       AND SST.YEAR = #findYear#
+			<dynamic prepend="AND">
+	        	<isNotEmpty property="findStratSubjectId">
+	            SST.STRAT_SUBJECT_ID = #findStratSubjectId#
+	            </isNotEmpty>
+	        </dynamic>
+		    ) ST
+		    LEFT OUTER JOIN 
+		    (SELECT SB.YEAR, SB.SUBJECT_ID, SB.SUBJECT_NM, SB.STRAT_SUBJECT_ID
+		         , SBS.GOAL_RATE AS SUBJECT_GOAL_RATE, SBS.STATUS_ID AS SUBJECT_STATUS_ID
+		         , SB.SORT_ORDER AS SUBJECT_SORT_ORDER
+		      FROM STR_SUBJECT SB 
+		           LEFT OUTER JOIN 
+		           (SELECT *
+		              FROM STR_SUBJECT_SCORE
+		             WHERE 1=1
+		               AND YEAR = #findYear#
+		               AND MON = #findMon#
+		           ) SBS
+		           ON SB.YEAR = SBS.YEAR
+		          AND SB.SUBJECT_ID = SBS.SUBJECT_ID
+		     WHERE 1=1
+		       AND SB.YEAR = #findYear#
+			<dynamic prepend="AND">
+	        	<isNotEmpty property="findSubjectId">
+	            SB.SUBJECT_ID = #findSubjectId#
+	            </isNotEmpty>
+	        </dynamic>		       
+		    ) SBJ
+		    ON ST.YEAR = SBJ.YEAR
+		   AND ST.STRAT_SUBJECT_ID = SBJ.STRAT_SUBJECT_ID
+		    LEFT OUTER JOIN
+		    (SELECT SM.YEAR, SM.SUBJECT_METRIC_ID, SM.SUBJECT_METRIC_NM
+		         , SM.SUBJECT_ID
+		         , SM.SORT_ORDER AS SUBJECT_METRIC_SORT_ORDER
+		         , SMT.TARGET AS SUBJECT_METRIC_TARGET
+		         , SMS.ACTUAL AS SUBJECT_METRIC_ACTUAL
+		         , SMS.GOAL_RATE AS SUBJECT_METRIC_GOAL_RATE
+		         , SMS.STATUS_ID AS SUBJECT_METRIC_STATUS_ID
+		         , SMM.METRIC_ID
+		      FROM STR_METRIC SM
+		           LEFT OUTER JOIN 
+		           (SELECT YEAR, MON, SUBJECT_METRIC_ID, TARGET
+		              FROM STR_METRIC_TARGET
+		             WHERE 1=1
+		               AND YEAR = #findYear#
+		               AND MON = #findMon#
+		           ) SMT
+		           ON SM.YEAR = SMT.YEAR
+		          AND SM.SUBJECT_METRIC_ID = SMT.SUBJECT_METRIC_ID
+		           LEFT OUTER JOIN 
+		           (SELECT YEAR, MON, SUBJECT_METRIC_ID, ACTUAL, GOAL_RATE, STATUS_ID
+		              FROM STR_METRIC_SCORE
+		             WHERE 1=1
+		               AND YEAR = #findYear#
+		               AND MON = #findMon#
+		           ) SMS
+		           ON SM.YEAR = SMS.YEAR
+		          AND SM.SUBJECT_METRIC_ID = SMS.SUBJECT_METRIC_ID
+		           LEFT OUTER JOIN 
+		           STR_METRIC_MAPPING SMM
+		           ON SM.YEAR = SMM.YEAR
+		          AND SM.SUBJECT_METRIC_ID = SMM.SUBJECT_METRIC_ID
+		     WHERE 1=1
+		       AND SM.YEAR = #findYear#
+		    ) SME
+		    ON SBJ.YEAR = SME.YEAR
+		   AND SBJ.SUBJECT_ID = SME.SUBJECT_ID
+		    INNER JOIN
+		    (SELECT BM.YEAR, BM.METRIC_ID, BM.METRIC_NM
+		         , BM.SC_DEPT_ID
+		         , DT.SC_DEPT_NM
+		         , BMS.METRIC_TARGET
+		         , BMS.METRIC_ACTUAL
+		         , BMS.METRIC_SCORE
+		         , BMS.STATUS AS METRIC_STATUS_ID
+		         , BM.SORT_ORDER AS METRIC_SORT_ORDER
+		      FROM BSC_METRIC BM
+		           LEFT OUTER JOIN 
+		           (SELECT YEAR, METRIC_ID
+		                 , TO_CHAR(TARGET) AS METRIC_TARGET
+		                 , TO_CHAR(ACTUAL) AS METRIC_ACTUAL
+		                 , TO_CHAR(SCORE) AS METRIC_SCORE
+		                 , STATUS
+		              FROM BSC_METRICSCORE 
+		             WHERE 1=1
+		               AND YEAR = #findYear#
+		               AND MON = #findMon#
+		               AND ANAL_CYCLE = 'Y'
+		           ) BMS 
+		           ON BM.YEAR = BMS.YEAR 
+		          AND BM.METRIC_ID = BMS.METRIC_ID 
+		           LEFT OUTER JOIN 
+		           BSC_SC_DEPT DT
+		           ON BM.YEAR = DT.YEAR 
+		          AND BM.SC_DEPT_ID = DT.SC_DEPT_ID 
+		          AND DT.DELETE_DT IS NULL
+		     WHERE 1=1
+		       AND BM.YEAR = #findYear#    
+		       AND BM.DELETE_DT IS NULL
+		    ) BME
+		    ON SME.YEAR = BME.YEAR
+		   AND SME.METRIC_ID = BME.METRIC_ID
+		 ORDER BY ST.STRAT_SUBJECT_SORT_ORDER NULLS LAST, ST.STRAT_SUBJECT_ID
+		        , SBJ.SUBJECT_SORT_ORDER NULLS LAST, SBJ.SUBJECT_ID
+		        , SME.SUBJECT_METRIC_SORT_ORDER NULLS LAST, SME.SUBJECT_METRIC_ID
+		        , BME.METRIC_SORT_ORDER NULLS LAST, BME.METRIC_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조회조건(전략과제) 목록
+	  #	기능	: SELECT
+	  #	TABLE	: STR_STRAT_SUBJECT
+	==================================================================
+	-->
+	<select id="getStratSubjectList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT STRAT_SUBJECT_ID, STRAT_SUBJECT_NM
+		  FROM STR_STRAT_SUBJECT
+		 WHERE 1=1
+		   AND YEAR = #findYear#
+		 ORDER BY SORT_ORDER, STRAT_SUBJECT_ID      
+	</select>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조회조건(세부과제) 목록
+	  #	기능	: SELECT
+	  #	TABLE	: STR_SUBJECT
+	==================================================================
+	-->
+	<select id="getSubjectList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT SUBJECT_ID, SUBJECT_NM
+		  FROM STR_SUBJECT
+		 WHERE 1=1
+		   AND YEAR = #findYear#
+		   <dynamic prepend="AND">
+	        	<isNotEmpty property="findStratSubjectId">
+	            STRAT_SUBJECT_ID = #findStratSubjectId#
+	            </isNotEmpty>
+	        </dynamic>
+		 ORDER BY SORT_ORDER, SUBJECT_ID      
+	</select>	
+
+	
+	
+	
+</sqlMap>
+
+

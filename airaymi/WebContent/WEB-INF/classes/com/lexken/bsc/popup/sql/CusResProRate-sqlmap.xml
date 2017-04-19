@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.cusResProRate">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		<isEqual property="findItemCd" compareValue="S044D001">
+			<isEqual property="findDeptId" compareValue="2600">
+				<!-- 사고점검처 -->
+		        SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		          LEFT OUTER JOIN BSC_DEPTINFO B
+		            ON A.PROC_DEPT_CD = B.DEPT_ID
+		         WHERE B.UP_DEPT_ID = #findDeptId#
+		           AND A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+			</isEqual>
+			<isEqual property="findDeptId" compareValue="1D05">
+				<!-- 고객지원부 -->
+		        SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		          LEFT OUTER JOIN BSC_DEPTINFO B
+		            ON A.PROC_DEPT_CD = B.DEPT_ID
+		         WHERE B.UP_DEPT_ID NOT IN ('2200', '2400')
+		           AND A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+			</isEqual>
+			<isEqual property="findDeptId" compareValue="1005">
+				<!-- KGS -->
+		        SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		         WHERE A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+			</isEqual>
+			<isEqual property="findDeptId" compareValue="5135">
+				<!-- 교육운영부 -->
+				SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		         WHERE A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+		           AND A.PROC_DEPT_CD = #findDeptId#
+			</isEqual>
+			<isEqual property="findDeptId" compareValue="2620">
+				<!-- 상황관리부 -->
+				SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		         WHERE A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+		           AND A.PROC_DEPT_CD = #findDeptId#
+			</isEqual>
+			<isEqual property="findDeptId" compareValue="2460">
+				<!-- 연료가스기준부 -->
+				SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		         WHERE A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+		           AND A.PROC_DEPT_CD = #findDeptId#
+			</isEqual>
+			<isEqual property="findDeptId" compareValue="2455">
+				<!-- 고압가스기준부 -->
+				SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		         WHERE A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+		           AND A.PROC_DEPT_CD = #findDeptId#
+			</isEqual>
+		</isEqual>
+		<isEqual property="findItemCd" compareValue="S044D002">
+			<isEqual property="findDeptId" compareValue="2600">
+				<!-- 사고점검처 -->
+		        SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		          LEFT OUTER JOIN BSC_DEPTINFO B
+		            ON A.PROC_DEPT_CD = B.DEPT_ID
+		         WHERE B.UP_DEPT_ID = #findDeptId#
+		           AND A.IN_ANS IS NOT NULL
+		           AND A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+			</isEqual>
+			<isEqual property="findDeptId" compareValue="1D05">
+				<!-- 고객지원부 -->
+		        SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		          LEFT OUTER JOIN BSC_DEPTINFO B
+		            ON A.PROC_DEPT_CD = B.DEPT_ID
+		         WHERE B.UP_DEPT_ID NOT IN ('2200', '2400')
+		           AND A.IN_ANS IS NOT NULL
+		           AND A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+			</isEqual>
+			<isEqual property="findDeptId" compareValue="1005">
+				<!-- KGS -->
+		        SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		         WHERE A.IN_ANS IS NOT NULL
+		           AND A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+			</isEqual>
+			<isEqual property="findDeptId" compareValue="5135">
+				<!-- 교육운영부 -->
+				SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		         WHERE A.IN_ANS IS NOT NULL
+		           AND A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+		           AND A.PROC_DEPT_CD = #findDeptId#
+			</isEqual>
+			<isEqual property="findDeptId" compareValue="2620">
+				<!-- 상황관리부 -->
+				SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		         WHERE A.IN_ANS IS NOT NULL
+		           AND A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+		           AND A.PROC_DEPT_CD = #findDeptId#
+			</isEqual>
+			<isEqual property="findDeptId" compareValue="2460">
+				<!-- 연료가스기준부 -->
+				SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		         WHERE A.IN_ANS IS NOT NULL
+		           AND A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+		           AND A.PROC_DEPT_CD = #findDeptId#
+			</isEqual>
+			<isEqual property="findDeptId" compareValue="2455">
+				<!-- 고압가스기준부 -->
+				SELECT YEAR,
+		               MON,
+		               RCPT_DT,
+		               PROC_DEPT_CD,
+		               F_DEPT_FULL_NM(#findYear#, PROC_DEPT_CD, 'V_DEPTINFO') PROC_DEPT_NM
+		          FROM V_GHD0101M_001 A
+		         WHERE A.IN_ANS IS NOT NULL
+		           AND A.YEAR = #findYear#
+		           AND A.MON = #findMon#
+		           AND A.PROC_DEPT_CD = #findDeptId#
+			</isEqual>
+		</isEqual>
+
+
+	</select>
+
+<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+             AND B.INSERT_GUBUN = '01'
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getScDeptMapping" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DEPT_ID
+		  FROM ( SELECT DEPT_ID 
+				   FROM BSC_SC_DEPT_MAPPING
+				  WHERE YEAR = #findYear# 
+				    AND SC_DEPT_ID = #findScDeptCd# ORDER BY DEPT_ID 
+				    )
+		 WHERE ROWNUM = 1
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 부서조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DEPT_ID, B.DEPT_NM
+			  FROM BSC_SC_DEPT_MAPPING A
+		LEFT OUTER JOIN BSC_DEPTINFO B
+				ON A.DEPT_ID = B.DEPT_ID
+			 WHERE (YEAR, SC_DEPT_ID) IN
+			          (SELECT YEAR, SC_DEPT_ID
+			             FROM BSC_METRIC
+			            WHERE (METRIC_GRP_ID, YEAR) IN
+			                     (SELECT METRIC_GRP_ID, YEAR
+			                        FROM BSC_METRIC
+			                       WHERE YEAR = #findYear# AND METRIC_ID = #findMetricId#)
+					AND DELETE_DT IS NULL)
+	
+	</select>
+
+
+</sqlMap>

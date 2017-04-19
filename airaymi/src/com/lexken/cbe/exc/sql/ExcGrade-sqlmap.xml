@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="cbe.exc.excGrade">
+
+	<!--
+	===================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	
+	<!--
+	==================================================================   
+	  # 설명	: 별도평가자 평가등급 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_EXC_EVAL_USER
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT  A.YEAR,
+				(SELECT DEPT_KOR_NM
+				   FROM BSC_INSA_PCMT
+				  WHERE YEAR = A.YEAR AND EMPN = A.EMPN AND END_PCMT_DATE = #findYear#||'1231') DEPT_KOR_NM,
+				(SELECT KOR_NM
+				   FROM BSC_INSA
+				  WHERE YEAR = A.YEAR AND EMPN = A.EMPN) KOR_NM,
+				(SELECT CODE_NM
+				   FROM BSC_CODE D
+				  WHERE CODE_GRP_ID = '171' AND D.YEAR = A.YEAR
+					AND D.CODE_ID =
+									(SELECT POS_TC
+									   FROM BSC_INSA_PCMT
+									  WHERE YEAR = A.YEAR
+										AND EMPN = A.EMPN
+										AND END_PCMT_DATE = #findYear#||'1231')) POS_TC_NM,
+				A.EVAL_DEGREE_ID,
+				(SELECT START_PCMT_DATE
+				   FROM BSC_INSA_PCMT
+				  WHERE YEAR = A.YEAR AND EMPN = A.EMPN AND END_PCMT_DATE = #findYear#||'1231') START_PCMT_DATE,
+				(SELECT END_PCMT_DATE
+				   FROM BSC_INSA_PCMT
+				  WHERE YEAR = A.YEAR AND EMPN = A.EMPN AND END_PCMT_DATE = #findYear#||'1231') END_PCMT_DATE,
+				COUNT (1) OVER (PARTITION BY A.YEAR) USER_CNT,
+	            A.EMPN,
+	            A.GRADE_ITEM_ID,
+	            NVL(A.EVAL_SUBMIT_YN,'N') EVAL_SUBMIT_YN,
+	            NVL(C.SUBMIT_YN,'N') SUBMIT_YN,
+	            A.RPT_YN
+	      FROM  BSC_EXC_EVAL_USER A
+	LEFT OUTER JOIN BSC_INSA B
+			ON A.EMPN =  B.EMPN AND A.YEAR = B.YEAR
+    LEFT OUTER  JOIN BSC_EXC_RPT C
+			ON  A.YEAR = C.YEAR
+		   AND  A.EMPN = C.EMPN
+		   AND  A.EVAL_DEGREE_ID = C.EVAL_DEGREE_ID
+		 WHERE  A.YEAR = #findYear#
+		   AND  B.POS_TC NOT IN ( '17', '25', '33', '43', '54', '64')
+		   AND  A.EMPN NOT IN (SELECT EMPN FROM BSC_INSA_PCMT WHERE YEAR = A.YEAR AND PCMT_TC IN ( '81','82','83','84','85','86','89','8H','8I') )
+		   AND  A.EMPN NOT IN (SELECT EMPN
+								 FROM (  SELECT YEAR, EMPN, SUM (WORK_MON) WORK_MON
+										   FROM V_PRS_RE_MON
+										  WHERE YEAR = '2013'
+									   GROUP BY YEAR, EMPN
+									   ORDER BY WORK_MON)
+								WHERE WORK_MON <![CDATA[ < ]]> 3 )                                                 
+	  ORDER BY  EMPN
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 별도평가부서 평가등급 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_EXC_EVAL_DEPT
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT  B.YEAR,
+				(SELECT KOR_NM
+				   FROM BSC_INSA
+				  WHERE YEAR = B.YEAR AND EMPN = B.RPT_EMPN) KOR_NM,
+				F_DEPT_FULL_NM (#findYear#, B.SC_DEPT_ID, 'BSC_SC_DEPT') SC_DEPT_NM,
+				B.EVAL_DEGREE_ID,
+				COUNT (1) OVER (PARTITION BY B.YEAR) DEPT_CNT,
+				B.SC_DEPT_ID,
+				B.GRADE_ITEM_ID,
+				NVL(B.EVAL_SUBMIT_YN,'N') EVAL_SUBMIT_YN,
+				NVL(A.SUBMIT_YN,'N') SUBMIT_YN,
+				B.RPT_YN
+		  FROM  BSC_EXC_EVAL_DEPT B
+	LEFT OUTER  JOIN BSC_EXC_RPT A
+			ON  A.YEAR = B.YEAR
+		   AND  A.SC_DEPT_ID = B.SC_DEPT_ID
+		   AND  A.EVAL_DEGREE_ID = B.EVAL_DEGREE_ID
+		 WHERE  B.YEAR = #findYear#
+	  ORDER BY  SC_DEPT_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 별도평가부서 평가등급 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_EXC_EVAL_DEPT
+	==================================================================
+	-->	
+	<update id="updateDeptData" parameterClass="hashMap">
+		UPDATE BSC_EXC_EVAL_DEPT 
+		   SET GRADE_ITEM_ID = #excDeptGrade# 
+		 WHERE YEAR = #year#
+		   AND SC_DEPT_ID = #scDeptId#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#		
+	</update>
+		
+	<!--
+	==================================================================   
+	  # 설명	: 별도평가대상자 평가등급 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_EXC_EVAL_USER
+	==================================================================
+	-->	
+	<update id="updateUserData" parameterClass="hashMap">
+		UPDATE BSC_EXC_EVAL_USER 
+		   SET GRADE_ITEM_ID = #excUserGrade# 
+		 WHERE YEAR = #year#
+		   AND EMPN = #empn#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#		
+	</update>
+		
+	<!--
+	==================================================================   
+	  # 설명	: 별도평가부서 확정 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_EXC_SUBMIT
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		MERGE INTO BSC_EXC_SUBMIT A
+        USING DUAL
+           ON (A.YEAR = #year# )
+         WHEN MATCHED THEN
+                UPDATE SET A.EVAL_YN = #evalYn#, A.MODIFY_DT = SYSDATE
+         WHEN NOT MATCHED THEN
+                INSERT (YEAR, EVAL_YN, CREATE_DT)
+                VALUES (#year#, #evalYn#, SYSDATE)
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	:  확정여부 확인
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_EXC_EVAL_USER
+	==================================================================
+	-->	
+	<select id="getConfirmYn" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DEPT_YN, USER_YN, RPT_YN, EVAL_YN, CREATE_DT, MODIFY_DT FROM BSC_EXC_SUBMIT WHERE YEAR = #findYear#	
+	</select>	
+	
+	
+</sqlMap>
+
+

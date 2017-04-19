@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+#*************************************************************************
+* CLASS 명      : metricGrpData_ajax.vm
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 7월 02일 
+* 기    능      : 지표풀 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용         비고
+* -----  ----------  -------------------  ---------------------- ---------
+*  1      하윤식       2012년 7월 02일         최 초 작 업 
+**************************************************************************# 
+
+<items>
+
+#foreach($list in $list)
+	<item>
+		
+		<metricGrpId>$!{CS_HTML.txt2html($list.METRIC_GRP_ID)}</metricGrpId>
+		<metricGrpNm>$!{CS_HTML.txt2html($list.METRIC_GRP_NM)}</metricGrpNm>
+		<typeId>$!{CS_HTML.txt2html($list.TYPE_ID)}</typeId>
+    	<evalCycle>$!{CS_HTML.txt2html($list.EVAL_CYCLE)}</evalCycle>
+		<timeRollup>$!{CS_HTML.txt2html($list.TIME_ROLLUP)}</timeRollup>
+		<unit>$!{CS_HTML.txt2html($list.UNIT)}</unit>
+		<actCalType>$!{CS_HTML.txt2html($list.ACT_CAL_TYPE)}</actCalType>
+		<scoreCalTypeGubun>$!{CS_HTML.txt2html($list.SCORE_CAL_TYPE_GUBUN)}</scoreCalTypeGubun>
+		<scoreCalTypeId>$!{CS_HTML.txt2html($list.SCORE_CAL_TYPE_ID)}</scoreCalTypeId>
+		<funcBusinessGbn>$!{CS_HTML.txt2html($list.FUNC_BUSINESS_GBN)}</funcBusinessGbn>
+		<content>$!{CS_HTML.txt2html($list.CONTENT)}</content>
+		<description>$!{CS_HTML.txt2html($list.DESCRIPTION)}</description>
+	</item>	
+#end
+
+#foreach($list in $listMon)
+	<coldata>
+		<colMon>$!{CS_HTML.txt2html($list.MON)}</colMon>
+	</coldata>	
+#end
+
+</items>
+	

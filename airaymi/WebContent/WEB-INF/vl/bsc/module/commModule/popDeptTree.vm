@@ -1,0 +1,71 @@
+#*************************************************************************
+* CLASS 명      : popDeptTree.vm
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012.06.20
+* 기    능      : 실조직 트리 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     하 윤 식      2012.06.20          최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+		try {
+			$("input", ".blockButton" ).button(); //버튼 ui 적용
+		} catch(err) { }
+	});
+	
+	/******************************************
+	 * 확인버튼 이벤트
+	 ******************************************/
+	J("#btnConfirmPop").click(function(e) {
+		var deptId = J("#deptIdPop").val();
+		var deptNm = J("#deptNmPop").val();
+		setDeptInfoPop(deptId, deptNm);
+	});
+	
+	/******************************************
+	 * 조직선택 클릭 이벤트
+	 ******************************************/
+	function goClickActionPop(deptId, deptNm) {
+		J("#deptIdPop").val(deptId);
+		J("#deptNmPop").val(deptNm);
+	}
+	
+	/******************************************
+	 * 조직선택 더블클릭 이벤트
+	 ******************************************/
+	function goDblClickActionPop(deptId, deptNm) {
+		setDeptInfoPop(deptId, deptNm);
+	}
+
+//]]>
+</script>
+
+<form id="formFindPop" name="formFindPop" method="post" action="$!{searchMap.txt2html("context")}/bsc/module/commModule/popDeptTree.vw">
+	<input type="hidden" id="deptIdPop"		name="deptIdPop"			value="" />
+	<input type="hidden" id="deptNmPop"		name="deptNmPop"			value="" />
+	
+    <div style="width:300px;height:500px;">
+    	<div id="popScDeptArea" style="height:450px;overflow:auto;">
+    		<h1 class="none">실조직트리</h1>
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/bsc/module/commModule/commonTreePop.vm")
+    		</div>
+    	</div>
+    	<div class="blockButton_all">			
+    		<div class="blockButton_l"></div>
+    		<div class="blockButton">			
+    			<ul>
+    				<li><input type="button" id="btnConfirmPop" value="확인" /></li>
+    			</ul>
+    		</div>
+    	</div>
+    </div>
+</form>	
+

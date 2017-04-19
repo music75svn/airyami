@@ -1,0 +1,308 @@
+#*************************************************************************
+* CLASS 명      : memEvalActSearchList
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년 03월30일 
+* 기    능      : 실적조회  
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    유연주      2017년 03월 30일             최 초 작 업 
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/mem/eval/memActIn/popMemSelfEvalList.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	var grdRowId = 0;
+	
+	J(document).ready(function(){
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#form1').serialize();
+
+		jQuery("#evalItemlist").jqGrid({
+			url          :"$!{context_path}/mem/eval/memActIn/memActInEvalItemList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : 150,
+			width        : $!{jqGrid_width},
+			colNames     :['평가구분', '지표코드', '성과지표', '성과지표', '평가유형', '평가유형', '단위', '주기ID', '주기', '연간목표', '가중치'],
+			colModel     :[
+                            {name:'METRIC_ID'           ,index:'METRIC_ID'             ,width:0     ,align:'center' },
+							{name:'EVAL_GBN_NM'         ,index:'EVAL_GBN_NM'           ,width:150   ,align:'left' },
+                            {name:'METRIC_NM'           ,index:'METRIC_NM'             ,width:150   ,align:'left' ,formatter:linkCalItem},
+                            {name:'METRIC_NM_TMP'       ,index:'METRIC_NM_TMP'         ,width:0     ,align:'left'},
+                            {name:'TYPE_ID'             ,index:'TYPE_ID'               ,width:0     ,align:'center' },
+                            {name:'TYPE_NM'             ,index:'TYPE_NM'               ,width:150   ,align:'center' },
+                            {name:'UNIT_NM'             ,index:'UNIT_NM'               ,width:150   ,align:'center' },
+                            {name:'EVAL_CYCLE_ID'       ,index:'EVAL_CYCLE_ID'         ,width:0     ,align:'center' },
+                            {name:'EVAL_CYCLE_NM'       ,index:'EVAL_CYCLE_NM'         ,width:150   ,align:'center' },
+                            {name:'YEAR_GOAL'           ,index:'YEAR_GOAL'             ,width:150   ,align:'center' },
+                            {name:'WEIGHT'              ,index:'WEIGHT'                ,width:150   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			cellEdit     : true,
+			gridview     : true,
+			##cmTemplate   : {sortable:false},
+			loadComplete : function() {
+				if("$!{searchMap.txt2html("metricId")}" != ""){
+					goActualMngAction("$!{searchMap.txt2html("metricId")}", "$!{searchMap.txt2html("metricNm")}", "$!{searchMap.txt2html("evalCycleId")}");
+					goActionPlanAction("$!{searchMap.txt2html("metricId")}", "$!{searchMap.txt2html("metricNm")}", "$!{CS_HTML.txt2html($periodInfo.ACT_IN_TERM)}");
+					if("$!{searchMap.txt2html("mode")}" != "SEARCH"){
+						J("#btnInsert").show();
+					}
+				}
+				  },
+			caption:"지표목록"
+		}).jqGrid('hideCol',"METRIC_ID").jqGrid('hideCol',"EVAL_CYCLE_ID").jqGrid('hideCol',"TYPE_ID").jqGrid('hideCol',"METRIC_NM_TMP").setGridWidth($!{jqGrid_width});
+		
+		/******************************************
+		 * 닫기버튼 이벤트
+		 ******************************************/
+		J("#btnClose").click(function(e) {
+			self.close();
+		});
+	});
+	
+	/*****************************************
+	 * 전략과제 Rowspan 설정
+	 ******************************************/
+	function attrSetting(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.CAL_NUM;
+		var rowSpan = rowObject.CAL_CNT;
+
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+
+		return result;
+	}
+	
+	/******************************************
+	 * jqGrid 산식항목 목록조회 링크
+	 ******************************************/
+	function linkCalItem(cellvalue, options, rowObject) {
+		return '<a href=javascript:fnCalItem(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	
+	/******************************************
+	 * 산식항목 조회 AJAX
+	 ******************************************/
+	function fnCalItem(rowId) {
+		var ret = J("#evalItemlist").jqGrid('getRowData',rowId);
+	
+		if(ret.TYPE_ID == "01"){
+			// 계량유형일 경우 실적 입력가능
+			if("$!{searchMap.txt2html("mode")}" != "SEARCH"){
+				J("#btnInsert").show();
+			}
+			goActualMngAction(ret.METRIC_ID, ret.METRIC_NM_TMP, ret.EVAL_CYCLE_ID);
+		}else{
+			// 비계량유형일 경우 실적 안보여줌
+			if("$!{searchMap.txt2html("mode")}" != "SEARCH"){
+				J("#btnInsert").hide();
+			}
+			J("#detailActualMngData").empty();
+		}
+		goActionPlanAction(ret.METRIC_ID, ret.METRIC_NM_TMP, "$!{CS_HTML.txt2html($periodInfo.ACT_IN_TERM)}");
+	}
+	
+	/******************************************
+	 * 조회
+	 ******************************************/
+    function goActualMngAction(metricId, metricNm, evalCycleId) {
+		var mode = "$!{searchMap.txt2html("mode")}";
+		var year = J("#year").val();
+		var findActualType = "$!{searchMap.txt2html("findActualType")}";
+		
+		J("#metricId").val(metricId);
+		J("#metricNm").val(metricNm);
+		J("#evalCycleId").val(evalCycleId);
+
+		J.ajax({
+        	url      : "$!{context_path}/mem/eval/memActIn/memActualMngDetailList.vw",
+        	cache    : false,
+        	type     : "POST",
+			data     : "mode=" + mode + "&year=" + year + "&amp;evalCycleId=" + evalCycleId + "&amp;findYear=" + year + "&amp;findEvalCycleId=" + evalCycleId + "&amp;metricNm=" + metricNm + "&amp;metricId=" + metricId + "&amp;findActualType=" + findActualType,
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+        		J("#detailActualMngData").empty();  //body부분 div를 empty 시켜줌(empty를 시키지 않을 경우 메모리릭 발생)
+        		J("#detailActualMngData").append(data);
+        	}
+    	});
+	}
+	
+	/******************************************
+	 * 조회
+	 ******************************************/
+    function goActionPlanAction(metricId, metricNm, actInTerm) {
+    	var mode = "$!{searchMap.txt2html("mode")}";
+		var year = J("#year").val();
+		var findActualType = "$!{searchMap.txt2html("findActualType")}";
+
+		J.ajax({
+        	url      : "$!{context_path}/mem/eval/memActIn/memActionPlanList.vw",
+        	cache    : false,
+        	type     : "POST",
+			data     : "mode=" + mode + "&year=" + year + "&amp;actInTerm=" + actInTerm + "&amp;findYear=" + year + "&amp;findActInTerm=" + actInTerm + "&amp;metricNm=" + metricNm + "&amp;metricId=" + metricId + "&amp;findActualType=" + findActualType,
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+        		J("#detailActionPlanData").empty();  //body부분 div를 empty 시켜줌(empty를 시키지 않을 경우 메모리릭 발생)
+        		J("#detailActionPlanData").append(data);
+        	}
+    	});
+	}
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" enctype="multipart/form-data" action="$!{context_path}/mem/eval/memActIn/memActInProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="empNo"          name="empNo"          value="$!{searchMap.txt2html("empNo")}" />
+	<input type="hidden" 	id="year"       	name="year" 		  value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"    id="evalGubun"      name="evalGubun"      value="$!{searchMap.txt2html("evalGubun")}" />
+	<input type="hidden"    id="evalEmpNo"      name="evalEmpNo"      value="$!{searchMap.txt2html("evalEmpNo")}" />
+	<input type="hidden"    id="deptCd"         name="deptCd"         value="$!{searchMap.txt2html("deptCd")}" />
+	<input type="hidden"    id="deptNm"         name="deptNm"         value="$!{searchMap.txt2html("deptNm")}" />
+	<input type="hidden"    id="evalGrpId"      name="evalGrpId"      value="$!{searchMap.txt2html("evalGrpId")}" />
+	<input type="hidden"    id="evalGrpNm"      name="evalGrpNm"      value="$!{searchMap.txt2html("evalGrpNm")}" />
+	
+    $!{searchMap.makeHiddenFind()}
+	<br>
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+								<td class="searchBox_tit w250">평가대상자 <span class="searchBar">$empInfo.EMP_NM</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    	</div>
+		<div id="Table_blockContainer">
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="evalItemlist" summary="평가항목 조회결과">
+							<caption class="none">평가항목 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!-- 데이터그리드 End -->
+					<br/>
+					<!-- 실적입력 Start -->
+					<div id="detailActualMngData" class="blockGridListTable"></div>
+					<!-- 실적입력 End -->
+
+					<!-- ActionPlan Start -->
+					<div id="detailActionPlanData" class="blockGridListTable"></div>
+					<!-- ActionPlan End -->
+
+		    		<div class="blockDetail">
+		    			<table summary="업무성과기술서">
+							<caption class="none">업무성과기술서</caption>
+		    				<colgroup>
+		    					<col width="15%" />
+		    					<col width="80%" />
+		    				</colgroup>
+		    				<tbody>
+								<tr>
+									<th scope="row"> <label for="sortOrder">업무성과기술서</label></th>
+								#if ("$!{CS_HTML.txt2html($jobDescDetail.ATTACH_FILE_PATH)}" != "")
+									<td>$!{CS_HTML.makeFileIconFileName($jobDescDetail.ATTACH_FILE_SUFFIX, $jobDescDetail.ATTACH_FILE_NM, $jobDescDetail.ATTACH_FILE_PATH)}</td>
+								#else
+									<td>미등록</td>
+								#end
+								</tr>
+		    				</tbody>
+		    			</table>
+		    		</div>
+		    		<div id="blockDetailTB" class="blockListTable">
+		    			<table summary="자기평가">
+							<caption class="none">자기평가</caption>
+		    				<colgroup>
+		    					<col width="10%" />
+		    					<col width="10%" />
+		    					<col width="80%" />
+		    					<col width="10%" />
+		    				</colgroup>
+		    				<tbody>
+								<tr>
+									<th scope="row" rowspan="4"> <label for="sortOrder">자기평가</label></th>
+									<th scope="row" colspan="2"> <label for="sortOrder">평가의견</label></th>
+									<th scope="row" > <label for="sortOrder">자기평가등급</label></th>
+								</tr>
+								<tr>
+									<th scope="row" class="textCenter"> <label for="sortOrder">우수한점</label></th>
+									<td class="textLeft">$selfEvalDetail.EXCELLENT_OPINION</td>
+									<td class="textCenter" rowspan="3"> $!{CS_HTML.txt2html($selfEvalDetail.GRADE_ITEM_NM)}</td>
+								</tr>
+								<tr>
+									<th scope="row" class="textCenter"> <label for="sortOrder">미흡한점</label></th>
+									<td class="textLeft">$selfEvalDetail.UNSUFFICIENT_OPINION</td>
+								</tr>
+								<tr>
+									<th scope="row" class="textCenter"> <label for="sortOrder">기타의견</label></th>
+									<td class="textLeft">$selfEvalDetail.ETC_OPINION</td>
+								</tr>
+		    				</tbody>
+		    			</table>
+		    		</div>
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							##<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+			    				<li><input type="button" id="btnClose"   value="닫기" /></li>&nbsp;
+							</ul>
+						</div>
+					</div>
+					<br><br>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>

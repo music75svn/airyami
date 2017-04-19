@@ -1,0 +1,62 @@
+#*************************************************************************
+* CLASS 명      : weightGrpReflProcess
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 12월 10일 
+* 기    능      : 가중치 그룹 대상자 반영
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    정철수    2012년 12월 10일             최 초 작 업 
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/cbe/eval/evalWeightMapping/weightGrpReflProcess.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+<script language="javascript" type="text/javascript">
+//<![CDATA[
+	var J = jQuery
+	
+	J(document).ready(function(){
+		#if($vcMath.toInteger($returnMap.get("ErrorNumber")) != 1)
+			J.showMsgBox("$!{CS_STATIC.strReplaceLF("\n", $returnMap.get("ErrorMessage"))}", "goBack", null);
+		#else
+			J.showMsgBox("정상적으로 처리되었습니다", "goSubmit", null);
+		#end
+	});
+    
+	/******************************************
+	 * form submit
+	 ******************************************/
+	function goSubmit() {
+		J("#form1").submit();
+		opener.formFind.submit();
+	}
+    
+	/******************************************
+	 * 돌아가기
+	 ******************************************/
+	function goBack() {
+		history.go(-1);
+	}
+//]]>
+</script>
+</head>
+<body>
+
+<form name="form1" id="form1" method="post" action="$!{context_path}/cbe/eval/evalWeightMapping/popUserDetail.vw?type=popup&amp;$!{searchMap.makeUrlParamFind()}">
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="evalDegreeId"   name="evalDegreeId"   value="$!{searchMap.txt2html("evalDegreeId")}" />
+	<input type="hidden"	id="weightGrpId"    name="weightGrpId"    value="$!{searchMap.txt2html("weightGrpId")}" />
+	$!{searchMap.makeHiddenFind()}
+	<div class="clear"></div>
+	<div id="dialog" title="확인"><p>&nbsp;</p></div>    <!-- 다이어로그 -->
+</form>
+</body>
+</html>
+
+
+

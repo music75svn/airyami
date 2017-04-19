@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.reOpinion">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_OBJECTBOARD
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 이의신청 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_OBJECTBOARD
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.CB_ID,
+	            A.TYPE_ID,
+	            F_CODE_NM('160',A.TYPE_ID ,A.YEAR) TYPE_NM,
+	            A.TITLE,
+	            A.CONTENTS,
+	            A.USER_NM,
+	            A.CREATE_DT,
+	            B.CREATE_DT AS MODIFY_DT,
+	            A.REPLY_STATUS,
+	            A.PRV_YN,
+	            F_CODE_NM('161',A.REPLY_STATUS ,A.YEAR) REPLY_STATUS_NM
+	       FROM BSC_OBJECTBOARD A
+	            LEFT OUTER JOIN BSC_OBJECTBOARD_REPLY B
+		        ON A.YEAR = B.YEAR
+		        AND A.CB_ID = B.CB_ID
+	      WHERE (A.YEAR = #findYear#
+	      		<isNotEmpty prepend="AND" property="findTypeId">
+	    		A.TYPE_ID = #findTypeId#
+	    		</isNotEmpty>
+	    		<isNotEmpty prepend="AND" property="findReplyStatus">
+	    		A.REPLY_STATUS = #findReplyStatus#
+	    		</isNotEmpty>
+	    		<isNotEmpty property="findKeyword">
+	    			<isEqual prepend="AND" property="findColName" compareValue="findBbsTitle">
+		              	UPPER(A.TITLE) LIKE '%'||UPPER(#findKeyword#)||'%'
+	    			</isEqual>
+	    			<isEqual prepend="AND" property="findColName" compareValue="findBbsContents">
+		              	UPPER(A.CONTENTS) LIKE '%'||UPPER(#findKeyword#)||'%'
+	    			</isEqual>
+	    			<isEqual prepend="AND" property="findColName" compareValue="findBbsRegisterName">
+		              	NVL(UPPER(A.USER_NM),' ') LIKE '%'||UPPER(#findKeyword#)||'%'
+	    			</isEqual>
+	    		</isNotEmpty>
+              	<isNotEmpty prepend="AND" property="loginId">
+              	A.SABUN = #loginId#
+              	</isNotEmpty>
+              	AND PRV_YN = 'Y'
+              	)
+             OR (A.YEAR = #findYear#
+	      		<isNotEmpty prepend="AND" property="findTypeId">
+	    		A.TYPE_ID = #findTypeId#
+	    		</isNotEmpty>
+	    		<isNotEmpty prepend="AND" property="findReplyStatus">
+	    		A.REPLY_STATUS = #findReplyStatus#
+	    		</isNotEmpty>
+	    		<isNotEmpty property="findKeyword">
+	    			<isEqual prepend="AND" property="findColName" compareValue="findBbsTitle">
+		              	UPPER(A.TITLE) LIKE '%'||UPPER(#findKeyword#)||'%'
+	    			</isEqual>
+	    			<isEqual prepend="AND" property="findColName" compareValue="findBbsContents">
+		              	UPPER(A.CONTENTS) LIKE '%'||UPPER(#findKeyword#)||'%'
+	    			</isEqual>
+	    			<isEqual prepend="AND" property="findColName" compareValue="findBbsRegisterName">
+		              	NVL(UPPER(A.USER_NM),' ') LIKE '%'||UPPER(#findKeyword#)||'%'
+	    			</isEqual>
+	    		</isNotEmpty>
+              	AND PRV_YN = 'N'
+              	)
+	      ORDER BY A.CB_ID DESC
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이의신청 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_OBJECTBOARD
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.CB_ID,
+	            A.TYPE_ID,
+	            F_CODE_NM('160',A.TYPE_ID ,A.YEAR) TYPE_NM,
+	            A.TITLE,
+	            A.CONTENTS,
+	            A.SABUN,
+	            A.PRV_YN,
+	            A.USER_NM,
+	            D.DEPT_NM,
+	            A.CREATE_DT,
+	            A.MODIFY_DT,
+	            A.REPLY_STATUS,
+	            F_CODE_NM('161',A.REPLY_STATUS ,A.YEAR) REPLY_STATUS_NM,
+	            B.REPLY_ID,
+	            B.REPLY_TITLE,
+	            B.SABUN AS REPLY_SABUN,
+	            B.USER_NM AS REPLY_USER_NM,
+	            B.REPLY_CONTENTS,
+	            B.CREATE_DT AS REPLY_CREATE_DT
+	       FROM BSC_OBJECTBOARD A
+	            LEFT OUTER JOIN BSC_OBJECTBOARD_REPLY B
+	            ON A.YEAR = B.YEAR
+	            AND A.CB_ID = B.CB_ID
+	            LEFT OUTER JOIN BSC_USERINFO C
+	            ON A.SABUN = C.USER_ID
+	            LEFT OUTER JOIN BSC_DEPTINFO D
+		        ON C.DEPT_ID = D.DEPT_ID
+	      WHERE A.YEAR = #year#
+	        AND A.CB_ID = #cbId#
+	      ORDER BY A.CB_ID DESC      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 첨부파일 목록
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_OBJECTBOARD_ATTACH
+	==================================================================
+	-->
+	<select id="getAttachFileList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR, 
+		       CB_ID,
+		       CB_GBN, 
+		       SEQ, 
+		       ATTACH_FILE_NM,
+		       ATTACH_FILE_FNM, 
+		       ATTACH_FILE_SUFFIX,
+		       F_ENCRYPT(ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+		  FROM BSC_OBJECTBOARD_ATTACH A
+		 WHERE 1=1
+		   AND A.YEAR = #year#
+		   AND A.CB_ID = #cbId#
+		   AND A.CB_GBN = '01'
+		 ORDER BY SEQ
+		  
+	</select>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 첨부파일 목록
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_OBJECTBOARD_ATTACH
+	==================================================================
+	-->
+	<select id="getAttachFileAnsList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR, 
+		       CB_ID,
+		       CB_GBN, 
+		       SEQ, 
+		       ATTACH_FILE_NM,
+		       ATTACH_FILE_FNM, 
+		       ATTACH_FILE_SUFFIX,
+		       F_ENCRYPT(ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+		  FROM BSC_OBJECTBOARD_ATTACH A
+		 WHERE 1=1
+		   AND A.YEAR = #year#
+		   AND A.CB_ID = #cbId#
+		   AND A.CB_GBN = '02'
+		 ORDER BY SEQ
+		  
+	</select>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이의신청 키
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_OBJECTBOARD
+	==================================================================
+	-->
+	<select id="getCbId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT F_PGM_SERI('BSC_OBJECTBOARD', #year#, '', '', '', '') SEQ FROM DUAL
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이의신청  답변 키
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_OBJECTBOARD_REPLY
+	==================================================================
+	-->
+	<select id="getReplyId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT F_PGM_SERI('BSC_OBJECTBOARD_REPLY', #year#, '', '', '', '') SEQ FROM DUAL
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이의신청 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_OBJECTBOARD
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_OBJECTBOARD (
+									 CB_ID
+									,PASSWORD
+									,TYPE_ID
+									,TITLE
+									,CONTENTS
+									,SABUN
+									,PRV_YN
+									,USER_NM
+									,REPLY_STATUS
+									,STATUS
+									,HIT
+									,DEPT_CD
+									,CREATE_DT
+									,YEAR 
+									 ) 
+									 VALUES 
+									 (
+									 #cbId#
+									,null
+									,#typeId#
+									,#title#
+									,#contents#
+									,#sabun#
+									,#prvYn#
+									,#userNm#
+									,#replyStatus#
+									,null
+									,null
+									,#scDeptId#
+									,SYSDATE
+									,#year#
+									)	 
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이의신청 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_OBJECTBOARD
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		  UPDATE BSC_OBJECTBOARD
+			 SET TYPE_ID      = #typeId#,
+			     TITLE        = #title#,
+			     CONTENTS     = #contents#,
+			     REPLY_STATUS = #replyStatus#,
+			     PRV_YN  	  = #prvYn#,
+			     MODIFY_DT    = SYSDATE
+		   WHERE YEAR = #year#
+			 AND CB_ID = #cbId#	
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 이의신청 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_OBJECTBOARD
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_OBJECTBOARD 
+		 WHERE YEAR = #year# 
+		   AND CB_ID = #cbId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이의신청 답변 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_OBJECTBOARD
+	==================================================================
+	-->	
+	<update id="deleteReplyData" parameterClass="hashMap">
+		DELETE FROM BSC_OBJECTBOARD_REPLY
+		 WHERE YEAR = #year# 
+		   AND REPLY_ID = #replyId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이의신청 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_OBJECTBOARD
+	==================================================================
+	-->	
+	<insert id="insertReplyData" parameterClass="hashMap">
+		INSERT INTO BSC_OBJECTBOARD_REPLY ( REPLY_ID, 
+												   REPLY_TITLE, 
+												   REPLY_CONTENTS, 
+												   SABUN, 
+												   USER_NM, 
+												   REPLY_PASSWORD, 
+												   CB_ID, 
+												   CREATE_DT, 
+												   YEAR) 
+												VALUES ( #replyId#,
+												         null,
+												         #replyContents#,
+												         #replySabun#,
+												         #replyUserNm#,
+												         null,
+												         #cbId#,
+												         SYSDATE,
+												         #year#)	 
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 첨부파일 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_OBJECTBOARD_ATTACH
+	==================================================================
+	-->	
+	<insert id="insertFileInfo" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('BSC_OBJECTBOARD_ATTACH', #year#, #cbId#, #cbGbn#, '', '') SEQ FROM DUAL
+		</selectKey> 
+		INSERT INTO BSC_OBJECTBOARD_ATTACH (
+               YEAR
+             , CB_ID
+             , CB_GBN
+             , SEQ
+             , ATTACH_FILE_NM
+             , ATTACH_FILE_FNM
+             , ATTACH_FILE_SUFFIX
+             , ATTACH_FILE_PATH
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #cbId#
+             , #cbGbn#
+             , #SEQ#
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSufix#
+             , #attachFilePath#
+             , SYSDATE
+    	   )       
+	</insert>
+
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 전체 첨부파일 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE_REFERENCE_ATTACH
+	==================================================================
+	-->
+	<update id="deleteAllAttachFile" parameterClass="hashMap">
+		DELETE FROM BSC_OBJECTBOARD_ATTACH
+		 WHERE 1=1 
+		   AND YEAR = #year#
+		   AND CB_ID = #cbId#
+		   AND CB_GBN = #cbGbn#
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 첨부파일 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE_REFERENCE_ATTACH
+	==================================================================
+	-->
+	<update id="deleteFileInfo" parameterClass="hashMap">
+		DELETE FROM BSC_OBJECTBOARD_ATTACH
+		 WHERE 1=1 
+		   AND YEAR = #year#
+		   AND CB_ID = #cbId#
+		   AND CB_GBN = #cbGbn#
+		   AND SEQ = #seq#
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 첨부파일 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE_REFERENCE_ATTACH
+	==================================================================
+	-->
+	<update id="updateStatusData" parameterClass="hashMap">
+		UPDATE BSC_OBJECTBOARD
+		   SET REPLY_STATUS = #status#
+		 WHERE 1=1 
+		   AND YEAR = #year#
+		   AND CB_ID = #cbId#
+	</update>	
+	
+</sqlMap>
+
+

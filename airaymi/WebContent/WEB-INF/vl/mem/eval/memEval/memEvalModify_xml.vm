@@ -1,0 +1,44 @@
+#*************************************************************************
+* CLASS 명      : memEvalModify_xml.vm
+* 작 업 자      : 김상용
+* 작 업 일      : 2017년 03월 28일 
+* 기    능      : 업무수행평가 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      유연주     2017년 03월 28일             최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"				: "$!{CS_HTML.txt2html($list.YEAR)}",
+		"EVAL_MEMB_EMPN"	: "$!{CS_HTML.txt2html($list.EVAL_MEMB_EMPN)}",
+        "SEQS"              : "$!{CS_HTML.txt2html($list.SEQS)}",
+		"KOR_NM"			: "$!{CS_HTML.txt2html($list.KOR_NM)}", 
+		"EVAL_ITEM_NM"		: "$!{CS_HTML.txt2html($list.EVAL_ITEM_NM)}", 
+		#foreach($evalItem in $evalItemList)
+			"$!CS_HTML.txt2html($evalItem.EVAL_ITEM_ID)"	: "$!{CS_HTML.txt2html($list.get($evalItem.EVAL_ITEM_ID))},$!{CS_HTML.txt2html($evalItem.EVAL_ITEM_ID)}",
+		#end
+		"SCORE"				: "$!{CS_HTML.txt2html($list.SCORE)}",
+		"EXTRA_POINT"		: "$!{CS_HTML.txt2html($list.EXTRA_POINT)}",
+		"EXTRA_POINT_YN"	: "$!{CS_HTML.txt2html($list.EXTRA_POINT_YN)}",
+		"EVAL_REQ_YN"		: "$!{CS_HTML.txt2html($list.EVAL_REQ_YN)}",
+		"RANK"		        : "$!{CS_HTML.txt2html($list.RANK)}",
+		"EVAL_OPINION"		: "$!{CS_HTML.replace( $list.EVAL_OPINION, '<BR>', '\n')}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

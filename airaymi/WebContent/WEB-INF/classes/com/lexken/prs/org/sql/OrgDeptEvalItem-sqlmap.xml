@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.org.orgDeptEvalItem">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 조직별 세부평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT /*+ ordered */
+	            A.YEAR
+	          , A.DEPT_CD
+	          , A.ORG_EVAL_ITEM_ID 
+	          , B.ORG_EVAL_ITEM_NM
+	          , F_CODE_NM('183', B.EVAL_TYPE, B.YEAR) AS EVAL_TYPE_NM
+	          , A.ALLOC_SCORE
+	          , REPLACE( REPLACE ( B.CONTENT, CHR(13), '' ), CHR(10), ' ' ) CONTENT
+	    FROM ORG_DEPT_EVAL_ITEM A
+	         LEFT OUTER JOIN ORG_EVAL_ITEM B ON A.YEAR = B.YEAR AND A.ORG_EVAL_ITEM_ID = B.ORG_EVAL_ITEM_ID AND B.DELETE_DT IS NULL
+	    WHERE A.YEAR = #findYear#
+	    
+	    <isNotEmpty prepend="AND" property="findDeptCd">
+	    	A.DEPT_CD = #findDeptCd#
+	    </isNotEmpty>
+	      
+	    <isEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NOT NULL
+	    </isEqual>
+	    
+	    <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NULL
+	    </isNotEqual>
+        ORDER BY A.YEAR, A.ORG_EVAL_ITEM_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직별 세부평가항목 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT /*+ ORDERED */
+		       A.YEAR
+             , A.ORG_EVAL_ITEM_ID
+             , B.ORG_EVAL_ITEM_NM
+             , B.EVAL_TYPE         
+             , B.ACT_CAL_TYPE
+             , A.ALLOC_SCORE
+             , B.CONTENT
+             , CASE WHEN A.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USE_YN  
+         FROM ORG_DEPT_EVAL_ITEM A
+         	  LEFT OUTER JOIN ORG_EVAL_ITEM B ON A.YEAR = B.YEAR AND A.ORG_EVAL_ITEM_ID = B.ORG_EVAL_ITEM_ID AND B.DELETE_DT IS NULL
+        WHERE A.YEAR = #year#
+          AND A.ORG_EVAL_ITEM_ID = #orgEvalItemId#
+          AND A.DEPT_CD = #findDeptCd#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직별 세부평가항목 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE ORG_DEPT_EVAL_ITEM
+		   SET 
+		       ALLOC_SCORE          = #allocScore#
+		    <isEqual property="useYn" compareValue="N">
+            	, DELETE_DT         = SYSDATE
+		    </isEqual>
+		    <isNotEqual property="useYn" compareValue="N">
+            	, DELETE_DT         = NULL
+		    </isNotEqual>         
+		WHERE YEAR = #year#
+		  AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+		  AND DEPT_CD = #findDeptCd#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직별 세부평가항목 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE ORG_DEPT_EVAL_ITEM
+		   SET DELETE_DT = SYSDATE
+		 WHERE YEAR = #year#
+		  AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+		  AND DEPT_CD = #findDeptCd#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직별 세부평가항목관리 목록 엑셀다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getExcelList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT /*+ ordered */
+	            A.YEAR
+	          , A.DEPT_CD
+	          , A.ORG_EVAL_ITEM_ID 
+	          , B.ORG_EVAL_ITEM_NM
+	          , F_CODE_NM('183', B.EVAL_TYPE, B.YEAR) AS EVAL_TYPE_NM
+	          , B.CONTENT
+	    FROM ORG_DEPT_EVAL_ITEM A
+	         LEFT OUTER JOIN ORG_EVAL_ITEM B ON A.YEAR = B.YEAR AND A.ORG_EVAL_ITEM_ID = B.ORG_EVAL_ITEM_ID AND B.DELETE_DT IS NULL
+	    WHERE A.YEAR = #findYear#
+	    <isNotEmpty prepend="AND" property="findDeptCd">
+	    	A.DEPT_CD = #findDeptCd#
+	    </isNotEmpty>
+	    <isEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NOT NULL
+	    </isEqual>
+	    
+	    <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NULL
+	    </isNotEqual>
+        ORDER BY ORG_EVAL_ITEM_ID
+	</select>
+
+</sqlMap>
+
+

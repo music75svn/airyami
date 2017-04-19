@@ -1,0 +1,44 @@
+#*************************************************************************
+* CLASS 명      : empEvalConList_xml
+* 작 업 자      : 김효은
+* 작 업 일      : 2014년 3월 19일 
+* 기    능      : 직원개인기여도평가 평가 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김효은     2014년 3월 19일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+    "page": "1",
+    "total": 1,
+    "records": "$listSize",
+    "rows":[
+
+#foreach($list in $list)
+    {
+        "YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+        "DEPT_CD"              : "$!{CS_HTML.txt2html($list.DEPT_CD)}", 
+        "UP_DEPT_CD"           : "$!{CS_HTML.txt2html($list.UP_DEPT_CD)}", 
+        "DEPT_KOR_NM"          : "$!{CS_HTML.txt2html($list.DEPT_KOR_NM)}", 
+        "ASSESSOR_EMPN"        : "$!{CS_HTML.txt2html($list.ASSESSOR_EMPN)}", 
+        "KOR_NM"      		   : "$!{CS_HTML.txt2html($list.KOR_NM)}", 
+        "EVAL_COUNT"           : "$!{CS_HTML.txt2html($list.EVAL_COUNT)}", 
+        #foreach($evalItem in $evalItemList)
+			"$!CS_HTML.txt2html($evalItem.EVAL_ITEM_ID)"	: "$!{CS_HTML.txt2html($list.get($evalItem.EVAL_ITEM_ID))},$!{CS_HTML.txt2html($evalItem.EVAL_ITEM_ID)}",
+			"$!CS_HTML.txt2html($evalItem.EVAL_ITEM_NM)"	: "$!{CS_HTML.txt2html($list.get($evalItem.EVAL_ITEM_NM))},$!{CS_HTML.txt2html($evalItem.EVAL_ITEM_NM)}",
+		#end
+        "EVAL_GRP_YN"          : "$!{CS_HTML.txt2html($list.EVAL_GRP_YN)}", 
+        "EVAL_SUBMIT_YN"       : "$!{CS_HTML.txt2html($list.EVAL_SUBMIT_YN)}", 
+		"EVAL_SUBMIT_NM"		:  "#if($list.EVAL_SUBMIT_YN == "Y")평가완료#else평가진행중#end"
+    }
+    #set($idx = $idx + 1)
+    #if($idx != $listSize)
+     ,
+    #end
+#end
+
+    ]
+}

@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="cbe.eval.evalUser">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자(평가종합) 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+		       A.EVAL_DEGREE_ID,
+		       A.EVAL_MEMB_USER_ID,
+		       A.NAME,
+		       A.WEIGHT_GRP_ID,
+		       A.RIVAL_GRP_ID,
+		       A.ITEM_FRS_DEPT_ID,
+		       A.ITEM_SEC_DEPT_ID,
+		       A.ITEM_TEAM_ID,
+		       A.JIKGUB_ID,
+		       A.EVAL_METHOD_GBN
+		  FROM CBE_EVAL_MASTER A
+		 WHERE A.YEAR = #findYear#
+		   AND A.EVAL_DEGREE_ID = #findEvalDegreeId#
+		   <!-- 
+		   <isNotEmpty prepend="AND" property="findWeightGrpId">
+	       A.WEIGHT_GRP_ID = #findWeightGrpId#
+	       </isNotEmpty>
+	       
+	       <isNotEmpty prepend="AND" property="findRivalGrpId">
+	       A.RIVAL_GRP_ID = #findRivalGrpId#
+	       </isNotEmpty>
+	       -->
+	    
+	       
+	       <dynamic prepend="AND">
+		   		<isNotEmpty property="findWeightGrpId">
+					<isEqual property="findWeightGrpId" compareValue="NONE">
+					A.WEIGHT_GRP_ID IS NULL
+					</isEqual>
+					<isNotEqual property="findWeightGrpId" compareValue="NONE">
+			   		A.WEIGHT_GRP_ID = #findWeightGrpId#
+			   		</isNotEqual>
+		   		</isNotEmpty>
+		   </dynamic>
+	       
+	       <dynamic prepend="AND">
+		   		<isNotEmpty property="findRivalGrpId">
+					<isEqual property="findRivalGrpId" compareValue="NONE">
+					A.RIVAL_GRP_ID IS NULL
+					</isEqual>
+					<isNotEqual property="findRivalGrpId" compareValue="NONE">
+			   		A.RIVAL_GRP_ID = #findRivalGrpId#
+			   		</isNotEqual>
+		   		</isNotEmpty>
+		   </dynamic>
+	       
+
+		   <isNotEmpty prepend="AND" property="findName">
+	       A.NAME LIKE '%'||#findName#||'%'
+	       </isNotEmpty>
+	       
+	       <isNotEmpty prepend="AND" property="findEvalMethodGbn">
+	       A.EVAL_METHOD_GBN = #findEvalMethodGbn#
+	       </isNotEmpty>
+	       
+	     ORDER BY A.WEIGHT_GRP_ID, A.RIVAL_GRP_ID, A.NAME
+	       
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자(평가종합) 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->
+	<select id="getExcelList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.EVAL_MEMB_USER_ID,
+	            A.NAME,
+	            A.SC_DEPT_ID,
+	            G.SC_DEPT_NM,
+	            A.JIKGUB_ID,
+	            A.JIKGUB_NM,
+	            A.POS_ID,
+	            A.POS_NM,
+	            A.WEIGHT_GRP_ID,
+	            B.WEIGHT_GRP_NM,
+	            A.RIVAL_GRP_ID,
+	            C.RIVAL_GRP_NM,
+	            A.ITEM_FRS_DEPT_ID,
+	            D.SC_DEPT_NM AS ITEM_FRS_DEPT_NM,
+	            A.ITEM_SEC_DEPT_ID,
+	            E.SC_DEPT_NM AS ITEM_SEC_DEPT_NM,
+	            A.ITEM_TEAM_ID,
+	            F.SC_DEPT_NM AS ITEM_TEAM_NM,
+	            A.EVAL_METHOD_GBN,
+	            F_CODE_NM('155',A.EVAL_METHOD_GBN,A.YEAR) EVAL_METHOD_NM     
+           FROM CBE_EVAL_MASTER A    
+	            LEFT OUTER JOIN CBE_WEIGHT_GRP B
+	            ON A.YEAR = B.YEAR
+	            AND A.EVAL_DEGREE_ID = B.EVAL_DEGREE_ID
+	            AND A.WEIGHT_GRP_ID = B.WEIGHT_GRP_ID
+	            LEFT OUTER JOIN CBE_RIVAL_GRP C
+	            ON A.YEAR = C.YEAR
+	            AND A.EVAL_DEGREE_ID = C.EVAL_DEGREE_ID
+	            AND A.RIVAL_GRP_ID = C.RIVAL_GRP_ID
+	            LEFT OUTER JOIN BSC_SC_DEPT D
+	            ON A.YEAR = D.YEAR
+	            AND A.ITEM_FRS_DEPT_ID = D.SC_DEPT_ID
+	            AND D.DELETE_DT IS NULL
+	            LEFT OUTER JOIN BSC_SC_DEPT E
+	            ON A.YEAR = E.YEAR
+	            AND A.ITEM_SEC_DEPT_ID = E.SC_DEPT_ID
+	            AND E.DELETE_DT IS NULL
+	            LEFT OUTER JOIN BSC_SC_DEPT F
+	            ON A.YEAR = F.YEAR
+	            AND A.ITEM_TEAM_ID = F.SC_DEPT_ID
+	            AND F.DELETE_DT IS NULL
+	            LEFT OUTER JOIN BSC_SC_DEPT G
+	            ON A.YEAR = G.YEAR
+	            AND A.SC_DEPT_ID = G.SC_DEPT_ID
+	            AND G.DELETE_DT IS NULL
+		  WHERE A.YEAR =  #findYear#      
+		    AND A.EVAL_DEGREE_ID =  #findEvalDegreeId#                                                                                                         
+		  ORDER BY A.WEIGHT_GRP_ID,A.RIVAL_GRP_ID,A.NAME 
+	       
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가차수 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_DEGREE
+	==================================================================
+	-->
+	<select id="getDegreeList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR,
+               EVAL_DEGREE_ID,
+               EVAL_DEGREE_NM
+          FROM BSC_ECM_EVAL_DEGREE
+          WHERE YEAR=#findYear#
+    </select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자(평가종합) 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->
+	<select id="getWeightGrpList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT WEIGHT_GRP_ID,
+		       WEIGHT_GRP_NM     
+		  FROM CBE_WEIGHT_GRP
+		 WHERE 1 = 1 
+		   AND YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #findEvalDegreeId#
+		 ORDER BY SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자(평가종합) 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->
+	<select id="getRivalGrpList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT RIVAL_GRP_ID,
+		       RIVAL_GRP_NM     
+		  FROM CBE_RIVAL_GRP
+		 WHERE 1 = 1 
+		   AND YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #findEvalDegreeId#
+		 ORDER BY RIVAL_GRP_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자(평가종합) 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->
+	<select id="getScDeptFirstList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+	           A.SC_DEPT_ID,
+	           A.SC_DEPT_NM
+		  FROM BSC_SC_DEPT A
+		 WHERE A.YEAR = #findYear#
+	       AND A.DELETE_DT IS NULL
+	     ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자(평가종합) 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->
+	<select id="getScDeptSecondList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+	           A.SC_DEPT_ID,
+	           A.SC_DEPT_S_NM AS SC_DEPT_NM
+		  FROM BSC_SC_DEPT A
+		 WHERE A.YEAR = #findYear#
+	       AND A.DELETE_DT IS NULL
+	     ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자(평가종합) 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->
+	<select id="getScDeptTeamList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+	           A.SC_DEPT_ID,
+	           A.SC_DEPT_S_NM AS SC_DEPT_NM
+		  FROM BSC_SC_DEPT A
+		 WHERE A.YEAR = #findYear#
+	       AND A.DELETE_DT IS NULL
+	     ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자(평가종합) 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->
+	<select id="getJikgubList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT CODE_ID,
+               CODE_NM
+   		  FROM BSC_CODE
+         WHERE YEAR = DECODE((SELECT YEAR_YN FROM BSC_CODE_GRP WHERE CODE_GRP_ID = '154'),'Y',#findYear#,'9999')
+	       AND CODE_GRP_ID = '154'
+	       AND DELETE_DT IS NULL
+	     ORDER BY SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자(평가종합) 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->
+	<select id="getEvalGbnList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT CODE_ID,
+               CODE_NM
+   		  FROM BSC_CODE
+         WHERE YEAR = DECODE((SELECT YEAR_YN FROM BSC_CODE_GRP WHERE CODE_GRP_ID = '155'),'Y',#findYear#,'9999')
+	       AND CODE_GRP_ID = '155'
+	       AND DELETE_DT IS NULL
+	     ORDER BY SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자(평가종합) 등록
+	  #	기능	: INSERT
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('CBE_EVAL_MASTER','','','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO CBE_EVAL_MASTER ( 
+			   YEAR
+			 , EVAL_DEGREE_ID
+			 , EVAL_MEMB_USER_ID
+			 , NAME
+			 , SC_DEPT_ID
+			 , JIKGUB_ID
+			 , JIKGUB_NM
+			 , POS_ID
+			 , POS_NM
+			 , WEIGHT_GRP_ID
+			 , RIVAL_GRP_ID
+			 , ITEM_FRS_DEPT_ID
+			 , ITEM_SEC_DEPT_ID
+			 , ITEM_TEAM_ID
+			 , WORK_TERM
+			 , EVAL_METHOD_GBN
+			 , EXCE_EVAL_REASON
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #evalMembUserId#
+			 , #name#
+			 , #scDeptId#
+			 , #jikgubId#
+			 , #jikgubNm#
+			 , #posId#
+			 , #posNm#
+			 , #weightGrpId#
+			 , #rivalGrpId#
+			 , #itemFrsDeptId#
+			 , #itemSecDeptId#
+			 , #itemTeamId#
+			 , #workTerm#
+			 , #evalMethodGbn#
+			 , #exceEvalReason#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자(평가종합) 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE CBE_EVAL_MASTER 
+		   SET JIKGUB_ID              = #jikgubId#
+			 , JIKGUB_NM              = F_CODE_NM('154',#jikgubId#,#year#)
+			 , WEIGHT_GRP_ID          = #weightGrpId# 
+			 , RIVAL_GRP_ID           = #rivalGrpId# 
+			 , ITEM_FRS_DEPT_ID       = #itemFrsDeptId# 
+			 , ITEM_SEC_DEPT_ID       = #itemSecDeptId# 
+			 , ITEM_TEAM_ID           = #itemTeamId# 
+			 , EVAL_METHOD_GBN        = #evalMethodGbn# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND EVAL_MEMB_USER_ID = #evalMembUserId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가대상자(평가종합) 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: CBE_EVAL_MASTER
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM CBE_EVAL_MASTER 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND EVAL_MEMB_USER_ID = #evalMembUserId#
+	</update>
+	
+	
+</sqlMap>
+
+

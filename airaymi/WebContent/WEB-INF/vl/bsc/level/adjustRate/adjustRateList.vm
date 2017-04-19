@@ -1,0 +1,306 @@
+#*************************************************************************
+* CLASS 명      : adjustRateList
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 10월 23일 
+* 기    능      : 난이도 조정계수
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     하윤식      2012년 10월 23일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/bsc/level/adjustRate/adjustRateList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/level/adjustRate/adjustRateList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['$!{YEAR}', '평가항목그룹 ID', '평가항목그룹', '평가등급', 'CNT', 'INDEX'
+                			#foreach($list in $gradeList)
+								, '$!{CS_HTML.txt2html($list.GRADE)}'
+							#end
+						  ],
+			colModel     :[
+							{name:'YEAR'                 ,index:'YEAR'                 ,width:150   ,align:'center' ,sortable:false ,cellattr: attrSetting }, 
+                            {name:'ITEM_GRP_ID'          ,index:'ITEM_GRP_ID'          ,width:150   ,align:'center' ,sortable:false ,cellattr: attrSetting }, 
+                            {name:'ITEM_GRP_NM'          ,index:'ITEM_GRP_NM'          ,width:120   ,align:'center' ,sortable:false ,cellattr: attrSetting }, 
+                            {name:'GRADE'                ,index:'GRADE'                ,width:100   ,align:'center' ,sortable:false ,formatter:linkUpdate  },
+							{name:'GROUP_CNT'            ,index:'GROUP_CNT'            ,width:80    ,align:'center' ,sortable:false },
+							{name:'GROUP_INDEX'          ,index:'GROUP_INDEX'          ,width:80    ,align:'center' ,sortable:false }
+							
+							#foreach($list in $gradeList)
+								, {name:'$!{CS_HTML.txt2html($list.GRADE)}'   ,index:'$!{CS_HTML.txt2html($list.GRADE)}' ,width:100 ,align:'center' ,sortable:false }
+							#end
+                            
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			caption:"난이도 조정계수"
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"ITEM_GRP_ID").jqGrid('hideCol',"GROUP_CNT").jqGrid('hideCol',"GROUP_INDEX").setGridWidth($!{jqGrid_width});
+        
+		J("#list").jqGrid('setGroupHeaders', {
+          useColSpanStyle: true, 
+          groupHeaders:[
+        	{startColumnName: 'S', numberOfColumns: 10, titleText: '<em>$!{secondGradeNm}</em>'}
+          ]	
+        });
+		
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+        
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			if('$!{evalCloseYn}' == 'Y'){
+    			J.showMsgBox("평가마감 취소 평가제출 모두 취소 후 등록할 수 있습니다.", null, null); 
+    			return;
+    		}
+    		
+    		if('$!{evalSubmitYn}' == 'Y'){
+    			J.showMsgBox("평가제출을 모두 취소 후 수정할 수 있습니다.", null, null); 
+    			return;
+    		}
+			
+			J("#year").val(J("#findYear").val());
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/bsc/level/adjustRate/adjustRateModify.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+		
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+	});
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) { 
+		return '<a href=javascript:goModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		if('$!{evalCloseYn}' == 'Y'){
+			J.showMsgBox("평가마감 취소 평가제출 모두 취소 후 수정할 수 있습니다.", null, null); 
+			return;
+		}
+		
+		if('$!{evalSubmitYn}' == 'Y'){
+			J.showMsgBox("평가제출을 모두 취소 후 수정할 수 있습니다.", null, null); 
+			return;
+		}
+		
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#itemGrpId").val(ret.ITEM_GRP_ID);
+		J("#grade").val(J(ret.GRADE).text());
+		J("#year").val(J("#findYear").val());
+		J("#mode").val("MOD");
+		J("#formList").attr("action", "$!{context_path}/bsc/level/adjustRate/adjustRateModify.vw?type=template").submit();
+	}
+    
+	/******************************************
+	 * 삭제
+	 ******************************************/
+	function goDelete() {
+		if('$!{evalCloseYn}' == 'Y'){
+			J.showMsgBox("평가마감 취소 평가제출 모두 취소 후 삭제할 수 있습니다.", null, null); 
+			return;
+		}
+		
+		if('$!{evalSubmitYn}' == 'Y'){
+			J.showMsgBox("평가제출을 모두 취소 후 삭제할 수 있습니다.", null, null); 
+			return;
+		}
+		
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("삭제할 데이터를 선택하십시요", null, null); 
+		} else {
+			J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+    
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var itemGrpIds = "";
+		var grades = "";
+		var matchItemGrpIds = "";
+		var matchGrades = "";
+        
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					itemGrpIds += rowdata.ITEM_GRP_ID + '|';
+					grades += J(rowdata.GRADE).text() + '|';
+				}
+			});
+		}
+		
+		J("#itemGrpIds").val(itemGrpIds);J("#grades").val(grades);J("#matchItemGrpIds").val(matchItemGrpIds);J("#matchGrades").val(matchGrades);
+		J("#mode").val("DEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/bsc/level/adjustRate/adjustRateProcess.vw?type=template").submit();
+		return false;
+	}
+	
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+	
+		J("#yearNm").val(J("#findYear :selected").text());
+	
+		J("#formList").attr("action", "$!{context_path}/bsc/level/adjustRate/adjustRateListExcel.vw?type=excel").submit();
+		return false;
+	}
+
+	/*****************************************
+	 * 데이터 Rowspan 설정
+	 ******************************************/
+	function attrSetting(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.GROUP_INDEX;
+		var rowSpan = rowObject.GROUP_CNT;
+		
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+		
+		return result;     
+	} 
+	
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">난이도 조정계수</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/level/adjustRate/adjustRateList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="난이도 조정계수검색 조건">
+						<caption class="none">난이도 조정계수 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/level/adjustRate/adjustRateProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"		 		name="year" />
+			<input type="hidden" id="yearNm"		 		name="yearNm" />
+			<input type="hidden" id="itemGrpIds" 		name="itemGrpIds" /> 
+			<input type="hidden" id="itemGrpId"  		name="itemGrpId" />
+			<input type="hidden" id="grades"     		name="grades" /> 
+			<input type="hidden" id="grade"      		name="grade" />
+			<input type="hidden" id="matchItemGrpIds" 	name="matchItemGrpIds" /> 
+			<input type="hidden" id="matchItemGrpId" 	name="matchItemGrpId" value="$!{secondGradeId}"/>
+			<input type="hidden" id="matchGrades" 		name="matchGrades" /> 
+			<input type="hidden" id="matchGrade"  		name="matchGrade" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="난이도 조정계수 조회결과">
+							<caption class="none">난이도 조정계수 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+								<!-- <li><input type="button" id="btnInsert" value="신규" /></li> -->
+								<li><input type="submit" id="btnDelete" value="삭제" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+	</div>
+	<div class="clear"></div>
+</div>

@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.tam.summaryReport">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 부서별요약보고서관리 요약보고서 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getSummary" parameterClass="hashMap" resultClass="hashMap">
+		SELECT REVIEW,              
+		       OPINION,             
+		       REVIEW_USER_ID,      
+		       OPINION_USER_ID      
+	  	FROM BSC_SUMMARY_REPORT   
+	  	WHERE YEAR = #findYear#             
+		   AND MON = #findMon#              
+		   AND SC_DEPT_ID = #findScDeptId#                                          
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 부서별요약보고서관리 전략방향 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getStrategyDirList" parameterClass="hashMap" resultClass="hashMap">
+      SELECT X.DB_INITIATIVE_ID INITIATIVE_ID, 
+      		 X.CODE_NM INITIATIVE_NM                                    
+        FROM                                                                         
+        (SELECT DISTINCT A.DB_INITIATIVE_ID, B.CODE_NM                               
+                  FROM BSC_DEPT_STRATEGY A                                           
+                       INNER JOIN BSC_CODE B                                         
+                       ON A.YEAR = B.YEAR                                            
+                       AND B.CODE_GRP_ID = '115'                                     
+                       AND B.CODE_ID = A.DB_INITIATIVE_ID                            
+                       AND B.DELETE_DT IS NULL                                       
+                       INNER JOIN BSC_METRIC C                                       
+                       ON A.YEAR = C.YEAR                                            
+                       AND A.SC_DEPT_ID = C.SC_DEPT_ID                               
+                       AND A.STRATEGY_ID = C.STRATEGY_ID                             
+                       AND C.BSC_METRIC_GBN =  '01'                                         
+                       AND C.DELETE_DT IS NULL                                       
+                 WHERE A.YEAR = #findYear#                                                         
+                   AND A.SC_DEPT_ID =  #findScDeptId#                                             
+        ) X                                                                          
+        INNER JOIN BSC_CODE Y                                                        
+         ON Y.YEAR = #findYear#                                                                  
+        AND Y.CODE_GRP_ID = '115'                                                    
+        AND Y.CODE_ID = X.DB_INITIATIVE_ID                                           
+        AND Y.DELETE_DT IS NULL                                                          
+        ORDER BY Y.SORT_ORDER                                                         
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 부서별요약보고서관리 신호등상태 범주 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getSignalList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT 
+			C.CODE_ID SIGNAL_ID, 
+			C.CODE_NM SIGNAL_NM,
+			C.SORT_ORDER
+		FROM BSC_DEPT_STRATEGY A                    
+			INNER JOIN BSC_METRICSCORE B           
+				ON   B.YEAR = A.YEAR                   
+               	AND B.MON = #findMon#                               
+               	AND B.ANAL_CYCLE = 'Y'                   
+               	AND B.METRIC_GRP_ID='MT9999'           
+               	AND B.SC_DEPT_ID = #findScDeptId#                   
+               	AND B.DISPLAY_GBN = 'F'                     
+               	AND A.STRATEGY_ID = B.STRATEGY_ID      
+            INNER JOIN BSC_CODE C                                           
+            	ON B.YEAR = C.YEAR                                                   
+                AND C.CODE_GRP_ID = '021'                                       
+                AND B.STATUS = C.CODE_ID                           
+                AND C.DELETE_DT IS NULL                
+        WHERE A.YEAR = #findYear#                             
+        	AND A.SC_DEPT_ID =  #findScDeptId#                      
+        ORDER BY C.SORT_ORDER    	
+    </select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 부서별요약보고서관리 전략과제 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getStrategyList" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+         SELECT A.CODE_ID SIGNAL_ID,                                                                                                                               
+                A.CODE_NM SIGNAL_NM,                                                                                                                               
+                C.DB_INITIATIVE_ID INITIATIVE_ID,                                                                                                        
+                (SELECT CODE_NM FROM BSC_CODE WHERE YEAR = #findYear# AND CODE_GRP_ID = '115' AND CODE_ID = C.DB_INITIATIVE_ID) INITIATIVE_NM,               
+                B.STRATEGY_ID,                                                                                                                           
+                B.STRATEGY_NM,                                                                                                                           
+               (SELECT COUNT(1)                                                                                                                          
+                  FROM BSC_METRICSCORE                                                                                                                   
+                 WHERE YEAR = #findYear#                                                                                                                     
+                   AND MON = #findMon#                                                                                                                       
+                   AND ANAL_CYCLE='Y'                                                                                                                    
+                   AND DISPLAY_GBN = 'T'                                                                                                                 
+                   AND STRATEGY_ID = C.STRATEGY_ID                                                                                                       
+                   AND (SUB_METRIC_YN <> 'Y' OR SUB_METRIC_YN IS NULL)                                                                                   
+                )METRIC_CNT                                                                                                                              
+         FROM BSC_CODE A
+           		INNER JOIN BSC_METRICSCORE B                                                                                                             
+                	ON   B.YEAR = A.YEAR                                                                                                                     
+                	AND B.MON = #findMon#                                                                                                                         
+                	AND B.ANAL_CYCLE = 'Y'                                                                                                                   
+                	AND B.METRIC_GRP_ID='MT9999'                                                                                                             
+                	AND B.SC_DEPT_ID = #findScDeptId#                                                                                                             
+                	AND B.DISPLAY_GBN = 'F'                                                                                                                  
+                	AND A.CODE_ID = B.STATUS                                                                                                                 
+                INNER JOIN BSC_DEPT_STRATEGY C                                                                                                           
+                	ON B.YEAR = C.YEAR                                                                                                                       
+                	AND B.STRATEGY_ID = C.STRATEGY_ID                                                                                                        
+                	AND B.SC_DEPT_ID = C.SC_DEPT_ID                                                                                                          
+                INNER JOIN BSC_CODE D                          
+                	ON D.YEAR = C.YEAR                                              
+                	AND D.CODE_GRP_ID = '115'                                        
+                	AND D.CODE_ID = C.DB_INITIATIVE_ID                               
+                	AND D.DELETE_DT IS NULL                
+         WHERE A.CODE_GRP_ID = '021'                                                                                                                     
+                AND A.YEAR = #findYear#                                                                                                                       
+                AND A.DELETE_DT IS NULL                                                                                                                   
+         ORDER BY A.CODE_ID, D.SORT_ORDER
+         ]]>    	
+    </select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 부서별요약보고서관리 지표목록 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getMetricList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.STRATEGY_ID,                                             
+			   A.METRIC_ID,                                             
+               A.METRIC_NM,                                                     
+               B.STATUS                                                         
+        FROM BSC_METRIC A                                             
+        INNER  JOIN BSC_METRICSCORE B                            
+        	ON B.YEAR = A.YEAR                                       
+            AND B.MON = #findMon#                                            
+            AND B.ANAL_CYCLE = 'Y'                                     
+            AND B.METRIC_ID = A.METRIC_ID                            
+            AND B.SC_DEPT_ID = A.SC_DEPT_ID                          
+            AND B.DISPLAY_GBN = 'T'                                  
+        WHERE A.YEAR = #findYear#                                              
+            AND A.SC_DEPT_ID = #findScDeptId#                                        
+            AND A.DELETE_DT IS NULL                 
+    </select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 부서별요약보고서관리  등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_SUMMARY_REPORT (
+		   YEAR, 
+		   MON, 
+		   SC_DEPT_ID, 
+		   REVIEW, 
+		   OPINION, 
+		   REVIEW_USER_ID, 
+		   OPINION_USER_ID, 
+		   CREATE_DT) 
+		VALUES (
+		   #year#, 
+		   #mon#, 
+		   #scDeptId#, 
+		   #review#, 
+		   #opinion#, 
+		   #userId#, 
+		   #userId#, 
+		   SYSDATE)
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 부서별요약보고서관리  삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE BSC_SUMMARY_REPORT
+		WHERE YEAR = #year#
+		AND MON = #mon#
+		AND SC_DEPT_ID = #scDeptId# 
+	</update>
+	
+</sqlMap>
+
+

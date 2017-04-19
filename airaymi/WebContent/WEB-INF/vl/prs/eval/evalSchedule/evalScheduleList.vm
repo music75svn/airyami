@@ -1,0 +1,674 @@
+#*************************************************************************
+* CLASS 명      : evalScheduleList
+* 작 업 자      : 김상용
+* 작 업 일      : 2013년 04월 29일
+* 기    능      : 개인평가 평가일정
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김상용      2013년 04월 29일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/prs/eval/evalSchedule/evalScheduleList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/prs/eval/evalSchedule/evalScheduleList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '시작일', '종료일', '시작일', '종료일', '시작일', '종료일', '시작일', '종료일', '시작일', '종료일', '시작일', '종료일', '시작일', '종료일', '시작일', '종료일' ],
+			colModel     :[
+							{name:'YEAR'					,index:'YEAR'					,width:100   ,align:'center' },
+							{name:'DIR_EVAL_START_DT'		,index:'DIR_EVAL_START_DT'		,width:100   ,align:'center' ,formatter:goDirEvalStartDt},
+							{name:'DIR_EVAL_END_DT'			,index:'DIR_EVAL_END_DT'		,width:100   ,align:'center' ,formatter:goDirEvalEndDt},
+							{name:'DIR_RPT_START_DT'		,index:'DIR_RPT_START_DT'		,width:100   ,align:'center' ,formatter:goDirRptStartDt},
+							{name:'DIR_RPT_END_DT'			,index:'DIR_RPT_END_DT'			,width:100   ,align:'center' ,formatter:goDirRptEndDt},
+							{name:'MNG_START_DT'			,index:'MNG_START_DT'			,width:100   ,align:'center' ,formatter:goMngStartDt},
+							{name:'MNG_END_DT'				,index:'MNG_END_DT'				,width:100   ,align:'center' ,formatter:goMngEndDt},
+							{name:'MNG_ORG_START_DT'		,index:'MNG_ORG_START_DT'		,width:100   ,align:'center' ,formatter:goMngOrgStartDt},
+							{name:'MNG_ORG_END_DT'			,index:'MNG_ORG_END_DT'			,width:100   ,align:'center' ,formatter:goMngOrgEndDt},
+							{name:'MNG_RPT_START_DT'		,index:'MNG_RPT_START_DT'		,width:100   ,align:'center' ,formatter:goMngRptStartDt},
+							{name:'MNG_RPT_END_DT'			,index:'MNG_RPT_END_DT'			,width:100   ,align:'center' ,formatter:goMngRptEndDt},
+							{name:'MNG_OBJ_START_DT'		,index:'MNG_RPT_START_DT'		,width:100   ,align:'center' ,formatter:goMngObjStartDt},
+							{name:'MNG_OBJ_END_DT'			,index:'MNG_RPT_END_DT'			,width:100   ,align:'center' ,formatter:goMngObjEndDt},
+							{name:'EMP_START_DT'			,index:'EMP_START_DT'			,width:100   ,align:'center' ,formatter:goEmpStartDt},
+							{name:'EMP_END_DT'				,index:'EMP_END_DT'				,width:100   ,align:'center' ,formatter:goEmpEndDt},
+							{name:'MNG_PLAN_START_DT'	    ,index:'MNG_PLAN_START_DT'		,width:100   ,align:'center' ,formatter:goMngPlanStartDt},
+							{name:'MNG_PLAN_END_DT'			,index:'MNG_PLAN_END_DT'		,width:100   ,align:'center' ,formatter:goMngPlanEndDt}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			cmTemplate   : {sortable:false},
+			 loadComplete : function() {
+
+                var ids    = J("#list").jqGrid('getDataIDs');
+				var rowIds = "";
+
+                rowIds = ids.length;
+
+				//리스트가 하나라도 존재하면 신규 버튼을 감추고 리스트가 존재하지 않으면 저장(수정), 삭제 버튼을 감춤
+				if(rowIds >= 1){
+					J("#btnInsert").hide();
+				}else{
+					J("#btnUpdate").hide();
+					J("#btnDelete").hide();
+				}
+			},
+			caption:"평가구분"
+		}).jqGrid('hideCol',"YEAR").setGridWidth($!{jqGrid_width});
+
+
+		J("#list").jqGrid('setGroupHeaders', {
+          useColSpanStyle: true,
+          groupHeaders:[
+			 {startColumnName: 'DIR_EVAL_START_DT', numberOfColumns: 2, titleText: '<em>임원 평가</em>'}
+			,{startColumnName: 'DIR_RPT_START_DT',  numberOfColumns: 2, titleText: '<em>임원 직무성과기술서</em>'}
+			,{startColumnName: 'MNG_START_DT', 		numberOfColumns: 2, titleText: '<em>간부 개인업적평가</em>'}
+			,{startColumnName: 'MNG_ORG_START_DT', 	numberOfColumns: 2, titleText: '<em>간부 조직관리역량평가</em>'}
+			,{startColumnName: 'MNG_RPT_START_DT', 	numberOfColumns: 2, titleText: '<em>간부 자기성과기술서</em>'}
+			,{startColumnName: 'MNG_OBJ_START_DT', 	numberOfColumns: 2, titleText: '<em>간부 이의신청</em>'}
+			,{startColumnName: 'EMP_START_DT', 		numberOfColumns: 2, titleText: '<em>직원 조직성과기여도</em>'}
+			,{startColumnName: 'MNG_PLAN_START_DT', numberOfColumns: 2, titleText: '<em>성과목표계획서</em>'}
+		  ]
+        });
+
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#year").val(J("#findYear").val());
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/prs/eval/evalSchedule/evalScheduleModify.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+		/******************************************
+         * 저장(수정)
+         ******************************************/
+        J("#btnUpdate").click(function(e) {
+            e.preventDefault();
+
+            saveChk();
+        });
+
+	});
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goDirEvalStartDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="dirEvalStartDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goDirEvalEndDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="dirEvalEndDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goDirRptStartDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="dirRptStartDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goDirRptEndDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="dirRptEndDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goMngStartDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="mngStartDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goMngEndDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="mngEndDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goMngOrgStartDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="mngOrgStartDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goMngOrgEndDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="mngOrgEndDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goMngRptStartDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="mngRptStartDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goMngRptEndDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="mngRptEndDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goMngObjStartDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="mngObjStartDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goMngObjEndDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="mngObjEndDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goEmpStartDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="empStartDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goEmpEndDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="empEndDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+	
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goMngPlanStartDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="mngPlanStartDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function goMngPlanEndDt(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="mngPlanEndDts" value="' + cellvalue + '" class="inputbox w80" readonly="readonly" onmouseover="calen();"/>';
+    	return str;
+	}
+	
+	/******************************************
+	 * 삭제
+	 ******************************************/
+	function goDelete() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("삭제할 데이터를 선택하십시요", null, null);
+		} else {
+			J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+
+	 function saveChk() {
+		var ids	= J("#list").jqGrid('getDataIDs');
+
+		for (var i = 0; i < ids.length; i++) {
+
+		 	if (J("input[name='dirEvalStartDts']").eq(i).val() != "" && J("input[name='dirEvalEndDts']").eq(i).val() != "") {
+
+					var startDate = J("input[name='dirEvalStartDts']").eq(i).val().replace(/[.]/gi, "");
+					var endDate = J("input[name='dirEvalEndDts']").eq(i).val().replace(/[.]/gi, "");
+
+					J("input[name='dirEvalStartDts']").eq(i).val(startDate);
+					J("input[name='dirEvalEndDts']").eq(i).val(endDate);
+
+					if((endDate - startDate) < 0) {
+
+						alert("임원 평가 종료일은 시작일보다 빠를 수 없습니다.");
+						return false;
+					}
+				} else {
+
+					alert("임원 평가 날짜 확인하십시오.");
+					return false;
+			}
+
+
+		 	if (J("input[name='dirRptStartDts']").eq(i).val() != "" && J("input[name='dirRptEndDts']").eq(i).val() != "") {
+
+					var startDate = J("input[name='dirRptStartDts']").eq(i).val().replace(/[.]/gi, "");
+					var endDate = J("input[name='dirRptEndDts']").eq(i).val().replace(/[.]/gi, "");
+
+					J("input[name='dirRptStartDts']").eq(i).val(startDate);
+					J("input[name='dirRptEndDts']").eq(i).val(endDate);
+
+					if((endDate - startDate) < 0) {
+
+						alert("임원 직무성과기술서 종료일은 시작일보다 빠를 수 없습니다.");
+						return false;
+					}
+				} else {
+
+					alert("임원 직무성과기술서일 확인하십시오.");
+					return false;
+			}
+
+		 	if (J("input[name='mngStartDts']").eq(i).val() != "" && J("input[name='mngEndDts']").eq(i).val() != "") {
+
+					var startDate = J("input[name='mngStartDts']").eq(i).val().replace(/[.]/gi, "");
+					var endDate = J("input[name='mngEndDts']").eq(i).val().replace(/[.]/gi, "");
+
+					J("input[name='mngStartDts']").eq(i).val(startDate);
+					J("input[name='mngEndDts']").eq(i).val(endDate);
+
+					if((endDate - startDate) < 0) {
+
+						alert("간부 개인업적평가 종료일은 시작일보다 빠를 수 없습니다.");
+						return false;
+					}
+				} else {
+
+					alert("간부 개인업적평가일 확인하십시오.");
+					return false;
+			}
+
+			if (J("input[name='mngOrgStartDts']").eq(i).val() != "" && J("input[name='mngOrgEndDts']").eq(i).val() != "") {
+
+					var startDate = J("input[name='mngOrgStartDts']").eq(i).val().replace(/[.]/gi, "");
+					var endDate = J("input[name='mngOrgEndDts']").eq(i).val().replace(/[.]/gi, "");
+
+					J("input[name='mngOrgStartDts']").eq(i).val(startDate);
+					J("input[name='mngOrgEndDts']").eq(i).val(endDate);
+
+					if((endDate - startDate) < 0) {
+
+						alert("간부 조직관리역량평가 종료일은 시작일보다 빠를 수 없습니다.");
+						return false;
+					}
+				} else {
+
+					alert("간부 조직관리역량평가일 확인하십시오.");
+					return false;
+			}
+
+		 	if (J("input[name='mngRptStartDts']").eq(i).val() != "" && J("input[name='mngRptEndDts']").eq(i).val() != "") {
+
+					var startDate = J("input[name='mngRptStartDts']").eq(i).val().replace(/[.]/gi, "");
+					var endDate = J("input[name='mngRptEndDts']").eq(i).val().replace(/[.]/gi, "");
+
+					J("input[name='mngRptStartDts']").eq(i).val(startDate);
+					J("input[name='mngRptEndDts']").eq(i).val(endDate);
+
+					if((endDate - startDate) < 0) {
+
+						alert("간부 자기성과기술서 종료일은 시작일보다 빠를 수 없습니다.");
+						return false;
+					}
+				} else {
+
+					alert("간부 자기성과기술서일 확인하십시오.");
+					return false;
+			}
+
+		 	if (J("input[name='mngObjStartDts']").eq(i).val() != "" && J("input[name='mngObjEndDts']").eq(i).val() != "") {
+
+					var startDate = J("input[name='mngObjStartDts']").eq(i).val().replace(/[.]/gi, "");
+					var endDate = J("input[name='mngObjEndDts']").eq(i).val().replace(/[.]/gi, "");
+
+					J("input[name='mngObjStartDts']").eq(i).val(startDate);
+					J("input[name='mngObjEndDts']").eq(i).val(endDate);
+
+					if((endDate - startDate) < 0) {
+
+						alert("간부 이의신청 종료일은 시작일보다 빠를 수 없습니다.");
+						return false;
+					}
+				} else {
+
+					alert("간부 이의신청일 확인하십시오.");
+					return false;
+			}
+
+		 	if (J("input[name='empStartDts']").eq(i).val() != "" && J("input[name='empEndDts']").eq(i).val() != "") {
+
+					var startDate = J("input[name='empStartDts']").eq(i).val().replace(/[.]/gi, "");
+					var endDate = J("input[name='empEndDts']").eq(i).val().replace(/[.]/gi, "");
+
+					J("input[name='empStartDts']").eq(i).val(startDate);
+					J("input[name='empEndDts']").eq(i).val(endDate);
+
+					if((endDate - startDate) < 0) {
+
+						alert("직원 개인평가 종료일은 시작일보다 빠를 수 없습니다.");
+						return false;
+					}
+				} else {
+
+					alert("직원 개인평가일 확인하십시오.");
+					return false;
+			}
+			
+		 	if (J("input[name='mngPlanStartDts']").eq(i).val() != "" && J("input[name='mngPlanEndDts']").eq(i).val() != "") {
+
+					var startDate = J("input[name='mngPlanStartDts']").eq(i).val().replace(/[.]/gi, "");
+					var endDate = J("input[name='mngPlanEndDts']").eq(i).val().replace(/[.]/gi, "");
+
+					J("input[name='mngPlanStartDts']").eq(i).val(startDate);
+					J("input[name='mngPlanEndDts']").eq(i).val(endDate);
+
+					if((endDate - startDate) < 0) {
+
+						alert("성과계획서 종료일은 시작일보다 빠를 수 없습니다.");
+						return false;
+					}
+				} else {
+
+					alert("성과계획서일 확인하십시오.");
+					return false;
+			}
+		}
+
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+
+    }
+
+    /******************************************
+     * 저장
+     ******************************************/
+    function saveDo() {
+
+        J("#mode").val("MODLIST");
+        J("#year").val(J("#findYear").val());
+        J("#formList").attr("action", "$!{context_path}/prs/eval/evalSchedule/evalScheduleProcess.vw?type=template").submit();
+
+        return false;
+
+    }
+
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var evalSchedules = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					evalSchedules += rowdata.YEAR + '|';
+				}
+			});
+		}
+
+		J("#evalSchedules").val(evalSchedules);
+		J("#mode").val("DEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/prs/eval/evalSchedule/evalScheduleProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#formList").attr("action", "$!{context_path}/bsc/common/evalSchedule/evalScheduleExcel.vw?type=excel").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 근무시작종료일 클릭시 달력팝업 이벤트
+	 ******************************************/
+	 function calen() {
+	 	J("input[name='dirEvalStartDts']").each(function(i){
+	 		J("input[name='dirEvalStartDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+
+	 	J("input[name='dirEvalEndDts']").each(function(i){
+	 		J("input[name='dirEvalEndDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='dirRptStartDts']").each(function(i){
+	 		J("input[name='dirRptStartDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='dirRptEndDts']").each(function(i){
+	 		J("input[name='dirRptEndDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='mngStartDts']").each(function(i){
+	 		J("input[name='mngStartDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='mngEndDts']").each(function(i){
+	 		J("input[name='mngEndDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='mngOrgStartDts']").each(function(i){
+	 		J("input[name='mngOrgStartDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='mngOrgEndDts']").each(function(i){
+	 		J("input[name='mngOrgEndDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='mngRptStartDts']").each(function(i){
+	 		J("input[name='mngRptStartDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='mngRptEndDts']").each(function(i){
+	 		J("input[name='mngRptEndDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='mngObjStartDts']").each(function(i){
+	 		J("input[name='mngObjStartDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='mngObjEndDts']").each(function(i){
+	 		J("input[name='mngObjEndDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='empStartDts']").each(function(i){
+	 		J("input[name='empStartDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='empEndDts']").each(function(i){
+	 		J("input[name='empEndDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='mngPlanStartDts']").each(function(i){
+	 		J("input[name='mngPlanStartDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	 	J("input[name='mngPlanEndDts']").each(function(i){
+	 		J("input[name='mngPlanEndDts']").eq(i).datepicker({
+		 		dateFormat: 'yy.mm.dd'
+		 	})
+	 	})
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">평가일정</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/eval/evalSchedule/evalScheduleList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="평가일정 검색 조건">
+						<caption class="none">평가일정 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/common/evalSchedule/evalScheduleProcess.vw?type=template">
+			<input type="hidden" id="mode"				name="mode" />
+			<input type="hidden" id="year"				name="year" />
+			<input type="hidden" id="yearNm"			name="yearNm" />
+			<input type="hidden" id="scheduleType"		name="scheduleType" />
+			<input type="hidden" id="evalSchedule"		name="evalSchedule" />
+			<input type="hidden" id="evalSchedules"		name="evalSchedules" />
+
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="평가일정 조회결과">
+							<caption class="none">평가일정 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							##<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<input type="button" id="btnInsert" value="신규" />
+							<input type="button" id="btnUpdate"	value="저장" />
+							<input type="submit" id="btnDelete" value="삭제" />
+                        </div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

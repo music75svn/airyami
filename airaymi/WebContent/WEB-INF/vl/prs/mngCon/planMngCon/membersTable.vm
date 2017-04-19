@@ -1,0 +1,81 @@
+#*************************************************************************
+* CLASS 명      : memberTable.vm
+* 작 업 자      : 김효은
+* 작 업 일      : 2014년 4월 4일 
+* 기    능      : 평가 대상자 상세 리스트
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     김효은     2014년 4월 4일          최 초 작 업 
+**************************************************************************# 
+<script language="javascript" type="text/javascript">
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+		J("#returnReasonSearch").fancybox();      //상세반려조회
+        J("#finalApproveSearch").fancybox();      //상세최종일자조회
+	});
+	
+	
+//]]>
+</script>
+ 
+ <div class="blockDetail">
+                <table summary="성과계획서 관리 등록">
+                    <caption class="none">성과계획서 관리 등록</caption>
+                    <colgroup>
+                        <col width="10%" />
+                        <col width="20%" />
+                        <col width="10%" />
+                        <col width="20%" />
+                        <col width="10%" />
+                        <col width="30%" />
+                    </colgroup>
+                    <tbody>
+						<tr>
+                            <th scope="row"><label for="findYear">평가년도</label></th>
+                            <td><span>$!{CS_HTML.txt2html($membersTable.YEAR)}년</span></td>
+                            <th scope="row"><label for="korNm">이름</label></th>
+                            <td><span>$!{CS_HTML.txt2html($membersTable.KOR_NM)}</span></td>
+                            <th scope="row"><label for="deptKorNm">부서명</label></th>
+                            <td><span>$!{CS_HTML.txt2html($membersTable.DEPT_KOR_NM)}</span></td>
+                        </tr>
+						<tr>
+                            <th scope="row"><label for="posTcNm">직위</label></th>
+                            <td><span>$!{CS_HTML.txt2html($membersTable.POS_TC_NM)}</span></td>
+                            <th scope="row"><label for="castTcNm">직급</label></th>
+                            <td><span>$!{CS_HTML.txt2html($membersTable.CAST_TC_NM)}</span></td>
+							<th scope="row"><label for="finalApproveDt">최종확인일</label></th>
+                            <td><span>$!{CS_HTML.txt2html($membersTable.FINAL_APPROVE_DT)}&nbsp;
+							</span></td>
+                        </tr>
+						#if($!{CS_HTML.txt2html($membersTable.PLAN_YN)} == 'Y')
+						<tr>
+                            <th scope="row"><label for="approveUserNm">확인자</label></th>
+		                    <td>
+		                    	<span>$!{CS_HTML.txt2html($membersTable.APPROVE_USER_NM)}</span>
+		                    	<input type="hidden"     id="approveUserId"      name="approveUserId"        value="$!{CS_HTML.txt2html($membersTable.APPROVE_USER_ID)}" />
+		                    </td>
+                            <th scope="row"><label for="planStatusNm">계약서상태</label></th>
+							#if($!{CS_HTML.txt2html($membersTable.PLAN_STATUS_ID)} == '05')
+                            <td><span>$!{CS_HTML.txt2html($membersTable.PLAN_STATUS_NM)}&nbsp;<a id="returnReasonSearch" href="$!{context_path}/prs/mngCon/planConApprove/popReturnReason.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;evalMembEmpn=$!{CS_HTML.txt2html($membersTable.EVAL_MEMB_EMPN)}&amp;evalMembEmpnSeq=$!{CS_HTML.txt2html($membersTable.EVAL_MEMB_EMPN_SEQ)}"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="반려사유선택" /></a></span></td>
+							#else
+                            <td><span>$!{CS_HTML.txt2html($membersTable.PLAN_STATUS_NM)}</span></td>
+							#end
+                        #if($isActual)
+                            <th scope="row"><label for="actualStatusNm">승인상태</label></th>
+                            <td colspan="5"><span id="actualStatusNm">$!{CS_CODE.getCodeName("217", $membersTable.ACT_STATUS_ID, "9999", "미입력")}
+                            #if($!{CS_HTML.txt2html($membersTable.ACT_STATUS_ID)} == '05')
+                            <a id="returnReasonSearch" href="$!{context_path}/prs/mngCon/actualConApprove/popReturnReason.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;findMon=$!{searchMap.txt2html("findMon")}&amp;evalMembEmpn=$!{CS_HTML.txt2html($membersTable.EVAL_MEMB_EMPN)}&amp;evalMembEmpnSeq=$!{CS_HTML.txt2html($membersTable.EVAL_MEMB_EMPN_SEQ)}"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="반려사유선택" /></a>
+                            #end
+                            </span></td>
+						#else
+                            <th></th><td></td>
+                        #end
+                        </tr>
+                        #end
+                    </tbody>
+                </table>
+            </div>

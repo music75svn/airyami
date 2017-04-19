@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.eval.evalResult">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_FINAL
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_FINAL
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+               A.EVAL_DEGREE_ID,
+               A.EVAL_GRP_ID,
+               B.EVAL_GRP_NM, 
+               A.DEPT_NM,
+               A.EVAL_MEMB_USER_ID,
+               A.EVAL_MEMB_USER_NM,
+               A.POS_NM,
+               A.SCORE,
+               A.GRADE_ITEM_ID,
+               A.GRADE_ITEM_NM,
+               COUNT(A.GRADE_ITEM_ID) OVER(PARTITION BY A.GRADE_ITEM_ID) GRADE_CNT,
+               CASE WHEN A.FINAL_GRADE_ITEM_ID IS NULL THEN A.GRADE_ITEM_ID ELSE A.FINAL_GRADE_ITEM_ID END FINAL_GRADE_ITEM_ID,
+               A.FINAL_GRADE_ITEM_NM
+          FROM PRS_EVAL_FINAL A
+          INNER JOIN PRS_EVAL_GRP B ON A.YEAR=B.YEAR AND A.EVAL_DEGREE_ID=B.EVAL_DEGREE_ID AND A.EVAL_GRP_ID=B.EVAL_GRP_ID
+          WHERE A.YEAR=#findYear#
+            AND A.EVAL_DEGREE_ID=#findEvalDegreeId#
+            AND A.EVAL_GRP_ID=#findEvalGrpId#
+          ORDER BY A.FINAL_GRADE_ITEM_ID, A.GRADE_ITEM_ID    
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getGrpList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+               A.EVAL_GRP_ID,
+               A.EVAL_GRP_NM
+          FROM PRS_EVAL_GRP A
+         WHERE A.YEAR=#findYear#
+           AND A.EVAL_DEGREE_ID=#findEvalDegreeId#
+           AND A.DELETE_DT IS NULL
+          ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getGradeList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT B.GRADE_ITEM_ID,
+               B.GRADE_ITEM_NM
+          FROM PRS_EVAL_GRP A
+         INNER JOIN BSC_ECM_GRADE_DISTRI_EVAL_ITEM B ON A.YEAR=B.YEAR AND A.EVAL_METHOD_ID=B.EVAL_METHOD_ID 
+         WHERE A.YEAR=#findYear#
+           AND EVAL_DEGREE_ID=#findEvalDegreeId#
+           AND A.EVAL_GRP_ID=#findEvalGrpId#
+         ORDER BY B.SORT_ORDER 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_FINAL
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_DEGREE_ID        
+			 , EVAL_GRP_ID           
+			 , EVAL_MEMB_USER_ID     
+			 , EVAL_MEMB_USER_NM     
+			 , DEPT_ID               
+			 , DEPT_NM               
+			 , SC_DEPT_ID            
+			 , SC_DEPT_NM            
+			 , POS_ID                
+			 , POS_NM                
+			 , JIKGUB_ID             
+			 , JIKGUB_NM             
+			 , SCORE                 
+			 , GRADE_ITEM_ID         
+			 , GRADE_ITEM_NM         
+			 , FINAL_GRADE_ITEM_ID   
+			 , FINAL_GRADE_ITEM_NM   
+			 , RANK_ID               
+		  FROM PRS_EVAL_FINAL 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND EVAL_GRP_ID = #evalGrpId#
+		   AND EVAL_MEMB_USER_ID = #evalMembUserId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EVAL_FINAL
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('PRS_EVAL_FINAL','','','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO PRS_EVAL_FINAL ( 
+			   YEAR
+			 , EVAL_DEGREE_ID
+			 , EVAL_GRP_ID
+			 , EVAL_MEMB_USER_ID
+			 , EVAL_MEMB_USER_NM
+			 , DEPT_ID
+			 , DEPT_NM
+			 , SC_DEPT_ID
+			 , SC_DEPT_NM
+			 , POS_ID
+			 , POS_NM
+			 , JIKGUB_ID
+			 , JIKGUB_NM
+			 , SCORE
+			 , GRADE_ITEM_ID
+			 , GRADE_ITEM_NM
+			 , FINAL_GRADE_ITEM_ID
+			 , FINAL_GRADE_ITEM_NM
+			 , RANK_ID
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #evalGrpId#
+			 , #evalMembUserId#
+			 , #evalMembUserNm#
+			 , #deptId#
+			 , #deptNm#
+			 , #scDeptId#
+			 , #scDeptNm#
+			 , #posId#
+			 , #posNm#
+			 , #jikgubId#
+			 , #jikgubNm#
+			 , #score#
+			 , #gradeItemId#
+			 , #gradeItemNm#
+			 , #finalGradeItemId#
+			 , #finalGradeItemNm#
+			 , #rankId#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_EVAL_FINAL
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE PRS_EVAL_FINAL 
+		   SET FINAL_GRADE_ITEM_ID    = #finalGradeItemId# 
+			 , FINAL_GRADE_ITEM_NM    = #finalGradeItemNm# 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND EVAL_GRP_ID = #evalGrpId#
+		   AND EVAL_MEMB_USER_ID = #evalMembUserId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_EVAL_FINAL
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM PRS_EVAL_FINAL 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND EVAL_GRP_ID = #evalGrpId#
+		   AND EVAL_MEMB_USER_ID = #evalMembUserId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getCloseYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT EVAL_CLOSE_YN     
+		  FROM PRS_EVAL_STATUS 
+		 WHERE YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #findEvalDegreeId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getConfirmYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT EVAL_CONFIRM_YN     
+		  FROM PRS_EVAL_STATUS 
+		 WHERE YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #findEvalDegreeId#	 	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->	
+	<update id="confirmUpdateData" parameterClass="hashMap">
+		UPDATE PRS_EVAL_STATUS 
+		   SET EVAL_CONFIRM_YN = #evalConfirmYn# 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#	
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_FINAL
+	==================================================================
+	-->
+	<select id="getFeedList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+               A.EVAL_DEGREE_ID,
+               B.EVAL_DEGREE_NM,
+               A.EVAL_GRP_ID,
+               C.EVAL_GRP_NM,
+               A.EVAL_MEMB_USER_ID,
+               D.USER_NM,
+               E.FINAL_GRADE_ITEM_NM,
+               A.FEED,
+               F.EVAL_SEQ
+          FROM PRS_EVAL A
+         INNER JOIN BSC_ECM_EVAL_DEGREE B ON A.YEAR=B.YEAR AND A.EVAL_DEGREE_ID=B.EVAL_DEGREE_ID
+         INNER JOIN PRS_EVAL_GRP C ON A.YEAR=C.YEAR AND A.EVAL_DEGREE_ID=C.EVAL_DEGREE_ID AND A.EVAL_GRP_ID=C.EVAL_GRP_ID
+          LEFT OUTER JOIN V_ROLE_USER D ON A.EVAL_MEMB_USER_ID = D.USER_ID
+          LEFT OUTER JOIN PRS_EVAL_FINAL E ON A.YEAR=E.YEAR AND A.EVAL_DEGREE_ID=E.EVAL_DEGREE_ID AND A.EVAL_GRP_ID=E.EVAL_GRP_ID AND A.EVAL_MEMB_USER_ID=E.EVAL_MEMB_USER_ID
+          LEFT OUTER JOIN PRS_EVAL_USER F ON A.YEAR=F.YEAR AND A.EVAL_DEGREE_ID=F.EVAL_DEGREE_ID AND A.EVAL_GRP_ID=F.EVAL_GRP_ID AND A.EVAL_USER_ID=F.EVAL_USER_ID
+         WHERE A.YEAR=#year#
+           AND A.EVAL_DEGREE_ID=#evalDegreeId#
+           AND A.EVAL_GRP_ID=#evalGrpId#
+           AND A.EVAL_MEMB_USER_ID=#evalMembUserId#
+         ORDER BY F.EVAL_SEQ      
+	</select>
+	
+	
+</sqlMap>
+
+

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+#*************************************************************************
+* CLASS 명      : userGrpList_xml
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 6월 6일 
+* 기    능      : 사용자그룹 매핑 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용         비고
+* -----  ----------  -------------------  ---------------------- ---------
+*  1    하윤식    2012년 6월 6일              최 초 작 업 
+**************************************************************************# 
+
+<rows>
+	<page>1</page>
+	<total>1</total>
+	<records>$!{CS_HTML.txt2html($list.size())}</records>
+	
+#foreach($list in $list)
+	<row>
+		<cell>$!{CS_HTML.txt2html($list.USER_ID)}</cell>
+		<cell>$!{CS_HTML.txt2html($list.USER_NM)}</cell>
+		<cell>$!{CS_HTML.txt2html($list.DEPT_ID)}</cell>
+		<cell>$!{CS_HTML.txt2html($list.DEPT_NM)}</cell>
+	</row> 
+#end
+
+</rows> 
+
+

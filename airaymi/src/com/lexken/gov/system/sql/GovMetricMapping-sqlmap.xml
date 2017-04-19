@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.system.govMetricMapping">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: GOV_METRIC_MAPPING
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표매핑 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC_MAPPING
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT                                        
+               A.GOV_METRIC_ID
+             , B.METRIC_ID                             
+             , B.METRIC_NM                             
+             , C.SC_DEPT_NM                  
+             , F_CODE_NM('007', B.TYPE_ID, A.YEAR) TYPE_NM      
+             , F_CODE_NM('010', B.METRIC_PROPERTY_ID, A.YEAR) METRIC_PROPERTY_NM      
+             , D.USER_NM AS INSERT_USER_NM             
+         FROM GOV_METRIC_MAPPING A                     
+         INNER JOIN BSC_METRIC B ON A.YEAR = B.YEAR AND B.DELETE_DT IS NULL AND A.METRIC_ID = B.METRIC_ID         
+         INNER JOIN BSC_SC_DEPT C ON A.YEAR = C.YEAR AND B.SC_DEPT_ID = C.SC_DEPT_ID       
+          LEFT OUTER JOIN BSC_USERINFO D ON D.USER_ID = B.INSERT_USER_ID       
+      WHERE A.YEAR =#findYear#                         
+           AND A.GOV_METRIC_ID = #findGovMetric#           
+      ORDER BY B.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 년도별 경평지표관리
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getMetricList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT                                                                
+               GOV_METRIC_ID                                                   
+              ,GOV_METRIC_NM    
+          FROM GOV_METRIC                          
+         WHERE YEAR =#findYear#                           
+           AND DELETE_DT IS NULL
+         START WITH UP_METRIC_ID IS NULL
+         CONNECT BY PRIOR YEAR = YEAR
+             AND PRIOR GOV_METRIC_ID = UP_METRIC_ID           
+         ORDER SIBLINGS BY SORT_ORDER 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표매핑 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC_MAPPING
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , GOV_METRIC_ID         
+			 , METRIC_ID             
+		  FROM GOV_METRIC_MAPPING 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND GOV_METRIC_ID = #govMetricId#
+		   AND METRIC_ID = #metricId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표매핑 등록
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_METRIC_MAPPING
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO GOV_METRIC_MAPPING ( 
+			   YEAR
+			 , GOV_METRIC_ID
+			 , METRIC_ID
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #govMetricId#
+			 , #metricId#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표매핑 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_METRIC_MAPPING
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE GOV_METRIC_MAPPING 
+		   SET 		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND GOV_METRIC_ID = #govMetricId#
+		   AND METRIC_ID = #metricId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표매핑 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_METRIC_MAPPING
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM GOV_METRIC_MAPPING 
+		 WHERE YEAR = #year#
+		   AND GOV_METRIC_ID = #govMetricId#
+		   AND METRIC_ID = #metricId#
+	</update>
+	
+	
+</sqlMap>
+
+

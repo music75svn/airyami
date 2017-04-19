@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.org.orgDeptPrsEvalItemAct"> 
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직트리
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT B.YEAR
+		       , B.DEPT_CD
+		       , C.DEPT_KOR_NM
+		       , EMPN
+		       , EMPN_NM
+		       , EVAL_TYPE
+		       , F_CODE_NM ('183', EVAL_TYPE, B.YEAR) AS EVAL_TYPE_NM
+		       , B.ORG_EVAL_ITEM_ID
+		       , ORG_EVAL_ITEM_NM
+		       , ACT_CAL_TYPE
+		       , A.CAL_TYPE_COL
+		       , CAL_TYPE_COL_NM
+		       , CASE
+		            WHEN CAL_TYPE_COL = 'A' THEN A
+		            WHEN CAL_TYPE_COL = 'B' THEN B
+		            WHEN CAL_TYPE_COL = 'C' THEN C
+		            WHEN CAL_TYPE_COL = 'D' THEN D
+		            WHEN CAL_TYPE_COL = 'E' THEN E
+		            WHEN CAL_TYPE_COL = 'F' THEN F
+		            WHEN CAL_TYPE_COL = 'G' THEN G
+		            WHEN CAL_TYPE_COL = 'H' THEN H
+		            WHEN CAL_TYPE_COL = 'I' THEN I
+		            WHEN CAL_TYPE_COL = 'J' THEN I
+		            WHEN CAL_TYPE_COL = 'K' THEN K
+		            WHEN CAL_TYPE_COL = 'L' THEN L
+		            WHEN CAL_TYPE_COL = 'M' THEN M
+		            WHEN CAL_TYPE_COL = 'N' THEN N
+		            WHEN CAL_TYPE_COL = 'O' THEN O
+		            WHEN CAL_TYPE_COL = 'P' THEN P
+		            WHEN CAL_TYPE_COL = 'Q' THEN Q
+		            WHEN CAL_TYPE_COL = 'R' THEN R
+		            WHEN CAL_TYPE_COL = 'S' THEN S
+		            WHEN CAL_TYPE_COL = 'T' THEN T
+		            WHEN CAL_TYPE_COL = 'U' THEN U
+		            WHEN CAL_TYPE_COL = 'V' THEN V
+		            WHEN CAL_TYPE_COL = 'W' THEN W
+		            WHEN CAL_TYPE_COL = 'X' THEN X
+		            WHEN CAL_TYPE_COL = 'Y' THEN Y
+		            WHEN CAL_TYPE_COL = 'Z' THEN Z
+		         END
+		            ITEM_VALUE
+		       , VALUE
+		       , ROW_NUMBER ()
+		            OVER (PARTITION BY B.YEAR, B.DEPT_CD
+		                  ORDER BY
+		                     B.YEAR
+		                   , B.DEPT_CD
+		                   , EMPN
+		                   , EVAL_TYPE
+		                   , A.ORG_EVAL_ITEM_ID
+		                   , CAL_TYPE_COL)
+		            CNT1_INDEX
+		       , COUNT (*) OVER (PARTITION BY B.YEAR, B.DEPT_CD) CNT1
+		       , ROW_NUMBER ()
+		            OVER (PARTITION BY B.YEAR, B.DEPT_CD, EMPN
+		                  ORDER BY
+		                     B.YEAR
+		                   , B.DEPT_CD
+		                   , EMPN
+		                   , EVAL_TYPE
+		                   , A.ORG_EVAL_ITEM_ID
+		                   , CAL_TYPE_COL)
+		            CNT2_INDEX
+		       , COUNT (*) OVER (PARTITION BY B.YEAR, B.DEPT_CD, EMPN) CNT2
+		       , ROW_NUMBER ()
+		            OVER (PARTITION BY B.YEAR, B.DEPT_CD, EMPN, EVAL_TYPE
+		                  ORDER BY
+		                     B.YEAR
+		                   , B.DEPT_CD
+		                   , EMPN
+		                   , EVAL_TYPE
+		                   , A.ORG_EVAL_ITEM_ID
+		                   , CAL_TYPE_COL)
+		            CNT3_INDEX
+		       , COUNT (*) OVER (PARTITION BY B.YEAR, B.DEPT_CD, EMPN, EVAL_TYPE) CNT3
+		       , ROW_NUMBER ()
+		            OVER (PARTITION BY B.YEAR, B.DEPT_CD, EMPN, EVAL_TYPE, B.ORG_EVAL_ITEM_ID
+		                  ORDER BY
+		                     B.YEAR
+		                   , B.DEPT_CD
+		                   , EMPN
+		                   , EVAL_TYPE
+		                   , A.ORG_EVAL_ITEM_ID
+		                   , CAL_TYPE_COL)
+		            CNT4_INDEX
+		       , COUNT (*) OVER (PARTITION BY B.YEAR, B.DEPT_CD, EMPN, EVAL_TYPE, B.ORG_EVAL_ITEM_ID) CNT4
+		    FROM ORG_EVAL_ITEM_COL A, ORG_DEPT_PRS_EVAL_ACTUAL B, BSC_INSA_DEPT C
+		   WHERE A.YEAR = B.YEAR
+		     AND A.ORG_EVAL_ITEM_ID = B.ORG_EVAL_ITEM_ID
+		     AND B.YEAR = C.YEAR
+		     AND B.DEPT_CD = C.DEPT_CD
+		     AND B.YEAR = #findYear#
+		    <isEmpty prepend="AND" property="findResult" >
+		    	B.DEPT_CD = #findDeptCd#
+		    </isEmpty>
+			<isNotEmpty property="findResult" >
+				<isNotEmpty prepend="AND" property="findDeptCd" >
+		    		B.DEPT_CD = #findDeptCd#
+		    	</isNotEmpty>
+				<isEqual prepend="AND" property="findResearch" compareValue="korNms">
+					UPPER(EMPN_NM) LIKE  '%' || TRIM(UPPER(#findResult#)) ||'%'
+				</isEqual>
+				<isNotEqual prepend="AND" property="findResearch" compareValue="korNms">
+					EMPN = #findResult#
+				</isNotEqual>
+			</isNotEmpty>		     
+		ORDER BY YEAR
+		       , DEPT_CD
+		       , EMPN
+		       , EVAL_TYPE
+		       , ORG_EVAL_ITEM_ID
+		       , CAL_TYPE_COL
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 개인별 실적입력
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_DEPT_PRS_EVAL_ACTUAL
+	==================================================================
+	-->	
+	<update id="updatePrsData" parameterClass="hashMap">
+		UPDATE ORG_DEPT_PRS_EVAL_ACTUAL
+		   SET $calTypeCol$ = #itemValue#
+		 WHERE YEAR = #year#
+		   AND DEPT_CD = #deptCd#
+		   AND EMPN = #empn#
+		   AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직트리
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getScDeptList" parameterClass="hashMap" resultClass="hashMap">
+		           SELECT A.DEPT_CD AS CODE_ID
+		                , A.DEPT_KOR_NM AS CODE_NM
+		                , A.UP_DEPT_CD AS UP_CODE_ID
+		                , LEVEL AS LEVEL_ID
+		             FROM (SELECT T.*
+		                        , NVL ( (  SELECT COUNT (1)
+		                                     FROM BSC_INSA_DEPT
+		                                    WHERE YEAR = T.YEAR
+		                                      AND UP_DEPT_CD = T.DEPT_CD
+		                                 GROUP BY YEAR, UP_DEPT_CD)
+		                             , '0')
+		                             AS CHILD_DEPT_CNT
+		                     FROM BSC_INSA_DEPT T) A
+		            WHERE A.YEAR = #findYear#
+		       START WITH A.UP_DEPT_CD IS NULL
+		       CONNECT BY PRIOR A.DEPT_CD = A.UP_DEPT_CD
+		              AND PRIOR A.YEAR = A.YEAR
+		ORDER SIBLINGS BY DISP_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<parameterMap id="paramMapActualAll" class="java.util.HashMap">
+		<parameter property="findYear" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 데이터집계관리 프로시저 호출
+	  #	기능	: CALL PROCEDURE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+    <procedure id="callSpOrgPrsActualProc"  parameterMap="paramMapActualAll">
+		{CALL SP_ORG_PRSALL_ACTUAL_KGS(?)}
+    </procedure>
+    
+    <!--
+	==================================================================   
+	  # 설명	: 데이터집계관리 프로시저 호출
+	  #	기능	: CALL PROCEDURE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+    <procedure id="callSpOrgPrsScoreProc"  parameterMap="paramMapActualAll">
+		{CALL SP_ORG_PRS_ITEM_SCORE_KGS(?, '', '', '')}
+    </procedure>
+    
+    <!--
+	==================================================================   
+	  # 설명	: 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<parameterMap id="paramMapPrsActual" class="java.util.HashMap">
+		<parameter property="year" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="orgEvalItemId" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="deptCd" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="empn" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 데이터집계관리 프로시저 호출
+	  #	기능	: CALL PROCEDURE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+    <procedure id="callSpPrsActualProc"  parameterMap="paramMapPrsActual">
+		{CALL SP_ORG_PRS_ACTUAL_VALUE_KGS(?, ?, ?, ?)}
+    </procedure>
+
+</sqlMap>
+
+

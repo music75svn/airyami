@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.mon.metricActualDetail">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================   
+	  # 설명	: 지표실적상세 연계 URL 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getUrl" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.METRIC_ID,
+			   B.URL,
+			   A.CAL_TYPE_COL
+		  FROM BSC_CAL_TYPE_COL A
+		 INNER JOIN
+			   BSC_SYSTEM_ITEM B
+			ON A.YEAR = B.YEAR
+		   AND A.ITEM_CD = B.ITEM_CD
+		 WHERE A.METRIC_ID = #metricId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 월별지표실적상세 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getScoreList" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+		SELECT A.METRIC_ID
+		      , A.TARGET                                                                                                                                  
+		      , A.UNIT                     
+		      , A.TIME_ROLLUP       
+		      , A.ACTUAL                                                                                                                                                     
+		      , A.SCORE                                                                                                                                                        
+		   FROM BSC_METRICSCORE A                                                                                                                                                                                                           
+		 WHERE A.YEAR = #year#         
+		   AND A.METRIC_ID = #metricId#            
+		   AND A.ANAL_CYCLE = #analCycle#            
+		 ORDER BY A.MON
+		 ]]>
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 월별지표실적상세 차트(목표) 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getChartTarget" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+		SELECT A.METRIC_ID, MAX(A.UNIT) AS UNIT,         
+		        ROUND(SUM(CASE WHEN A.MON = '01'  THEN A.TARGET END),1) MONTH01, 
+		        ROUND(SUM(CASE WHEN A.MON = '02'  THEN A.TARGET END),1) MONTH02, 
+		        ROUND(SUM(CASE WHEN A.MON = '03'  THEN A.TARGET END),1) MONTH03, 
+		        ROUND(SUM(CASE WHEN A.MON = '04'  THEN A.TARGET END),1) MONTH04, 
+		        ROUND(SUM(CASE WHEN A.MON = '05'  THEN A.TARGET END),1) MONTH05, 
+		        ROUND(SUM(CASE WHEN A.MON = '06'  THEN A.TARGET END),1) MONTH06, 
+		        ROUND(SUM(CASE WHEN A.MON = '07'  THEN A.TARGET END),1) MONTH07, 
+		        ROUND(SUM(CASE WHEN A.MON = '08'  THEN A.TARGET END),1) MONTH08, 
+		        ROUND(SUM(CASE WHEN A.MON = '09'  THEN A.TARGET END),1) MONTH09, 
+		        ROUND(SUM(CASE WHEN A.MON = '10'  THEN A.TARGET END),1) MONTH10, 
+		        ROUND(SUM(CASE WHEN A.MON = '11'  THEN A.TARGET END),1) MONTH11, 
+		        ROUND(SUM(CASE WHEN A.MON = '12'  THEN A.TARGET END),1) MONTH12 
+		  FROM BSC_METRICSCORE A                            
+		 WHERE A.YEAR = #year#         
+		   AND A.ANAL_CYCLE = #analCycle#            
+		   AND A.METRIC_ID = #metricId#                
+		 GROUP BY A.METRIC_ID
+		 ]]>
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 월별지표실적상세 차트(실적) 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getChartActual" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+		SELECT A.METRIC_ID, MAX(A.UNIT) AS UNIT,         
+		        ROUND(SUM(CASE WHEN A.MON = '01'  THEN A.ACTUAL END),1) MONTH01, 
+		        ROUND(SUM(CASE WHEN A.MON = '02'  THEN A.ACTUAL END),1) MONTH02, 
+		        ROUND(SUM(CASE WHEN A.MON = '03'  THEN A.ACTUAL END),1) MONTH03, 
+		        ROUND(SUM(CASE WHEN A.MON = '04'  THEN A.ACTUAL END),1) MONTH04, 
+		        ROUND(SUM(CASE WHEN A.MON = '05'  THEN A.ACTUAL END),1) MONTH05, 
+		        ROUND(SUM(CASE WHEN A.MON = '06'  THEN A.ACTUAL END),1) MONTH06, 
+		        ROUND(SUM(CASE WHEN A.MON = '07'  THEN A.ACTUAL END),1) MONTH07, 
+		        ROUND(SUM(CASE WHEN A.MON = '08'  THEN A.ACTUAL END),1) MONTH08, 
+		        ROUND(SUM(CASE WHEN A.MON = '09'  THEN A.ACTUAL END),1) MONTH09, 
+		        ROUND(SUM(CASE WHEN A.MON = '10'  THEN A.ACTUAL END),1) MONTH10, 
+		        ROUND(SUM(CASE WHEN A.MON = '11'  THEN A.ACTUAL END),1) MONTH11, 
+		        ROUND(SUM(CASE WHEN A.MON = '12'  THEN A.ACTUAL END),1) MONTH12 
+		  FROM BSC_METRICSCORE A                            
+		 WHERE A.YEAR = #year#         
+		   AND A.ANAL_CYCLE = #analCycle#            
+		   AND A.METRIC_ID = #metricId#                  
+		 GROUP BY A.METRIC_ID
+		 ]]>
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 월별지표실적상세 차트(점수) 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getChartScore" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+		SELECT A.METRIC_ID,                  
+		        ROUND(SUM(CASE WHEN A.MON = '01'  THEN A.SCORE END),1) MONTH01, 
+		        ROUND(SUM(CASE WHEN A.MON = '02'  THEN A.SCORE END),1) MONTH02, 
+		        ROUND(SUM(CASE WHEN A.MON = '03'  THEN A.SCORE END),1) MONTH03, 
+		        ROUND(SUM(CASE WHEN A.MON = '04'  THEN A.SCORE END),1) MONTH04, 
+		        ROUND(SUM(CASE WHEN A.MON = '05'  THEN A.SCORE END),1) MONTH05, 
+		        ROUND(SUM(CASE WHEN A.MON = '06'  THEN A.SCORE END),1) MONTH06, 
+		        ROUND(SUM(CASE WHEN A.MON = '07'  THEN A.SCORE END),1) MONTH07, 
+		        ROUND(SUM(CASE WHEN A.MON = '08'  THEN A.SCORE END),1) MONTH08, 
+		        ROUND(SUM(CASE WHEN A.MON = '09'  THEN A.SCORE END),1) MONTH09, 
+		        ROUND(SUM(CASE WHEN A.MON = '10'  THEN A.SCORE END),1) MONTH10, 
+		        ROUND(SUM(CASE WHEN A.MON = '11'  THEN A.SCORE END),1) MONTH11, 
+		        ROUND(SUM(CASE WHEN A.MON = '12'  THEN A.SCORE END),1) MONTH12 
+		  FROM BSC_METRICSCORE A                            
+		 WHERE A.YEAR = #year#         
+		   AND A.ANAL_CYCLE = #analCycle#            
+		   AND A.METRIC_ID = #metricId#                   
+		GROUP BY  A.METRIC_ID
+		]]>
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 월별지표실적상세 산식항복별 실적 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getActualColValue" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+	  SELECT A.YEAR,
+	         A.METRIC_ID,
+	         A.CAL_TYPE_COL,
+	         A.CAL_TYPE_COL_NM,
+	         A.ITEM_CD,
+	         (SELECT URL FROM BSC_SYSTEM_ITEM WHERE YEAR = A.YEAR AND ITEM_CD = A.ITEM_CD) URL,
+	         (SELECT NVL(RESTRICTED, 'N') FROM BSC_SYSTEM_ITEM WHERE YEAR = A.YEAR AND ITEM_CD = A.ITEM_CD) RESTRICTED,
+	         MAX (A.MON01) AS MON01,
+	         MAX (A.MON02) AS MON02,
+	         MAX (A.MON03) AS MON03,
+	         MAX (A.MON04) AS MON04,
+	         MAX (A.MON05) AS MON05,
+	         MAX (A.MON06) AS MON06,
+	         MAX (A.MON07) AS MON07,
+	         MAX (A.MON08) AS MON08,
+	         MAX (A.MON09) AS MON09,
+	         MAX (A.MON10) AS MON10,
+	         MAX (A.MON11) AS MON11,
+	         MAX (A.MON12) AS MON12
+        FROM ( SELECT A.YEAR,
+            		  A.METRIC_ID,      
+		              B.MON,                  
+		              A.CAL_TYPE_COL,
+		              A.CAL_TYPE_COL_NM,
+		              A.ITEM_CD,
+		              CASE WHEN B.MON='01' THEN MAX(B.VALUE) ELSE NULL END AS MON01,
+		              CASE WHEN B.MON='02' THEN MAX(B.VALUE) ELSE NULL END AS MON02,
+		              CASE WHEN B.MON='03' THEN MAX(B.VALUE) ELSE NULL END AS MON03,
+		              CASE WHEN B.MON='04' THEN MAX(B.VALUE) ELSE NULL END AS MON04,
+		              CASE WHEN B.MON='05' THEN MAX(B.VALUE) ELSE NULL END AS MON05,
+		              CASE WHEN B.MON='06' THEN MAX(B.VALUE) ELSE NULL END AS MON06,
+		              CASE WHEN B.MON='07' THEN MAX(B.VALUE) ELSE NULL END AS MON07,
+		              CASE WHEN B.MON='08' THEN MAX(B.VALUE) ELSE NULL END AS MON08,
+		              CASE WHEN B.MON='09' THEN MAX(B.VALUE) ELSE NULL END AS MON09,
+		              CASE WHEN B.MON='10' THEN MAX(B.VALUE) ELSE NULL END AS MON10,
+		              CASE WHEN B.MON='11' THEN MAX(B.VALUE) ELSE NULL END AS MON11,
+		              CASE WHEN B.MON='12' THEN MAX(B.VALUE) ELSE NULL END AS MON12            
+               FROM  BSC_CAL_TYPE_COL A  LEFT OUTER JOIN
+               <iterate property="months" conjunction="UNION ALL" open="(" close=") B">
+               		<![CDATA[
+               			SELECT YEAR, MON, #months[]# AS COL, $months[]$ AS VALUE FROM BSC_ACTUAL WHERE YEAR = #year# AND METRIC_ID = #metricId# AND ANAL_CYCLE = #analCycle#
+					]]>
+			   </iterate>
+			   		ON A.CAL_TYPE_COL=B.COL
+			   WHERE A.YEAR = #year#
+			   AND A.METRIC_ID = #metricId#
+			   GROUP BY A.YEAR, A.METRIC_ID, A.CAL_TYPE_COL, A.CAL_TYPE_COL_NM, A.ITEM_CD, B.MON) A
+		GROUP BY A.YEAR,
+		         A.METRIC_ID,
+		         A.CAL_TYPE_COL,
+		         A.CAL_TYPE_COL_NM,
+		         A.ITEM_CD
+		ORDER BY A.CAL_TYPE_COL
+	</select>
+	
+</sqlMap>
+
+

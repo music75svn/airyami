@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.mng.actInputTerm">
+
+    <!--
+    ==================================================================   
+      # 설명    : typeAlias 선언
+      #    기능    : SETTING
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <typeAlias alias="hashMap"             type="java.util.HashMap" />
+     
+
+    <!--
+    ==================================================================   
+      # 설명    : 실적등록기한 목록 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT YEAR
+             , MON
+             , F_CODE_NM('221', MON, YEAR) AS MON_NM
+             , START_DT
+             , END_DT
+        FROM PRS_MNG_ACT_IN_TERM
+        WHERE YEAR   = #findYear#
+         AND USE_YN = 'Y'
+         AND GUBUN = '01'
+         ORDER BY MON DESC
+
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 실적등록기한 상세 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+       SELECT YEAR                  
+			 , MON                   
+			 , START_DT              
+			 , END_DT
+             , CASE WHEN START_DT &lt;= TO_CHAR(SYSDATE, 'YYYYMMDD') AND END_DT &gt;= TO_CHAR(SYSDATE, 'YYYYMMDD') THEN 'Y' ELSE 'N' END AS ACTUAL_YN
+		  FROM PRS_MNG_ACT_IN_TERM 
+		 WHERE YEAR = #findYear#
+		   AND MON = #mon#	
+		   AND USE_YN = 'Y'
+           AND GUBUN = '01'              
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 실적등록기한 등록
+      #    기능    : INSERT
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <insert id="insertData" parameterClass="hashMap">
+        INSERT INTO PRS_MNG_ACT_IN_TERM ( 
+			   YEAR
+			 , MON
+			 , GUBUN
+			 , USE_YN	
+			 , START_DT
+			 , END_DT
+			 , CREATE_ID
+			 , CREATE_DT
+		) VALUES ( 
+			   #year#
+			 , #mon#
+			 , '01'
+			 , #userYn#
+			 , #startDt#
+			 , #endDt#
+			 , #userId#
+			 , SYSDATE
+		)
+    </insert>    
+    
+    <!--
+    ==================================================================   
+      # 설명    : 실적등록기한 수정
+      #    기능    : UPDATE
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <update id="updateData" parameterClass="hashMap">
+       UPDATE PRS_MNG_ACT_IN_TERM 
+		   SET START_DT               = #startDt# 
+			 , END_DT                 = #endDt# 
+			 , MODIFY_ID			  = #userId#
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND MON = #mon#	
+		   AND GUBUN = '01'
+		   AND USE_YN = 'Y'
+    </update>    
+    
+
+    <!--
+    ==================================================================   
+      # 설명    : 실적등록기한 삭제
+      #    기능    : UPDATE
+      #    TABLE    : 
+		    UPDATE PRS_MNG_ACT_IN_TERM 
+		   SET USE_YN = 'N'
+		 WHERE YEAR = #year#
+		   AND MON  = #month#	
+		   AND GUBUN = '01'
+    ==================================================================
+    -->    
+    <delete id="deleteData" parameterClass="hashMap">
+        DELETE FROM PRS_MNG_ACT_IN_TERM 
+		WHERE YEAR = #year#
+		AND MON = #month#
+		AND GUBUN = '01'
+    </delete>
+    
+   	<!--
+	==================================================================   
+	  # 설명	: 해당년 등록 여부 확인
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MAT_IN_TERM
+	==================================================================
+	-->	
+	<select id="getCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(*) CNT 
+		FROM PRS_MNG_ACT_IN_TERM
+		WHERE YEAR = #year#
+		AND MON = #mon#
+		AND USE_YN = 'Y'
+	    AND GUBUN = '01'
+	</select>
+</sqlMap>
+
+

@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.bscDataInterface">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 전년데이터 일괄적용 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT UBMU_GUBUN
+			 , UBMU_GUBUN AS CHK
+		     , TABLE_NM
+		     , PAST_CNT
+		     , NEW_CNT
+		     , COUNT (UBMU_GUBUN) OVER (PARTITION BY UBMU_GUBUN)
+		          AS STRAT_CNT
+		     , ROW_NUMBER () OVER (PARTITION BY UBMU_GUBUN ORDER BY UBMU_GUBUN)
+		          AS STRAT_INDEX
+		  FROM (SELECT 'A' AS UBMU_GUBUN
+		             , TABLE_NM
+		             , PAST_CNT
+		             , NEW_CNT
+		          FROM (SELECT (SELECT COUNT (1)
+		                          FROM BSC_SC_DEPT
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM BSC_SC_DEPT
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'BSC_SC_DEPT' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM BSC_SC_DEPT_MAPPING
+		                         WHERE YEAR = #findYear# - 1)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM BSC_SC_DEPT_MAPPING
+		                         WHERE YEAR = #findYear#)
+		                          NEW_CNT
+		                     , 'BSC_SC_DEPT_MAPPING' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM BSC_STRATEGY
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM BSC_STRATEGY
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'BSC_STRATEGY' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM BSC_DEPT_STRATEGY
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM BSC_DEPT_STRATEGY
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'BSC_DEPT_STRATEGY' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM BSC_CSF
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM BSC_CSF
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'BSC_CSF' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM BSC_DEPT_CSF
+		                         WHERE YEAR = #findYear# - 1)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM BSC_DEPT_CSF
+		                         WHERE YEAR = #findYear#)
+		                          NEW_CNT
+		                     , 'BSC_DEPT_CSF' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM BSC_METRIC_GRP
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM BSC_METRIC_GRP
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'BSC_METRIC_GRP' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM BSC_METRIC
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM BSC_METRIC
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'BSC_METRIC' TABLE_NM
+		                  FROM DUAL)
+		        UNION ALL
+		        SELECT 'B' AS UBMU_GUBUN
+		             , TABLE_NM
+		             , PAST_CNT
+		             , NEW_CNT
+		          FROM (SELECT (SELECT COUNT (1)
+		                          FROM GOV_EVAL_CAT_GRP
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM GOV_EVAL_CAT_GRP
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'GOV_EVAL_CAT_GRP' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM GOV_EVAL_CAT
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM GOV_EVAL_CAT
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'GOV_EVAL_CAT' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM GOV_METRIC_GRP
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM GOV_METRIC_GRP
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'GOV_METRIC_GRP' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM GOV_METRIC
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM GOV_METRIC
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'GOV_METRIC' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM GOV_OFFICE_GRP
+		                         WHERE YEAR = #findYear# - 1)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM GOV_OFFICE_GRP
+		                         WHERE YEAR = #findYear#)
+		                          NEW_CNT
+		                     , 'GOV_OFFICE_GRP' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM GOV_OFFICE
+		                         WHERE YEAR = #findYear# - 1)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM GOV_OFFICE
+		                         WHERE YEAR = #findYear#)
+		                          NEW_CNT
+		                     , 'GOV_OFFICE' TABLE_NM
+		                  FROM DUAL)
+		        UNION ALL
+		        SELECT 'C' AS UBMU_GUBUN
+		             , TABLE_NM
+		             , PAST_CNT
+		             , NEW_CNT
+		          FROM (SELECT (SELECT COUNT (1)
+		                          FROM MAN_TARGET
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM MAN_TARGET
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'MAN_TARGET' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM MAN_STRATEGY
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM MAN_STRATEGY
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'MAN_STRATEGY' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM MAN_CSF
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM MAN_CSF
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'MAN_CSF' TABLE_NM
+		                  FROM DUAL
+		                UNION ALL
+		                SELECT (SELECT COUNT (1)
+		                          FROM MAN_METRIC
+		                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM MAN_METRIC
+		                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                          NEW_CNT
+		                     , 'MAN_METRIC' TABLE_NM
+		                  FROM DUAL)
+		        UNION ALL
+		        SELECT 'D' AS UBMU_GUBUN
+		             , TABLE_NM
+		             , PAST_CNT
+		             , NEW_CNT
+		          FROM (SELECT (SELECT COUNT (1)
+		                          FROM BSC_CODE_GRP
+		                         WHERE YEAR_YN = 'Y'
+		                               AND CODE_GRP_ID IN
+		                                      (SELECT DISTINCT CODE_GRP_ID
+		                                         FROM BSC_CODE
+		                                        WHERE YEAR = #findYear# - 1))
+		                          PAST_CNT
+		                     , (SELECT COUNT (1)
+		                          FROM BSC_CODE_GRP
+		                         WHERE YEAR_YN = 'Y'
+		                               AND CODE_GRP_ID IN
+		                                      (SELECT DISTINCT CODE_GRP_ID
+		                                         FROM BSC_CODE
+		                                        WHERE YEAR = #findYear#))
+		                          NEW_CNT
+		                     , 'BSC_CODE' TABLE_NM
+		                  FROM DUAL)
+		         UNION ALL
+			     SELECT 'E' AS UBMU_GUBUN
+			          , TABLE_NM
+			          , PAST_CNT
+			          , NEW_CNT
+			       FROM ( SELECT (SELECT COUNT (1)
+			                          FROM CON_EVAL_ITEM
+			                         WHERE YEAR = #findYear# - 1 AND DELETE_DT IS NULL)
+			                          PAST_CNT
+			                     , (SELECT COUNT (1)
+			                          FROM CON_EVAL_ITEM
+			                         WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+			                          NEW_CNT
+			                     , 'CON_EVAL_ITEM' TABLE_NM
+			                  FROM DUAL
+		                  )         
+		                 )
+		        
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<parameterMap id="paramMap" class="java.util.HashMap">
+		<parameter property="year" 		jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<!-- <parameter property="tableId" 	jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/> -->
+		<parameter property="temp2" 	jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+
+	<!--
+	==================================================================
+	  # 설명	: 전년데이터 일괄적용 실행
+	  #	기능	: PROCEDURES
+	  #	TABLE	:
+	==================================================================
+	-->
+	<procedure id="execData" parameterMap="paramMap">
+		{CALL SP_YEARBATCH_DATA(?, ?)}
+	</procedure>
+
+
+</sqlMap>
+
+

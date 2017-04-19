@@ -1,0 +1,285 @@
+#*************************************************************************
+* CLASS 명      : popMemActionPlanList.vm
+* 작 업 자      : 유연주
+* 작 업 일      : 2017.03.23
+* 기    능      : ActionPlan 관리 팝업
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     유 연 주     2017.03.23          최 초 작 업 
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/mem/eval/memActIn/popMemActionPlanList.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+    <script type="text/javascript" language="javascript" >
+//<![CDATA[
+	var J = jQuery;
+	var grdRowId = 0;
+	
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFindPop').serialize();
+		
+		jQuery("#popList").jqGrid({
+			url          :"$!{searchMap.txt2html("context")}/mem/eval/memActIn/popMemActionPlanList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : 230,
+			colNames     :['추진계획순번', '추진실적시작월', '추진실적종료월', '추진실적', '진도율'],
+			colModel     :[
+							{name:'ACTIONPLAN_SEQ'   ,index:'ACTIONPLAN_SEQ'     ,width:0     ,align:'center' },
+							{name:'START_MON'  	     ,index:'START_MON'          ,width:120   ,align:'center' ,formatter:goStartMon},
+							{name:'END_MON'  	     ,index:'STRATEGY_ID'        ,width:120   ,align:'center' ,formatter:goEndMon},
+							{name:'ACT_CONTENT'  	 ,index:'ACT_CONTENT'        ,width:400   ,align:'center' ,formatter:goActContent},
+							{name:'PROC_RATE'  	     ,index:'PROC_RATE'          ,width:100   ,align:'center' ,formatter:goPorcRate}
+							],
+			rowNum       : 100000,
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : false,
+			multiselect  : true,
+			cellEdit     : false,
+			loadComplete : function() {
+				grdRowId = J("#popList").getDataIDs().length;
+    			J("input[name=procRate]").numeric({allow:""});        	//특정문자 허용(.)
+                           },
+			caption:"ActionPlan 조회"
+		}).jqGrid('hideCol',"ACTIONPLAN_SEQ").setGridWidth(760);
+		
+		/******************************************
+		 * 닫기버튼 이벤트
+		 ******************************************/
+		J("#btnClose").click(function(e) {
+			self.close();
+		});
+		
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+	});
+	
+	/******************************************
+     * jqGrid 추진실적시작월
+     ******************************************/
+    function goStartMon(cellvalue, options, rowObject) {
+    	var str = "";
+		var ids = "startMon";
+    	
+    	str += '<select id="' + ids + '" name="' + ids + '" class="select w80">';
+    	str += '	<option value="">선택</option>';
+    #foreach($monList in $monList)
+    	if (cellvalue == "$!{CS_HTML.txt2html($monList.CODE_ID)}") {
+    		str += '	<option value="$!{CS_HTML.txt2html($monList.CODE_ID)}" selected>$!{CS_HTML.txt2html($monList.CODE_NM)}</option>';
+    	}else{
+    		str += '	<option value="$!{CS_HTML.txt2html($monList.CODE_ID)}">$!{CS_HTML.txt2html($monList.CODE_NM)}</option>';
+    	}
+    #end
+        str += '</select>';
+    	
+    	return str;
+    }
+    
+   	/******************************************
+     * jqGrid 추진실적종료월
+     ******************************************/
+    function goEndMon(cellvalue, options, rowObject) {
+    	var str = "";
+		var ids = "endMon";
+    	
+    	str += '<select id="' + ids + '" name="' + ids + '" class="select w80">';
+    	str += '	<option value="">선택</option>';
+    #foreach($monList in $monList)
+    	if (cellvalue == "$!{CS_HTML.txt2html($monList.CODE_ID)}") {
+    		str += '	<option value="$!{CS_HTML.txt2html($monList.CODE_ID)}" selected>$!{CS_HTML.txt2html($monList.CODE_NM)}</option>';
+    	}else{
+    		str += '	<option value="$!{CS_HTML.txt2html($monList.CODE_ID)}">$!{CS_HTML.txt2html($monList.CODE_NM)}</option>';
+    	}
+    #end
+        str += '</select>';
+    	
+    	return str;
+    }
+    
+	/******************************************
+     * jqGrid 추진실적
+     ******************************************/
+    function goActContent(cellvalue, options, rowObject) {
+
+		if(options.rowId==""){
+			return cellvalue;
+		}else{
+			var str = '';
+			str += '<textarea id="actContent" name="actContent" class="tabletext" title="추진실적" cols="58" rows="1">' + cellvalue + '</textarea>';
+
+			return str;
+		}
+    }
+    
+	/******************************************
+     * jqGrid 진도율
+     ******************************************/
+    function goPorcRate(cellvalue, options, rowObject) {
+
+		if(options.rowId==""){
+			return cellvalue;
+		}else{
+			var str = '';
+			str += '<input type="text" id="procRate" name="procRate" value="' + cellvalue + '" class="inputbox wp80" maxlength="3"/>';
+
+			return str;
+		}
+    }
+
+	function addRow() {
+		grdRowId++;
+		J("#popList").jqGrid("addRow", {
+				rowID:grdRowId,
+				initdata : {
+							ACTIONPLAN_SEQ:"",
+							START_MON:"",
+							END_MON:"",
+							ACT_CONTENT:"",
+							PROC_RATE:""
+							},
+				position : "last",
+				useDefValues : false,
+				useFormmatter : false,
+				addRowParams : {extraparam:{}}
+		});
+		
+		J("#popList").resetSelection();
+	}
+	
+	function delRow() {
+		var rowids = J("#popList").jqGrid('getGridParam' , 'selarrrow');
+		for (var i = rowids.length -1; i >=0 ; i--) {
+			var rowid = rowids[i];
+			J("#popList").delRowData(rowid);
+		}
+	}
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		var ids = J("#popList").jqGrid('getDataIDs');
+		var rowdata = "";
+		
+		for (var i = 0; i < ids.length; i++) {
+			rowdata = J("#popList").getRowData(ids[i]);
+			
+			if(J("#formFindPop select[name=startMon]").eq(i).val() == ""){
+				alert("추진실적시작월을 입력하세요.");
+				J("#formFindPop select[name=startMon]").eq(i).focus();
+				return false;
+			}
+			if(J("#formFindPop select[name=endMon]").eq(i).val() == ""){
+				alert("추진실적종료월을 입력하세요.");
+				J("#formFindPop select[name=endMon]").eq(i).focus();
+				return false;
+			}
+			
+			if(!LengthCheck(J("#formFindPop textarea[name=actContent]").eq(i).val(), "추진실적", 1, 4000 ) ) {
+	            J("#formFindPop textarea[name=actContent]").eq(i).focus();
+	            return false;
+        	}
+			if(!LengthCheck(J("#formFindPop input[name=procRate]").eq(i).val(), "진도율", 1, 3 ) ) {
+	            J("#formFindPop input[name=procRate]").eq(i).focus();
+	            return false;
+        	}
+		}
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+	
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#formFindPop").attr("action", "$!{context_path}/mem/eval/memActIn/popMemActionPlanProcess.vw").submit();
+	}
+//]]>
+</script>
+</head>
+<body>
+
+<form id="formFindPop" name="formFindPop" method="post">
+	<input type="hidden" id="findYear"         name="findYear"           value="$!{searchMap.txt2html("findYear")}" />
+	<input type="hidden" id="findMetricId"     name="findMetricId"       value="$!{searchMap.txt2html("findMetricId")}" />
+	<input type="hidden" id="findMetricNm"     name="findMetricNm"       value="$!{CS_HTML.txt2html($info.METRIC_NM)}" />
+	<input type="hidden" id="findActInTerm"    name="findActInTerm"      value="$!{CS_HTML.txt2html($info.ACT_IN_TERM)}" />
+	<input type="hidden" id="findActionPlanId" name="findActionPlanId"   value="$!{searchMap.txt2html("findActionPlanId")}" />
+
+    <div style="width:780px;height:300px;">
+    	<div id="popMetricGrpArea" style="margin-left:15px;">
+    		<h1 class="none">ActionPlan리스트</h1>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                </br>
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w350">활동계획 <span class="searchBar">$!{CS_HTML.txt2html($info.PLAN_DESC)}</span></td>
+								<td class="searchBox_tit w250">계획일정 <span class="searchBar">$!{CS_HTML.txt2html($info.PLAN_START_DT)} ~ $!{CS_HTML.txt2html($info.PLAN_END_DT)}</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+			<div id="userData">
+				<div>
+					<div style="height:25px;text-align:right">
+						<a href="javascript:addRow();"><img class="btnSearch" src="$!{img_path}/btn_add2.gif" align="middle" alt="행추가" /></a>
+						<a href="javascript:delRow();"><img class="btnSearch" src="$!{img_path}/btn_del2.gif" align="middle" alt="행삭제" /></a>
+					</div>
+				</div>
+    			<!-- 데이터그리드 Start -->
+    			<div class="blockGridListTable">
+    				<table id="popList" summary="ActionPlan 조회">
+    					<caption class="none">ActionPlan조회</caption>
+    					<thead><tr><th></th></tr></thead>
+    					<tbody><tr><td></td></tr></tbody>
+    				</table>
+    				<div id="pager"></div>                    
+    			</div>
+    			<!--// 데이터그리드 End -->
+			</div><br>
+			<div class="blockButton"> 
+    			<ul>
+			    	<li><input type="submit" id="btnInsert"  value="저장" /></li>
+    				<li><input type="button" id="btnClose"   value="닫기" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>
+<div id="dialog" title="확인" style="display:none;"><p>&nbsp;</p></div>    <!-- 다이어로그 -->
+</body>
+</html>

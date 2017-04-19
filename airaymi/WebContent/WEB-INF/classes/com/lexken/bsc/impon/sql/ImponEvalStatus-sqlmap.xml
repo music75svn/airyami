@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.impon.imponEvalStatus">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT T.YEAR, T.EVAL_USER_GRP_ID, T.EVAL_USER_GRP_NM
+		     , T.EVAL_USER_ID, RU.USER_NM, RU.EMAIL
+		     , T.METRIC_GRP_ID, MG.METRIC_GRP_NM
+		     , NVL(UES.EVAL_SUBMIT_YN,'N') AS EVAL_SUBMIT_YN
+		     , F_CODE_NM('143',NVL(UES.EVAL_SUBMIT_YN,'N'),T.YEAR) EVAL_SUBMIT_YN_NM
+		     , COUNT(T.EVAL_USER_GRP_ID) OVER(PARTITION BY T.YEAR, T.EVAL_USER_GRP_ID) AS UG_ROW_CNT
+		     , ROW_NUMBER() OVER(PARTITION BY T.YEAR, T.EVAL_USER_GRP_ID
+		                             ORDER BY UG_SORT_ORDER NULLS LAST, T.EVAL_USER_GRP_ID, T.EVAL_USER_ID NULLS LAST, METRIC_GRP_ID) AS UG_ROW_IDX
+		     , CASE WHEN COUNT(T.EVAL_USER_ID) OVER(PARTITION BY T.YEAR, T.EVAL_USER_GRP_ID, T.EVAL_USER_ID) = 0 THEN 1 
+		     		ELSE COUNT(T.EVAL_USER_ID) OVER(PARTITION BY T.YEAR, T.EVAL_USER_GRP_ID, T.EVAL_USER_ID)
+		       END AS EU_ROW_CNT
+		     , ROW_NUMBER() OVER(PARTITION BY T.YEAR, T.EVAL_USER_GRP_ID, T.EVAL_USER_ID
+		                             ORDER BY UG_SORT_ORDER NULLS LAST, T.EVAL_USER_GRP_ID, T.EVAL_USER_ID NULLS LAST, METRIC_GRP_ID) AS EU_ROW_IDX                             
+		  FROM 
+		    (SELECT UG.YEAR
+		         , #findEvalDegreeId# AS EVAL_DEGREE_ID
+		         , UG.EVAL_USER_GRP_ID, UG.EVAL_USER_GRP_NM, UG.SORT_ORDER AS UG_SORT_ORDER
+		         , U.EVAL_USER_ID
+		         , UGI.METRIC_GRP_ID
+		      FROM    
+		        (SELECT YEAR, EVAL_USER_GRP_ID, EVAL_USER_GRP_NM, SORT_ORDER 
+		           FROM BSC_IPE_EVAL_USER_GRP
+		          WHERE 1=1
+		            AND YEAR = #findYear#
+		            <dynamic prepend="AND">
+			            <isNotEmpty property="findEvalUserGrpId">
+			            EVAL_USER_GRP_ID = #findEvalUserGrpId#
+			            </isNotEmpty>
+			         </dynamic>
+		        ) UG
+		        LEFT OUTER JOIN BSC_IPE_EVAL_USER U
+		        ON UG.YEAR = U.YEAR 
+		       AND UG.EVAL_USER_GRP_ID = U.EVAL_USER_GRP_ID
+		        LEFT OUTER JOIN 
+		        (SELECT YEAR, EVAL_DEGREE_ID, EVAL_USER_GRP_ID, METRIC_GRP_ID
+		           FROM BSC_IPE_EVAL_USER_GRP_ITEM
+		          WHERE 1=1
+		            AND YEAR = #findYear#
+		            AND EVAL_DEGREE_ID = #findEvalDegreeId#
+		            <dynamic prepend="AND">
+			            <isNotEmpty property="findEvalUserGrpId">
+			            EVAL_USER_GRP_ID = #findEvalUserGrpId#
+			            </isNotEmpty>
+			         </dynamic>
+		          GROUP BY YEAR, EVAL_DEGREE_ID, EVAL_USER_GRP_ID, METRIC_GRP_ID
+		        ) UGI
+		        ON UG.YEAR = UGI.YEAR 
+		       AND UG.EVAL_USER_GRP_ID = UGI.EVAL_USER_GRP_ID
+		    ) T
+		    LEFT OUTER JOIN BSC_IPE_EVAL_USER_EVAL_STATUS UES
+		    ON T.YEAR = UES.YEAR 
+		   AND T.EVAL_DEGREE_ID = UES.EVAL_DEGREE_ID
+		   AND T.EVAL_USER_GRP_ID = UES.EVAL_USER_GRP_ID
+		   AND T.EVAL_USER_ID = UES.EVAL_USER_ID
+		   AND T.METRIC_GRP_ID = UES.METRIC_GRP_ID    
+		    LEFT OUTER JOIN V_ROLE_USER RU
+		    ON T.EVAL_USER_ID = RU.USER_ID
+		    LEFT OUTER JOIN BSC_METRIC_GRP MG
+		    ON T.YEAR = MG.YEAR
+		   AND T.METRIC_GRP_ID = MG.METRIC_GRP_ID
+		   AND MG.DELETE_DT IS NULL
+		 WHERE 1=1
+		   	<dynamic prepend="AND">
+	            <isNotEmpty property="findEvalSubmitYn">
+	            NVL(UES.EVAL_SUBMIT_YN,'N') = #findEvalSubmitYn#
+	            </isNotEmpty>
+	         </dynamic>
+		   AND T.EVAL_USER_ID IS NOT NULL
+		 ORDER BY UG_SORT_ORDER NULLS LAST, T.EVAL_USER_GRP_ID, T.EVAL_USER_ID NULLS LAST, T.METRIC_GRP_ID
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가마감여부 
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	  # 오류가 나는 소스 : /**
+	  SELECT NVL(MAX(IMPON_EVAL_CLOSING_YN), 'N') AS  IMPON_EVAL_CLOSING_YN
+				    NVL(MAX(IMPON_EVAL_CONFIRM_YN), 'N') AS  IMPON_EVAL_CONFIRM_YN
+		  FROM BSC_IPE_EVAL_CLOSING
+		 WHERE 1=1
+		   AND YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #findEvalDegreeId#
+		   */
+		   
+	==================================================================
+	-->
+	<select id="isEvalCloseYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT NVL(MAX(IMPON_EVAL_CLOSING_YN), 'N') AS  IMPON_EVAL_CLOSING_YN
+		  FROM BSC_IPE_EVAL_CLOSING
+		 WHERE 1=1
+		   AND YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #findEvalDegreeId#
+	</select>
+	
+	
+		<!--
+	==================================================================   
+	  # 설명	: 평가마감여부 
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="isEvalConfirmYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT NVL(MAX(IMPON_EVAL_CONFIRM_YN), 'N') AS  IMPON_EVAL_CONFIRM_YN
+		  FROM BSC_IPE_EVAL_CLOSING
+		 WHERE 1=1
+		   AND YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #findEvalDegreeId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="isEvalUsersSummitYn" parameterClass="hashMap" resultClass="hashMap">
+	SELECT TOT_EVAL_CNT, SUBMIT_EVAL_CNT
+	     , CASE WHEN SUBMIT_EVAL_CNT = TOT_EVAL_CNT THEN 'Y' ELSE 'N' END AS EVAL_CLOSE_YN
+	  FROM 
+        (SELECT COUNT(NVL(UES.EVAL_SUBMIT_YN,'N')) AS TOT_EVAL_CNT
+              , SUM(CASE WHEN NVL(UES.EVAL_SUBMIT_YN,'N') = 'N' THEN 0 ELSE 1 END) AS SUBMIT_EVAL_CNT
+          FROM 
+            (SELECT UG.YEAR
+                 , #findEvalDegreeId# AS EVAL_DEGREE_ID
+                 , UG.EVAL_USER_GRP_ID, UG.EVAL_USER_GRP_NM, UG.SORT_ORDER AS UG_SORT_ORDER
+                 , U.EVAL_USER_ID
+                 , UGI.METRIC_GRP_ID
+              FROM    
+                (SELECT YEAR, EVAL_USER_GRP_ID, EVAL_USER_GRP_NM, SORT_ORDER 
+                   FROM BSC_IPE_EVAL_USER_GRP
+                  WHERE 1=1
+                    AND YEAR = #findYear#
+                ) UG
+                LEFT OUTER JOIN BSC_IPE_EVAL_USER U
+                ON UG.YEAR = U.YEAR 
+               AND UG.EVAL_USER_GRP_ID = U.EVAL_USER_GRP_ID
+                LEFT OUTER JOIN 
+                (SELECT YEAR, EVAL_DEGREE_ID, EVAL_USER_GRP_ID, METRIC_GRP_ID
+                   FROM BSC_IPE_EVAL_USER_GRP_ITEM
+                  WHERE 1=1
+                    AND YEAR = #findYear#
+                    AND EVAL_DEGREE_ID = #findEvalDegreeId#
+                  GROUP BY YEAR, EVAL_DEGREE_ID, EVAL_USER_GRP_ID, METRIC_GRP_ID
+                ) UGI
+                ON UG.YEAR = UGI.YEAR 
+               AND UG.EVAL_USER_GRP_ID = UGI.EVAL_USER_GRP_ID
+            ) T
+            LEFT OUTER JOIN BSC_IPE_EVAL_USER_EVAL_STATUS UES
+            ON T.YEAR = UES.YEAR 
+           AND T.EVAL_DEGREE_ID = UES.EVAL_DEGREE_ID
+           AND T.EVAL_USER_GRP_ID = UES.EVAL_USER_GRP_ID
+           AND T.EVAL_USER_ID = UES.EVAL_USER_ID
+           AND T.METRIC_GRP_ID = UES.METRIC_GRP_ID    
+         WHERE 1=1
+           AND T.EVAL_USER_ID IS NOT NULL
+        )         
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('','','','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO  ( 
+			 ) VALUES ( 
+			 )
+	</insert>	
+
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="setEvalClosingData" parameterClass="hashMap">
+		MERGE INTO BSC_IPE_EVAL_CLOSING A
+		USING (SELECT #year# AS YEAR, #evalDegreeId# AS EVAL_DEGREE_ID, #imponEvalClosingYn# AS IMPON_EVAL_CLOSING_YN FROM DUAL ) B
+		   ON (A.YEAR = B.YEAR
+		  AND A.EVAL_DEGREE_ID = B.EVAL_DEGREE_ID)
+		WHEN MATCHED THEN
+		     UPDATE SET A.IMPON_EVAL_CLOSING_YN = B.IMPON_EVAL_CLOSING_YN
+		              , A.MODIFY_DT = SYSDATE
+		WHEN NOT MATCHED THEN     
+		     INSERT (A.YEAR, A.EVAL_DEGREE_ID, A.IMPON_EVAL_CLOSING_YN, A.CREATE_DT)
+		     VALUES (B.YEAR, B.EVAL_DEGREE_ID, B.IMPON_EVAL_CLOSING_YN, SYSDATE)
+	</insert>	
+
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량 평가점수 집계
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_IPE_USER_GRP_EVAL_RESULT
+	==================================================================
+	-->		
+	<parameterMap id="imponScoreParamMap" class="java.util.HashMap">
+		<parameter property="year" 		    jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>	
+		<parameter property="evalDegreeId" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>			
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량 평가점수 집계
+	  #	기능	: PROCEDURES
+	  #	TABLE	: BSC_IPE_USER_GRP_EVAL_RESULT
+	==================================================================
+	-->		
+	<procedure id="execIPEScore" parameterMap="imponScoreParamMap">  
+		{CALL SP_BSC_IPE_SCORE_KGS(?, ?)}
+	</procedure>	
+	
+	
+</sqlMap>
+
+

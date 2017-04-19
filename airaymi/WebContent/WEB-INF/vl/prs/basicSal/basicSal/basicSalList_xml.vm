@@ -1,0 +1,47 @@
+#*************************************************************************
+* CLASS 명      : basicSalList_xml
+* 작 업 자      : 안요한
+* 작 업 일      : 2013년 06월 20일
+* 기    능      : 기초연봉 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      안 요 한      2013.06.20        최 초 작 업
+**************************************************************************#
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"EMPN"				: "$!{CS_HTML.txt2html($list.EMPN)}",
+		"KOR_NM"			: "$!{CS_HTML.txt2html($list.KOR_NM)}",
+		"DEPT_FULL_NM"		: "$!{CS_HTML.txt2html($list.DEPT_FULL_NM)}",
+		"JCOM_DATE"			: "$!{CS_FORMAT.dateFormat($list.JCOM_DATE)}",
+		"POS_TC_NM"			: "$!{CS_HTML.txt2html($list.POS_TC_NM)}",
+		"CAST_TC_NM"		: "$!{CS_HTML.txt2html($list.CAST_TC_NM)}",
+		"RANK"				: "$!{CS_HTML.txt2html($list.RANK)}",
+		"GRADE"				: "$!{CS_HTML.txt2html($list.GRADE)}",
+		"DIFF_RATE"			: "$!{CS_HTML.txt2html($list.DIFF_RATE)}",
+		"GR_RATE"			: "$!{CS_HTML.txt2html($list.GR_RATE)}",
+		"BF_BASIC_SAL"		: "$!{CS_FORMAT.numberFormat($list.BF_BASIC_SAL)}",
+		"ST_BASIC_SAL"		: "$!{CS_FORMAT.numberFormat($list.ST_BASIC_SAL)}",
+		"GROWTHPAY"			: "$!{CS_FORMAT.numberFormat($list.GROWTHPAY)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}
+
+
+
+

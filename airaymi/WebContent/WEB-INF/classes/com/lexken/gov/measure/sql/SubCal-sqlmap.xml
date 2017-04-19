@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.measure.subCal">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: GOV_SUB_CAL
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 경평계량 세부요소관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_SUB_CAL
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	    SELECT A.YEAR                  
+			 , A.SUB_CAL_ID            
+			 , A.SUB_CAL_NM            
+			 , A.INSERT_USER_ID
+			 , B.USER_NM AS INSERT_USER_NM
+			 , C.SC_DEPT_NM AS INSERT_DEPT_NM        
+			 , A.UNIT    
+			 , F_CODE_NM('013',A.UNIT,A.YEAR) AS UNIT_NM             
+			 , A.SORT_ORDER
+			 , (SELECT COUNT(1)
+			      FROM GOV_SUB_CAL_MAPPING
+			     WHERE YEAR = A.YEAR
+			       AND SUB_CAL_ID = A.SUB_CAL_ID
+			   ) CAL_CNT
+	     FROM GOV_SUB_CAL A 
+	          LEFT OUTER JOIN V_ROLE_USER B
+	          ON A.INSERT_USER_ID = B.USER_ID
+	          LEFT OUTER JOIN BSC_SC_DEPT C
+	          ON A.YEAR = C.YEAR
+	          AND A.INSERT_DEPT_ID = C.SC_DEPT_ID
+	          AND C.DELETE_DT IS NULL
+	    WHERE A.YEAR = #findYear#
+	    ORDER BY A.SORT_ORDER ASC
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평계량 세부요소관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_SUB_CAL
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR                  
+			 , A.SUB_CAL_ID            
+			 , A.SUB_CAL_NM            
+			 , A.INSERT_USER_ID
+			 , B.USER_NM AS INSERT_USER_NM
+			 , A.INSERT_DEPT_ID
+			 , C.SC_DEPT_NM AS INSERT_DEPT_NM        
+			 , A.UNIT    
+			 , F_CODE_NM('013',A.UNIT,A.YEAR) AS UNIT_NM             
+			 , A.SORT_ORDER
+	     FROM GOV_SUB_CAL A 
+	          LEFT OUTER JOIN V_ROLE_USER B
+	          ON A.INSERT_USER_ID = B.USER_ID
+	          LEFT OUTER JOIN BSC_SC_DEPT C
+	          ON A.YEAR = C.YEAR
+	          AND A.INSERT_DEPT_ID = C.SC_DEPT_ID
+	          AND C.DELETE_DT IS NULL
+	    WHERE A.YEAR = #findYear#
+	      AND A.SUB_CAL_ID = #subCalId#	
+	    ORDER BY A.SORT_ORDER ASC        
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평계량 세부요소관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_SUB_CAL
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('GOV_SUB_CAL',#year#,'','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO GOV_SUB_CAL ( 
+			   YEAR
+			 , SUB_CAL_ID
+			 , SUB_CAL_NM
+			 , INSERT_USER_ID
+			 , INSERT_DEPT_ID
+			 , UNIT
+			 , SORT_ORDER
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #subCalNm#
+			 , #insertUserId#
+			 , #insertDeptId#
+			 , #unit#
+			 , #sortOrder#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평계량 세부요소관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_SUB_CAL
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE GOV_SUB_CAL 
+		   SET SUB_CAL_NM             = #subCalNm# 
+			 , INSERT_USER_ID         = #insertUserId# 
+			 , INSERT_DEPT_ID         = #insertDeptId# 
+			 , UNIT                   = #unit# 
+			 , SORT_ORDER             = #sortOrder# 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND SUB_CAL_ID = #subCalId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 경평계량 세부요소관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_SUB_CAL
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM GOV_SUB_CAL 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND SUB_CAL_ID = #subCalId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평계량 세부요소 실적삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_SUB_CAL
+	==================================================================
+	-->	
+	<update id="deleteActualData" parameterClass="hashMap">
+		DELETE FROM GOV_SUB_CAL_ACTUAL 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND SUB_CAL_ID = #subCalId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평계량 세부요소 실적삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_SUB_CAL
+	==================================================================
+	-->	
+	<update id="deleteMappingData" parameterClass="hashMap">
+		DELETE FROM GOV_SUB_CAL_MAPPING
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND SUB_CAL_ID = #subCalId#
+	</update>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평계량 세부요소 실적 입력자 권한부여
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<insert id="insertUserAdmin" parameterClass="hashMap">
+		INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID, DEPT_ID)     
+		SELECT DISTINCT '12'
+		    ,  #insertUserId#                    
+		    , (SELECT MAX(DEPT_ID) AS DEPT_ID 
+		         FROM V_ROLE_USER
+		        WHERE USER_ID = #insertUserId#)                
+		  FROM DUAL
+	</insert>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평계량 세부요소 실적 입력자 권한삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<update id="deleteUserAdmin" parameterClass="hashMap">
+		DELETE BSC_ADMIN
+		 WHERE 1=1
+		   AND ADMIN_GUBUN = '12'
+		   AND USER_ID = #insertUserId#  
+	</update>
+	
+</sqlMap>
+
+

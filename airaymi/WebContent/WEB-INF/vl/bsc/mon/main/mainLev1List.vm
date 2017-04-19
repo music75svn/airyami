@@ -1,0 +1,686 @@
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+    J(document).ready(function(){
+
+		/******************************************
+		 * 전사KPI현황 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#topScDeptScorelist").jqGrid({
+			url          :"$!{context_path}/bsc/mon/main/topDeptScoreList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : 225,
+			colNames     :['$!{METRIC_NM}코드', '상태','$!{METRIC_NM}',  '목표', '실적', '달성<br>률','점수', '가중<br>치','최종득점', '상위$!{METRIC_NM}', '부서코드'],
+			colModel     :[
+							{name:'METRIC_ID'     ,index:'METRIC_ID'    ,width:40    ,align:'center' },
+							{name:'STATUS'        ,index:'STATUS'       ,width:40    ,align:'center' ,formatter:linkUpdateSignal},
+							{name:'METRIC_NM'     ,index:'METRIC_NM'    ,width:100    ,align:'left'   ,formatter:linkUpdateTopMetric},
+							{name:'TARGET'        ,index:'TARGET'       ,width:40    ,align:'right'  },
+							{name:'ACTUAL'        ,index:'ACTUAL'       ,width:40    ,align:'right'  ,formatter:linkUpdateActual},
+							{name:'PERSENT'        ,index:'PERSENT'     ,width:40	  ,align:'right'  },
+							{name:'SCORE'         ,index:'SCORE'        ,width:40    ,align:'right'  },
+							{name:'WEIGHT'        ,index:'WEIGHT'       ,width:40    ,align:'center' },
+							{name:'EXCSCORE'      ,index:'EXCSCORE'     ,width:40    ,align:'center' },
+							{name:'UP_METRIC_ID'  ,index:'UP_METRIC_ID' ,width:40    ,align:'center' },
+							{name:'SC_DEPT_ID'    ,index:'SC_DEPT_ID'   ,width:40    ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : true,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			shrinkToFit	 : false,
+			caption:"조직성과"
+		}).jqGrid('hideCol',"METRIC_ID").jqGrid('hideCol',"UP_METRIC_ID").jqGrid('hideCol',"SC_DEPT_ID").setGridWidth(375);
+
+		/******************************************
+		 * 정부경영평가 데이터 그리드 출력
+		 ******************************************/
+		jQuery("#govMetricScorelist").jqGrid({
+			url          :"$!{context_path}/bsc/mon/main/govMetricScoreList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : 225,
+			colNames     :['평가범주','평가부문','$!{METRIC_NM}코드', '상태','$!{METRIC_NM}','메인여부', '목표', '실적', '달성률', '점수', '가중치','최종득점','CNT','INDEX','CNT2','INDEX2'],
+			colModel     :[
+							{name:'EVAL_CAT_GRP_NM'   ,index:'EVAL_CAT_GRP_NM'  ,width:40     ,align:'center' ,sortable:false  /* ,cellattr: attrSetting  */ },
+							{name:'EVAL_CAT_NM'       ,index:'EVAL_CAT_NM'      ,width:40     ,align:'center' ,sortable:false  /* ,cellattr: attrSetting2 */ },
+							{name:'GOV_METRIC_ID'     ,index:'GOV_METRIC_ID'    ,width:40    ,align:'center' ,sortable:false},
+							{name:'STATUS_ID'         ,index:'STATUS_ID'        ,width:40     ,align:'center' ,sortable:false  ,formatter:linkMappingPop},
+							{name:'GOV_METRIC_NM'     ,index:'GOV_METRIC_NM'    ,width:100    ,align:'left'   ,sortable:false ,formatter:linkGovMetric},
+							{name:'MAIN_METRIC_YN'    ,index:'MAIN_METRIC_YN'   ,width:40    ,align:'left'   ,sortable:false},
+							{name:'TARGET'            ,index:'TARGET'           ,width:40    ,align:'right'  ,sortable:false},
+							{name:'ACTUAL'            ,index:'ACTUAL'           ,width:40    ,align:'right'  ,sortable:false  ,formatter:linkGovActualUpdate},
+							{name:'PERSENT'           ,index:'PERSENT'          ,width:40    ,align:'right'  ,sortable:false},
+							{name:'SCORE'             ,index:'SCORE'            ,width:40    ,align:'right'  ,sortable:false},
+							{name:'WEIGHT'            ,index:'WEIGHT'           ,width:40    ,align:'center' ,sortable:false},
+							{name:'EXCSCORE'          ,index:'EXCSCORE'         ,width:40     ,align:'center' ,sortable:false},
+							{name:'GRP_CNT'           ,index:'GRP_CNT'          ,width:40     ,align:'right'  ,sortable:false},
+							{name:'GRP_NUM'           ,index:'GRP_NUM'          ,width:40     ,align:'right'  ,sortable:false},
+							{name:'CAT_CNT'           ,index:'CAT_CNT'          ,width:40     ,align:'right'  ,sortable:false},
+							{name:'CAT_NUM'           ,index:'CAT_NUM'          ,width:40     ,align:'right'  ,sortable:false}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : true,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			shrinkToFit	 : false,
+			caption:"조직성과"
+		}).jqGrid('hideCol',"GOV_METRIC_ID").jqGrid('hideCol',"EVAL_CAT_GRP_NM").jqGrid('hideCol',"EVAL_CAT_NM").jqGrid('hideCol',"MAIN_METRIC_YN").jqGrid('hideCol',"GRP_CNT").jqGrid('hideCol',"GRP_NUM")
+		  .jqGrid('hideCol',"CAT_CNT").jqGrid('hideCol',"CAT_NUM").setGridWidth(360);
+
+        /******************************************
+         * 화면 기본 디스플레이
+         ******************************************/
+    	J("#barChart1List").css("display","");
+    	J("#barChart2List").css("display","none");
+    	J("#barChart3List").css("display","none");
+		J("#barChart4List").css("display","none");
+
+    	J("#barChart1").attr("src", "$!{img_path}/common/dept_tab/tab_16_on.gif");
+    	J("#barChart2").attr("src", "$!{img_path}/common/dept_tab/tab_02.gif");
+    	J("#barChart3").attr("src", "$!{img_path}/common/dept_tab/tab_03.gif");
+		J("#barChart4").attr("src", "$!{img_path}/common/dept_tab/tab_18.gif");
+
+		J("#barChart1").click(function(){
+			tabEvent1("barChart1");
+		});
+
+		J("#barChart2").click(function(){
+			tabEvent1("barChart2");
+		});
+
+		J("#barChart3").click(function(){
+			tabEvent1("barChart3");
+		});
+
+		J("#barChart4").click(function(){
+			tabEvent1("barChart4");
+		});
+
+    	/******************************************
+         * 주요지표선택 이미지 클릭 이벤트 호출
+         ******************************************/
+    	J("#userMetric").click(function(){
+    		popUserMetric();
+    	});
+
+        /******************************************
+         * FANCYBOX
+         ******************************************/
+        J("#anchor").fancybox();      //상세팝업
+
+        /******************************************
+         * LI태그 마우스 포인터 표시
+         ******************************************/
+        J("li").css("cursor","pointer");
+
+        //<![CDATA[
+			FusionCharts.setCurrentRenderer(render);
+			var govChart = new FusionCharts("$!{chart_path}/Line.swf", "govChartId", "365", "250", "0", "1" );
+			govChart.setXMLUrl("$!{context_path}/bsc/mon/main/govMetricChart_xml.vw?findYear=$!{findYear}&amp;findMon=$!{findMon}&amp;findGovMetricId=");
+			govChart.render("barChartGovList");
+		//]]>
+
+    });
+
+	/******************************************
+	 * 지표정의서
+	 ******************************************/
+	function linkUpdateMetric(cellvalue, options, rowObject) {
+		var str = cellvalue;
+
+		if(rowObject.UP_METRIC_ID != "") {
+			str = "<img src=\'$!{img_path}/tree.gif\' align='absmiddle'>" + str
+		}
+
+		return '<a href=javascript:goPopMetricDetail(' + options.rowId + ')>' + str + '<//a>';
+	}
+
+	/******************************************
+	 * 지표연계표
+	 ******************************************/
+	function linkUpdateTopMetric(cellvalue, options, rowObject) {
+		var str = cellvalue;
+
+		if(rowObject.UP_METRIC_ID != "") {
+			str = "<img src=\'$!{img_path}/tree.gif\' align='absmiddle'>" + str
+		}
+
+		return '<a href=javascript:goPopMetricDetailMap(' + options.rowId + ')>' + str + '<//a>';
+	}
+
+	/******************************************
+	 * 실적상세
+	 ******************************************/
+	function linkUpdateActual(cellvalue, options, rowObject) {
+		return "<a href=javascript:goPopMetricActualDetail(" + options.rowId + ")>" + cellvalue+ "</a>";
+	}
+
+	/******************************************
+	 * 실적상세 신호등
+	 ******************************************/
+	function linkUpdateSignal(cellvalue, options, rowObject) {
+		return "<a href=javascript:goPopMetricActualDetail(" + options.rowId + ")>" + "<img name=\'sig\'  src=\'$!{img_path}/common/ball/ball_" + cellvalue + ".gif\' >" + "</a>";
+	}
+
+	/*****************************************************
+	 * 실적상세 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail(rowId){
+		var ret = J("#topScDeptScorelist").jqGrid('getRowData',rowId);
+		var metricId = ret.METRIC_ID;
+		var year = J("#findYear").val();
+		var mon = J("#findMon").val();
+		var analCycle = J(":input:radio[name=findAnalCycle]:checked").val();
+
+		var param = "&amp;year=" + year + "&amp;findMon=" + mon + "&amp;metricId=" + metricId + "&amp;analCycle="+analCycle;
+
+		var url = "$!{context_path}/bsc/mon/metricActualDetail/popMetricActualDetailList.vw?type=popup" + param;
+		openWinByName(url,'popMetricDetail','1250','650','yes');
+    }
+
+	/******************************************
+	 * 경평지표명 클릭
+	 ******************************************/
+	function linkGovMetric(cellvalue, options, rowObject) {
+
+		return '<a href=javascript:goMetricDetail(' + options.rowId + ');goTimeStop();>' + cellvalue + '<//a>';
+	}
+
+	/******************************************
+	 * 경영평가 지표정의서  팝업
+	 ******************************************/
+	function goGovMetricPop() {
+		var findYear = J("#findYear").val();
+		var govMetricId = J("#govMetricId").val();
+		var param = "&amp;year=" + findYear + "&amp;govMetricId=" + govMetricId ;
+
+		var url = "$!{context_path}/gov/system/govMetric/popArchiveMonList.vw?type=popup" + param;
+		openWinByName(url,'popGovMetricDefine','880','650','yes');
+	}
+
+	/******************************************
+	 * 경평 신호등
+	 ******************************************/
+	function linkGovActualUpdate(cellvalue, options, rowObject) {
+		return '<a href=javascript:goGovActualModifyPop(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+
+	/******************************************
+	 * 경영평가 실적  팝업
+	 ******************************************/
+	function goGovActualModifyPop(rowId) {
+		var ret = J("#govMetricScorelist").jqGrid('getRowData',rowId);
+		var findYear = J("#findYear").val();
+		var findMon = J("#findMon").val();
+		var findGovMetricId = ret.GOV_METRIC_ID;
+
+		var param = "&amp;findYear=" + findYear + "&amp;findMon=" + findMon + "&amp;findGovMetricId=" + findGovMetricId ;
+
+		var url = "$!{context_path}/gov/measure/govActualMng/popGovActualMngList.vw?type=popup" + param;
+		openWinByName(url,'popGovMetricDefine','1250','550','yes');
+	}
+
+	/******************************************
+	 * jqGrid 신호등
+	 ******************************************/
+	function linkMappingPop(cellvalue, options, rowObject) {
+		return '<a href=javascript:goMappingMetricPop(' + options.rowId + ')><img name=\'sig\' src=\'$!{img_path}/common/ball/ball_' + cellvalue + '.gif\' ></a>';
+	}
+
+	/******************************************
+	 * 내평지표 매핑 팝업
+	 ******************************************/
+	function goMappingMetricPop(rowId) {
+		var ret = J("#govMetricScorelist").jqGrid('getRowData',rowId);
+		var findYear = J("#findYear").val();
+		var findMon = J("#findMon").val();
+
+		J("#anchor").attr("href","$!{context_path}/gov/measure/archiveMon/popMappingMetricList.vw?findYear=" + findYear + "&amp;findMon=" + findMon + "&amp;findGovMetricId=" + ret.GOV_METRIC_ID);
+		J("#anchor").click();
+	}
+
+	/*****************************************
+	 * 평가범주 Rowspan 설정
+	 ******************************************/
+	function attrSetting(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.GRP_NUM;
+		var rowSpan = rowObject.GRP_CNT;
+
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+
+		return result;
+	}
+
+	/*****************************************
+	 * 평가부문 Rowspan 설정
+	 ******************************************/
+	function attrSetting2(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.CAT_NUM;
+		var rowSpan = rowObject.CAT_CNT;
+
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+
+		return result;
+	}
+
+	/******************************************
+     * 상단 TAB 마우스오버 이벤트
+     ******************************************/
+	function tabEvent1(item){
+		hiddenAllItem1(item);
+		J("#"+item+"List").css("display","");
+
+		if(item=="barChart1"){
+			J("#barChart1").attr("src", "$!{img_path}/common/dept_tab/tab_16_on.gif");
+		} else if(item=="barChart2"){
+			J("#barChart2").attr("src", "$!{img_path}/common/dept_tab/tab_02_on.gif");
+		} else if(item=="barChart3"){
+			J("#barChart3").attr("src", "$!{img_path}/common/dept_tab/tab_03_on.gif");
+		} else if(item=="barChart4"){
+			J("#barChart4").attr("src", "$!{img_path}/common/dept_tab/tab_18_on.gif");
+		}
+	};
+
+    /******************************************
+     * 상단 TAB 마우스오버 이벤트
+     ******************************************/
+	function hiddenAllItem1(item){
+
+		if(item == "barChart1") {
+    		J("#barChart1List").css("display","");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","none");
+		} else if(item == "barChart2") {
+			J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","none");
+		} else if(item == "barChart3") {
+			J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","");
+			J("#barChart4List").css("display","none");
+		} else if(item == "barChart4") {
+			J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","");
+		}
+
+    	J("#barChart1").attr("src", "$!{img_path}/common/dept_tab/tab_16.gif");
+    	J("#barChart2").attr("src", "$!{img_path}/common/dept_tab/tab_02.gif");
+    	J("#barChart3").attr("src", "$!{img_path}/common/dept_tab/tab_03.gif");
+		J("#barChart4").attr("src", "$!{img_path}/common/dept_tab/tab_18.gif");
+	}
+
+	/******************************************
+     * 사용자별 주요지표 선택
+     ******************************************/
+	function popUserMetric(){
+		//J("#anchor").attr("href","$!{context_path}/bsc/mon/main/popUserGovMetric.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;callBack=setSubMetricSet");
+		J("#anchor").attr("href","$!{context_path}/bsc/mon/main/popUserMetric.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;callBack=setSubMetricSet");
+		J("#anchor").click();
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function goUserMetricInsert() {
+		J.showConfirmBox("저장하시겠습니까?", "insertUserMetricDo"); //insertUserMetricDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 저장처리
+	 ******************************************/
+	function insertUserMetricDo() {
+		J("#year").val(J("#findYear").val());
+		J("#mode").val("ADD_METRIC");
+
+		J("#formFind").attr("action", "$!{context_path}/bsc/mon/main/mainProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+     * 비교조직 차트 클릭시 조직성과상세 팝업
+     ******************************************/
+	function goOrgDetailPop(scDeptId){
+		var year = J("#findYear").val();
+		var mon = J("#findMon").val();
+		var analCycle = J(":input:radio[name=findAnalCycle]:checked").val();
+
+		J("#anchor").attr("href","$!{context_path}/bsc/mon/main/popDeptMetricList.vw?findYear=" + year + "&amp;findMon=" + mon + "&amp;findAnalCycle=" + analCycle + "&amp;scDeptId=" + scDeptId + "&amp;urlType=1");
+		J("#anchor").click();
+	}
+
+	/******************************************
+     * 정부경영평가현황 그래프
+     ******************************************/
+	function goMetricDetail(rowId){
+		count = rowId; /* 타이머 사용 */
+		
+		var ret = J("#govMetricScorelist").jqGrid('getRowData',rowId);
+		var findGovMetricId = ret.GOV_METRIC_ID;
+
+		J("#govMetricId").val(findGovMetricId);
+		getGovMetricNm(findGovMetricId);
+
+		//<![CDATA[
+			FusionCharts.setCurrentRenderer(render);
+			if(FusionCharts("govChartId")) FusionCharts("govChartId").dispose();
+    		var govChart = new FusionCharts("$!{chart_path}/Line.swf", "govChartId", "365", "250", "0", "1" );
+			govChart.setXMLUrl("$!{context_path}/bsc/mon/main/govMetricChart_xml.vw?findYear=$!{findYear}&amp;findMon=$!{findMon}&amp;findGovMetricId="+findGovMetricId);
+			govChart.render("barChartGovList");
+		//]]>
+	}
+
+	/******************************************
+	 * 정부경영평가지표명 가져오기
+	 ******************************************/
+	function getGovMetricNm(findGovMetricId) {
+		var year = J("#findYear").val();
+
+		J.ajax({
+			url        : "$!{context_path}/bsc/module/commModule/getGovMetricNm_ajax.vw",
+        	type       : "POST",
+			data       : "year=" + year + "&amp;findGovMetricId=" + findGovMetricId,
+        	dataType   : "xml",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success    : function (xml) {
+				if(J(xml).find("items").find("item").length > 0) {
+					J(xml).find("items").find("item").each(function() {
+                        var metricNm = J(this).find("metricNm").text();
+						J("#govMetricNm").text(metricNm);
+                    });
+				}
+        	},
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+    	});
+	}
+
+	/******************************************
+	 * 지표연계표
+	 ******************************************/
+	function goPopMetricDetailMap(rowId) {
+		var ret = J("#topScDeptScorelist").jqGrid('getRowData',rowId);
+
+		var year = J("#findYear").val();
+		var mon = J("#findMon").val();
+		var analCycle = J(":input:radio[name=findAnalCycle]:checked").val();
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+
+		var param = "&amp;year=" + year +"&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;metricId=" + metricId + "&amp;analCycle="+analCycle+ "&amp;findScDeptId="+scDeptId;
+
+		var url = "$!{context_path}/bsc/mon/metricDefine/metricDefineList.vw?type=popup" + param;
+		openWinByName(url,'MetricDefinePop','1250','650','yes');
+/*
+		J("#anchor").attr("href","$!{context_path}/bsc/mon/main/popMetricMatrixList.vw?findYear=" + year + "&amp;findMon=" + mon + "&amp;findAnalCycle=" + analCycle + "&amp;metricId=" + metricId);
+		J("#anchor").click();
+*/
+	}
+	
+	/******************************************
+	 * 조직성과도
+	 ******************************************/
+	function goGridSearch() {
+		J("#formFind").attr("action", "$!{context_path}/bsc/mon/scDeptDiagram/scDeptDiagramList.vw?type=template").submit();
+	}
+	
+	var timer1;
+	var timer2;
+	var bool = true;
+	var count = 0;
+	
+	timer1 = setInterval("goTimeIntTerVal()", 5000);
+	
+	function timeStart() {
+		timer1 = setInterval("goTimeIntTerVal()", 7000);
+		clearTimeout(timer2);
+		
+	}
+	
+	function goTimeStop() {
+		clearInterval(timer1);
+		
+		timer2 = setTimeout("timeStart()", 5000);
+	}
+	
+	function goTimeIntTerVal() {
+		clearInterval(timer2);
+		
+		if(count < 14) {
+			count = count + 1;
+		} else {
+			count = 1;
+		}
+		
+		goMetricDetail(count);
+	}
+//]]>
+</script>
+
+<script type="text/javascript" language="javascript" >
+
+</script>
+
+<!--blockContainer Start-->
+<div id="blockContainer">
+	<a id="anchor" ></a>
+	<!--blockMain Start-->
+	<div id="blockMain">
+
+        <div id="blockMainTop">
+			<!-- 조회조건 시작 -->
+    		<div class="tableTop">
+        		<!-- search S -->
+    			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/mon/main/mainLev1List.vw?type=template">
+					<input type="hidden"		id="metricIds"		name="metricIds" />
+					<input type="hidden"		id="mode"			name="mode" />
+					<input type="hidden"		id="returnUrl"		name="returnUrl" value="mainLev1List"/>
+    				<div class="searchBox">
+        				<div><div><div>
+        				<table summary="검색조건">
+    						<caption class="none">검색조건</caption>
+    						<thead><tr><th></th></tr></thead>
+            				<tbody>
+                				<tr>
+                					<td class="searchBox_tit w250">
+    									<span>$!{YEARMON}</span>
+                						<span class="searchBar">
+                							<select id="findYear" name="findYear" class="select w80">
+                								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+                							</select>
+    										<select id="findMon" name="findMon" class="select w70">
+                								$!CS_CODE.getCodeOption("024", $!{searchMap.txt2html("findMon")})
+                							</select>
+                						</span>
+                                    </td>
+									<td class="searchBox_tit w100">
+                						<span class="searchBar">
+    										$!CS_CODE.getCodeRadio("findAnalCycle", "138", $!{searchMap.txt2html("findAnalCycle")}, "")
+                						</span>
+                					</td>
+                				</tr>
+            				</tbody>
+        				</table>
+    					<input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                        </div></div></div>
+        	        </div>
+        		</form>
+        		<!-- search E -->
+    			<div class="clear"></div>
+    		</div>
+    		<!-- 조회조건 끝-->
+
+			<h1 class="none">컨텐츠영역</h1>
+            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+				<colgroup>
+					<col width="375px" />
+					<col width="10px" />
+					<col width="375px" />
+					<col width="10px" />
+					<col width="380px" />
+				</colgroup>
+				<tbody>
+					<tr>
+						<td valign="top">
+							<div class="bodybox" style="height:300px;">
+								<div class="bodyboxlist_titbg">
+									<div class="bodybox_tit">정부경영평가현황</div>
+									<div class="bodybox_contents">
+										<!-- 데이터그리드 Start -->
+                    					<div class="blockGridListTable">
+                    						<table id="govMetricScorelist" summary="조회결과">
+                    							<caption class="none">조회결과</caption>
+                    							<thead><tr><th></th></tr></thead>
+                    							<tbody><tr><td></td></tr></tbody>
+                    						</table>
+                    						<div id="pager2"></div>
+                    					</div>
+                    					<!--// 데이터그리드 End -->
+									</div>
+								</div>
+							</div>
+						</td>
+						<td></td>
+						<td valign="top">
+							<div class="bodybox" style="height:300px;">
+								<div class="bodybox_titbg">
+									<div class="bodybox_tit">전사$!{METRIC_NM}현황</div>
+									<div class="bodybox_contents" >
+										<!-- 데이터그리드 Start -->
+                    					<div class="blockGridListTable" >
+                    						<table id="topScDeptScorelist" summary="조회결과" >
+                    							<caption class="none">조회결과</caption>
+                    							<thead><tr><th></th></tr></thead>
+                    							<tbody><tr><td></td></tr></tbody>
+                    						</table>
+                    						<div id="pager1"></div>
+                    					</div>
+                    					<!--// 데이터그리드 End -->
+									</div>
+								</div>
+							</div>
+						</td>
+						<td></td>
+						<td rowspan="2" valign="top">
+							<div class="bodybox" style="height:614px;">
+								<div class="bodybox_titbg">
+									<div class="bodybox_tit">관심지표성과</div>
+									<div class="bodybox_btn" id="userMetric"><a href="javascript:popUserMetric();" class="btn01"><span>관심지표선택</span></a></div>
+									<div class="bodybox_contents" >
+									#set($colors = ["FF7200","9314FF","00D3E0","6EC200"])
+									#foreach($list in $userMetricList)
+    							    	<div id="lineChart$velocityCount"></div>
+										<script type="text/javascript" language="javascript" >
+                    					//<![CDATA[
+                    						FusionCharts.setCurrentRenderer(render);
+                                    	#if($!{CS_STATIC.subString($list.METRIC_ID,1)}=="M")
+                                    		var myChart2 = new FusionCharts( "$!{chart_path}/MSLine.swf", "myChartId2_$!{velocityCount}", "300", "130", "0", "1" );
+                                    		myChart2.setXMLUrl("$!{context_path}/bsc/mon/main/userMetricChart_xml.vw?year=$!{year}&mon=$!{mon}&userId=$!{CS_LOGIN.getUser_id()}&scDeptId=$!{CS_LOGIN.getSc_dept_id()}&metricId=$!{CS_HTML.txt2html($list.METRIC_ID)}&color=$vcList.get($colors, $vcMath.sub($velocityCount,1))");
+                                    	#else
+                                    		var myChart2 = new FusionCharts( "$!{chart_path}/MSLine.swf", "myChartId2_$!{velocityCount}", "300", "130", "0", "1" );
+                                    		myChart2.setXMLUrl("$!{context_path}/bsc/mon/main/userGovMetricChart_xml.vw?year=$!{year}&mon=$!{mon}&userId=$!{CS_LOGIN.getUser_id()}&scDeptId=$!{CS_LOGIN.getSc_dept_id()}&metricId=$!{CS_HTML.txt2html($list.METRIC_ID)}&color=$vcList.get($colors, $vcMath.sub($velocityCount,1))");
+                                    	#end
+    										myChart2.render("lineChart$velocityCount");
+                    					//]]>
+                                    	</script>
+                                        <div style="height:8px"></div>
+									#end
+									</div>
+								</div>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td valign="top">
+							<div class="bodybox" style="height:300px;">
+								<div class="bodybox_titbg">
+									<div class="bodybox_tit">
+										<span id="govMetricNm" class="searchBar">$!{searchMap.txt2html("govMetricNm")}</span> 지표 5년 현황
+										<a href="javascript:goGovMetricPop();" class="btn01"><span>지표정의서</span></a>
+									</div>
+									<div class="bodybox_contents">
+										<div id="barChartGovList" style="position:absolute;top:10px;left:1px;"></div>
+
+                                        </div>
+									</div>
+								</div>
+							</div>
+						</td>
+						<td>&nbsp;</td>
+						<td valign="top">
+							<div class="bodybox" style="height:300px;">
+								<div class="bodybox_titbg">
+									<div class="bodybox_tit">
+										조직성과도
+									</div>
+									<div class="bodybox_contents" style="position:absolute;top:22px;left:1px;">
+										<script type="text/javascript" language="javascript">
+										//<![CDATA[
+											scDiagramGubun = "D000001";
+											var url = 'bgNum=$!{searchMap.txt2html("findYear")}&_pPath=$!{context_path}&_pSignal=$!{context_path}/bsc/base/scDeptDiagMng/trafficSignal_xml.vw?suffix=vm%26findYear=$!{searchMap.txt2html("findYear")}&_pParam=$!{context_path}/bsc/mon/main/scDeptDiagMngMain_xml.vw?suffix=vm%26findYear=$!{searchMap.txt2html("findYear")}%26findMon=$!{searchMap.txt2html("findMon")}%26findAnalCycle=$!{searchMap.txt2html("findAnalCycle")}%26findScDeptId='+scDiagramGubun+'%26findDiagramGubun=$!{searchMap.txt2html("findDiagramGubun")}';
+											VBOX2Swf("TreeOrgChartList","370","270","$!{img_path}/flash/VBOX_ORGANIZATIONS.swf","strPath="+url,true);
+										//]]>
+				                    	</script>
+									</div>
+								</div>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<!--//blockMain End-->
+</div>
+<form id="formPop" method="post"  action="">
+	<input type="hidden" id="mode" name="mode" value=""/>
+	<input type="hidden" id="year" name="year" value="$!{year}"/>
+	<input type="hidden" id="mon" name="mon" value="$!{mon}"/>
+	<input type="hidden" id="analCycle" name="analCycle"/>
+	<input type="hidden" id="scDeptId" name="scDeptId"/>
+	<input type="hidden" id="metricId" name="metricId"/>
+	<input type="hidden" id="govMetricId" name="govMetricId"	value="$!{searchMap.txt2html("govMetricId")}"/>
+	<input type="hidden" id="popUpId" name="popUpId"/>
+	<input type="hidden" id="mainFlag" name="mainFlag" value="false"/>
+	<input type="hidden" id="findBbsId" name="findBbsId" value=""/>
+	<input type="hidden" id="bbsSeq" name="bbsSeq" value=""/>
+</form>

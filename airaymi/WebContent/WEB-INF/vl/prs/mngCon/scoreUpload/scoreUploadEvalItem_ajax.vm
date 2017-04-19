@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+#*************************************************************************
+* CLASS 명      : scoreUploadList
+* 작 업 자      : 양익수
+* 작 업 일      : 2014년 12월 22일 
+* 기    능      : 업무성과점수 업로드
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     양익수      2014년 12월 22일             최 초 작 업
+**************************************************************************# 
+<items>
+
+#foreach($evalItemList in $evalItemList)
+	<item>
+		<evalItemId>$!{CS_HTML.txt2html($evalItemList.EVAL_ITEM_ID)}</evalItemId>
+		<evalItemNm>$!{CS_HTML.txt2html($evalItemList.EVAL_ITEM_NM)}</evalItemNm>
+	</item>	
+#end
+
+</items>

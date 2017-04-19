@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.emp.prsEmpEvalResult">
+
+    <!--
+    ==================================================================
+      # 설명    : typeAlias 선언
+      #    기능    : SETTING
+      #    TABLE    :
+    ==================================================================
+    -->
+    <typeAlias alias="hashMap"             type="java.util.HashMap" />
+
+
+    <!--
+    ==================================================================
+      # 설명    : 평가결과 목록 보기
+      #    기능    : SELECT
+      #    TABLE    :
+    ==================================================================
+    -->
+    <select id="getList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT
+		      F.EVAL_GRP_ID
+		    , F.EVAL_GRP_NM
+		    , A.EMPN
+		    , A.KOR_NM
+		    , T4.DEPT_CD
+		    , T4.DEPT_KOR_NM
+		    , T4.UP_DEPT_CD
+		    , T4.UP_DEPT_KOR_NM
+		    , A.CAST_TC
+		    , D.CODE_NM AS CAST_TC_NM
+		    , A.POS_TC
+		    , E.CODE_NM AS POS_TC_NM
+		    , T3.SCORE
+		    , T3.RANKING
+		    , T3.GRADE
+		    , NVL(A.EVAL_SUBMIT_YN, 'N') EVAL_SUBMIT_YN
+		    , NVL (A.EVAL_SUBMIT_YN_2ND , 'N') EVAL_SUBMIT_2ND_YN
+		FROM PRS_EMP_MEMBER A
+		    LEFT OUTER JOIN PRS_EMP_EVAL_MEMBER T3
+		        ON A.YEAR = T3.YEAR
+		        AND A.EMPN = T3.EMPN
+		    INNER JOIN BSC_CODE D
+		        ON A.YEAR = D.YEAR
+		        AND A.CAST_TC = D.CODE_ID
+		        AND D.CODE_GRP_ID = '170'
+		    INNER JOIN BSC_CODE E
+		        ON A.YEAR = E.YEAR
+		        AND A.POS_TC = E.CODE_ID
+		        AND E.CODE_GRP_ID = '171'
+		    INNER JOIN
+		        (SELECT
+		              A.YEAR
+		            , A.DEPT_CD
+		            , A.DEPT_KOR_NM
+		            , B.DEPT_CD AS UP_DEPT_CD
+		            , B.DEPT_KOR_NM AS UP_DEPT_KOR_NM
+		        FROM BSC_INSA_DEPT A
+		            INNER JOIN BSC_INSA_DEPT B
+		                ON A.YEAR = B.YEAR
+		                AND A.UP_DEPT_CD = B.DEPT_CD) T4
+		        ON A.YEAR = T4.YEAR
+		        AND A.DEPT_CD = T4.DEPT_CD
+			INNER JOIN (SELECT
+		                      T5.YEAR
+		                    , T5.EVAL_GRP_ID
+		                    , T5.EVAL_GRP_NM
+		                    , T6.DEPT_CD
+		                FROM PRS_EVAL_GRP T5
+		                    INNER JOIN PRS_EMP_DEPT_EVAL_GRP T6
+		                        ON T5.YEAR = T6.YEAR
+		                        AND T5.EVAL_GRP_ID = T6.EVAL_GRP_ID
+		                WHERE T5.YEAR = #findYear#
+		                  AND T5.EVAL_TYPE IN ('06', '07', '08')) F
+		        ON A.YEAR = F.YEAR
+		        AND A.DEPT_CD = F.DEPT_CD
+		        AND F.EVAL_GRP_ID = #findEvalGrpId#
+		WHERE A.YEAR = #findYear#
+		AND A.EVAL_YN = 'Y'
+		<isNotEmpty prepend="AND" property="findDeptId">
+			A.DEPT_CD = #findDeptId#
+		</isNotEmpty>
+		<isNotEmpty property="findEmpnNameText">
+			<isEqual prepend="AND" property="findNameEmpn" compareValue="findEmpn">
+				A.EMPN = #findEmpnNameText#
+			</isEqual>
+			<isEqual prepend="AND" property="findNameEmpn" compareValue="findName">
+				A.KOR_NM LIKE '%' || #findEmpnNameText# ||'%'
+			</isEqual>
+		</isNotEmpty>
+		<dynamic prepend="AND">
+			<isNotEmpty property="findSabun">
+			    A.EMPN = #findSabun# 
+			</isNotEmpty>
+		</dynamic>
+		ORDER BY T3.RANKING, A.KOR_NM
+    </select>
+
+    <!--
+    ==================================================================
+      # 설명    : 평가군
+      #    기능    : SELECT
+      #    TABLE    :
+    ==================================================================
+    -->
+    <select id="getEvalGrpList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT
+		      EVAL_GRP_ID
+		    , EVAL_GRP_NM
+		FROM PRS_EVAL_GRP
+		WHERE YEAR = #findYear#
+		  AND EVAL_TYPE IN ('06', '07', '08')
+		ORDER BY SORT_ORDER
+    </select>
+
+    <!--
+    ==================================================================
+      # 설명    : 평가군별 부서조회
+      #    기능    : SELECT
+      #    TABLE    :
+    ==================================================================
+    -->
+    <select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.YEAR
+	         , A.DEPT_CD
+	         , F_DEPT_FULL_NM ( #findYear#, A.DEPT_CD, 'BSC_INSA_DEPT') DEPT_KOR_NM
+		  FROM BSC_INSA_DEPT A
+	 	  LEFT OUTER JOIN PRS_EMP_DEPT_EVAL_GRP B
+	    	ON A.YEAR = B.YEAR
+	       AND A.DEPT_CD = B.DEPT_CD
+	 	  LEFT OUTER JOIN PRS_EVAL_GRP C
+	    	ON B.YEAR = C.YEAR
+	       AND B.EVAL_GRP_ID = C.EVAL_GRP_ID
+	       AND C.DELETE_DT IS NULL
+		 WHERE A.YEAR = #findYear#
+	       AND A.USE_YN = 'T'
+	       AND B.EVAL_GRP_ID = #findEvalGrpId#
+		 ORDER BY B.EVAL_GRP_ID, DEPT_CD
+    </select>
+    
+    <!--
+    ==================================================================
+      # 설명    : 평가군 가져오기
+      #    기능    : SELECT
+      #    TABLE    :
+    ==================================================================
+    -->
+    <select id="getEvalGrpId" parameterClass="hashMap" resultClass="hashMap">
+        SELECT
+              A.EVAL_GRP_ID
+            , A.EVAL_GRP_NM
+        FROM PRS_EVAL_GRP A
+        INNER JOIN PRS_EMP_DEPT_EVAL_GRP B
+        	ON A.YEAR = B.YEAR
+        	AND A.EVAL_GRP_ID = B.EVAL_GRP_ID
+        WHERE A.YEAR = #findYear#
+          AND A.EVAL_TYPE IN ('06', '07', '08')
+          AND B.DEPT_CD = (SELECT DEPT_CD FROM BSC_INSA WHERE YEAR = A.YEAR AND EMPN = #findSabun#)
+		GROUP BY A.EVAL_GRP_ID, A.EVAL_GRP_NM
+    </select>
+
+	<!--
+    ==================================================================
+      # 설명    : 평가군
+      #    기능    : SELECT
+      #    TABLE    :
+    ==================================================================
+    -->
+    <select id="getEvalSubmitYn" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT
+		      EMP_EVAL_YN
+		FROM PRS_CLOSING
+		WHERE YEAR = #findYear#
+    </select>
+    
+	<!--
+    ==================================================================
+      # 설명    : 평가제출 여부 확인
+      # 기능    : SELECT
+      # TABLE   : PRS_EMP_MEMBER
+    ==================================================================
+    -->
+    <select id="getEvalSubmitYnCount" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT COUNT (*)
+		  FROM PRS_EMP_MEMBER
+		 WHERE YEAR = #findYear#
+	       AND EVAL_YN = 'Y'
+	       AND SCORE_1ST IS NOT NULL
+	       AND SCORE_2ND IS NOT NULL
+	</select>
+	
+	<!--
+    ==================================================================
+      # 설명    : 평가제출 여부 확인
+      # 기능    : SELECT
+      # TABLE   : PRS_EMP_MEMBER
+    ==================================================================
+    -->
+    <select id="getEvalSubmitYnCounts" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT COUNT (*)
+		  FROM PRS_EMP_MEMBER
+		 WHERE YEAR = #findYear#
+	       AND EVAL_YN = 'Y'
+	</select>
+
+    <!--
+    ==================================================================
+      # 설명    : 등급배분 최대인원 가져오기
+      # 기능    : SELECT
+      # TABLE   :
+    ==================================================================
+    -->
+    <select id="getMaxCount" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT MAX(ITEM_CNT)
+               FROM (
+                    SELECT A.YEAR
+                              ,B.EVAL_GRP_ID
+                           FROM PRS_EMP_MEMBER A
+                     INNER JOIN PRS_EMP_DEPT_EVAL_GRP B
+                             ON A.YEAR = B.YEAR 
+                            AND A.DEPT_CD = B.DEPT_CD
+                          WHERE A.EVAL_SUBMIT_YN = 'Y'
+                            AND A.YEAR = #findYear#  
+                            AND B.EVAL_GRP_ID = #findEvalGrpId# 
+                       GROUP BY A.YEAR, B.EVAL_GRP_ID
+                     ) A   
+    LEFT OUTER JOIN PRS_EVAL_GRP B
+                 ON A.YEAR = B.YEAR
+                AND A.EVAL_GRP_ID = B.EVAL_GRP_ID
+                AND B.DELETE_DT IS NULL
+    LEFT OUTER JOIN BSC_ECM_GRADE_DISTRI_TAB C
+                 ON A.YEAR = C.YEAR
+                AND B.EVAL_METHOD_ID = C.EVAL_METHOD_ID
+    LEFT OUTER JOIN BSC_ECM_GRADE_DISTRI_EVAL_ITEM D
+                 ON A.YEAR = D.YEAR
+                AND B.EVAL_METHOD_ID = D.EVAL_METHOD_ID
+                AND C.GRADE_ITEM_ID = D.GRADE_ITEM_ID
+    </select>
+
+    <!--
+    ==================================================================
+      # 설명    : 평가결과 등록
+      #    기능    : INSERT
+      #    TABLE    :
+    ==================================================================
+    -->
+    <insert id="insertData" parameterClass="hashMap">
+		INSERT INTO PRS_EMP_EVAL_MEMBER(YEAR, EVAL_GRP_ID, EMPN, SCORE, GRADE, RANKING, EVAL_SUBMIT_YN, CREATE_DT)
+			SELECT
+			      T3.YEAR
+			    , T3.EVAL_GRP_ID
+			    , T3.EMPN
+			    , T3.SCORE
+			    , T2.GRADE_ITEM_NM
+			    , T3.RANKING
+			    , T3.EVAL_SUBMIT_YN
+			    , SYSDATE
+			FROM (
+			        SELECT
+			              T1.YEAR
+			            , T1.EMPN
+			            , T1.KOR_NM
+			            , T1.DEPT_CD
+			            , T1.EVAL_GRP_ID
+			            , T1.SCORE
+			            , RANK() OVER(ORDER BY T1.SCORE DESC) RANKING
+			            , COUNT(T1.SCORE) OVER(PARTITION BY T1.YEAR, T1.EVAL_GRP_ID) AS EVAL_TOT_CNT
+			            , 'Y' AS EVAL_SUBMIT_YN
+			        FROM (
+			                SELECT
+			                      A.YEAR
+			                    , A.EMPN
+			                    , A.KOR_NM
+			                    , A.DEPT_CD
+			                    , A.POS_TC
+			                    , B.EVAL_GRP_ID
+			                    , NVL(A.SCORE_1ST * 0.6, 0) + NVL(A.SCORE_2ND * 0.4, 0) AS SCORE
+			                    , COUNT(A.EMPN) OVER(PARTITION BY A.YEAR, B.EVAL_GRP_ID, A.DEPT_CD, A.EMPN) TOT_COUNT
+			                FROM PRS_EMP_MEMBER A
+			                    INNER JOIN PRS_EMP_DEPT_EVAL_GRP B
+			                        ON A.YEAR = B.YEAR
+			                        AND A.DEPT_CD = B.DEPT_CD
+			                WHERE 1=1
+			                  AND A.SCORE_1ST IS NOT NULL
+			                  AND A.SCORE_2ND IS NOT NULL
+			                  AND A.EVAL_SUBMIT_YN = 'Y'
+			                ORDER BY A.RANKING_1ST, A.POS_TC
+			   			 ) T1
+				 ) T3
+		    LEFT OUTER JOIN ( 
+		    				SELECT   
+								  YEAR 
+			                    , EVAL_GRP_ID
+			                    , GRADE_ITEM_ID
+			                    , GRADE_ITEM_NM
+			                    , EVAL_METHOD_ID
+			                    , ITEM_DISTRI_CNT
+			                    , ITEM_CNT
+			                    , ITEM_DISTRI_END_CNT - ITEM_DISTRI_CNT + 1 AS ITEM_DISTRI_START_CNT
+			                    , ITEM_DISTRI_END_CNT
+							  FROM ( SELECT
+					                       YEAR 
+					                     , EVAL_GRP_ID
+					                     , GRADE_ITEM_ID
+					                     , GRADE_ITEM_NM
+					                     , EVAL_METHOD_ID
+					                     , ITEM_DISTRI_CNT
+					                     , ITEM_CNT
+					                     , SUM (
+					                             ITEM_DISTRI_CNT)
+					                          OVER (
+					                             PARTITION BY YEAR,
+					                                          EVAL_METHOD_ID,
+					                                          ITEM_CNT
+					                             ORDER BY
+					                                GRADE_ITEM_SCORE DESC NULLS LAST,
+					                                GRADE_ITEM_ID
+					                             RANGE UNBOUNDED PRECEDING)
+					                             AS ITEM_DISTRI_END_CNT
+				                   	   FROM ( SELECT 
+				                   	   				  A.YEAR
+				                   	   				, A.EVAL_GRP_ID
+				                        			, D.GRADE_ITEM_ID
+				                        			, D.GRADE_ITEM_NM
+				                        			, B.ITEM_DISTRI_CNT + NVL(C.ITEM_DISTRI_CNT, 0) ITEM_DISTRI_CNT
+				                        			, SUM(B.ITEM_DISTRI_CNT + NVL(C.ITEM_DISTRI_CNT, 0)) OVER() ITEM_CNT, D.GRADE_ITEM_SCORE, D.EVAL_METHOD_ID
+						                        FROM ( SELECT  A.YEAR
+															 , B.EVAL_GRP_ID
+									                         , COUNT(1) CNT
+									                     FROM  PRS_EMP_MEMBER A
+														INNER JOIN PRS_EMP_DEPT_EVAL_GRP B
+														   ON A.YEAR = B.YEAR 
+														  AND A.DEPT_CD = B.DEPT_CD
+											   WHERE  1 = 1
+					                             AND A.EVAL_SUBMIT_YN = 'Y'
+					                             AND A.YEAR = #findYear#
+											   GROUP BY  A.YEAR, B.EVAL_GRP_ID ) A
+											    LEFT OUTER JOIN PRS_EVAL_GRP PEG
+                                                         ON A.YEAR = PEG.YEAR
+                                                        AND A.EVAL_GRP_ID = PEG.EVAL_GRP_ID
+                                                        AND PEG.DELETE_DT IS NULL   
+												LEFT OUTER JOIN BSC_ECM_GRADE_DISTRI_TAB B
+												  ON A.YEAR = B.YEAR 
+												 AND B.EVAL_METHOD_ID = PEG.EVAL_METHOD_ID
+												 AND B.ITEM_CNT = #getMaxCount# 
+												LEFT OUTER JOIN BSC_ECM_GRADE_DISTRI_TAB C
+												  ON A.YEAR = C.YEAR
+												 AND B.EVAL_METHOD_ID = C.EVAL_METHOD_ID
+							                     AND C.ITEM_CNT = MOD(A.CNT, 10)
+							                     AND B.GRADE_ITEM_ID = C.GRADE_ITEM_ID
+											   INNER JOIN BSC_ECM_GRADE_DISTRI_EVAL_ITEM D
+						                          ON A.YEAR = D.YEAR
+						                         AND B.EVAL_METHOD_ID = D.EVAL_METHOD_ID
+						                         AND B.GRADE_ITEM_ID = D.GRADE_ITEM_ID
+											)
+									) 
+							) T2
+			  ON T3.YEAR = T2.YEAR
+	         AND T2.ITEM_CNT = T3.EVAL_TOT_CNT
+	         AND T3.RANKING BETWEEN T2.ITEM_DISTRI_START_CNT AND T2.ITEM_DISTRI_END_CNT
+
+    </insert>
+
+    <!--
+    ==================================================================
+      # 설명    : 평가결과 수정
+      #    기능    : UPDATE
+      #    TABLE    :
+    ==================================================================
+    -->
+    <update id="updateData" parameterClass="hashMap">
+        MERGE INTO PRS_CLOSING A
+		    USING (SELECT
+		                #year# as YEAR
+		              , #evalCloseYn# AS EMP_EVAL_YN
+		           FROM DUAL) B
+		       ON (A.YEAR = B.YEAR)
+		WHEN MATCHED THEN
+		    UPDATE SET A.EMP_EVAL_YN = B.EMP_EVAL_YN
+		             , A.MODIFY_DT = SYSDATE
+		WHEN NOT MATCHED THEN
+		    INSERT (A.YEAR, A.EMP_EVAL_YN, A.CREATE_DT)
+		    VALUES (B.YEAR, B.EMP_EVAL_YN, SYSDATE)
+    </update>
+
+
+    <!--
+    ==================================================================
+      # 설명    : 평가결과 삭제
+      #    기능    : UPDATE
+      #    TABLE    :
+    ==================================================================
+    -->
+    <update id="deleteData" parameterClass="hashMap">
+        DELETE FROM  PRS_EMP_EVAL_MEMBER
+        WHERE 1 = 1
+          AND YEAR = #year#
+    </update>
+
+
+</sqlMap>
+
+

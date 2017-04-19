@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.eval.evalMapping">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가자매핑 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR,
+               EVAL_DEGREE_ID,
+               EVAL_GRP_ID,
+               EVAL_GRP_NM,
+               SORT_ORDER,
+               MAX(EVAL_USER_ID1) EVAL_USER_ID1,
+               MAX(EVAL_USER_NM1) EVAL_USER_NM1,
+               MAX(WEIGHT1) WEIGHT1,
+               MAX(EVAL_USER_ID2) EVAL_USER_ID2,
+               MAX(EVAL_USER_NM2) EVAL_USER_NM2,
+               MAX(WEIGHT2) WEHIGHT2,
+               MAX(EVAL_USER_ID3) EVAL_USER_ID3,
+               MAX(EVAL_USER_NM3) EVAL_USER_NM3,
+               MAX(WEIGHT3) WEIGHT3,
+               MAX(WEIGHT1)+MAX(WEIGHT2)+MAX(WEIGHT3) TOT_WEIGHT,
+               MAX(EVAL_SUBMIT_CNT) AS EVAL_SUBMIT_CNT
+         FROM(
+            SELECT A.YEAR,
+                   A.EVAL_DEGREE_ID,
+                   A.EVAL_GRP_ID,
+                   A.EVAL_GRP_NM,
+                   A.SORT_ORDER,
+                   CASE WHEN B.EVAL_SEQ=1 THEN B.EVAL_USER_ID ELSE '' END EVAL_USER_ID1,
+                   CASE WHEN B.EVAL_SEQ=1 THEN (SELECT USER_NM FROM V_ROLE_USER WHERE USER_ID=B.EVAL_USER_ID) ELSE '' END EVAL_USER_NM1,
+                   CASE WHEN B.EVAL_SEQ=1 THEN B.WEIGHT ELSE 0 END WEIGHT1,
+                   CASE WHEN B.EVAL_SEQ=2 THEN B.EVAL_USER_ID ELSE '' END EVAL_USER_ID2,
+                   CASE WHEN B.EVAL_SEQ=2 THEN (SELECT USER_NM FROM V_ROLE_USER WHERE USER_ID=B.EVAL_USER_ID) ELSE '' END EVAL_USER_NM2,
+                   CASE WHEN B.EVAL_SEQ=2 THEN B.WEIGHT ELSE 0 END WEIGHT2,
+                   CASE WHEN B.EVAL_SEQ=3 THEN B.EVAL_USER_ID ELSE '' END EVAL_USER_ID3,
+                   CASE WHEN B.EVAL_SEQ=3 THEN (SELECT USER_NM FROM V_ROLE_USER WHERE USER_ID=B.EVAL_USER_ID) ELSE '' END EVAL_USER_NM3,
+                   CASE WHEN B.EVAL_SEQ=3 THEN B.WEIGHT ELSE 0 END WEIGHT3,
+                   (SELECT COUNT(1) FROM PRS_EVAL_USER
+                     WHERE YEAR = A.YEAR AND EVAL_DEGREE_ID = A.EVAL_DEGREE_ID
+                       AND EVAL_GRP_ID = A.EVAL_GRP_ID AND EVAL_SUBMIT_YN = 'Y') EVAL_SUBMIT_CNT        
+              FROM PRS_EVAL_GRP A 
+              LEFT OUTER JOIN PRS_EVAL_USER B ON A.YEAR=B.YEAR AND A.EVAL_DEGREE_ID=B.EVAL_DEGREE_ID AND A.EVAL_GRP_ID=B.EVAL_GRP_ID
+            WHERE A.YEAR=#findYear#
+              AND A.EVAL_DEGREE_ID=#findEvalDegreeId#
+              AND A.DELETE_DT IS NULL
+            )
+       GROUP BY YEAR,
+            EVAL_DEGREE_ID,
+            EVAL_GRP_ID,
+            EVAL_GRP_NM,
+            SORT_ORDER
+      ORDER BY SORT_ORDER     
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가자매핑 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_DEGREE_ID        
+			 , EVAL_GRP_ID           
+			 , EVAL_USER_ID          
+			 , WEIGHT                
+			 , EVAL_SEQ              
+			 , EVAL_SUBMIT_YN        
+		  FROM PRS_EVAL_USER 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND EVAL_GRP_ID = #evalGrpId#
+		   AND EVAL_USER_ID = #evalUserId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가자매핑 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO PRS_EVAL_USER ( 
+			   YEAR
+			 , EVAL_DEGREE_ID
+			 , EVAL_GRP_ID
+			 , EVAL_USER_ID
+			 , WEIGHT
+			 , EVAL_SEQ
+			 , EVAL_SUBMIT_YN
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #evalDegreeId#
+			 , #evalGrpId#
+			 , #evalUserId#
+			 , #weight#
+			 , #evalSeq#
+			 , 'N'
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가자매핑 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE PRS_EVAL_USER 
+		   SET WEIGHT                 = #weight# 
+			 , EVAL_SEQ               = #evalSeq# 
+			 , EVAL_SUBMIT_YN         = #evalSubmitYn# 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND EVAL_GRP_ID = #evalGrpId#
+		   AND EVAL_USER_ID = #evalUserId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가자매핑 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM PRS_EVAL_USER 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 권한 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<update id="deleteAdminData" parameterClass="hashMap">
+		DELETE FROM BSC_ADMIN
+         WHERE ADMIN_GUBUN='31'
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가단-평가자 매핑 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<insert id="insertAdminData" parameterClass="hashMap">
+		INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID)
+        SELECT DISTINCT '31', EVAL_USER_ID
+          FROM PRS_EVAL_USER
+	</insert>
+	
+	
+</sqlMap>
+
+

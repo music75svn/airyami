@@ -1,0 +1,105 @@
+#*************************************************************************
+* CLASS 명      : actualStatusModify
+* 작 업 자      : 하윤식 
+* 작 업 일      : 2012년 7월 27일 
+* 기    능      : 실적입력 및 승인현황    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    하윤식      2012년 7월 27일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/bsc/tam/actualStatus/actualStatusList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		/*
+		if(!J.checkLength("codeGrpNm", "코드그룹명", 1, 75)) {
+			return;
+		}
+        
+		if (J("input[name='yearYn']:checked").val() == undefined) {
+			J.showMsgBox("연도별 관리여부를 선택해 주십시요", null, "yearYn1");
+			return;
+		}
+         
+		if((J("#mode").val() == "MOD" ) && (J("#oldYearYn").val() == "N") && (J("input[name='yearYn']:checked").val() == "Y")) {
+			J.showMsgBox("연도별 관리시 각 연도별로 코드가 자동생성됩니다", null, null);
+			J("#mode").val("MOD2");
+		}
+ 		*/
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/bsc/tam/actualStatus/actualStatusProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/tam/actualStatus/actualStatusProcess.vw?type=template">
+    <input type="hidden" id="mode"		name="mode"		value="$!{searchMap.txt2html("mode")}" />
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+    		<div class="blockDetail">
+    			<table summary="실적입력 및 승인현황 등록">
+					<caption class="none">실적입력 및 승인현황 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+						
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

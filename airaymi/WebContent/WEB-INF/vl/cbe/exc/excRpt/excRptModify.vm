@@ -1,0 +1,367 @@
+#*************************************************************************
+* CLASS 명      : excRptModify
+* 작 업 자      : 안요한
+* 작 업 일      : 2013년 07월 15일 
+* 기    능      : 별도평가대상 사업추진보고서    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    안요한      2013년 07월 15일             최 초 작 업 
+**************************************************************************# 
+<script type="text/javascript" language="javascript" src="$!{spaceditor_path}/spac_editor_common.js"></script>
+<script type="text/javascript" language="javascript" src="$!{spaceditor_path}/spac_editor.js"></script>
+<link rel="stylesheet" type="text/css" href="$!{spaceditor_path}/spac_editor_common.css">
+<link rel="stylesheet" type="text/css" href="$!{spaceditor_path}/spac_editor.css">
+	
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    	
+		var index = 0;
+		
+		#foreach($dept in $lastDept)
+			J("#lastYearDept").append("<li id=\"lastDept" + $dept.SER + "\"><input type=\"hidden\" id=\"lastDeptCd$dept.SER\" name=\"lastDeptCd\" value=\"$dept.DEPT_CD\">$dept.DEPT_FULL_NM ( <input type=\"text\" id=\"startPcmtDate$dept.SER\" name=\"startPcmtDate\" class=\"inputbox w60\" value=\'$!{CS_FORMAT.dateFormat($!{dept.START_PCMT_DATE})}\' maxlength=\"20\" readonly /> ~ <input type=\"text\" id=\"endPcmtDate$dept.SER\" name=\"endPcmtDate\" class=\"inputbox w60\" value=\'$!{CS_FORMAT.dateFormat($!{dept.END_PCMT_DATE})}\' maxlength=\"20\" readonly /> ) </li>");
+			
+			J("#startPcmtDate$dept.SER").datepicker({
+    			dateFormat: 'yy.mm.dd'
+    		});
+			
+			J("#endPcmtDate$dept.SER").datepicker({
+    			dateFormat: 'yy.mm.dd'
+    		});
+			
+			index++;
+		#end
+	
+		// 달력
+		J("input[name$=FromDt]").datepicker({
+			dateFormat: 'yy.mm.dd'
+		});
+		
+		J("input[name$=EndDt]").datepicker({
+			dateFormat: 'yy.mm.dd'
+		});
+		
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("enctype", "application/x-www-form-urlencoded");
+			J("#form1").attr("action", "$!{context_path}/cbe/exc/excRpt/excRptList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk(false);
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		if ("$!{excRpt.SUBMIT_YN}" == "Y") {
+			J("#btnSubmit").attr("value", "제출취소");
+			J("#btnInsert").hide();
+			/******************************************
+    		 * 제출버튼 이벤트
+    		 ******************************************/
+    		J("#btnSubmit").click(function() {
+    			cancelSubmit();
+    		});
+		} else {
+			J("#btnSubmit").attr("value", "제출");
+			
+			/******************************************
+    		 * 제출버튼 이벤트
+    		 ******************************************/
+    		J("#btnSubmit").click(function() {
+    			saveChk(true);
+    		});
+		}
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#contentIndicator"),
+			limit:500
+		});
+		J("#content").trigger("keyup");
+
+		// 자기성과기술서 제출기간 보여주기
+		if( "T" != "$!{rptSchedule.RPT_YN}" ){
+			J("#alertDis").html("※  사업추진실적보고서 제출기간이 아닙니다." ).attr("class","txt_red");
+			J("#btnInsert").hide();
+			J("#btnSubmit").hide();
+		}
+
+	});
+
+	/******************************************
+	 * 별도평가자 사업추진실적 보고서 제출취소
+	 ******************************************/
+	function cancelSubmit() {
+		document.charset='utf-8';
+		
+		J.showConfirmBox("제출된 사업추진실적 보고서를 취소하시겠습니까?", "cancelDo"); //cancelDo() 콜백함수 호출
+	}
+	
+	var isRptSubmit = false;
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk(isSubmit) {
+		var fileChk = true;
+		
+		//첨부파일 확장자 체크
+        J(":file", "#form1").each(function(index, item) {
+            var fileFullName = J("input[name=" + item.name + "]").val();
+            var src = getFileExtension(fileFullName);
+            
+            if (!((src.toLowerCase() == "xls") || (src.toLowerCase() == "xlsx") || (src.toLowerCase() == "ppt") || (src.toLowerCase() == "pptx")||
+                  (src.toLowerCase() == "doc") || (src.toLowerCase() == "docx") || (src.toLowerCase() == "hwp") || (src.toLowerCase() == "pdf") ||
+                  (src.toLowerCase() == "zip") || (src.toLowerCase() == "txt")  || (src.toLowerCase() == "gif") || (src.toLowerCase() == "jpg") ||
+                  (src.toLowerCase() == "png") || (src.toLowerCase() == "png")
+                )) {
+            
+                fileChk = false;
+            }
+        });
+
+        if (fileChk == false) {
+            J.showMsgBox("허용되지 않는 파일형식입니다<br/>허용되는 파일형식 : <br/>xls, xlsx, ppt, pptx, doc, docx, hwp <br/> pdf, zip, txt, gif, jpg, png, jpeg", null, null);
+            return;
+        }
+        
+		isRptSubmit = isSubmit;
+		
+		document.charset='utf-8';
+		
+		var str = "";
+		
+		if (isRptSubmit) {
+			str = "사업추진실적 보고서를 제출하시겠습니까?";
+		} else {
+			str = "저장하시겠습니까?";
+		}
+		
+		J.showConfirmBox(str, "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		
+		syncEditor();
+		//document.getElementById('spaceditor_id_textarea').value  = getStringToUnicodeHTML(document.getElementById('spaceditor_id_textarea').value);
+		//document.getElementById('spaceditor_id_textarea').value = J('<div>').text(document.getElementById('spaceditor_id_textarea').value).html();
+		
+		if (isRptSubmit) {
+			J("#mode").val("SUBMIT");
+		} else {
+			J("#mode").val("SAVE");
+		}
+			
+		J("#form1").attr("action", "$!{context_path}/cbe/exc/excRpt/excRptProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 제출취소
+	 ******************************************/
+	function cancelDo() {
+		J("#mode").val("CANCEL");
+		J("#form1").attr("action", "$!{context_path}/cbe/exc/excRpt/excRptProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 삭제버튼
+	 ******************************************/
+	function deleteRow(fileIndex)	{
+    	J("#fileRow" + fileIndex).remove();
+    }
+	
+	/******************************************
+	 * 파일추가
+	 ******************************************/
+	var fileIndex = 0;
+	
+	function fileAttachAdd() {
+		J("#fileAttach").append("<li id=\"fileRow" + fileIndex + "\"><input type=\"file\" name=\"file" + fileIndex + "\" class=\"input\" size=\"70\" /> <input type=\"button\" value=\"삭제\" onclick=\"deleteRow(" + fileIndex + ")\" class=\"input\" size=\"70\"></li>");
+		fileIndex++;
+	}
+
+	// 문자열 --> HTML 정식 유니코드 문자열 
+    function getStringToUnicodeHTML(str) { 
+        var test = /^[a-zA-Z0-9ㄱ-ㅎ가-힣~!\#\-$^&*\=+|:;?"<,.>'\/\s%]/;
+        
+        str = str || ''; 
+        var ret = []; 
+        var strs = str.split(''); 
+        for (var i = 0, length = strs.length; i < length; i++) { 
+            if( !test.test(str.charAt(i)) ) {
+                ret.push('&#' + strs[i].charCodeAt(0));
+            } else {
+                ret.push(strs[i]);
+            }
+        } 
+        return ret.join(''); 
+    } 
+    // 문자열 --> 유니코드 문자열 
+    function getStringToUnicode(str) { 
+        str = str || ''; 
+        var ret = []; 
+        var strs = str.split(''); 
+        for (var i = 0, length = strs.length; i < length; i++) { 
+        ret.push(escape(strs[i]).replace('%', '\\')); 
+        } 
+        return ret.join(''); 
+    } 
+    // 유니코드 문자열 --> 문자열 
+    function getUnicodeToString(unicodes) { 
+        unicodes = unicodes || []; 
+        var ret = []; 
+        for (var i = 0, length = unicodes.length; i < length; i++) { 
+        ret.push(unescape(unicodes[i])); 
+        } 
+        return ret.join(''); 
+    } 
+    // HTML 정식 유니코드 문자열 --> 문자열 
+    function getUnicodeHTMLToString(unicodes) { 
+        unicodes = unicodes || []; 
+        var ret = []; 
+        for (var i = 0, length = unicodes.length; i < length; i++) { 
+        ret.push(String.fromCharCode(parseInt(unicodes[i].replace('&#', ''), 10))); 
+        } 
+        return ret.join(''); 
+    } 
+	
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" enctype="multipart/form-data" action="$!{context_path}/cbe/exc/excRpt/excRptProcess.vw?type=template">
+    <input type="hidden" 	id="mode"				name="mode"					value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"				name="year"					value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="evalDegreeId"		name="evalDegreeId"			value="$!{searchMap.txt2html("evalDegreeId")}" />
+	<input type="hidden"	id="excEvalTarget"		name="excEvalTarget"		value="$!{searchMap.txt2html("excEvalTarget")}" />
+	<input type="hidden" 	id="excEvalTargetGubun"	name="excEvalTargetGubun"	value="$!{searchMap.txt2html("excEvalTargetGubun")}" />
+	<input type="hidden" 	id="excRptId"			name="excRptId"				value="$!{searchMap.txt2html("excRptId")}" />
+		
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail" >
+    			<table summary="사업추진실적보고서 등록">
+					<caption class="none">사업추진실적보고서 등록</caption>
+    				<colgroup>
+    					<col width="10%" />
+    					<col width="30%" />
+    					<col width="10%" />
+    					<col width="15%" />
+    					<col width="10%" />
+    					<col width="15%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row" colspan="6" style="text-align:center;">별도평가 사업추진실적 보고서</th>
+    					</tr>
+    					#if($!{searchMap.txt2html("excEvalTargetGubun")} == "D")
+    						<tr>
+    							<th scope="row" style="text-align:center;">부서명</th>
+    							<td colspan="5" style="text-align:left;">$!{CS_HTML.txt2html($excRpt.SC_DEPT_NM)}</td>
+    							<input type="hidden" id="scDeptId" name="scDeptId" value="$!{CS_HTML.txt2html($excRpt.SC_DEPT_ID)}" />
+    						</tr>
+    					#else
+    						<tr>
+								<th scope="row" style="text-align:center;">별도평가부서<br/>근무기간</th>
+								<td >
+									<input type="text" id="dutyStartDt" name="dutyStartDt" class="inputbox w100" value='$!{CS_FORMAT.dateFormat($!{excRpt.DUTY_START_DT})}' maxlength="20" readonly />
+									~
+									<input type="text" id="dutyEndDt" name="dutyEndDt" class="inputbox w100" value='$!{CS_FORMAT.dateFormat($!{excRpt.DUTY_END_DT})}' maxlength="20" readonly />
+								</td>
+								<th scope="row" style="text-align:center;">직급</th>
+	    						<td>
+									$!{CS_HTML.txt2html($excRpt.CAST_TC_NM)}
+								</td>
+								<th scope="row" style="text-align:center;">성명</th>
+	    						<td>
+									$!{CS_HTML.txt2html($excRpt.KOR_NM)}
+								</td>
+							</tr>
+    					#end
+						<tr>
+							<th scope="row" style="text-align:center;">주요내용</th>
+							<td colspan="5">
+								<script type="text/javascript">createEditor('content','550', '$!{excRpt.CONTENT.replaceAll("\r\n","").replaceAll("\\","&#92;").replaceAll("\'","\"")}', 'insertunorderedlist,insertorderedlist,createlink,unlink,attach,image_link,emoticon,special_chars,page_add,textbox,sourcebox,fullscreen,subscript,superscript,source,images');</script>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row" style="text-align:center;">첨부파일</th>
+							<td colspan="5">
+								#foreach($fileList in $fileList)
+									$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))} 
+									&nbsp;&nbsp;<input type="checkbox" name="delAttachFiles" id="delAttachFile$!{fileList.get("SEQ")}" value="$!{fileList.get("SEQ")}" />&nbsp;<label for="delAttachFile$!{fileList.get("SEQ")}">첨부파일 삭제</label> <br/>
+								#end
+								<a href="javascript:fileAttachAdd();"><img src="$!{img_path}/common/btn_file.gif" class="valign_middle" alt="파일추가" /></a>&nbsp;(첨부파일 용량제한은 100M입니다)<br/>
+								<div>
+									<ul id="fileAttach">
+									</ul>
+								</div>
+							</td>
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>
+			<div class="blockButton_all">
+				<div class="blockButton_l txt_blue">
+					<span id="alertDis"></span>
+				</div>
+        		<div class="blockButton"> 
+        			<ul>
+        				#if($!{CS_HTML.txt2html($confirmYn.RPT_YN)} != "Y") 
+	    					<li><input type="button" id="btnBack"   value="돌아가기" style="margin-right:6px"/></li>
+	        				<li><input type="submit" id="btnInsert" value="저장" style="margin-right:6px"/></li>
+	    					<li><input type="button" id="btnSubmit" value="제출" /></li>
+	        			#else
+	        				<li><input type="button" id="btnBack"   value="돌아가기" style="margin-right:6px"/></li>
+    					#end
+        			</ul>
+        		</div>
+            </div>
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

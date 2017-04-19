@@ -1,0 +1,419 @@
+#*************************************************************************
+* CLASS 명      : metricDefineList
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 8월 31일
+* 기    능      : 지표정의서
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     정철수      2012년 8월 31일      최 초 작 업
+*  2	 김상용		 2013년 7월 26일	  지표정의서 수정
+**************************************************************************#
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+<head >
+	#parse("/WEB-INF/vl/common/template/head.vm")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		onChgTypeid();
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+		/******************************************
+		 * 닫기버튼 (창닫기)
+		 ******************************************/
+		J("#btnClose").click(function() {
+			self.close();
+		});
+	});
+
+	/*****************************************************
+	 * 평가유형(정량/정성) 변경시 이벤트
+	 *****************************************************/
+    function onChgTypeid() {
+
+		var typeId = $!{CS_HTML.txt2html($detail.TYPE_ID)};
+		var arg = $!{CS_HTML.txt2html($detail.SCORE_CAL_TYPE_GUBUN)};
+
+		if(typeId == "01") {  //정량일 경우
+			J("#actCalTypeArea").show();
+			J("#scoreCalTypeArea").show();
+
+			if(arg == "02" || arg == "03" || arg == "04") {
+				J("#evalSectionArea").show();
+			}
+
+		} else if(typeId == "02") {  //정성일 경우
+			J("#actCalTypeArea").hide();
+			J("#scoreCalTypeArea").hide();
+			J("#evalSectionArea").hide();
+		}
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+	    J("#excelNm").val("metricDefineEx");
+		J("#formFind").attr("action", "$!{context_path}/bsc/mon/metricDefine/metricDefineExcel.vw?type=excelUi").submit();
+		return false;
+	}
+
+//]]>
+</script>
+</head>
+<body>
+<div>
+	<div style="padding:10px 20px;position:relative;">
+		<h1 class="none">$!{METRIC_NM}정의서</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+			<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/mon/metricDefine/metricDefineList.vw?type=template">
+    			<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+    			<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+    			<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+    			<input type="hidden"    id="findYear"		name="findYear"			value="$!{searchMap.txt2html("findYear")}" />
+    			<input type="hidden"    id="findMon"		name="findMon"			value="$!{searchMap.txt2html("findMon")}" />
+    			<input type="hidden"    id="findScDeptId"	name="findScDeptId"		value="$!{searchMap.txt2html("findScDeptId")}" />
+        		<input type="hidden"    id="year"		    name="year"				value="$!{searchMap.txt2html("year")}" />
+        		<input type="hidden"    id="metricId"	    name="metricId"			value="$!{searchMap.txt2html("metricId")}" />
+        		<input type="hidden"    id="scDeptId"	    name="scDeptId"			value="$!{searchMap.txt2html("scDeptId")}" />
+				<input type="hidden"    id="excelNm"	    name="excelNm"			/>
+
+    			<div class="searchBox">
+    				<div><div><div>
+    				<table summary="$METRIC_NM정의서검색 조건">
+    					<caption class="none">$METRIC_NM정의서 검색 조건</caption>
+    					<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+    							<td class="searchBox_tit w250">
+            						<span>$YEARMON</span>
+            						<span class="searchBar">$!{searchMap.txt2html("findYear")}년</span>
+            					</td>
+            					<td class="searchBox_tit w270">
+                					<span>$SC_DEPT_NM</span>
+    								<span class="searchBar">
+    									$!{CS_UTIL.reduceString($CS_HTML.txt2html($CS_SC_DEPT.getName($!{searchMap.txt2html("year")}, $!{searchMap.txt2html("findScDeptId")})),27)}
+    								</span>
+                                </td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    </div></div></div>
+    	        </div>
+			</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<div class="blockListTable">
+    			<table summary="조직별$!{METRIC_NM}관리 등록">
+					<caption class="none">조직별$!{METRIC_NM}관리 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="35%" />
+						<col width="15%" />
+						<col width="35%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+							<th scope="row">$!{METRIC_NM} 명</th>
+    						<td>$!{CS_HTML.txt2html($detail.METRIC_NM)}</td>
+    						<th scope="row">$!{METRIC_GRP_NM}</th>
+    						<td>$!{CS_HTML.txt2html($detail.METRIC_GRP_NM)}</td>
+    					</tr>
+						<tr>
+    						<th scope="row">상위$!{METRIC_NM}</th>
+    						<td>$!{CS_HTML.txt2html($detail.UP_METRIC_NM)}</td>
+    						<th scope="row">목표/실적 공유여부</th>
+    						<td>
+    							$!CS_CODE.getCodeName("122", $!{CS_HTML.txt2html($detail.TAM_SHARE_YN)}, $!{searchMap.txt2html("year")})
+    						</td>
+    					</tr>
+						<tr>
+    						<th scope="row">관점</th>
+							<td>$!{CS_HTML.txt2html($detail.PERSPECTIVE_NM)}</td>
+							<th scope="row">전략과제</th>
+    						<td>$!{CS_HTML.txt2html($detail.STRATEGY_NM)}</td>
+    					</tr>
+						<tr>
+    						<th scope="row">CSF</th>
+    						<td>$!{CS_HTML.txt2html($detail.CSF_NM)}</td>
+    						<th scope="row">평가유형</th>
+    						<td>
+    							$!CS_CODE.getCodeName("007", $!{CS_HTML.txt2html($detail.TYPE_ID)}, $!{searchMap.txt2html("year")})
+							</td>
+    					</tr>
+						<tr>
+    						<th scope="row">주기</th>
+    						<td>
+    							$!CS_CODE.getCodeName("008", $!{CS_HTML.txt2html($detail.EVAL_CYCLE)}, $!{searchMap.txt2html("year")})
+							</td>
+    						<th scope="row">실적집계방법</th>
+    						<td>
+    							$!CS_CODE.getCodeName("009", $!{CS_HTML.txt2html($detail.TIME_ROLLUP)}, $!{searchMap.txt2html("year")})
+    						</td>
+    					</tr>
+						<tr>
+    						<th scope="row">목표입력구분 </th>
+    						<td>
+    							$!CS_CODE.getCodeName("130", $!{CS_HTML.txt2html($detail.TGT_INSERT_GUBUN)}, $!{searchMap.txt2html("year")})
+								<span>$!{CS_HTML.txt2html($detail.ITEM_NM)}</span>
+							</td>
+    						<th scope="row">조직합산</th>
+    						<td>
+    							$!CS_CODE.getCodeName("022", $!{CS_HTML.txt2html($detail.DEPT_ROLLUP)}, $!{searchMap.txt2html("year")})
+    						</td>
+    					</tr>
+						<tr>
+    						<th scope="row">단위</th>
+    						<td>
+    							$!CS_CODE.getCodeName("013", $!{CS_HTML.txt2html($detail.UNIT)}, $!{searchMap.txt2html("year")})
+							</td>
+    						<th scope="row">사용여부</th>
+    						<td>
+    							$!CS_CODE.getCodeName("011", $!{CS_HTML.txt2html($detail.USE_YN)}, $!{searchMap.txt2html("year")})
+    						</td>
+    					</tr>
+						<tr style = "display:none">
+    						<th scope="row">지표속성</th>
+    						<td>$!{CS_HTML.txt2html($detail.DEGREE_INDEX_NM)}</td>
+    						<th scope="row">도전성</th>
+    						<td>$!{CS_HTML.txt2html($detail.DEGREE_CHALLENGE_NM)}</td>
+    					</tr>
+						<tr style = "display:none">
+    						<th scope="row">통제성착안1</th>
+    						<td>$!{CS_HTML.txt2html($detail.DEGREE_CONTROL1_NM)}</td>
+    						<th scope="row">통제성착안2</th>
+    						<td>$!{CS_HTML.txt2html($detail.DEGREE_CONTROL2_NM)}</td>
+    					</tr>
+						<tr>
+    						<th scope="row">$!{METRIC_NM}정의</th>
+    						<td colspan="3">
+    							<textarea id="kpiPurpose" name="kpiPurpose" class="tabletext" title="지표정의" cols="10" rows="3" readonly="readonly">$!{CS_HTML.txt2html($detail.KPI_PURPOSE)}</textarea>
+    						</td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+			<div class="h10"></div>
+			<!-- KPI 담당자 지정 -->
+			<div class="blockListTable">
+    			<table summary="실적 담당자">
+    				<caption class="none">실적 담당자</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="35%" />
+						<col width="15%" />
+						<col width="35%" />
+    				</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row" colspan="4" style="text-align:left; padding-left:85px">실적담당자</th>
+    					</tr>
+    					<tr>
+    						<th scope="row">실적입력자</th>
+    						<td style="text-align:left; padding-left:20px">$!{CS_HTML.txt2html($detail.INSERT_USER_NM)}</td>
+    						<th scope="row">실적확인자</th>
+    						<td style="text-align:left; padding-left:20px">$!{CS_HTML.txt2html($detail.APPROVE_USER_NM)}</td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+			#*
+			<!-- 목표 및 실적 -->
+			<div class="blockListTable">
+    			<table summary="목표 및 실적">
+    				<caption class="none">목표 및 실적</caption>
+    				<colgroup>
+    					<col width="27%" />
+    					<col width="73%" />
+    				</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row" colspan="2" style="text-align:left; padding-left:85px"> 목표 및 실적</th>
+    					</tr>
+    					<tr>
+    						<th scope="row">중단기목표</th>
+    						<td style="text-align:left; padding-left:20px">$!{CS_HTML.txt2html($detail.MEDIUM_TARGETY)}</td>
+    					</tr>
+						<tr>
+    						<th scope="row">현수준실적</th>
+    						<td style="text-align:left; padding-left:20px">$!{CS_HTML.txt2html($detail.ACTUAL_Y)}</td>
+    					</tr>
+						<tr>
+    						<th scope="row">Stretch Goal</th>
+    						<td style="text-align:left; padding-left:20px">$!{CS_HTML.txt2html($detail.STRETCH_GOAL)}</td>
+    					</tr>
+						<tr>
+    						<th scope="row">년 목표</th>
+    						<td style="text-align:left; padding-left:20px">
+								<span id="targetY" style="padding-right:50px">$!{targetY}</span>
+							</td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+			*#
+			<div class="h10"></div>
+			<!-- 실적산식 -->
+			<div id="actCalTypeArea" class="blockListTable none">
+    			<table id="actCalTypeTB" summary="산식항목 등록">
+    				<caption class="none">산식항목 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="40%" />
+						<col width="8%" />
+						<col width="8%" />
+						<col width="15%" />
+						<col width="15%" />
+    				</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row">$!{METRIC_NM} 산식</th>
+    						<td colspan="5" style="text-align:left;">$!{CS_HTML.txt2html($detail.ACT_CAL_TYPE)}</td>
+    					</tr>
+    					<tr id="actCalTypeList">
+    						<th scope="row" style="text-align:center">산식항목</th>
+    						<th scope="row" style="text-align:center">산식항목명</th>
+							<th scope="row" style="text-align:center">실적입력구분</th>
+							<th scope="row" style="text-align:center">단위</th>
+							<th scope="row" style="text-align:center">연계항목</th>
+							<th scope="row" style="text-align:center">원천데이터</th>
+    					</tr>
+
+                        #foreach($list in $calTypeColList)
+    						<tr>
+        						<td style="text-align:center"><span>$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}</span></td>
+        						<td style="text-align:left">$!{CS_HTML.txt2html($list.CAL_TYPE_COL_NM)}</td>
+    							<td>
+									$!CS_CODE.getCodeName("014", $list.INSERT_GUBUN, $!{searchMap.txt2html("year")})
+								</td>
+    							<td>
+									$!CS_CODE.getCodeName("013", $list.UNIT, $!{searchMap.txt2html("year")})
+								</td>
+    							<td>$!{CS_HTML.txt2html($list.ITEM_NM)}</td>
+    							<td>$!{CS_HTML.txt2html($list.SOURCE_SYSTEM)}</td>
+        					</tr>
+                        #end
+
+						<tr id="kpiActCalTypeNm">
+    						<th scope="row">$!{METRIC_NM} 산식명</th>
+							<td class="textLeft" colspan="5"><span>$!{calTypeColDesc}</span></td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+			<div class="h10"></div>
+			<!-- 득적산식 -->
+			<div id="scoreCalTypeArea" class="blockListTable none">
+    			<table summary="득점산식 등록">
+    				<caption class="none">득점산식 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row" colspan="2" style="text-align:left; padding-left:85px">득점산식</th>
+    					</tr>
+    					<tr>
+    						<th scope="row">득점산식구분</th>
+    						<td style="text-align:left; padding-left:20px">
+   								$!CS_CODE.getCodeName("012", $!{CS_HTML.txt2html($detail.SCORE_CAL_TYPE_GUBUN)}, $!{searchMap.txt2html("year")})
+							</td>
+    					</tr>
+						<tr>
+    						<th scope="row">득점산식</th>
+    						<td style="text-align:left; padding-left:20px">
+								$!{CS_HTML.txt2html($detail.SCORE_CAL_TYPE_NM)}
+							</td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+			<div class="h10"></div>
+			<!-- 평가등급 구간대 -->
+			<div id="evalSectionArea" class="blockListTable none">
+    			<table summary="평가등급구간대 등록">
+    				<caption class="none">평가등급구간대 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="15%" />
+
+						#foreach($list in $evalSectionList)
+							<col width="14%" />
+						#end
+
+    				</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row" rowspan="3"> 평가등급구간대</th>
+    						<th scope="row">구간분류</th>
+							#foreach($list in $evalSectionList)
+    							<th scope="row">$!{CS_HTML.txt2html($list.EVAL_SECTION_NM)}</th>
+							#end
+    					</tr>
+						<tr>
+							<th scope="row">점수구간</th>
+
+							#set($curValue = "")
+							#set($lastValue = "")
+							#set($idx = 1)
+							#set($evalSectionListSize = $!{CS_HTML.txt2html($evalSectionList.size())})
+							#foreach($list in $evalSectionList)
+								#if($idx == $evalSectionListSize)
+									#set($curValue = $!{lastValue})
+								#else
+									#set($curValue = $!{CS_HTML.txt2html($list.VIEW_VAL)})
+								#end
+    							<td>$!{curValue}<span class="optionStr">이상</span></td>
+								#set($idx = $idx + 1)
+								#set($lastValue = $curValue)
+							#end
+
+    					</tr>
+						<tr>
+    						<th scope="row">환산점수</th>
+							#foreach($list in $evalSectionList)
+								<td>$!{CS_HTML.txt2html($list.CONVERSION_SCORE)}</td>
+							#end
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+			<div class="blockButton_all">
+				<div class="blockButton" style="float:left; text-align:left; width:78px;">
+					<input id="btnExcelDown" type="button" align="middle" value="엑셀변환", alt="엑셀변환" />
+				</div>
+				<div class="blockButton">
+					<ul>
+						<li><input type="submit" id="btnClose" value="닫기" /></li>
+					</ul>
+				</div>
+			</div>
+	</div>
+	<div class="clear"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+#*************************************************************************
+* CLASS 명      : evalAssessorList_xml
+* 작 업 자      : 김효은
+* 작 업 일      : 2013년 12월 11일 
+* 기    능      : 개인별 평가자 선정 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김효은     2013년 12월 11일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+    "page": "1",
+    "total": 1,
+    "records": "$listSize",
+    "rows":[
+
+#foreach($list in $list)
+    {
+        "YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}",
+        "EVAL_DEGREE_ID"       : "$!{CS_HTML.txt2html($list.EVAL_DEGREE_ID)}",
+        "EVAL_DEGREE_NM"       : "$!{CS_HTML.txt2html($list.EVAL_DEGREE_NM)}", 
+        "EVAL_MEMB_EMPN"       : "$!{CS_HTML.txt2html($list.EVAL_MEMB_EMPN)}", 
+        "EVAL_MEMB_EMPN_SEQ"   : "$!{CS_HTML.txt2html($list.EVAL_MEMB_EMPN_SEQ)}", 
+        "KOR_NM"               : "$!{CS_HTML.txt2html($list.KOR_NM)}", 
+        "DEPT_CD"              : "$!{CS_HTML.txt2html($list.DEPT_CD)}", 
+        "DEPT_FULL_NM"         : "$!{CS_HTML.txt2html($list.DEPT_FULL_NM)}", 
+        "EVAL_GRP_ID"          : "$!{CS_HTML.txt2html($list.EVAL_GRP_ID)}", 
+        "EVAL_GRP_NM"          : "$!{CS_HTML.txt2html($list.EVAL_GRP_NM)}", 
+        "CAST_TC"              : "$!{CS_HTML.txt2html($list.CAST_TC)}", 
+        "POS_TC"               : "$!{CS_HTML.txt2html($list.POS_TC)}", 
+        "CAST_TC_NM"           : "$!{CS_HTML.txt2html($list.CAST_TC_NM)}", 
+        "POS_TC_NM"            : "$!{CS_HTML.txt2html($list.POS_TC_NM)}", 
+        "EVAL_TYPE"            : "$!{CS_HTML.txt2html($list.EVAL_TYPE)}", 
+        "ASSESSOR1_NM"         : "$!{CS_HTML.txt2html($list.ASSESSOR1_NM)}", 
+        "ASSESSOR2_NM"         : "$!{CS_HTML.txt2html($list.ASSESSOR2_NM)}", 
+        "ASSESSOR3_NM"         : "$!{CS_HTML.txt2html($list.ASSESSOR3_NM)}", 
+        "ASSESSOR4_NM"         : "$!{CS_HTML.txt2html($list.ASSESSOR4_NM)}", 
+        "ASSESSOR5_NM"         : "$!{CS_HTML.txt2html($list.ASSESSOR5_NM)}", 
+        "ASSESSOR6_NM"         : "$!{CS_HTML.txt2html($list.ASSESSOR6_NM)}",
+        "ASSESSOR_GRP_ID"      : "$!{CS_HTML.txt2html($list.ASSESSOR_GRP_ID)}",
+        "ASSESSOR_GRP_NM"      : "$!{CS_HTML.txt2html($list.ASSESSOR_GRP_NM)}"
+    }
+    #set($idx = $idx + 1)
+    #if($idx != $listSize)
+     ,
+    #end
+#end
+
+    ]
+}

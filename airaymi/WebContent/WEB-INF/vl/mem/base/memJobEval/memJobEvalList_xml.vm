@@ -1,0 +1,36 @@
+#*************************************************************************
+* CLASS 명      : memJobEvalList_xml
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년03월 13일 
+* 기    능      : 업무수행평가항목 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      유연주    2017년03월 13일      최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                      : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"JOB_EVAL_ITEM_ID"          : "$!{CS_HTML.txt2html($list.JOB_EVAL_ITEM_ID)}",
+		"JOB_EVAL_ITEM_NM"          : "$!{CS_HTML.txt2html($list.JOB_EVAL_ITEM_NM)}",
+		"WEIGHT"                    : "$!{CS_HTML.txt2html($list.WEIGHT)}",
+		"DETAIL_EVAL_METRIC_COUNT"  : "$!{CS_HTML.txt2html($list.DETAIL_EVAL_METRIC_COUNT)}",
+		"SORT_ORDER"                : "$!{CS_HTML.txt2html($list.SORT_ORDER)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

@@ -1,0 +1,43 @@
+#*************************************************************************
+* CLASS 명      : metricList_xml
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 6월 26일 
+* 기    능      : 조직별KPI관리 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      하윤식     2012년 6월 26일      최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"					: "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"METRIC_ID"				: "$!{CS_HTML.txt2html($list.METRIC_ID)}", 
+		"METRIC_NM"				: "$!{CS_HTML.txt2html($list.METRIC_NM)}", 
+		"METRIC_GRP_ID"			: "$!{CS_HTML.txt2html($list.METRIC_GRP_ID)}", 
+		"SC_DEPT_ID"        	: "$!{CS_HTML.txt2html($list.SC_DEPT_ID)}", 
+		"TYPE_ID"				: "$!{CS_HTML.txt2html($list.TYPE_ID)}", 
+		"DEGREE_YN"				: "$!{CS_HTML.txt2html($list.DEGREE_YN)}",
+		#foreach($evalKpi in $evalKpilist)
+			#set ($itemId = "EVAL_ITEM_ID_" + $evalKpi.CODE_ID)
+			"$!CS_HTML.txt2html($itemId)"	: "$!{CS_HTML.txt2html($list.get($itemId))}",
+		#end 
+		"TOT_SCORE"				: "$!{CS_HTML.txt2html($list.TOT_SCORE)}", 
+		"WEIGHT"				: "$!{CS_HTML.txt2html($list.WEIGHT)}" 
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

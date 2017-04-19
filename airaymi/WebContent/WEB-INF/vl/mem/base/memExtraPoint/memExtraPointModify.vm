@@ -1,0 +1,63 @@
+#*************************************************************************
+* CLASS 명      : extraPointModify
+* 작 업 자      : 안요한 
+* 작 업 일      : 2013년 05월 31일 
+* 기    능      : 공모직대상자 설정    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    안요한      2013년 05월 31일             최 초 작 업 
+**************************************************************************# 
+#set ($context_path     = $!{searchMap.txt2html("context")})
+#set($curr_url = $!{context_path} + "/mem/base/memExtraPoint/extraPointList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#extraPointSearch").fancybox();
+	});
+	
+	/*****************************************************
+	 * 부서장 설정
+	 *****************************************************/ 
+	function setManagerUserInfo(arguments) {
+		J("#empNo").val(arguments[0]);
+		J("#empNm").val(arguments[1]);
+		J.fancybox.close();
+	}
+
+//]]>
+</script>    
+ 
+<div class="tableTop">
+	#parse("/WEB-INF/vl/common/template/tabs.vm")
+	<div class="clear"></div>
+</div>
+<div class="blockDetail">
+	<table summary="공모직 대상자 등록">
+		<caption class="none">공모직 대상자 등록</caption>
+		<colgroup>
+			<col width="130" />
+			<col width="200" />
+		</colgroup>
+		<tbody>
+			<tr>
+                <th scope="row"><label for="empn">대상자</label></th>
+				<td >
+					<input type="hidden" id="empNo" name="empNo" class="inputbox w10" value="$!{CS_HTML.txt2html($detail.EMP_NO)}" />
+					<input type="text" id="empNm" name="empNm" class="inputbox w30 disable" value="$!{CS_HTML.txt2html($detail.EMP_NM)}" readonly="readonly"/>
+					<a id="extraPointSearch" href="$!{context_path}/mem/base/memExtraPoint/popSearchUser.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;findSearchCodeId=$!{searchMap.txt2html("deptCd")}&amp;callBack=setManagerUserInfo">
+						<img src="$!{context_path}/images/common/board/ic_search.gif" class="valign_middle" alt="대상자선택" />
+					</a> 
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+<div class="clear"></div>

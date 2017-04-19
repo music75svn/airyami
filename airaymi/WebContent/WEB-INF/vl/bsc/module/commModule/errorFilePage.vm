@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+<title>오류가 발생하였습니다 - 성과관리시스템</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charaset=UTF-8" />
+<head> 
+
+<link href="$!{context}/css/common.css" media="screen" type="text/css" rel="stylesheet" />
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+           
+	/******************************************
+	 * 이전 페이지로 이동
+	 ******************************************/
+    function goBack() {
+        history.go(-1);
+    }
+	
+//]]>
+</script>
+</head>
+<body>
+	<div class="header">
+	</div>
+	<div class="wrap">
+		<div class="error">	
+	        <div><img src="$!{context}/images/error_top.gif" alt="죄송합니다. 에러가 발생했습니다."></div>
+	        <div class="error_mid">
+			    <ul>
+		            <li>
+		                <p align="justify"> 
+                                			허용되지 않은 파일형식입니다. <br />
+											xls, xlsx, ppt, pptx, doc, docx, hwp, pdf, zip, txt, gif, jpg, png, jpeg<br /> 
+											외의 파일인 경우 zip 파일로 압축 후 첨부해주십시요.<br />
+                        </p>
+		            </li>
+	            </ul>
+	        </div>
+	        <div><img src="$!{context}/images/error_btm.gif"></div>
+	    </div>
+	    <div class="boardWriteBTN">
+	    	<span  id="btnBack" class="btnBack" style="display:none;">
+	    		<a href="#" onclick="goBack(); return false;"><img src="$!{context}/images/btn_before_page.gif" alt="이전 페이지로 이동" /></a>
+	    	</span>
+	    	
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+	var btn = document.getElementById("btnBack");
+	btn.style.display = "inline";  
+//]]>
+</script>
+
+	    	<span class="">
+	    	    <a href="#" onclick="window.close(); return false;"><img src="$!{context}/images/btn_close_page.gif" alt="창 닫기" /></a>
+	    	</span>   
+		</div>
+    </div>
+</body>
+</html>

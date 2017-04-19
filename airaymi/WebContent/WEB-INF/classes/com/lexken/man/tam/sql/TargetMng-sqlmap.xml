@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="man.tam.targetMng">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MAN_METRIC_TARGET
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 목표입력 트리 경영목표 데이터 조회
+	  #	기능	: SELECT
+	  #	TABLE	: V_MAN_METRIC
+	==================================================================
+	-->
+	<select id="getMngTargetTree" parameterClass="hashMap" resultClass="hashMap" remapResults="true">
+		  SELECT DISTINCT YEAR
+		                , MAN_ID
+		                , MAN_NM
+		<isEqual property="paramGubun" compareValue="2">
+		                , STRAT_ID
+		                , STRAT_NM
+		                , STRAT_ORDER
+		</isEqual>
+		<isEqual property="paramGubun" compareValue="3">
+		                , STRAT_ID
+		                , STRAT_NM
+		                , CSF_ID
+		                , CSF_NM
+		                , STRAT_ORDER
+		                , CSF_ORDER
+		</isEqual>
+		<isEqual property="paramGubun" compareValue="4">
+		                , STRAT_ID
+		                , STRAT_NM
+		                , CSF_ID
+		                , CSF_NM
+		                , MAN_KPI_ID
+		                , MAN_KPI_NM
+		                , NVL (TGT_STATUS_ID, '01') TGT_STATUS_ID
+		                , (SELECT ETC1 FROM BSC_CODE
+		                    WHERE YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #findYear# ELSE '9999' END FROM BSC_CODE_GRP WHERE CODE_GRP_ID = '015')
+		                      AND CODE_GRP_ID = '015' AND CODE_ID = NVL(TGT_STATUS_ID, '01') AND DELETE_DT IS NULL) AS TGT_STATUS_NM
+		                , STRAT_ORDER
+		                , CSF_ORDER
+		                , KPI_ORDER
+		</isEqual>
+		                , MAN_ORDER
+		                , #paramGubun# AS PARAM
+		    FROM V_MAN_METRIC
+		   WHERE YEAR = #findYear#
+		<isEqual property="findActualType" compareValue="input">
+			<isNotEqual property="findUserId" compareValue="ALL">
+		     	<isNotEmpty property="findUserId">
+           		 	AND INSERT_USER_ID = #findUserId#
+			 	</isNotEmpty>
+			 </isNotEqual>
+		     <isEmpty property="findUserId">
+           		 AND INSERT_USER_ID IS NULL
+			 </isEmpty>
+		</isEqual>
+		<isNotEqual property="findActualType" compareValue="input">
+			<isNotEqual property="findUserId" compareValue="ALL">
+		     	<isNotEmpty property="findUserId">
+			     	AND APPROVE_USER_ID = #findUserId#
+		     	</isNotEmpty>
+			</isNotEqual>
+		     <isEmpty property="findUserId" >
+			     AND APPROVE_USER_ID IS NULL
+		     </isEmpty>
+		</isNotEqual>
+		<isNotEqual property="findTargetStatusId" compareValue="ALLSTATUS">
+			<isNotEmpty property="findTargetStatusId">
+		    	 AND NVL(TGT_STATUS_ID, '01')  = #findTargetStatusId#
+			</isNotEmpty>
+		</isNotEqual>
+
+		ORDER BY MAN_ORDER
+
+		<isEqual property="paramGubun" compareValue="2">
+		       , STRAT_ORDER
+		</isEqual>
+		<isEqual property="paramGubun" compareValue="3">
+		       , STRAT_ORDER
+		       , CSF_ORDER
+		</isEqual>
+		<isEqual property="paramGubun" compareValue="4">
+		       , STRAT_ORDER
+		       , CSF_ORDER
+		       , KPI_ORDER
+		       , MAN_KPI_NM
+		</isEqual>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 목표입력기한 여부 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_TGT_IN_TERM
+	==================================================================
+	-->
+	<select id="getTargetInputTermYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DECODE (COUNT (*), 0, 'N', 'Y') IS_INPUT_TERM
+		  FROM MAN_TGT_IN_TERM
+		 WHERE YEAR = #findYear#
+		   AND START_DT <![CDATA[ <= ]]> TO_CHAR (SYSDATE, 'YYYYMMDD')
+		   AND END_DT <![CDATA[ >= ]]> TO_CHAR (SYSDATE, 'YYYYMMDD')
+    </select>
+
+	<!--
+	==================================================================
+	  # 설명	: 목표 입력, 승인자 조회
+	  #	기능	: SELECT
+	  #	TABLE	: V_MAN_METRIC
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT USER_ID, USER_NM
+		  FROM V_MAN_METRIC A, V_ROLE_USER B
+		 WHERE A.YEAR = #findYear#
+		 AND A.INSERT_USER_ID IS NOT NULL
+         AND B.USER_NM IS NOT NULL
+		<!-- 입력자 -->
+		<isEqual property="findActualType" compareValue="input">
+		   AND A.INSERT_USER_ID = B.USER_ID
+		</isEqual>
+		<!-- 승인자 -->
+		<isNotEqual property="findActualType" compareValue="input">
+		   AND A.APPROVE_USER_ID = B.USER_ID
+		</isNotEqual>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 목표입력 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: V_MAN_METRIC, MAN_ACT_REG_DEF_MON, MAN_METRIC_TARGET
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT LST.YEAR
+		  	   , LST.MAN_KPI_ID
+		  	   , LST.MAN_KPI_NM
+		  	   , LST.UNIT
+		  	   , LST.TIME_ROLLUP
+		  	   , LST.TGT_STATUS_ID
+		  	   , LST.MON01
+		  	   , LST.MON02
+			   , LST.MON03
+			   , LST.MON04
+			   , LST.MON05
+			   , LST.MON06
+			   , LST.MON07
+			   , LST.MON08
+			   , LST.MON09
+			   , LST.MON10
+			   , LST.MON11
+			   , LST.MON12
+			   , LST.MON01YN
+			   , LST.MON02YN
+			   , LST.MON03YN
+			   , LST.MON04YN
+			   , LST.MON05YN
+			   , LST.MON06YN
+			   , LST.MON07YN
+			   , LST.MON08YN
+			   , LST.MON09YN
+			   , LST.MON10YN
+			   , LST.MON11YN
+			   , LST.MON12YN
+
+		  FROM	(
+				  SELECT YEAR
+				       , MAN_KPI_ID
+				       , MAX (MAN_KPI_NM) MAN_KPI_NM
+				       , MAX (UNIT) UNIT
+				       , MAX (TIME_ROLLUP) TIME_ROLLUP
+				       , MAX (TGT_STATUS_ID) TGT_STATUS_ID
+				       , MAX (MON01) MON01
+				       , MAX (MON02) MON02
+				       , MAX (MON03) MON03
+				       , MAX (MON04) MON04
+				       , MAX (MON05) MON05
+				       , MAX (MON06) MON06
+				       , MAX (MON07) MON07
+				       , MAX (MON08) MON08
+				       , MAX (MON09) MON09
+				       , MAX (MON10) MON10
+				       , MAX (MON11) MON11
+				       , MAX (MON12) MON12
+				       , CASE WHEN MAX (TGT_STATUS_ID) IN ('01', '02', '05') THEN MAX (MON01YN) END MON01YN
+				       , CASE WHEN MAX (TGT_STATUS_ID) IN ('01', '02', '05') THEN MAX (MON02YN) END MON02YN
+				       , CASE WHEN MAX (TGT_STATUS_ID) IN ('01', '02', '05') THEN MAX (MON03YN) END MON03YN
+				       , CASE WHEN MAX (TGT_STATUS_ID) IN ('01', '02', '05') THEN MAX (MON04YN) END MON04YN
+				       , CASE WHEN MAX (TGT_STATUS_ID) IN ('01', '02', '05') THEN MAX (MON05YN) END MON05YN
+				       , CASE WHEN MAX (TGT_STATUS_ID) IN ('01', '02', '05') THEN MAX (MON06YN) END MON06YN
+				       , CASE WHEN MAX (TGT_STATUS_ID) IN ('01', '02', '05') THEN MAX (MON07YN) END MON07YN
+				       , CASE WHEN MAX (TGT_STATUS_ID) IN ('01', '02', '05') THEN MAX (MON08YN) END MON08YN
+				       , CASE WHEN MAX (TGT_STATUS_ID) IN ('01', '02', '05') THEN MAX (MON09YN) END MON09YN
+				       , CASE WHEN MAX (TGT_STATUS_ID) IN ('01', '02', '05') THEN MAX (MON10YN) END MON10YN
+				       , CASE WHEN MAX (TGT_STATUS_ID) IN ('01', '02', '05') THEN MAX (MON11YN) END MON11YN
+				       , CASE WHEN MAX (TGT_STATUS_ID) IN ('01', '02', '05') THEN MAX (MON12YN) END MON12YN
+				    FROM (SELECT A.YEAR
+				               , A.MAN_KPI_ID
+				               , A.MAN_KPI_NM
+				               , A.UNIT
+				               , A.TIME_ROLLUP
+				               , NVL (A.TGT_STATUS_ID, '01') TGT_STATUS_ID
+				               , CASE B.MON WHEN '01' THEN B.TGT_TARGET END MON01
+				               , CASE B.MON WHEN '02' THEN B.TGT_TARGET END MON02
+				               , CASE B.MON WHEN '03' THEN B.TGT_TARGET END MON03
+				               , CASE B.MON WHEN '04' THEN B.TGT_TARGET END MON04
+				               , CASE B.MON WHEN '05' THEN B.TGT_TARGET END MON05
+				               , CASE B.MON WHEN '06' THEN B.TGT_TARGET END MON06
+				               , CASE B.MON WHEN '07' THEN B.TGT_TARGET END MON07
+				               , CASE B.MON WHEN '08' THEN B.TGT_TARGET END MON08
+				               , CASE B.MON WHEN '09' THEN B.TGT_TARGET END MON09
+				               , CASE B.MON WHEN '10' THEN B.TGT_TARGET END MON10
+				               , CASE B.MON WHEN '11' THEN B.TGT_TARGET END MON11
+				               , CASE B.MON WHEN '12' THEN B.TGT_TARGET END MON12
+				               , CASE B.MON WHEN '01' THEN 'Y' END MON01YN
+				               , CASE B.MON WHEN '02' THEN 'Y' END MON02YN
+				               , CASE B.MON WHEN '03' THEN 'Y' END MON03YN
+				               , CASE B.MON WHEN '04' THEN 'Y' END MON04YN
+				               , CASE B.MON WHEN '05' THEN 'Y' END MON05YN
+				               , CASE B.MON WHEN '06' THEN 'Y' END MON06YN
+				               , CASE B.MON WHEN '07' THEN 'Y' END MON07YN
+				               , CASE B.MON WHEN '08' THEN 'Y' END MON08YN
+				               , CASE B.MON WHEN '09' THEN 'Y' END MON09YN
+				               , CASE B.MON WHEN '10' THEN 'Y' END MON10YN
+				               , CASE B.MON WHEN '11' THEN 'Y' END MON11YN
+				               , CASE B.MON WHEN '12' THEN 'Y' END MON12YN
+				            FROM V_MAN_METRIC A
+				               , (SELECT A.YEAR
+				                       , A.MAN_KPI_ID
+				                       , A.MON
+				                       , B.TGT_TARGET
+				                    FROM MAN_ACT_REG_DEF_MON A, MAN_METRIC_TARGET B
+				                   WHERE A.YEAR = B.YEAR(+)
+				                     AND A.MAN_KPI_ID = B.MAN_KPI_ID(+)
+				                     AND A.MON = B.MON(+)
+				                     AND B.ANAL_CYCLE(+) = 'M'
+				                     AND A.DELETE_DT IS NULL
+				                     AND A.YEAR = #findYear#) B
+				           WHERE A.YEAR = B.YEAR
+				             AND A.MAN_KPI_ID = B.MAN_KPI_ID
+				<isNotEmpty property="csfId">
+		             		 AND A.CSF_ID = #csfId#
+				</isNotEmpty>
+				<isNotEmpty property="kpiId">
+		             		 AND A.MAN_KPI_ID = #kpiId#
+				</isNotEmpty>
+				<isEqual property="findActualType" compareValue="input">
+					<isNotEqual property="findUserId" compareValue="ALL">
+						<isNotEmpty property="findUserId">
+		            			 AND A.INSERT_USER_ID = #findUserId#
+						</isNotEmpty>
+					</isNotEqual>
+					<isEmpty property="findUserId">
+		            		 AND A.INSERT_USER_ID IS NULL
+					</isEmpty>
+				</isEqual>
+				<isNotEqual property="findActualType" compareValue="input">
+				<isNotEqual property="findUserId" compareValue="ALL">
+					<isNotEmpty property="findUserId">
+		             		 AND A.APPROVE_USER_ID = #findUserId#
+					</isNotEmpty>
+				</isNotEqual>
+					<isEmpty property="findUserId">
+		             		 AND A.APPROVE_USER_ID IS NULL
+					</isEmpty>
+				</isNotEqual>
+		             		 AND 1 = 1)
+		   				   WHERE 1 = 1
+			<isNotEqual property="findTargetStatusId" compareValue="ALLSTATUS">
+				<isNotEmpty property="findTargetStatusId">
+		    		 				 AND TGT_STATUS_ID = #findTargetStatusId#
+				</isNotEmpty>
+			</isNotEqual>
+						GROUP BY YEAR, MAN_KPI_ID
+					  )LST
+			INNER JOIN V_MAN_METRIC SRT
+				    ON LST.MAN_KPI_ID = SRT.MAN_KPI_ID
+				   AND LST.YEAR = SRT.YEAR
+		 	  ORDER BY SRT.MAN_ORDER
+				    ,  SRT.STRAT_ORDER
+				    ,  SRT.CSF_ORDER
+				    ,  SRT.KPI_ORDER
+				    ,  SRT.MAN_KPI_NM
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 목표입력 COUNT 보기
+	  #	기능	: SELECT
+	  #	TABLE	: V_MAN_METRIC, MAN_ACT_REG_DEF_MON, MAN_METRIC_TARGET
+	==================================================================
+	-->
+	<select id="getCount" parameterClass="hashMap" resultClass="java.lang.String">
+		  SELECT COUNT(*)
+		  	   
+FROM	(
+				  SELECT YEAR
+				       , MAN_KPI_ID
+				       , MAX (MAN_KPI_NM) MAN_KPI_NM
+				       , MAX (UNIT) UNIT
+				       , MAX (TIME_ROLLUP) TIME_ROLLUP
+				       , MAX (TGT_STATUS_ID) TGT_STATUS_ID
+				    FROM (SELECT A.YEAR
+				               , A.MAN_KPI_ID
+				               , A.MAN_KPI_NM
+				               , A.UNIT
+				               , A.TIME_ROLLUP
+				               , NVL (A.TGT_STATUS_ID, '01') TGT_STATUS_ID
+				            FROM V_MAN_METRIC A
+				               , (SELECT A.YEAR
+				                       , A.MAN_KPI_ID
+				                       , A.MON
+				                       , B.TGT_TARGET
+				                    FROM MAN_ACT_REG_DEF_MON A, MAN_METRIC_TARGET B
+				                   WHERE A.YEAR = B.YEAR(+)
+				                     AND A.MAN_KPI_ID = B.MAN_KPI_ID(+)
+				                     AND A.MON = B.MON(+)
+				                     AND B.ANAL_CYCLE(+) = 'M'
+				                     AND A.DELETE_DT IS NULL
+				                     AND A.YEAR = #findYear#) B
+				           WHERE A.YEAR = B.YEAR
+				             AND A.MAN_KPI_ID = B.MAN_KPI_ID
+				<isNotEmpty property="csfId">
+		             		 AND A.CSF_ID = #csfId#
+				</isNotEmpty>
+				<isNotEmpty property="kpiId">
+		             		 AND A.MAN_KPI_ID = #kpiId#
+				</isNotEmpty>
+				<isEqual property="findActualType" compareValue="input">
+					<isNotEqual property="findUserId" compareValue="ALL">
+						<isNotEmpty property="findUserId">
+		            			 AND A.INSERT_USER_ID = #findUserId#
+						</isNotEmpty>
+					</isNotEqual>
+					<isEmpty property="findUserId">
+		            		 AND A.INSERT_USER_ID IS NULL
+					</isEmpty>
+				</isEqual>
+				<isNotEqual property="findActualType" compareValue="input">
+				<isNotEqual property="findUserId" compareValue="ALL">
+					<isNotEmpty property="findUserId">
+		             		 AND A.APPROVE_USER_ID = #findUserId#
+					</isNotEmpty>
+				</isNotEqual>
+					<isEmpty property="findUserId">
+		             		 AND A.APPROVE_USER_ID IS NULL
+					</isEmpty>
+				</isNotEqual>
+		             		 AND 1 = 1)
+		   				   WHERE 1 = 1
+			<isNotEqual property="findTargetStatusId" compareValue="ALLSTATUS">
+				<isNotEmpty property="findTargetStatusId">
+		    		 				 AND TGT_STATUS_ID = #findTargetStatusId#
+				</isNotEmpty>
+			</isNotEqual>
+						GROUP BY YEAR, MAN_KPI_ID
+					  )LST
+			INNER JOIN V_MAN_METRIC SRT
+				    ON LST.MAN_KPI_ID = SRT.MAN_KPI_ID
+				   AND LST.YEAR = SRT.YEAR
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 목표입력 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: MAN_METRIC_TARGET
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM MAN_METRIC_TARGET
+		 WHERE YEAR = #findYear#
+		   AND MAN_KPI_ID = #manKpiId#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 목표입력 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MAN_METRIC_TARGET
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO MAN_METRIC_TARGET (
+			   YEAR
+			 , MON
+			 , MAN_KPI_ID
+			 , ANAL_CYCLE
+			 , TGT_TARGET
+			 , CREATE_DT
+			 , INSERT_USER_ID
+			 ) VALUES (
+			   #findYear#
+			 , #mon#
+			 , #manKpiId#
+			 , 'M'
+			 , #target#
+			 , SYSDATE
+			 , #findUserId#
+			)
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 목표상태입력 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MAN_METRIC
+	==================================================================
+	-->
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE MAN_METRIC
+		<isEqual property="tgtStatusId" compareValue="06">
+			SET TGT_STATUS_ID = '06'
+		</isEqual>
+		<isNotEqual property="tgtStatusId" compareValue="06">
+		   SET TGT_STATUS_ID = '02'
+		</isNotEqual>
+		     , RETURN_REASON = ''
+		     , MODIFY_DT     = SYSDATE
+		 WHERE YEAR          = #findYear#
+		   AND MAN_KPI_ID    = #manKpiId#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 목표상태 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MAN_METRIC
+	==================================================================
+	-->
+	<update id="updateStatusData" parameterClass="hashMap">
+		UPDATE MAN_METRIC
+		   SET TGT_STATUS_ID	= #targetStatusId#
+		     , MODIFY_DT		= SYSDATE
+		 WHERE YEAR				= #findYear#
+           AND MAN_KPI_ID		= #manKpiId#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 목표상태 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MAN_METRIC
+	==================================================================
+	-->
+	<update id="updateReturnStatusData" parameterClass="hashMap">
+		UPDATE MAN_METRIC
+		   SET TGT_STATUS_ID	= #targetStatusId#
+		     , MODIFY_DT		= SYSDATE
+		     , RETURN_REASON	= #returnReason#
+		     , RETURN_DT		= SYSDATE
+		 WHERE YEAR				= #findYear#
+           AND MAN_KPI_ID		= #manKpiId#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 목표반려 사유 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_METRIC
+	==================================================================
+	-->
+	<select id="getReturnReason" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT RETURN_REASON
+          FROM MAN_METRIC
+		 WHERE YEAR			= #findYear#
+           AND MAN_KPI_ID	= #manKpiId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<parameterMap id="paramMapActual" class="java.util.HashMap">
+		<parameter property="findYear" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="manKpiId" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+
+	<!--
+	==================================================================
+	  # 설명	: 데이터집계관리 프로시저 호출
+	  #	기능	: CALL PROCEDURE
+	  #	TABLE	:
+	==================================================================
+	-->
+	<procedure id="callSpManTargetProc"  parameterMap="paramMapActual">
+		{CALL SP_MAN_TIME_ROLLUP_TARGET_KGS(?, ?)}
+    </procedure>
+
+
+</sqlMap>
+
+

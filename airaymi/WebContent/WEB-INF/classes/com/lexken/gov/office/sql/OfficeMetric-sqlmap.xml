@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.office.officeMetric">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_MANAGEMENT
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 선택된 공공기관 경영평가지표 조회
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_OFFICE_METRIC
+	==================================================================
+	-->
+	<select id="officeMetricList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT  GOM.YEAR
+	          , GOM.GOV_OFF_METRIC_ID
+	          , GOM.OFFICE_ID
+	          , GOF.OFFICE_NM AS OFFICE_NM
+	          , GOM.GOV_METRIC_GRP_ID
+	          , GMG.GOV_METRIC_GRP_NM
+	          , GOM.WEIGHT
+	          , GOM.SCORE
+	          , GOM.ACT
+		 FROM GOV_OFFICE_METRIC GOM
+		 INNER JOIN GOV_METRIC_GRP GMG
+		         ON GOM.YEAR = GMG.YEAR
+		        AND GOM.GOV_METRIC_GRP_ID = GMG.GOV_METRIC_GRP_ID
+		 INNER JOIN GOV_OFFICE GOF
+		         ON GOM.YEAR = GOF.YEAR
+		        AND GOM.OFFICE_ID = GOF.OFFICE_ID
+		WHERE GOM.YEAR = #findYear#
+		AND GOM.OFFICE_ID = #officeId#
+		ORDER BY GOM.GOV_METRIC_GRP_ID, GOM.GOV_OFF_METRIC_ID
+    </select>
+
+	<!--
+	==================================================================
+	  # 설명	: 공공기관 경영평가지표 Pool 조회
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_OFFICE_METRIC
+	==================================================================
+	-->
+	<select id="getMetricGrpList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+            ,  GOV_METRIC_GRP_ID
+            ,  GOV_METRIC_GRP_NM
+            ,  SORT_ORDER
+		FROM GOV_METRIC_GRP
+		WHERE YEAR = #findYear#
+		  AND GOV_METRIC_GRP_ID NOT IN (SELECT GOV_METRIC_GRP_ID
+		  								  FROM GOV_OFFICE_METRIC
+		  								 WHERE YEAR = #findYear# AND OFFICE_ID = #officeId#)
+		  AND DELETE_DT IS NULL
+		ORDER BY SORT_ORDER ASC
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 공공기관 경영평가지표 저장
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_OFFICE_METRIC
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT 'GOM'||LPAD(NVL(MAX(TO_NUMBER(SUBSTR(GOV_OFF_METRIC_ID,4,4))),0)+1,4,'0')
+              FROM GOV_OFFICE_METRIC
+             WHERE YEAR = #year#
+		</selectKey>
+		INSERT INTO GOV_OFFICE_METRIC (
+	                YEAR
+	             ,  GOV_OFF_METRIC_ID
+	             ,  OFFICE_ID
+	             ,  GOV_METRIC_GRP_ID
+	             ) VALUES (
+	             	#year#
+	             ,  #SEQ#
+	             ,  #officeId#
+	             ,  #govMetricGrpId#
+             )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 평가군 대상자관리 대상자 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: GOV_OFFICE_METRIC
+	==================================================================
+	-->
+	<delete id="deleteData" parameterClass="hashMap">
+		DELETE FROM GOV_OFFICE_METRIC
+		 WHERE YEAR = #year#
+		   AND OFFICE_ID = #officeId#
+	</delete>
+</sqlMap>

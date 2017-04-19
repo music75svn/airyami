@@ -1,0 +1,38 @@
+#*************************************************************************
+* CLASS 명      : resultActualList_xml
+* 작 업 자      : 현걸욱
+* 작 업 일      : 2012년 11월 7일 
+* 기    능      : 비계량지적및조치사항 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      현걸욱     2012년 11월 7일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($maslist.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $maslist)
+	{
+		"POINT_OUT_CONTENT"     : "$!{CS_HTML.txt2htmlbr2_forList($list.POINT_OUT_CONTENT)}", 
+		"IMPROVEMENT"        	: "$!{CS_HTML.txt2htmlbr2_forList($list.IMPROVEMENT)}", 
+		"COMMENTS"         		: "$!{CS_HTML.txt2htmlbr2_forList($list.COMMENTS)}", 
+		"INSERT_USER_NM"     	: "$!{CS_HTML.txt2html($list.INSERT_USER_NM)}", 
+		"SORT_ORDER"    		: "$!{CS_HTML.txt2html($list.SORT_ORDER)}",
+		"GOV_METRIC_ID"    		: "$!{CS_HTML.txt2html($list.GOV_METRIC_ID)}",
+		"POINT_OUT_ID"    		: "$!{CS_HTML.txt2html($list.POINT_OUT_ID)}",
+		"INSERT_USER_ID"    	: "$!{CS_HTML.txt2html($list.INSERT_USER_ID)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

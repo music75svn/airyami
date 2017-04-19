@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.tam.targetSearch">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 목표조회 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+				SELECT /*+ ordered */
+				       A.METRIC_ID
+				     , A.METRIC_NM
+				     , A.STRATEGY_ID
+				     , D.STRATEGY_NM
+				     , A.CSF_ID
+				     , H.CSF_NM
+				     , A.EVAL_CYCLE
+				     , F_CODE_NM('008', A.EVAL_CYCLE, A.YEAR) AS EVAL_CYCLE_NM
+				     , A.UNIT
+				     , F_CODE_NM('013', A.UNIT, A.YEAR) AS UNIT_NM 
+				     , A.INSERT_USER_ID
+				     , G.USER_NM INSERT_USER_NM
+				     , NULL AS TGT_VALUE
+				     , NULL AS VALUE
+				     , NULL AS SCORE
+				     , E.TGT_STATUS_ID AS TGT_STATUS_ID
+				     , F_CODE_NM('015', E.TGT_STATUS_ID, A.YEAR) AS TGT_STATUS_NM
+				     , (SELECT NVL( MAX(SEQ), 0) 
+				     	  FROM BSC_TARGET_HISTORY 
+				     	 WHERE YEAR = A.YEAR 
+				     	   AND METRIC_ID = A.METRIC_ID 
+				     	   AND ANAL_CYCLE ='M') CNT 
+				FROM BSC_METRIC A 
+		  INNER JOIN BSC_SC_DEPT B 
+		  		  ON A.YEAR = B.YEAR 
+		  		 AND A.SC_DEPT_ID = B.SC_DEPT_ID 
+		  		 AND B.DELETE_DT IS NULL
+	 LEFT OUTER JOIN BSC_STRATEGY D 
+	 			  ON A.YEAR = D.YEAR 
+	 			 AND A.STRATEGY_ID = D.STRATEGY_ID 
+	 			 AND D.DELETE_DT IS NULL
+	 LEFT OUTER JOIN BSC_CSF H 
+	 			  ON A.YEAR = H.YEAR 
+	 			 AND A.CSF_ID = H.CSF_ID 
+	 			 AND H.DELETE_DT IS NULL
+	 LEFT OUTER JOIN (SELECT YEAR
+	 					   , METRIC_ID
+	 					   , TGT_STATUS_ID 
+	 					FROM BSC_TARGET 
+	 				   WHERE 1=1 
+	 				   	 AND YEAR = #findYear# 
+	 				   	 AND ANAL_CYCLE = 'M' 
+	 				GROUP BY YEAR
+	 					   , METRIC_ID
+	 					   , TGT_STATUS_ID )  E 
+				  ON A.YEAR = E.YEAR 
+				 AND A.METRIC_ID = E.METRIC_ID
+	 LEFT OUTER JOIN V_ROLE_USER G 
+	 			  ON A.INSERT_USER_ID = G.USER_ID
+				WHERE A.YEAR = #findYear#
+		
+		<isNotEmpty prepend="AND" property="findScDeptId">
+	    	A.SC_DEPT_ID = #findScDeptId#
+	    </isNotEmpty>
+	    
+	    <isNotEmpty prepend="AND" property="findBscMetricGbn">
+			A.BSC_METRIC_GBN = #findBscMetricGbn#
+		</isNotEmpty>
+		  AND A.TYPE_ID = '01'
+		  AND A.TAM_SHARE_YN = 'N'
+		  AND A.TGT_INSERT_GUBUN = '02'   
+		  AND A.DELETE_DT IS NULL
+		ORDER BY D.SORT_ORDER, A.SORT_ORDER, A.METRIC_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 목표조회 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+	        , A.METRIC_ID
+	        , A.METRIC_NM
+	        , A.SC_DEPT_ID
+	        , B.SC_DEPT_NM
+	        , A.ACT_CAL_TYPE
+		FROM BSC_METRIC A
+		         LEFT OUTER JOIN BSC_SC_DEPT B ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID AND B.DELETE_DT IS NULL
+		WHERE A.YEAR = #year#
+		  AND A.METRIC_ID = #metricId#
+		  AND A.DELETE_DT IS NULL
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 목표 월별상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_TARGET
+	==================================================================
+	-->
+	<select id="getDetailList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT T.YEAR, T.METRIC_ID, TO_NUMBER(C.MON) AS MON, T.TGT_VALUE 
+          FROM (SELECT TO_CHAR(LEVEL, 'FM00')  AS MON FROM DUAL CONNECT BY LEVEL <![CDATA[ <= ]]>  12 ) C
+               LEFT OUTER JOIN  
+               (SELECT YEAR, MON, METRIC_ID, TGT_VALUE 
+                  FROM BSC_TARGET 
+                 WHERE 1=1 
+                   AND YEAR = #year#
+                   AND METRIC_ID = #metricId#
+                   AND ANAL_CYCLE = 'M'
+               )T
+               ON C.MON = T.MON
+         ORDER BY C.MON  
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 목표 히스토리 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ACTUAL_HISTORY
+	==================================================================
+	-->
+	<select id="getHistoryList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT H.YEAR
+		     , H.METRIC_ID, M.METRIC_NM
+		     , H.SEQ, H.INSERT_USER_ID, H.INSERT_USER_NM
+		     , H.CREATE_DT
+		     , H.MON_01, H.MON_02, H.MON_03, H.MON_04
+		     , H.MON_05, H.MON_06, H.MON_07, H.MON_08
+		     , H.MON_09, H.MON_10, H.MON_11, H.MON_12 
+		  FROM 
+		    (SELECT YEAR, METRIC_ID, SEQ, INSERT_USER_ID, INSERT_USER_NM, MAX(CREATE_DT) AS CREATE_DT
+		         , MAX( CASE WHEN MON = '01' THEN TGT_VALUE ELSE NULL END ) AS MON_01
+		         , MAX( CASE WHEN MON = '02' THEN TGT_VALUE ELSE NULL END ) AS MON_02
+		         , MAX( CASE WHEN MON = '03' THEN TGT_VALUE ELSE NULL END ) AS MON_03
+		         , MAX( CASE WHEN MON = '04' THEN TGT_VALUE ELSE NULL END ) AS MON_04
+		         , MAX( CASE WHEN MON = '05' THEN TGT_VALUE ELSE NULL END ) AS MON_05
+		         , MAX( CASE WHEN MON = '06' THEN TGT_VALUE ELSE NULL END ) AS MON_06
+		         , MAX( CASE WHEN MON = '07' THEN TGT_VALUE ELSE NULL END ) AS MON_07
+		         , MAX( CASE WHEN MON = '08' THEN TGT_VALUE ELSE NULL END ) AS MON_08
+		         , MAX( CASE WHEN MON = '09' THEN TGT_VALUE ELSE NULL END ) AS MON_09
+		         , MAX( CASE WHEN MON = '10' THEN TGT_VALUE ELSE NULL END ) AS MON_10
+		         , MAX( CASE WHEN MON = '11' THEN TGT_VALUE ELSE NULL END ) AS MON_11
+		         , MAX( CASE WHEN MON = '12' THEN TGT_VALUE ELSE NULL END ) AS MON_12
+		      FROM BSC_TARGET_HISTORY
+		     WHERE 1=1
+		       AND YEAR = #year#
+		       AND ANAL_CYCLE = 'M'
+		       AND METRIC_ID = #metricId#
+		     GROUP BY YEAR, METRIC_ID, SEQ, INSERT_USER_ID, INSERT_USER_NM
+		    ) H
+		    LEFT OUTER JOIN 
+		    BSC_METRIC M
+		    ON H.YEAR = M.YEAR
+		   AND H.METRIC_ID = M.METRIC_ID
+		 ORDER BY M.METRIC_NM, H.SEQ
+	</select>
+
+	
+</sqlMap>
+
+

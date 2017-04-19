@@ -1,0 +1,190 @@
+#*************************************************************************
+* CLASS 명		: bonDirList
+* 작 업 자		: 지원길
+* 작 업 일		: 2013년 06월 11일
+* 기    능		: 임원성과연봉 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     지원길      2013년 06월 11일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/prs/bonus/bonDir/bonDirList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/prs/bonus/bonDir/bonDirList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '사번', '이름', '직급코드', '직급', '직위코드', '직위', '입사일', '평가근무시작일', '평가근무종료', '기본연봉(원)', '지급률(%)', '근무월수(월)', '총지급액(원)', '비고'],
+			colModel     :[
+							{name:'YEAR'				,index:'YEAR'				,width:80   ,align:'center'  },
+                            {name:'EMPN'				,index:'EMPN'				,width:80   ,align:'center'  },
+                            {name:'KOR_NM'				,index:'KOR_NM'				,width:80   ,align:'center'  },
+                            {name:'CAST_TC'				,index:'CAST_TC'			,width:80   ,align:'center'  },
+							{name:'CAST_TC_NM'			,index:'CAST_TC_NM'			,width:80   ,align:'center'  },
+							{name:'POS_TC'				,index:'POS_TC'				,width:80   ,align:'center'  },
+							{name:'POS_TC_NM'			,index:'POS_TC_NM'			,width:110  ,align:'center'  },
+							{name:'ORG_PCMT_DATE'		,index:'ORG_PCMT_DATE'		,width:110   ,align:'center' },
+                            {name:'START_PCMT_DATE'		,index:'START_PCMT_DATE'	,width:110   ,align:'center' },
+                            {name:'END_PCMT_DATE'		,index:'END_PCMT_DATE'		,width:110   ,align:'center' },
+                            {name:'SALARY'				,index:'SALARY'				,width:110  ,align:'right'   },
+                            {name:'RATE'				,index:'RATE'				,width:80   ,align:'center'  },
+                            {name:'WORK_MON'			,index:'WORK_MON'			,width:80   ,align:'center'  },
+                            {name:'TOT_BON_SAL'			,index:'TOT_BON_SAL'		,width:80   ,align:'right'   },
+                            {name:'CONTENT'				,index:'CONTENT'			,width:80   ,align:'center'  }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			##cmTemplate: {sortable:false},
+			caption:"임원성과연봉"
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"CAST_TC").jqGrid('hideCol',"POS_TC").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+			/******************************************
+		 * 엑셀업로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnBonDirUpload").click(function() {
+    		J.showConfirmBox("엑셀업로드를 하시면 기존에 입력한 데이터가 삭제됩니다. 진행하시겠습니까?", "excelUpload");
+    		return false;
+		});
+
+
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchor").fancybox();            //엑셀업로드 팝업
+	});
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#formList").attr("action", "$!{context_path}/prs/bonus/bonDir/bonDirListExcel.vw?type=excel").submit();
+		return false;
+	}
+	/******************************************
+     * 임원성과연봉 엑셀업로드
+     ******************************************/
+    function excelUpload(){
+
+        var year = J("#findYear").val();
+        var findHighPgmId = J("#findHighPgmId").val();
+        var findSubPgmId = J("#findSubPgmId").val();
+        var findPgmId = J("#findPgmId").val();
+        J("#anchor").attr("href","$!{context_path}/prs/bonus/bonDir/popBonDirExcelUpload.vw?findYear=" + year  +  "&amp;findHighPgmId=" + findHighPgmId + "&amp;findSubPgmId=" + findSubPgmId + "&amp;findPgmId=" + findPgmId);
+        J("#anchor").click();
+    }
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">임원성과연봉</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/bonus/bonDir/bonDirList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="임원성과연봉 조건">
+						<caption class="none">임원성과연봉 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+			<a id="anchor"></a>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/prs/bonus/bonDir/bonDirProcess.vw?type=template">
+			<input type="hidden" id="mode"		name="mode" />
+			<input type="hidden" id="year"      name="year" value="$!{searchMap.txt2html("findYear")}"/>
+			<input type="hidden" id="yearNm"    name="yearNm" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="임원성과연봉 조회결과">
+							<caption class="none">임원성과연봉 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all floatLeft">
+						<div class="blockButton" style="float:left; text-align:left; width:155px;">
+							<input id="btnExcelDown" type="button" align="middle" value="임원성과 엑셀다운로드", alt="임원성과연봉 엑셀다운로드" />
+						</div>
+						<div class="blockButton" style="float:left; text-align:left; width:145px;">
+							<input id="btnBonDirUpload" type="button" align="middle" value="임원성과 엑셀업로드" alt="임원성과연봉 업로드" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

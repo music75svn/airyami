@@ -1,0 +1,81 @@
+#*************************************************************************
+* CLASS 명      : metricRankList_xml
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 8월 14일 
+* 기    능      : KPI순위 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      정철수     2012년 8월 14일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{	
+		"RANK"           	   : "$!{CS_HTML.txt2html($list.RANK)}", 
+		"SC_DEPT_ID"   		   : "$!{CS_HTML.txt2html($list.SC_DEPT_ID)}", 
+		"SC_DEPT_NM"   		   : "$!{CS_HTML.txt2html($!CS_SC_DEPT.getName($!{searchMap.txt2html("findYear")}, $list.SC_DEPT_ID))}", 
+		"SCORE01"              : "$!{CS_HTML.txt2html($list.SCORE01)}", 
+		"SCORE02"              : "$!{CS_HTML.txt2html($list.SCORE02)}", 
+		"SCORE03"              : "$!{CS_HTML.txt2html($list.SCORE03)}", 
+		"SCORE04"              : "$!{CS_HTML.txt2html($list.SCORE04)}", 
+		"SCORE05"              : "$!{CS_HTML.txt2html($list.SCORE05)}", 
+		"SCORE06"              : "$!{CS_HTML.txt2html($list.SCORE06)}", 
+		"SCORE07"              : "$!{CS_HTML.txt2html($list.SCORE07)}", 
+		"SCORE08"              : "$!{CS_HTML.txt2html($list.SCORE08)}", 
+		"SCORE09"              : "$!{CS_HTML.txt2html($list.SCORE09)}", 
+		"SCORE10"              : "$!{CS_HTML.txt2html($list.SCORE10)}", 
+		"SCORE11"              : "$!{CS_HTML.txt2html($list.SCORE11)}", 
+		"SCORE12"              : "$!{CS_HTML.txt2html($list.SCORE12)}", 
+		"SCORES01"             : "$!{CS_HTML.txt2html($list.SCORE01)}", 
+		"SCORES02"             : "$!{CS_HTML.txt2html($list.SCORE02)}", 
+		"SCORES03"             : "$!{CS_HTML.txt2html($list.SCORE03)}", 
+		"SCORES04"             : "$!{CS_HTML.txt2html($list.SCORE04)}", 
+		"SCORES05"             : "$!{CS_HTML.txt2html($list.SCORE05)}", 
+		"SCORES06"             : "$!{CS_HTML.txt2html($list.SCORE06)}", 
+		"SCORES07"             : "$!{CS_HTML.txt2html($list.SCORE07)}", 
+		"SCORES08"             : "$!{CS_HTML.txt2html($list.SCORE08)}", 
+		"SCORES09"             : "$!{CS_HTML.txt2html($list.SCORE09)}", 
+		"SCORES10"             : "$!{CS_HTML.txt2html($list.SCORE10)}", 
+		"SCORES11"             : "$!{CS_HTML.txt2html($list.SCORE11)}", 
+		"SCORES12"             : "$!{CS_HTML.txt2html($list.SCORE12)}", 
+		"STATUS_01"            : "$!{CS_HTML.txt2html($list.STATUS_01)}", 
+		"STATUS_02"            : "$!{CS_HTML.txt2html($list.STATUS_02)}", 
+		"STATUS_03"            : "$!{CS_HTML.txt2html($list.STATUS_03)}", 
+		"STATUS_04"            : "$!{CS_HTML.txt2html($list.STATUS_04)}", 
+		"STATUS_05"            : "$!{CS_HTML.txt2html($list.STATUS_05)}", 
+		"STATUS_06"            : "$!{CS_HTML.txt2html($list.STATUS_06)}", 
+		"STATUS_07"            : "$!{CS_HTML.txt2html($list.STATUS_07)}", 
+		"STATUS_08"            : "$!{CS_HTML.txt2html($list.STATUS_08)}", 
+		"STATUS_09"            : "$!{CS_HTML.txt2html($list.STATUS_09)}", 
+		"STATUS_10"            : "$!{CS_HTML.txt2html($list.STATUS_10)}", 
+		"STATUS_11"            : "$!{CS_HTML.txt2html($list.STATUS_11)}", 
+		"STATUS_12"            : "$!{CS_HTML.txt2html($list.STATUS_12)}",
+		"STATUS_01_NM"         : "$!{CS_HTML.txt2html($list.STATUS_01_NM)}", 
+		"STATUS_02_NM"         : "$!{CS_HTML.txt2html($list.STATUS_02_NM)}", 
+		"STATUS_03_NM"         : "$!{CS_HTML.txt2html($list.STATUS_03_NM)}", 
+		"STATUS_04_NM"         : "$!{CS_HTML.txt2html($list.STATUS_04_NM)}", 
+		"STATUS_05_NM"         : "$!{CS_HTML.txt2html($list.STATUS_05_NM)}", 
+		"STATUS_06_NM"         : "$!{CS_HTML.txt2html($list.STATUS_06_NM)}", 
+		"STATUS_07_NM"         : "$!{CS_HTML.txt2html($list.STATUS_07_NM)}", 
+		"STATUS_08_NM"         : "$!{CS_HTML.txt2html($list.STATUS_08_NM)}", 
+		"STATUS_09_NM"         : "$!{CS_HTML.txt2html($list.STATUS_09_NM)}", 
+		"STATUS_10_NM"         : "$!{CS_HTML.txt2html($list.STATUS_10_NM)}", 
+		"STATUS_11_NM"         : "$!{CS_HTML.txt2html($list.STATUS_11_NM)}", 
+		"STATUS_12_NM"         : "$!{CS_HTML.txt2html($list.STATUS_12_NM)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

@@ -1,0 +1,358 @@
+#*************************************************************************
+* CLASS 명      : bonSetModify
+* 작 업 자      : 안요한 
+* 작 업 일      : 2013년 6월 11일 
+* 기    능      : 성과급 설정    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용          비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    안요한      2013년 6월 11일           최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript">
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * 기준월봉 숫자만 입력
+		 ******************************************/
+		J("#standardPay").numeric();
+		J("#standardPay").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 기관등급 지급율 숫자만 입력
+		 ******************************************/
+		J("#organGradeRate").numeric({allow:"."});
+		J("#organGradeRate").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 파견직 격려금 숫자만 입력받기
+		 ******************************************/
+		J("#disStandPay").numeric();
+		J("#disStandPay").css("ime-mode", "disabled"); 
+		
+		/******************************************
+		 * 기관장 지급율 숫자만 입력받기
+		 ******************************************/
+		J("#chiefRate").numeric({allow:"."});
+		J("#chiefRate").css("ime-mode", "disabled"); 
+		
+		/******************************************
+		 * 상임감사 지급율 숫자만 입력받기
+		 ******************************************/
+		J("#directorRate").numeric({allow:"."});
+		J("#directorRate").css("ime-mode", "disabled");
+		 
+		/******************************************
+		 * 상임이사 지급율 숫자만 입력받기
+		 ******************************************/
+		J("#auditorRate").numeric({allow:"."});
+		J("#auditorRate").css("ime-mode", "disabled");
+		 
+		/******************************************
+		 * S등급 숫자만 입력받기
+		 ******************************************/
+		J("input[name=gradeS]").numeric({allow:".-"});
+		J("input[name=gradeS]").css("ime-mode", "disabled");
+		 
+		/******************************************
+		 * A등급 숫자만 입력받기
+		 ******************************************/
+		J("input[name=gradeA]").numeric({allow:".-"});
+		J("input[name=gradeA]").css("ime-mode", "disabled");
+		 
+		/******************************************
+		 * B등급 숫자만 입력받기
+		 ******************************************/
+		J("input[name=gradeB]").numeric({allow:".-"});
+		J("input[name=gradeB]").css("ime-mode", "disabled");
+		 
+		/******************************************
+		 * C등급 숫자만 입력받기
+		 ******************************************/
+		J("input[name=gradeC]").numeric({allow:".-"});
+		J("input[name=gradeC]").css("ime-mode", "disabled");
+		 
+		/******************************************
+		 * D등급 숫자만 입력받기
+		 ******************************************/
+		J("input[name=gradeD]").numeric({allow:".-"});
+		J("input[name=gradeD]").css("ime-mode", "disabled");  
+
+	});		
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+	
+		if(!J.checkLength("standardPay", "기준월봉", 1, 15)) {
+			return;
+		}
+		
+		if(!J.checkLength("disStandPay", "파견직 격려금", 1, 15)) {
+			return;
+		}
+		
+		if(!J.checkLength("organGradeRate", "기관등급 지급율", 1, 5)) {
+			return;
+		}
+		
+		if(!J.checkLength("chiefRate", "기관장 지급율", 1, 5)) {
+			return;
+		}
+		
+		if(!J.checkLength("directorRate", "상임감사 지급율", 1, 5)) {
+			return;
+		}
+		
+		if(!J.checkLength("auditorRate", "상임이사 지급율", 1, 5)) {
+			return;
+		}
+		 
+       var cnt = J("input[name=gradeS]").length ;
+       
+		
+		for (var i = 0; i < cnt; i++) {
+			if (J("input[name='gradeS']").eq(i).val() == "") {
+			
+				J("input[name='gradeS']").eq(i).focus()
+				alert("S등급을 입력해주세요");
+				return false;
+			}
+		}
+		
+		for (var i = 0; i < cnt; i++) {
+			if (J("input[name='gradeA']").eq(i).val() == "") {
+			
+				J("input[name='gradeA']").eq(i).focus()
+				alert("A등급을 입력해주세요");
+				return false;
+			}
+		}
+		
+		for (var i = 0; i < cnt; i++) {
+			if (J("input[name='gradeB']").eq(i).val() == "") {
+			
+				J("input[name='gradeB']").eq(i).focus()
+				alert("B등급을 입력해주세요");
+				return false;
+			}
+		}
+		
+		for (var i = 0; i < cnt; i++) {
+			if (J("input[name='gradeC']").eq(i).val() == "") {
+			
+				J("input[name='gradeC']").eq(i).focus()
+				alert("C등급을 입력해주세요");
+				return false;
+			}
+		}
+		
+		for (var i = 0; i < cnt; i++) {
+			if (J("input[name='gradeD']").eq(i).val() == "") {
+			
+				J("input[name='gradeD']").eq(i).focus()
+				alert("D등급을 입력해주세요");
+				return false;
+			}
+		}
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		
+		J("#mode").val("ADD");
+		J("#year").val(J("#findYear").val());
+		J("#standardPay").val((J("#standardPay").val().replace(/[,]/g, "")));
+		J("#disStandPay").val((J("#disStandPay").val().replace(/[,]/g, "")));
+		J("#formList").attr("action", "$!{context_path}/prs/bonus/bonSet/bonSetProcess.vw?type=template").submit();
+	}
+	
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+			<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/bonus/bonSet/bonSetModify.vw?type=template">
+			    <input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+    			
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w180">
+                                    <span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+							</tr>
+                        </tbody>
+                    </table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                </div></div></div>
+                </div>
+			</form>
+			<!-- search E -->
+            <div class="clear"></div>
+		</div>
+		
+			<form id="formList" name="formList" method="post" action="$!{context_path}/prs/bonus/bonSet/bonSetProcess.vw?type=template">
+				<input type="hidden" id="mode"			name="mode"					value="$!{searchMap.txt2html("mode")}" />
+            	<input type="hidden" id="year"			name="year"							 />
+            	<input type="hidden" id="chfRate"		name="chfRate"					 />
+            	<input type="hidden" id="mngRate"		name="mngRate"					 />
+            	<input type="hidden" id="empRate"		name="empRate"					 />
+            	<input type="hidden" id="grade"			name="grade"					 />
+				$!{searchMap.makeHiddenFind()}
+				
+    			<div class="blockDetail2 non">
+	    			<table summary="성과급 설정 등록">
+						<caption class="none">성과급 설정 등록</caption>
+	    				<colgroup>
+	    					<col width="15%" />
+	    					<col width="35%" />
+	    					<col width="15%" />
+	    					<col width="35%" />
+	    				</colgroup>
+	    				<tbody>	    					
+							<tr>
+								<th scope="row"><label for="standardSalary">기준월봉</label></th>							
+								<td colspan="3" style="text-align:left;">													
+									<input type="text" id="standardPay" name="standardPay" class="inputbox w250" value='$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.STAND_PAY)})}' maxlength="12" style="text-align:right;padding-right:1px"/> 원
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">기관등급 지급율</th>
+								<td style="text-align:left;">
+									<input type="text" id="organGradeRate" name="organGradeRate" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.ORG_GRA_RATE)}' maxlength="5" style="text-align:right;padding-right:1px"/> %
+								</td>
+								<th scope="row">파견직 격려금</th>
+								<td style="text-align:left;">
+									<input type="text" id="disStandPay" name="disStandPay" class="inputbox w100" value='$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.DIS_STAND_PAY)})}' maxlength="10" style="text-align:right;padding-right:1px"/> 원
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><label for="dirEvalRate">임원평가지급율</label></th>
+								<td colspan="3">
+									<table>
+										<tr>
+											<th ><label for="divide">구분</label></th>										
+											<th ><label for="chief">기관장</label></th>
+											<th ><label for="director">상임감사</label></th>
+											<th ><label for="auditor">상임이사</label></th>
+										</tr>
+										<tr>
+											<td class="textCenter" ><label for="rate">지급율</label></td>
+											<td >
+												<input type="text" id="chiefRate" name="chiefRate" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.DIR_EXEC_RATE_CHF)}' maxlength="5" style="text-align:right;padding-right:1px"/> %
+											</td>
+											<td >
+												<input type="text" id="directorRate" name="directorRate" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.DIR_EXEC_RATE_DIR)}' maxlength="5" style="text-align:right;padding-right:1px"/> %
+											</td>
+											<td >
+												<input type="text" id="auditorRate" name="auditorRate" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.DIR_EXEC_RATE_AUD)}' maxlength="5" style="text-align:right;padding-right:1px"/> %
+											</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><label for="posGrade">직위별 차등등급</label></th>
+								<td colspan="3">
+									<table>
+										<tr>
+											<th ><label for="Grade">등급</label></th>
+											<th ><label for="sGrade">S</label></th>
+											<th ><label for="aGrade">A</label></th>
+											<th ><label for="bGrade">B</label></th>
+											<th ><label for="cGrade">C</label></th>
+											<th ><label for="dGrade">D</label></th>
+										</tr>
+										#foreach($list in $gradeList)
+											<tr>
+												<td>
+													#if($!{CS_HTML.txt2html($list.DIV)} == 'CHF_RATE')
+														부서장
+													#elseif($!{CS_HTML.txt2html($list.DIV)} == 'MNG_RATE')
+														간부
+													#else
+														직원		
+													#end
+												</td>
+												<td >
+													<input type="text" name="gradeS" class="inputbox w50" value='$!{CS_HTML.txt2html($list.S)}' maxlength="5" style="text-align:right;padding-right:1px"/> %
+												</td>
+												<td >
+													<input type="text" name="gradeA" class="inputbox w50" value='$!{CS_HTML.txt2html($list.A)}' maxlength="5" style="text-align:right;padding-right:1px"/> %
+												</td>
+												<td >
+													<input type="text" name="gradeB" class="inputbox w50" value='$!{CS_HTML.txt2html($list.B)}' maxlength="5" style="text-align:right;padding-right:1px"/> %
+												</td>
+												<td >
+													<input type="text" name="gradeC" class="inputbox w50" value='$!{CS_HTML.txt2html($list.C)}' maxlength="5" style="text-align:right;padding-right:1px"/> %
+												</td>
+												<td >
+													<input type="text" name="gradeD" class="inputbox w50" value='$!{CS_HTML.txt2html($list.D)}' maxlength="5" style="text-align:right;padding-right:1px"/> %
+												</td>
+											</tr>
+										#end
+									</table>
+								</td>
+							</tr>
+							
+	    				</tbody>
+	    			</table>
+	    		</div>
+	    		#if($!{CS_HTML.txt2html($detail.CONFIRM_DT)} =="")	
+	    		<div class="blockButton"> 
+	    			<ul>
+	    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+	    			</ul>
+	    		</div>	
+	    		#else
+	    		<div class="blockButton"> 
+	    			<ul>
+	    				<li><span id="closeAlert" class="txt_red2">$!{searchMap.txt2html("findYear")}년도 성과급 확정을 $!{CS_HTML.txt2html($detail.CONFIRM_DT)}에 진행하셨습니다.</span></li>	    				
+	    			</ul>
+	    		</div>
+	    		#end
+	    	<div class="clear"></div>
+		</form>
+	</div>	
+</div>

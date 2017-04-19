@@ -1,0 +1,402 @@
+#*************************************************************************
+* CLASS 명      : stagnationDeptMetricList
+* 작 업 자      : 박종호
+* 작 업 일      : 2013년 09월 06일
+* 기    능      : 부진부서 월별지표실적 코칭
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     박종호      2013년 09월 06일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/board/board/stagnationDeptMetricList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+	
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});	
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/bsc/board/board/boardList.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#resultContents").checkbyte({
+			indicator:J("#indicator1"),
+			limit:3000
+		});
+		J("#resultContents").trigger("keyup");
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#resultCoachContents").checkbyte({
+			indicator:J("#indicator2"),
+			limit:3000
+		});
+		J("#resultCoachContents").trigger("keyup");
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#insertUserContents").checkbyte({
+			indicator:J("#indicator3"),
+			limit:3000
+		});
+		J("#insertUserContents").trigger("keyup");
+
+	});	
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		var fileChk = true;
+	
+	        if(!J.checkLength("resultContents", "실적", 0, 3000)) {
+	            return;
+	        }
+	        
+	        if(!J.checkLength("resultCoachContents", "문제점 및 성과코칭", 0, 3000)) {
+	            return;
+	        }
+	            
+	        if(!J.checkLength("insertUserContents", "지표확인자입력", 0, 3000)) {
+	            return;
+	        }
+        
+        J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+	
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/bsc/board/board/stagnationDeptMetricProcess.vw?type=template").submit();
+	}	           	
+
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail(mon, itemCd, url, restricted){
+		if (url == "" ) { 
+			alert("상세데이터 제공지표가 아닙니다");
+			return;
+		}
+
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+		
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var year = J("#year").val();
+		var metricId = J("#metricId").val();
+		var scDeptId = J("#scDeptId").val();
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+	
+	/******************************************
+	 * 평가년월 선택시 검색
+	 ******************************************/
+	function goSearch() {
+		J("#formFind").attr("action", "$!{context_path}/bsc/board/board/stagnationDeptMetricList.vw?type=template").submit();
+
+	}	
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">월별지표실적상세</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/board/board/stagnationDeptMetricList.vw?type=template">   
+				<input type="hidden"	name="year"				id="year"			value="$!{searchMap.txt2html("year")}"/>			
+    			<input type="hidden"	name="scDeptId"			id="scDeptId"		value="$!{searchMap.txt2html("scDeptId")}"/>
+    			<input type="hidden"	name="strategyId"		id="strategyId"		value="$!{searchMap.txt2html("strategyId")}"/>
+				<input type="hidden"	name="mainFlag"			id="mainFlag"		value="$!{searchMap.txt2html("mainFlag")}"/>
+				<input type="hidden"	name="analCycle"		id="analCycle"		value="Y"/>
+				<input type="hidden"	name="userId"			id="userId"			value="$!{searchMap.txt2html("userId")}"/>
+				<input type="hidden"	name="approveUserId"	id="approveUserId"	value="$!{searchMap.txt2html("approveUserId")}"/>
+				
+				$!{searchMap.makeHiddenFind()}
+				<div class="clear h20"></div>
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="월별지표실적상세검색 조건">
+						<caption class="none">월별지표실적상세 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+    							<td class="searchBox_tit w120">
+            						<span><label>평가년도</label></span>
+            						<span class="searchBar">	
+            								$!{CS_CODE.getCodeName('017', $!{searchMap.txt2html("year")}, $!{searchMap.txt2html("year")})}
+            						</span>	
+            					</td>	
+            					<td class="searchBox_tit w120">		
+            						<span><label>월</label></span>
+            						<span class="searchBar">		
+										<select id="mon" name="mon" class="select w70" onchange="goSearch();" >
+            								$!CS_CODE.getCodeOption("024", $!{searchMap.txt2html("mon")})
+            							</select>
+                					</span>
+            					</td>     
+            					<td class="searchBox_tit w150">
+            						<span><label>부진부서</label></span>
+            						<span class="searchBar">	
+            								$!{searchMap.txt2html("findBbsNms")}
+            						</span>	
+            					</td>	       					
+								<td class="searchBox_tit w350">
+            						<span><label for="metricId">지표명</label></span>
+            						<span class="searchBar">
+            							<select id="metricId" name="metricId" class="select w250" onchange="goSearch();" >
+            								#foreach($metricList in $metricList)
+											<option value="$!{CS_HTML.txt2html($metricList.METRIC_ID)}" $searchMap.getSelected("metricId", "$!{CS_HTML.txt2html($metricList.METRIC_ID)}")>$!{CS_HTML.txt2html($metricList.METRIC_NM)}</option>
+											#end
+            							</select>
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w120">
+                					<span><label> $!{KPI_NM}담당자</label></span>
+            						<span class="searchBar">
+										$CS_HTML.txt2html($userNm)
+            						</span>
+                                </td>
+                                <td class="searchBox_tit w120">
+                					<span><label> $!{KPI_NM}확인자</label></span>
+            						<span class="searchBar">
+										$CS_HTML.txt2html($approveUserNm)
+            						</span>
+                                </td>
+            				</tr>
+						</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/board/board/stagnationDeptMetricProcess.vw?type=template">
+			<div class="blockListTable">
+    			<table summary="" >
+    				<caption></caption>
+    				<tr>
+    					<th scope="col">년간목표</th>
+    					<td colspan="3">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($metricInfo.TARGETY)})}</td>
+    					<th scope="col">단위</th>
+    					<td colspan="3">$!{CS_CODE.getCodeName('013',$CS_HTML.txt2html($metricInfo.UNIT),$!{searchMap.txt2html("year")})}</td>
+    					<th scope="col">누적방법</th>
+						<td colspan="4">$!{CS_CODE.getCodeName('009',$CS_HTML.txt2html($metricInfo.TIME_ROLLUP),$!{searchMap.txt2html("year")})}</td>
+    				</tr>
+					<tr>
+    					<th scope="col">산식패턴</th>
+    					<td style="text-align:left" colspan="12">$!{CS_HTML.txt2html($calTypeColDesc)}</td>
+    				</tr>
+					#if($scoreList)
+    				<tr>
+    					<th scope="col" rowspan="2">월별목표</th>
+						#foreach($i in [1..12])
+        					<th scope="col">$!{CS_HTML.txt2html($velocityCount)}월</th>
+						#end
+    				</tr>
+					<tr >
+						#foreach($i in [0..11])
+    						<td class="h12">
+							#if( $scoreList.size() > $i )
+								#set($list = $scoreList.get($i) )
+								$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.TARGET)})}
+							#end
+							</td>
+						#end
+    				</tr>
+    				<tr>
+    					<th scope="col">월별실적</th>
+    					#foreach($i in [0..11])
+    						<td class="h12">
+							#if( $scoreList.size() > $i )
+								#set($list = $scoreList.get($i) )
+								$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.ACTUAL)})}
+							#end
+							</td>
+						#end
+    				</tr>
+    				<tr>
+    					<th scope="col">달성율</th>
+    					#foreach($i in [0..11])
+    						<td class="h12">
+							#if( $scoreList.size() > $i )
+								#set($list = $scoreList.get($i) )
+								$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.SCORE)})}
+							#end
+							</td>
+						#end
+    				</tr>
+					#end
+    			</table>
+			</div>
+			<div class="h20"></div>
+    		#if($!{CS_HTML.txt2html($metricInfo.TYPE_ID)}=="01")
+    		<div>
+    			<div>
+                    <div>
+                    	<div id="chartContainer">FusionCharts will load here!</div>
+    					<script type="text/javascript" language="javascript" >
+    					//<![CDATA[
+    						FusionCharts.setCurrentRenderer(render);
+                    		var myChart = new FusionCharts( "$!{chart_path}/MSColumn3DLineDY.swf", "myChartId", "1150", "200", "0", "1" );
+                    		myChart.setXMLUrl("$!{context_path}/bsc/mon/metricActualDetail/metricActualDetailChart_xml.vw?year=$!{searchMap.txt2html("year")}&mon=$!{searchMap.txt2html("mon")}&scDeptId=$!{searchMap.txt2html("scDeptId")}&metricId=$!{searchMap.txt2html("metricId")}&analCycle=$!{searchMap.txt2html("analCycle")}");
+                    		myChart.render("chartContainer");
+    					//]]>
+                    	</script>
+                    </div>
+    			</div>
+    		</div>
+			#end
+			<div class="blockListTable">
+    			<table summary="" id="toggleTable">
+    				<caption></caption>
+    				<colgroup>
+    					<col width="16%" />
+						#foreach($i in [1..12])
+    					<col width="7%" />
+						#end
+    				</colgroup>
+
+					<!--
+					<tr>
+    					<th scope="col" colspan="13" class="textLeft" >
+							<input type="image" id="toggle" class="valign_middle" src="$!{img_path}/common/board/left_smback_sp.gif" align="middle" alt="펼침" />&nbsp;산식계산항목
+						</th>
+    				</tr>
+					-->
+
+					<tr class="dummy">
+    					<th scope="col">산식항목</th>
+						#foreach($i in [1..12])
+							<th scope="col">$!{CS_HTML.txt2html($velocityCount)}월</th>
+						#end
+					</tr>
+					#foreach($list in $colValueList)
+						#set($num = $velocityCount - 1)
+    				<tr class="dummy">
+							<td ><input type="hidden" name = "calTypeCol"  id = "calTypeCol$num" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}">
+							$!{CS_HTML.txt2html($list.CAL_TYPE_COL_NM)}</td>
+							<td><a href="javascript:goPopMetricActualDetail('01', '$!{CS_HTML.txt2html($list.ITEM_CD)}', '$!{CS_HTML.txt2html($list.URL)}', '$!{CS_HTML.txt2html($list.RESTRICTED)}')">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.MON01)})}</a></td>
+							<td><a href="javascript:goPopMetricActualDetail('02', '$!{CS_HTML.txt2html($list.ITEM_CD)}', '$!{CS_HTML.txt2html($list.URL)}', '$!{CS_HTML.txt2html($list.RESTRICTED)}')">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.MON02)})}</a></td>
+							<td><a href="javascript:goPopMetricActualDetail('03', '$!{CS_HTML.txt2html($list.ITEM_CD)}', '$!{CS_HTML.txt2html($list.URL)}', '$!{CS_HTML.txt2html($list.RESTRICTED)}')">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.MON03)})}</a></td>
+							<td><a href="javascript:goPopMetricActualDetail('04', '$!{CS_HTML.txt2html($list.ITEM_CD)}', '$!{CS_HTML.txt2html($list.URL)}', '$!{CS_HTML.txt2html($list.RESTRICTED)}')">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.MON04)})}</a></td>
+							<td><a href="javascript:goPopMetricActualDetail('05', '$!{CS_HTML.txt2html($list.ITEM_CD)}', '$!{CS_HTML.txt2html($list.URL)}', '$!{CS_HTML.txt2html($list.RESTRICTED)}')">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.MON05)})}</a></td>
+							<td><a href="javascript:goPopMetricActualDetail('06', '$!{CS_HTML.txt2html($list.ITEM_CD)}', '$!{CS_HTML.txt2html($list.URL)}', '$!{CS_HTML.txt2html($list.RESTRICTED)}')">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.MON06)})}</a></td>
+							<td><a href="javascript:goPopMetricActualDetail('07', '$!{CS_HTML.txt2html($list.ITEM_CD)}', '$!{CS_HTML.txt2html($list.URL)}', '$!{CS_HTML.txt2html($list.RESTRICTED)}')">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.MON07)})}</a></td>
+							<td><a href="javascript:goPopMetricActualDetail('08', '$!{CS_HTML.txt2html($list.ITEM_CD)}', '$!{CS_HTML.txt2html($list.URL)}', '$!{CS_HTML.txt2html($list.RESTRICTED)}')">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.MON08)})}</a></td>
+							<td><a href="javascript:goPopMetricActualDetail('09', '$!{CS_HTML.txt2html($list.ITEM_CD)}', '$!{CS_HTML.txt2html($list.URL)}', '$!{CS_HTML.txt2html($list.RESTRICTED)}')">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.MON09)})}</a></td>
+							<td><a href="javascript:goPopMetricActualDetail('10', '$!{CS_HTML.txt2html($list.ITEM_CD)}', '$!{CS_HTML.txt2html($list.URL)}', '$!{CS_HTML.txt2html($list.RESTRICTED)}')">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.MON10)})}</a></td>
+							<td><a href="javascript:goPopMetricActualDetail('11', '$!{CS_HTML.txt2html($list.ITEM_CD)}', '$!{CS_HTML.txt2html($list.URL)}', '$!{CS_HTML.txt2html($list.RESTRICTED)}')">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.MON11)})}</a></td>
+							<td><a href="javascript:goPopMetricActualDetail('12', '$!{CS_HTML.txt2html($list.ITEM_CD)}', '$!{CS_HTML.txt2html($list.URL)}', '$!{CS_HTML.txt2html($list.RESTRICTED)}')">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($list.MON12)})}</a></td>
+    				</tr>
+					#end
+    			</table>
+			</div>
+		</form>
+		<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/board/board/stagnationDeptMetricProcess.vw?type=template">
+				<input type="hidden"	name="year"				id="year"			value="$!{searchMap.txt2html("year")}"/>
+				<input type="hidden"	name="mon"				id="mon"			value="$!{searchMap.txt2html("mon")}"/>								
+    			<input type="hidden"	name="metricId"			id="metricId"		value="$!{searchMap.txt2html("metricId")}"/>			
+    			<input type="hidden"	name="scDeptId"			id="scDeptId"		value="$!{searchMap.txt2html("scDeptId")}"/>
+    			<input type="hidden"    name="mode"             id="mode" 			value="ADD" />			
+			    $!{searchMap.makeHiddenFind()}
+			    <div class="h20"></div>
+	    		<div class="blockDetail">
+	    			<table summary="코칭 등록">
+	    				<caption class="none">코칭 등록</caption>
+	    				<colgroup>
+	    					<col width="15%" />
+	    					<col width="85%" />
+	    				</colgroup>
+	    				<tbody>    					
+	    					<tr>
+	    						<th scope="row"><label for="resultContents">실적</label></th>
+	    						<td>
+	    							#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+	    							<textarea id="resultContents" name="resultContents" class="tabletext" title="비고" cols="" rows="6">$!{CS_HTML.txt2html($detail.RESULT_CONTENTS)}</textarea>
+									<span id="indicator1">0</span>/3000byte
+									#else
+									<textarea id="resultContents" name="resultContents" class="tabletext" title="비고" cols="" rows="6" readonly="readonly">$!{CS_HTML.txt2html($detail.RESULT_CONTENTS)}</textarea>
+									#end
+	    						</td>
+	    					</tr>
+	    					<tr>
+	    						<th scope="row"><label for="resultCoachContents">문제점 및 성과코칭</label></th>
+	    						<td>
+	    							#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+	    							<textarea id="resultCoachContents" name="resultCoachContents" class="tabletext" title="비고" cols="" rows="6">$!{CS_HTML.txt2html($detail.RESULT_COACH_CONTENTS)}</textarea>
+									<span id="indicator2">0</span>/3000byte
+									#else
+									<textarea id="resultCoachContents" name="resultCoachContents" class="tabletext" title="비고" cols="" rows="6" readonly="readonly">$!{CS_HTML.txt2html($detail.RESULT_COACH_CONTENTS)}</textarea>
+									#end
+	    						</td>
+	    					</tr>
+	    					<tr>
+	    						<th scope="row"><label for="insertUserContents">지표확인자입력</label></th>
+	    						<td>
+	    							#if($CS_LOGIN.chkAuthGrp("01") || $!{searchMap.txt2html("approveUserId")} == $!{CS_LOGIN.getUser_id()})
+	    							<textarea id="insertUserContents" name="insertUserContents" class="tabletext" title="비고" cols="" rows="6">$!{CS_HTML.txt2html($detail.INSERT_USER_CONTENTS)}</textarea>
+									<span id="indicator3">0</span>/3000byte
+									#else
+									<textarea id="insertUserContents" name="insertUserContents" class="tabletext" title="비고" cols="" rows="6" readonly="readonly">$!{CS_HTML.txt2html($detail.INSERT_USER_CONTENTS)}</textarea>
+									#end
+	    						</td>
+	    					</tr>
+	    				</tbody>
+	    			</table>
+	    		</div>			    
+			<div class="blockButton_all">
+				<div class="blockButton">
+					<ul>
+                    	<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+                    	<li><input type="submit" id="btnInsert" value="저장" /></li>
+					</ul>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="clear"></div>
+</div>

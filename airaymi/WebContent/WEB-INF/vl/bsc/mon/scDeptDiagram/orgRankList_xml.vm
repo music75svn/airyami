@@ -1,0 +1,36 @@
+#*************************************************************************
+* CLASS 명      : orgRankList_xml
+* 작 업 자      : 정철수
+* 작 업 일      : 2013년 8월 19일 
+* 기    능      : 조직순위 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      정철수     2013년 8월 19일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"RANK"          	 : "$!{CS_HTML.txt2html($list.RANK)}", 
+		"SC_DEPT_NM"   		 : "$!{CS_HTML.txt2html($list.SC_DEPT_NM)}",  
+		"SCORE"              : "$!{CS_HTML.txt2html($list.SCORE)}",
+		"STATUS"             : "$!{CS_HTML.txt2html($list.STATUS)}",
+		"CONVERSION_SCORE"   : "$!{CS_HTML.txt2html($list.CONVERSION_SCORE)}",
+		"STATUS_NM"          : "$!{CS_HTML.txt2html($list.STATUS_NM)}" 
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

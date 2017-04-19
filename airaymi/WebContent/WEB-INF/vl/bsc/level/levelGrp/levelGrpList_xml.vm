@@ -1,0 +1,40 @@
+#*************************************************************************
+* CLASS 명      : levelGrpList_xml
+* 작 업 자      : 현걸욱
+* 작 업 일      : 2012년 10월 23일 
+* 기    능      : 난이도평가 평가단 관리 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      현걸욱     2012년 10월 23일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		
+		"EVAL_USER_GRP_NM"      : "$!{CS_HTML.txt2html($list.EVAL_USER_GRP_NM)}", 
+		"USER_CNT"              : "$!{CS_HTML.txt2html($list.USER_CNT)}",
+		"MEM_CNT"               : "$!{CS_HTML.txt2html($list.MEM_CNT)}",
+		"SORT_ORDER"            : "$!{CS_HTML.txt2html($list.SORT_ORDER)}",
+		"EVAL_USER_GRP_ID"      : "$!{CS_HTML.txt2html($list.EVAL_USER_GRP_ID)}",
+		"EVAL_USER_GRP_NM_TEMP" : "$!{CS_HTML.txt2html($list.EVAL_USER_GRP_NM)}",
+		"EVAL_SUBMIT_YN"        : "$!{CS_HTML.txt2html($list.EVAL_SUBMIT_YN)}",
+		"CONTENT"               : "$!{CS_HTML.txt2html($list.CONTENT)}",
+		"EVAL_CLOSING_YN"       : "$!{CS_HTML.txt2html($list.EVAL_CLOSING_YN)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

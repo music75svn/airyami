@@ -1,0 +1,159 @@
+#*************************************************************************
+* CLASS 명      : imponEvalUserGrpModify
+* 작 업 자      : 정철수 
+* 작 업 일      : 2012년 11월 30일 
+* 기    능      : 비계량평가단    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    정철수      2012년 11월 30일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/bsc/impon/imponEvalUserGrp/imponEvalUserGrpList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("#weight").numeric();
+		J("#weight").css("ime-mode", "disabled");
+		J("#sortOrder").numeric();
+		J("#sortOrder").css("ime-mode", "disabled");
+
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(!J.checkLength("evalUserGrpNm", "평가단 명", 1, 33)) {
+			return;
+		}
+
+		if(!J.checkLength("weight", "가중치", 1, 22)) {
+			return;
+		}
+
+	
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/bsc/impon/imponEvalUserGrp/imponEvalUserGrpProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/impon/imponEvalUserGrp/imponEvalUserGrpProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="evalUserGrpId"  name="evalUserGrpId"  value="$!{searchMap.txt2html("evalUserGrpId")}" />
+
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="비계량평가단 등록">
+					<caption class="none">비계량평가단 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="evalUserGrpNm">평가단</label></th>
+							<td><input type="text" id="evalUserGrpNm" name="evalUserGrpNm" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.EVAL_USER_GRP_NM)}' maxlength="33"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="weight">가중치</label></th>
+							<td><input type="text" id="weight" name="weight" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.WEIGHT)}' maxlength="22"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="deviaYn">표준편차적용여부</label></th>
+							<td>
+								<select id="deviaYn" name="deviaYn" class="select w100" >
+									<option value="N" $!{CS_HTML.getSelected("N" ,$!{CS_HTML.txt2html($detail.DEVIA_YN)} )} >미적용 </option>
+									<option value="Y" $!{CS_HTML.getSelected("Y" ,$!{CS_HTML.txt2html($detail.DEVIA_YN)} )} >적용</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="evalUserGrpGbnId">평가단그룹</label></th>
+							<td>
+								<select id="evalUserGrpGbnId" name="evalUserGrpGbnId" class="select w200" >
+									$!CS_CODE.getCodeOption("150", $detail.EVAL_USER_GRP_GBN_ID, $!{searchMap.txt2html("year")})
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="sortOrder">정렬순서</label></th>
+							<td><input type="text" id="sortOrder" name="sortOrder" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.SORT_ORDER)}' maxlength="22"/></td>
+						</tr>
+
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

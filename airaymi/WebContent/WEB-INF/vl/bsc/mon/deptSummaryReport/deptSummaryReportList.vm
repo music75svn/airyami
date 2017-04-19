@@ -1,0 +1,190 @@
+#*************************************************************************
+* CLASS 명      : deptSummaryReportList
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 9월 1일 
+* 기    능      : 부서별요약보고서
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김윤기      2012년 9월 1일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/bsc/mon/deptSummaryReport/deptSummaryReportList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+    	/******************************************
+    	 * 돌아가기버튼 클릭 이벤트
+    	 ******************************************/
+    	J("#btnBack").click(function() {
+    		J("#formList").attr("action", "$!{context_path}/bsc/mon/metricDetail/metricDetailList.vw?type=template").submit();
+    	});
+       	
+    
+		/******************************************
+		 * KPI표시 클릭 이벤트
+		 ******************************************/
+		J("#toggle").click(function() {
+			var metricTab = J("#tbody div");
+			var visibility = J(metricTab[0]).css("display"); 
+    		if("none"!=visibility){
+    			J(metricTab).css('display','none');
+    		}else{
+    			J(metricTab).css('display','');
+    		}
+		});
+	});
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">부서별요약보고서</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/mon/deptSummaryReport/deptSummaryReportList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="부서별요약보고서검색 조건">
+						<caption class="none">부서별요약보고서 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+    							<td class="searchBox_tit w150">
+            						<span><label>$!{YEARMON}</label></span>
+            						<span class="searchBar">
+    									$!{CS_CODE.getCodeName('017', $!{searchMap.txt2html("year")}, $!{searchMap.txt2html("year")})}
+            						</span>
+            						<span class="searchBar">
+    									$!{CS_CODE.getCodeName('024', $!{searchMap.txt2html("mon")}, $!{searchMap.txt2html("year")})}
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w270">
+    								<span><label>$!{SC_DEPT_NM}</label></span>
+            						<span class="searchBar" title="$CS_HTML.txt2html($CS_SC_DEPT.getName($!{searchMap.txt2html("year")}, $!{searchMap.txt2html("findScDeptId")}))">
+										$!{CS_UTIL.reduceString($CS_HTML.txt2html($CS_SC_DEPT.getName($!{searchMap.txt2html("year")}, $!{searchMap.txt2html("findScDeptId")})),27)}
+    								</span>
+                                </td>            					
+            				</tr>
+        				</tbody>
+    				</table>
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/mon/deptSummaryReport/deptSummaryReportProcess.vw?type=template">
+    		<input type="hidden" name="year"	  	value="$!{searchMap.txt2html("year")}"/>
+    		<input type="hidden" name="mon"		    value="$!{searchMap.txt2html("mon")}"/>
+    		<input type="hidden" name="scDeptId"	value="$!{searchMap.txt2html("scDeptId")}"/>  
+    		<input type="hidden" name="strategyId"	value="$!{searchMap.txt2html("strategyId")}"/>
+    		<input type="hidden" name="metricId"	value="$!{searchMap.txt2html("metricId")}"/>
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<div class="blockButton_all">
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnBack" value="돌아가기"/></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="h40"></div>
+			<div id="splitterBox"S>
+				<div>
+					<!-- CKEDITOR-->
+					<div class="tb_line"></div>
+                    <div>$!{summary.REVIEW}</div>
+					<!-- CKEDITOR-->
+                    <div class="h10"></div>
+                    <div class="textCenter" style="font-size:1.5em;text-decoration:underline; background-color:#F2F2F2; padding: 10px 10px 10px 10px;">
+                        <b>$!{searchMap.txt2html("findMon")}월 $!{STRATEGY_NM} 진행현황</b>
+					</div>
+                    <div style="text-align:right;vertical-align:top;font-size:1em;  padding: 5px 5px 5px 5px;">
+						<img src="$!{img_path}/arrow.gif" alt="KPI표시"/>
+						<b id="toggle" style="cursor:pointer">$!{METRIC_NM}표시</b>
+					</div>
+                    <div class="blockDetail">
+						<table>
+        				<colgroup>
+							#set($width=$!{vcMath.div(90, $!{CS_HTML.txt2html($strategyDirList.size())})})
+        					<col width="10%" />
+							#foreach($strategyDirList in $strategyDirList)
+								<col width="$!{width}"/>
+							#end
+        				</colgroup>							
+						
+						#if($!{CS_HTML.txt2html($strategyDirList.size())}!=0)
+							<thead >
+								<tr>
+									<th scope="row"></th>
+                					#foreach($strategyDirList in $strategyDirList)
+    									<th scope="row" class="textCenter">$!{CS_HTML.txt2html($strategyDirList.INITIATIVE_NM)}</th>
+    								#end
+                                </tr>
+                            </thead>
+						#end
+						#if($!{CS_HTML.txt2html($signalList.size())}!=0)
+							<tbody id="tbody">
+								#if($!{CS_HTML.txt2html($strategyDirList.size())}!=0 && $!{CS_HTML.txt2html($signalList.size())}!=0)
+                					#foreach($signalList in $signalList)
+										<tr>
+    										<td class="textCenter">$!{CS_HTML.txt2html($signalList.SIGNAL_NM)}</td>
+											#if($!{CS_HTML.txt2html($strategyList.size())}!=0)
+												#foreach($strategyDirList in $strategyDirList)
+                                                <td class="wp25">
+													#foreach($strategyList in $strategyList)
+            											#if(($!{CS_HTML.txt2html($signalList.SIGNAL_ID)}==$!{CS_HTML.txt2html($strategyList.SIGNAL_ID)}) && $!{CS_HTML.txt2html($strategyDirList.INITIATIVE_ID)}==$!{CS_HTML.txt2html($strategyList.INITIATIVE_ID)})
+    														<b>&nbsp;&nbsp;$!{CS_HTML.txt2html($strategyList.STRATEGY_NM)}</b><br/>
+        													#if($!{CS_HTML.txt2html($metricList.size())}!=0)
+    															<div style="display:none">
+																	#foreach($metricList in $metricList)
+                            											#if($!{CS_HTML.txt2html($strategyList.STRATEGY_ID)}==$!{CS_HTML.txt2html($metricList.STRATEGY_ID)})
+    																		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                            <img src="$!{img_path}/common/ball/ball_$!{CS_HTML.txt2html($metricList.STATUS)}.gif" class="valign_middle"  alt="신호등"></img>	
+                                                                            &nbsp;&nbsp;$!{CS_HTML.txt2html($metricList.METRIC_NM)}<br/>
+            															#end
+        															#end
+    															</div >
+    														#end
+														#end
+													#end
+    											</td>
+    											#end
+											#end
+                                        </tr>
+                					#end
+								#end
+                            </tbody>
+						#end
+						</table>
+					</div>
+            		<div class="blockDetail">
+            			<table>
+							<tbody >
+								<tr >
+                                    <th scope="row" class="w200">검토의견</th>
+                                    <td >
+										$!{summary.OPINION}
+									</td>
+                                </tr>
+                            </tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="clear"></div>
+</div>

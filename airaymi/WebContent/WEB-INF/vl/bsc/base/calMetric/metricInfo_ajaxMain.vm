@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+#*************************************************************************
+* CLASS 명      : metricInfo_ajax.vm
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 7월 23일 
+* 기    능      : 계산된지표 상세 지표조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용         비고
+* -----  ----------  -------------------  ---------------------- ---------
+*  1      하윤식       2012년 7월 23일         최 초 작 업 
+**************************************************************************# 
+
+<items>
+
+#foreach($list in $metricList)
+	<item>
+		<year>$!{CS_HTML.txt2html($list.YEAR)}</year>
+		<metricId>$!{CS_HTML.txt2html($list.METRIC_ID)}</metricId>
+	#if($list.SORT_ORDER == "0") 
+		<metricNm>[경평]$!{CS_HTML.txt2html($list.METRIC_NM)}</metricNm>
+	#else
+		<metricNm>$!{CS_HTML.txt2html($list.METRIC_NM)}</metricNm>
+	#end
+		<scDeptId>$!{CS_HTML.txt2html($list.SC_DEPT_ID)}</scDeptId>
+		<scDeptNm>$!{CS_HTML.txt2html($list.SC_DEPT_NM)}</scDeptNm>
+	</item>	
+#end
+
+</items>

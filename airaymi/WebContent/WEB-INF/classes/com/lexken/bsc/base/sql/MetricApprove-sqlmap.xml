@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.base.metricApprove">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 지표승인 진행관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+			SELECT
+		        A.YEAR              ,
+		        A.SC_DEPT_ID              ,
+		        A.SC_DEPT_NM              ,
+		        NVL(B.KPI_CNT,
+		        0) AS KPI_CNT              ,
+		        A.BSC_USER_ID              ,
+		        D.USER_NM AS BSC_USER_NM              ,
+		        A.MANAGER_USER_ID              ,
+		        E.USER_NM AS MANAGER_USER_NM              ,
+		        E.EMAIL              ,
+		        NVL(C.APPROVE_STATUS_ID,
+		        '02') AS APPROVE_STATUS_ID              ,
+		        F_CODE_NM('027',
+		        NVL(C.APPROVE_STATUS_ID,
+		        '02'),
+		        A.YEAR) AS APPROVE_STATUS_NM
+		    FROM
+		        (SELECT YEAR, SC_DEPT_ID, SC_DEPT_GRP_ID, SC_DEPT_NM, SC_DEPT_S_NM, UP_SC_DEPT_ID, BSC_USER_ID, MANAGER_USER_ID, SORT_ORDER
+		           FROM BSC_SC_DEPT
+		          WHERE YEAR = #findYear#
+		            AND DELETE_DT IS NULL
+		         ) A
+		    LEFT OUTER JOIN
+		        (
+		            SELECT
+		                YEAR,
+		                SC_DEPT_ID,
+		                COUNT(*) KPI_CNT
+		            FROM
+		                BSC_METRIC
+		            WHERE
+		                YEAR =  #findYear#
+		                AND DELETE_DT IS NULL
+		            GROUP BY
+		                YEAR,
+		                SC_DEPT_ID
+		        ) B
+		            ON A.YEAR = B.YEAR
+		            AND A.SC_DEPT_ID = B.SC_DEPT_ID
+		    LEFT OUTER JOIN
+		        BSC_KPI_APPROVE C
+		            ON A.YEAR = C.YEAR
+		            AND A.SC_DEPT_ID = C.SC_DEPT_ID
+		    LEFT OUTER JOIN
+		        V_ROLE_USER D
+		            ON A.BSC_USER_ID = D.USER_ID
+		    LEFT OUTER JOIN
+		        V_ROLE_USER E
+		            ON A.MANAGER_USER_ID = E.USER_ID
+		WHERE A.YEAR = #findYear#		            
+       <dynamic>
+			<isNotEmpty prepend="AND" property="findScDeptGrpId">
+	            A.SC_DEPT_GRP_ID = #findScDeptGrpId#
+		   	</isNotEmpty>
+		   	
+		   	<isNotEmpty prepend="AND" property="findApproveStatusId">
+	            NVL(C.APPROVE_STATUS_ID,'02') = #findApproveStatusId#
+		   	</isNotEmpty>
+	    </dynamic> 		            
+		    START WITH A.UP_SC_DEPT_ID IS NULL
+		    CONNECT BY PRIOR A.SC_DEPT_ID = A.UP_SC_DEPT_ID
+		    ORDER SIBLINGS BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 마감 데이터 건수
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CLOSING_MANAGE
+	==================================================================
+	-->	
+	<select id="getCloseCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+        SELECT COUNT(1)
+		  FROM BSC_CLOSING_MANAGE 
+         WHERE YEAR = #year#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 마감 데이터 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_CLOSING_MANAGE
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_CLOSING_MANAGE ( 
+                    YEAR
+                  , KPI_CLOSING_YN   
+                 ) VALUES ( 
+                    #year#
+                  , #kpiCloseYn#
+                 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 마감 데이터 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_CLOSING_MANAGE
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_CLOSING_MANAGE
+		   SET KPI_CLOSING_YN = #kpiCloseYn#
+		 WHERE YEAR = #year#
+	</update>	
+	
+ 
+	
+</sqlMap>
+
+

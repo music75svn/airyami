@@ -1,0 +1,1403 @@
+#*************************************************************************
+* CLASS 명      : bosMetricModify
+* 작 업 자      : 박경태 
+* 작 업 일      : 2012년 11월 7일 
+* 기    능      : 기관장지표    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    박경태      2012년 11월  7일            최 초 작 업
+*  2	김상용		2013년  7월  3일			평가착안사항 수정
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/gov/bos/bosMetric/bosMetricList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * 세부평가내용 추가 버튼 이벤트
+		 ******************************************/
+		J("#btnDetailAdd").click(function(e) {
+			addDetail();
+		});
+		
+		/******************************************
+		 * 세부평가내용 삭제 버튼 이벤트
+		 ******************************************/
+		J("#btnDetailDel").click(function(e) {
+			delDetail();
+		});
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#contentIndicator"),
+			limit:4000
+		});
+		J("#content").trigger("keyup");
+		
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#icSearch").fancybox();
+		J("#insertUserSearch").fancybox();
+		J("#insertMetricSearch").fancybox();
+		J("#detailUserSearch").fancybox();
+		
+		/******************************************
+		 * fancybox 설정
+		 ******************************************/
+		J("#anchor").fancybox();      //실적연계 항목 팝업
+
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("#baseValue").numeric({allow:"."}); 
+		J("#baseValue").css("ime-mode", "disabled");
+		J("#bestTarget").numeric({allow:"."}); 
+		J("#bestTarget").css("ime-mode", "disabled");
+		J("#lowestTarget").numeric({allow:"."}); 
+		J("#lowestTarget").css("ime-mode", "disabled");
+		J("#stadConst").numeric({allow:"."}); 
+		J("#stadConst").css("ime-mode", "disabled");
+		J("#sortOrder").numeric();
+		J("#sortOrder").css("ime-mode", "disabled");
+		J("#weight").numeric();
+		J("#weight").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 체크박스 전체 선택 이벤트
+		 ******************************************/
+		J("#checkAll").click(function() {
+			var map=J("input[name=check]");
+			if(this.checked){
+    			J.each(map, function(key, value){
+    				J(value).attr("checked","checked");
+    			});	
+			}else{
+    			J.each(map, function(key, value){
+					J(value).removeAttr("checked");
+    			});	
+			}
+		});
+		
+		/******************************************
+		 * 화면 초기셋팅
+		 ******************************************/
+		init();
+		
+		chkByte();
+		
+		chkByteEval();
+
+	});
+	
+	/******************************************
+	 * 세부평가내용 byte 체크
+	 ******************************************/
+	 function chkByte(){
+	 	J(":input[name=detailEvalContents]").checkbyte({
+    		limit:4000
+    	});
+    	J(":input[name=detailEvalContents]").trigger("keyup");
+	}
+	
+	/******************************************
+	 * 평가착안사항 byte 체크
+	 ******************************************/
+	 function chkByteEval(){
+	 	J(":input[name=evalContents]").checkbyte({
+    		limit:4000
+    	});
+    	J(":input[name=evalContents]").trigger("keyup");
+	}
+	
+	/*****************************************************
+	 * 화면초기셋팅
+	 *****************************************************/ 
+	function init() {
+		chgMethod();
+	}
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		
+		if(!J.checkLength("bossMetricNm", "평가지표", 1, 50)) {
+			return;
+		}
+		
+		if(J("#evalCatGrpId").val() == "") {
+			J.showMsgBox("평가범주를 선택해 주십시요", null, "evalCatGrpId");
+			return;
+		}
+		
+		if(J("#evalMethodId").val() == "") {
+			J.showMsgBox("평가방법을 선택해 주십시요", null, "evalMethodId");
+			return;
+		}
+		
+		if(J("#gbnId").val() == "01"){
+			if(J("#direcId").val() == "") {
+				J.showMsgBox("지표방향성을 선택해 주십시요", null, "direcId");
+				return;
+			}
+		}
+		
+		if(J("#gbnId").val() == "01"){
+			if(J("#unit").val() == "") {
+    			J.showMsgBox("단위를 선택해 주십시요", null, "unit");
+				return;
+			}
+		}
+		
+		if(!J.checkLength("insertUserNm", "담당자", 1, 20)) {
+			return;
+		}
+		
+		if(!J.checkLength("scDeptNm", "주관부서", 1, 50)) {
+			return;
+		}
+		
+		if(J("#gbnId").val() == "01"){
+			if(!J.checkLength("actCalType", "지표산식", 1, 300)) {
+    			return;
+    		}
+    		
+			//실적산식 입력 체크
+    		if(!actCalTypeColSaveChk()) return;
+			
+			if (J("#evalMethodId").val()=="03") {
+				if (J("input[name=bestTarget]", "#actMethodArea00").val()=="") {
+					J.showMsgBox("[목표]: 입력해주십시요", null, J("input[name=bestTarget]", "#actMethodArea00"));
+					return;
+				}
+			} else if (J("#evalMethodId").val()=="06") {
+				if (J("input[name=baseValue]", "#actMethodArea01").val()=="") {
+					J.showMsgBox("[기준치]: 입력해주십시요", null, J("input[name=baseValue]", "#actMethodArea01"));
+					return;
+				}
+			} else if (J("#evalMethodId").val()=="04" || J("#evalMethodId").val()=="07" ) {
+				if (J("input[name=baseValue]", "#actMethodArea02").val()=="") {
+					J.showMsgBox("[기준치]: 입력해주십시요", null, J("input[name=baseValue]", "#actMethodArea02"));
+					return;
+				}
+				if (J("input[name=bestTarget]", "#actMethodArea02").val()=="") {
+					J.showMsgBox("[최고목표]: 입력해주십시요", null, J("input[name=bestTarget]", "#actMethodArea02"));
+					return;
+				}
+				if (J("input[name=lowestTarget]", "#actMethodArea02").val()=="") {
+					J.showMsgBox("[최저목표]: 입력해주십시요", null, J("input[name=lowestTarget]", "#actMethodArea02"));
+					return;
+				}
+			} else if (J("#evalMethodId").val()=="05") {
+				if (J("input[name=baseValue]", "#actMethodArea03").val()=="") {
+					J.showMsgBox("[기준치]: 입력해주십시요", null, J("input[name=baseValue]", "#actMethodArea03"));
+					return;
+				}
+				if (J("input[name=bestTarget]", "#actMethodArea03").val()=="") {
+					J.showMsgBox("[최고목표]: 입력해주십시요", null, J("input[name=bestTarget]", "#actMethodArea03"));
+					return;
+				}
+				if (J("input[name=lowestTarget]", "#actMethodArea03").val()=="") {
+					J.showMsgBox("[최저목표]: 입력해주십시요", null, J("input[name=lowestTarget]", "#actMethodArea03"));
+					return;
+				}
+				if (J("input[name=stadConst]", "#actMethodArea03").val()=="") {
+					J.showMsgBox("[표준편차]: 입력해주십시요", null, J("input[name=stadConst]", "#actMethodArea03"));
+					return;
+				}
+			} else if (J("#evalMethodId").val()=="08") {
+				if (J("input[name=rateYear]", "#actMethodArea04").val()=="") {
+					J.showMsgBox("[당년반영비중]: 입력해주십시요", null, J("input[name=rateYear]", "#actMethodArea04"));
+					return;
+				}
+				if (J("input[name=actual3year]", "#actMethodArea04").val()=="") {
+					J.showMsgBox("[3년평균실적]: 입력해주십시요", null, J("input[name=actual3year]", "#actMethodArea04"));
+					return;
+				}
+				if (J("input[name=bestTarget]", "#actMethodArea04").val()=="") {
+					J.showMsgBox("[최고목표]: 입력해주십시요", null, J("input[name=bestTarget]", "#actMethodArea04"));
+					return;
+				}
+				if (J("input[name=bestTarget3year]", "#actMethodArea04").val()=="") {
+					J.showMsgBox("[3년평균최고목표]: 입력해주십시요", null, J("input[name=bestTarget3year]", "#actMethodArea04"));
+					return;
+				}
+				if (J("input[name=lowestTarget]", "#actMethodArea04").val()=="") {
+					J.showMsgBox("[최저목표]: 입력해주십시요", null, J("input[name=lowestTarget]", "#actMethodArea04"));
+					return;
+				}
+				if (J("input[name=lowestTarget3year]", "#actMethodArea04").val()=="") {
+					J.showMsgBox("[3년평균최저목표]: 입력해주십시요", null, J("input[name=lowestTarget3year]", "#actMethodArea04"));
+					return;
+				}
+			}
+			
+			J("#detailEvalSummaryComment").val("");
+		}else if(J("#gbnId").val() == "02"){
+			//실적산식 입력 체크
+    		if(!actDetailSaveChk()) return;
+			
+			if(!J.checkLength("detailEvalSummaryComment", "세부평가요약", 1, 200)) {
+    			return;
+    		}
+			J("#actCalType").val("");
+		}
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#gbnId").attr("disabled", false);
+
+		if(J("#gbnId").val() == "02"){ //비계량지표일 경우
+    		J("#direcId").attr("disabled", false);
+    		J("#unit").attr("disabled", false);
+			
+			J("#actMethodArea00").remove();
+			J("#actMethodArea01").remove();
+			J("#actMethodArea02").remove();
+			J("#actMethodArea03").remove();
+			J("#actMethodArea04").remove();
+		}
+	
+		J("#actCalTypeTemplate").remove();
+		J("#actDetailTemplate").remove();
+		
+		if (J("#evalMethodId").val() == "03") {
+			J("#actMethodArea01").remove();
+			J("#actMethodArea02").remove();
+			J("#actMethodArea03").remove();
+			J("#actMethodArea04").remove();
+		} else if (J("#evalMethodId").val() == "06") {
+			J("#actMethodArea00").remove();
+			J("#actMethodArea02").remove();
+			J("#actMethodArea03").remove();
+			J("#actMethodArea04").remove();
+		} else if (J("#evalMethodId").val() == "04" || J("#evalMethodId").val() == "07") {
+			J("#actMethodArea00").remove();
+			J("#actMethodArea01").remove();
+			J("#actMethodArea03").remove();
+			J("#actMethodArea04").remove();
+		} else if (J("#evalMethodId").val() == "05") {
+			J("#actMethodArea00").remove();
+			J("#actMethodArea01").remove();
+			J("#actMethodArea02").remove();
+			J("#actMethodArea04").remove();
+		} else if (J("#evalMethodId").val() == "08") {
+			J("#actMethodArea00").remove();
+			J("#actMethodArea01").remove();
+			J("#actMethodArea02").remove();
+			J("#actMethodArea03").remove();
+		}
+		
+		setMetricDisabledNo(false);      
+		J("#form1").attr("action", "$!{context_path}/gov/bos/bosMetric/bosMetricProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 산식항목 입력 체크
+	 ******************************************/
+	function actCalTypeColSaveChk() {
+		var saveChk = true; 
+		
+		//단위 체크
+		J("select[name=units]", "#actCalTypeArea").each(function(index, item) {
+			if(J(item).val() == "") {
+				J.showMsgBox("단위를 입력해 주십시요", null, J('select[name=units]').eq(index));
+				saveChk = false;
+				return false;
+			}
+		});
+		
+		//산식항목명 체크
+		J("input[name=calTypeColNms]", "#actCalTypeArea").each(function(index, item) {
+			if(J(item).val() == "") {
+				J.showMsgBox("산식항목명을 입력해 주십시요", null, J('input[name=calTypeColNms]').eq(index));
+				saveChk = false;
+				return false;
+			}
+		});
+		
+		return saveChk;
+	}
+	
+	/******************************************
+	 * 비계량 입력 체크
+	 ******************************************/
+	function actDetailSaveChk() {
+		var saveChk = true; 
+		
+		//세부평가내용 체크
+		J("textarea[name^=detailEvalId]", "#actDetailArea").each(function(index, item) {
+			if(J(item).val() == "") {
+				J.showMsgBox("세부평가내용을 입력해 주십시요", null, J('textarea[name^=detailEvalId]').eq(index));
+				saveChk = false;
+				return false;
+			}
+		});
+		
+		J("textarea[name^=DETAIL]", "#actDetailArea").each(function(index, item) {
+			if(J(item).val() == "") {
+				J.showMsgBox("세부평가내용을 입력해 주십시요", null, J('textarea[name^=DETAIL]').eq(index));
+				saveChk = false;
+				return false;
+			}
+		});
+		
+		//평가착안사항 체크
+		J("textarea[name^=CONCEPT]", "#actDetailArea").each(function(index, item) {
+			if(J(item).val() == "") {
+				J.showMsgBox("평가착안사항을 입력해 주십시요", null, J('textarea[name^=CONCEPT]').eq(index));
+				saveChk = false;
+				return false;
+			}
+		});
+		
+		//담당자 체크
+		J("input[name^=USER]", "#actDetailArea").each(function(index, item) {
+			if(J(item).val() == "") {
+				J.showMsgBox("담당자를 선택해 주십시요", null, J('input[name^=USER]').eq(index));
+				saveChk = false;
+				return false;
+			}
+		});
+		
+		return saveChk;
+	}
+	
+	/******************************************
+	 * 평가방법 선택시 지표유형 변경
+	 ******************************************/
+	function chgMethod(){
+		if(J("#evalMethodId").val()!=""){
+    		if(J("#evalMethodId").val()=="01" || J("#evalMethodId").val()=="02"){
+    			J("#actDetailBtn").show();
+    			J("#actDetailArea").show();
+				J("#actDetailSum").show();
+				
+				//6등급, 9등급 비계량으로 셋팅 후 관련 disabled
+    			J("#gbnId option:eq(2)").attr("selected","selected");
+    			J("#direcId option:eq(0)").attr("selected","selected");
+    			J("#unit option:eq(0)").attr("selected","selected");
+    			J("#direcId, #gbnId, #unit").attr("disabled",true);
+    			
+    			J("#actCalTypeStr").hide();
+    			J("#actCalTypeArea").hide();
+    			
+    			J("#actMethodArea00").hide();
+    			J("#actMethodArea01").hide();
+    			J("#actMethodArea02").hide();
+    			J("#actMethodArea03").hide();
+    			J("#actMethodArea04").hide();
+    		}else{
+    			//계량으로 셋팅
+    			J("#gbnId option:eq(1)").attr("selected","selected");
+    			J("#gbnId").attr("disabled",true);
+    			J("#direcId, #unit").attr("disabled",false);
+    			
+    			J("#actDetailBtn").hide();
+    			J("#actDetailArea").hide();
+				J("#actDetailSum").hide();
+				
+				J("#actCalTypeStr").show();
+    			J("#actCalTypeArea").show();
+				
+    			if(J("#evalMethodId").val()=="03"){
+    				J("#actMethodArea00").show();
+    				J("#actMethodArea01").hide();
+    				J("#actMethodArea02").hide();
+    				J("#actMethodArea03").hide();
+    				J("#actMethodArea04").hide();
+    			}else if(J("#evalMethodId").val()=="06"){
+    				J("#actMethodArea00").hide();
+    				J("#actMethodArea01").show();
+    				J("#actMethodArea02").hide();
+    				J("#actMethodArea03").hide();
+    				J("#actMethodArea04").hide();
+    			}else if(J("#evalMethodId").val()=="04" || J("#evalMethodId").val()=="07"){
+    				J("#actMethodArea00").hide();
+    				J("#actMethodArea01").hide();
+    				J("#actMethodArea02").show();
+    				J("#actMethodArea03").hide();
+    				J("#actMethodArea04").hide();
+    			}else if(J("#evalMethodId").val()=="05"){
+    				J("#actMethodArea00").hide();
+    				J("#actMethodArea01").hide();
+    				J("#actMethodArea02").hide();
+    				J("#actMethodArea03").show();
+    				J("#actMethodArea04").hide();
+    			}else if(J("#evalMethodId").val()=="08"){
+    				J("#actMethodArea00").hide();
+    				J("#actMethodArea01").hide();
+    				J("#actMethodArea02").hide();
+    				J("#actMethodArea03").hide();
+    				J("#actMethodArea04").show();
+    			}
+    		}
+		}
+		
+	}
+	
+	/*****************************************************
+	 * 담당자 설정
+	 *****************************************************/ 
+	function setInsertUserInfo(arguments) {
+		J("#insertUserId").val(arguments[0]);
+		J("#insertUserNm").val(arguments[1]);
+		J.fancybox.close();
+	}
+	
+	/*****************************************************
+	 * 상위조직 팝업에서 조직선택 설정
+	 *****************************************************/ 
+	function setDeptInfoPop(scDeptId, scDeptNm) {
+		J("#scDeptId").val(scDeptId);				// 조직Tree에서 선택한 조직코드를 설정.
+		J("#scDeptNm").val(J(scDeptNm).text());		// 조직Tree에서 선택한 조직명을 설정.
+		J.fancybox.close();
+	}
+	
+	/*****************************************************
+	 * 산식입력기 팝업
+	 *****************************************************/ 
+	function popCalTypeCol() {
+		var actCalType = J("#actCalType").val();
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popCalTypeCol.vw?findYear=$!{searchMap.txt2html("year")}&amp;actCalType=" + actCalType);
+		J("#anchor").click();
+	}
+	
+	/******************************************
+	 * 실적산식 변경시 실적항목 변경
+	 ******************************************/
+	function checkModifyCalType() {
+		var actCalTypeNm = J("#actCalType").val();
+		
+		var str = actCalTypeNm.extChar().split("/").unique(); //산식 배열
+		var strSize = str.length - 1; //산식항목 개수
+		
+		var obj = J("#actCalTypeTB tbody tr");
+		var objSize = obj.length;
+		
+		//기존 산식항목 삭제
+		if(objSize > 3) { 
+    		for(var i = objSize - 2; i > 1; i--) {
+    			obj.eq(i).remove();
+    		}
+		}
+		
+		//신규 산식항목 설정
+		for(var i = 0; i < strSize; i++) {
+			J("#actCalTypeTemplate tr td:first span").text(str[i]);
+			J("#actCalTypeTemplate input[name=calTypeCols]").val(str[i]);
+			J("#actCalTypeTemplate tr").clone().insertBefore("#kpiActCalTypeNm");
+		}
+	}
+	
+	/******************************************
+	 * 세부평가내용 추가
+	 ******************************************/
+	var detailIndex = 0;
+	var conceptIndex = 0;
+	
+	function addDetail() {
+		var detail = J("#actDetailTemplate tr").clone();
+		
+		var id = "detailEvalId" + detailIndex;
+		var conceptId = "CONCEPT_" + id;
+		
+		detail.html("");
+		detail.html(detail.html() + "<td><input type='hidden' id='detailEvalIds' name='detailEvalIds' value='" + id + "'/><input type='checkbox' name='check' value='' title='선택'/></td>");
+		detail.html(detail.html() + "<td style='text-align:left'><textarea id='" + id + "' name='" + id + "' class='tabletext' title='세부평가내용' cols='' rows='3'></textarea></td>");
+		detail.html(detail.html() + "<td style='text-align:left'><div name='div_" + id + "' align='right'><input type='hidden' id='" + conceptId + "' name='" + conceptId + "' value='" + conceptId + "_" + conceptIndex +  "'/><textarea id='" + conceptId  + "_" + conceptIndex + "' name='" + conceptId  + "_" + conceptIndex + "' class='tabletext' title='평가착안사항' cols='' rows='3'></textarea><input type='image' onclick=\"javascript:addEvalConcept(this.parentNode, '" + id + "'); return false;\" src='$!{img_path}/btn_add2.gif' alt='추가' class='valign_middle' /></div></td>");
+		detail.html(detail.html() + "<td><input type='hidden' id='USER_" + id + "' name='USER_" + id + "'/><input type='text' id='detailUserNms' name='detailUserNms' class='inputbox w100 disable' maxlength='20' readonly='readonly'/> <input type='image' onclick='popInsertUser(this.parentNode.parentNode.rowIndex);return false;' class='valign_middle' src='$!{img_path}/common/board/ic_search.gif' alt='담당자선택'/> <input type='image' onclick='javascript:setInitUser(this.parentNode.parentNode.rowIndex);return false;' class='valign_middle' src='$!{img_path}/common/board/ic_cancel.gif' alt='담당자선택 취소'/></td>");
+		
+		detail.attr("id", "detail");
+		
+		detailIndex++;
+		conceptIndex++;
+		
+		detail.insertBefore("#actDetailList");
+		
+		chkByte();
+		chkByteEval();
+	}
+		
+	/******************************************
+	 * 세부평가내용 삭제
+	 ******************************************/
+	function delDetail() {
+	    var map = J("input[name=check]", "#actDetailArea");
+		var obj = J("#actDetailTB tbody tr");
+		
+		for(var i=0; i<map.length; i++){
+			if(map[i].checked){
+				obj.eq(i+1).remove();	
+			}
+		}
+	}
+	
+	/******************************************
+	 * 평가착안사항 추가
+	 ******************************************/
+	function addEvalConcept(obj, detailId) {
+		var concept = J("#evalConceptTemplate").clone();
+		var id = "CONCEPT_" + detailId;
+		
+		concept.attr("align", "right");
+		concept.html("");
+		concept.html(concept.html() + "<input type='hidden' id='" + id + "' name='" + id + "' value='" + id + "_" + conceptIndex + "'/>");
+		concept.html(concept.html() + "<textarea id='" + id + "_" + conceptIndex + "' name='" + id + "_" + conceptIndex + "' class='tabletext' title='평가착안사항' cols='' rows='3'></textarea>");
+		##concept.html(concept.html() + "<input type='image' onclick='javascript:addEvalConcept(this.parentNode, \"" + detailId + "\"); return false;' src='$!{img_path}/btn_add2.gif' alt='추가' class='valign_middle' />");
+		concept.html(concept.html() + "<input type='image' onclick='javascript:removeEvalConcept(this.parentNode); return false;' src='$!{img_path}/btn_del2.gif' alt='삭제' class='valign_middle' />");
+
+		conceptIndex++;
+		
+		concept.attr("id", "");
+		concept.attr("name", "div_" + detailId);
+		concept.attr("class", "");
+		
+		concept.insertAfter(J("div[name=div_" + detailId + "]:last"));
+	}
+
+	/******************************************
+	 * 평가착안사항 삭제
+	 ******************************************/
+	function removeEvalConcept(obj) {
+		obj.parentNode.removeChild(obj);
+	}
+	
+	/******************************************
+	 * 비계량 담당자 팝업
+	 ******************************************/
+	function popInsertUser(index) {
+		var index = J("#index").val(index);
+		
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popSearchUser.vw?findYear=$!{searchMap.txt2html("year")}&amp;callBack=setDetailUserInfo");
+		J("#anchor").click();
+	}
+	
+	/******************************************
+	 * 비계량 담당자 취소
+	 ******************************************/
+	function setInitUser(index) {
+		##J("input[name=detailUserIds]").eq(index-1).val("");
+		##J("input[name=detailUserNms]").eq(index-1).val("");
+		J("input[name^=USER]").eq(index-1).val("");
+		J("input[name=detailUserNms]").eq(index-1).val("");
+	}
+	
+	/*****************************************************
+	 * 비계량 담당자 설정
+	 *****************************************************/ 
+	function setDetailUserInfo(arguments) {
+		var index = J("#index").val();
+		##J("input[name=detailUserIds]").eq(index-1).val(arguments[0]);
+		##J("input[name=detailUserNms]").eq(index-1).val(arguments[1]);
+		J('input[name^="USER"]').eq(index-1).val(arguments[0]);
+		J("input[name=detailUserNms]").eq(index-1).val(arguments[1]);
+		J.fancybox.close();
+	}
+	
+	/*****************************************************
+	 * 지표 선택시 설정
+	 *****************************************************/ 
+	function setKpiSet(govMetricId, govMetricNm) {
+		J.fancybox.close();
+		J("#govMetricId").val(govMetricId);
+		J("#govMetricNm").val(govMetricNm);
+		
+		getMetricInfo();
+	}
+	
+	/******************************************
+	 * 정평지표 정보 가져오기
+	 ******************************************/
+	function getMetricInfo() {
+		var year 		= J("#year").val();
+		var govMetricId = J("#govMetricId").val();
+		
+		J.ajax({
+			url        : "$!{context_path}/gov/bos/bosMetric/govMetricInfo_ajax.vw",
+        	type       : "POST",
+			data       : "year=" + year + "&amp;govMetricId=" + govMetricId,
+        	dataType   : "xml",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success    : function (xml) {
+				var bossMetricNm 	= "";
+				var direcId 		= "";
+				var evalMethodId 	= "";
+				var gbnId			= "";
+        		var unit			= "";
+				var actCalType		= "";
+        		var insertUserId	= "";
+        		var insertUserNm	= "";
+        		var scDeptId		= "";
+        		var scDeptNm		= "";
+        		var weight			= "";
+        		var sortOrder		= "";
+        		var useYn			= "";
+        		var content			= "";
+				var baseValue		= "";
+				var bestTarget		= "";
+				var lowestTarget	= "";
+				var stadConst		= "";
+				
+				var lowestTarget3year	= "";
+				var bestTarget3year	= "";
+				var actual3year		= "";
+				var rateYear		= "";
+				
+				var detailEvalSummaryComment = "";
+				
+			
+				if(J(xml).find("items").find("item").length > 0) {
+					J(xml).find("items").find("item").each(function() {
+						bossMetricNm 	= J(this).find("govMetricNm").text();
+						direcId 		= J(this).find("direcId").text();
+						evalMethodId 	= J(this).find("evalMethodId").text();
+						gbnId 			= J(this).find("gbnId").text();
+						unit 			= J(this).find("unit").text();
+						actCalType 		= J(this).find("actCalType").text();
+						insertUserId 	= J(this).find("insertUserId").text();
+						insertUserNm 	= J(this).find("insertUserNm").text();
+						scDeptId 		= J(this).find("scDeptId").text();
+						scDeptNm 		= J(this).find("scDeptNm").text();
+						weight 			= J(this).find("weight").text();
+						sortOrder 		= J(this).find("sortOrder").text();
+						useYn 			= J(this).find("useYn").text();
+						content 		= J(this).find("content").text();
+						baseValue 		= J(this).find("baseValue").text();
+						bestTarget 		= J(this).find("bestTarget").text();
+						lowestTarget 	= J(this).find("lowestTarget").text();
+						stadConst 		= J(this).find("stadConst").text();
+						
+						lowestTarget3year	= J(this).find("lowestTarget3year").text();
+						bestTarget3year	= J(this).find("bestTarget3year").text();
+						actual3year 	= J(this).find("actual3year").text();
+						rateYear 		= J(this).find("rateYear").text();
+						
+						detailEvalSummaryComment = J(this).find("detailEvalSummaryComment").text();
+						
+						J("#bossMetricNm").val(bossMetricNm);
+						J("#direcId").val(direcId);
+						J("#evalMethodId").val(evalMethodId);
+						J("#gbnId").val(gbnId);
+						J("#unit").val(unit);
+						J("#actCalType").val(actCalType);
+						J("#insertUserId").val(insertUserId);
+						J("#insertUserNm").val(insertUserNm);
+						J("#scDeptId").val(scDeptId);
+						J("#scDeptNm").val(scDeptNm);
+						J("#weight").val(weight);
+						J("#sortOrder").val(sortOrder);
+						J("#useYn").val(useYn);
+						J("#content").val(content);
+						J("input[name=baseValue]").val(baseValue);
+						J("input[name=bestTarget]").val(bestTarget);
+						J("input[name=lowestTarget]").val(lowestTarget);
+						J("input[name=stadConst]").val(stadConst);
+						
+						J("input[name=lowestTarget3year]").val(lowestTarget3year);						
+						J("input[name=bestTarget3year]").val(bestTarget3year);						
+						J("input[name=actual3year]").val(actual3year);						
+						J("input[name=rateYear]").val(rateYear);						
+						
+						J("#detailEvalSummaryComment").val(detailEvalSummaryComment);
+						
+					});
+					
+					chgMethod();
+					if(gbnId=="01"){
+						checkModifyCalType();
+						var cnt = 0;
+                		J(xml).find("items").find("coldata").each(function() {
+							J('input[name=calTypeCols]').eq(cnt).val(J(this).find("colId").text());
+        					J('input[name=calTypeColNms]').eq(cnt).val(J(this).find("colNm").text());
+							J('select[name=units]').eq(cnt).val(J(this).find("colUnit").text());
+							
+							//J('input[name=calTypeColNms]').eq(cnt).attr("disabled", true);
+							//J('input[name=units]').eq(cnt).attr("disabled", true);
+							cnt++;
+						})
+					}else if(gbnId=="02"){
+						var map = J("input[name=check]", "#actDetailArea");
+        				J.each(map, function(key, value){
+            				J(value).attr("checked","checked");
+            			});	
+						delDetail();
+			
+						var cnt = 0;
+                		J(xml).find("items").find("detaildata").each(function() {
+							addDetail();
+							J('textarea[name=detailEvalContents]').eq(cnt).text(J(this).find("detailEvalContent").text());
+        					J('textarea[name=evalContents]').eq(cnt).text(J(this).find("evalContent").text());
+							J('input[name=detailUserIds]').eq(cnt).val(J(this).find("detailUserId").text());
+							J('input[name=detailUserNms]').eq(cnt).val(J(this).find("detailUserNm").text());
+							cnt++;
+						})
+						
+					}
+				}
+			},  
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+    	});
+		
+        setMetricDisabled(true);        		
+	}
+	
+	/******************************************
+	 * 정평지표 정보 DISABLED
+	 ******************************************/
+	function setMetricDisabled(gubun) {
+		var tGubun = gubun;
+		setTimeout(function(){
+    		J("#direcId").attr("disabled", tGubun);
+    		J("#evalMethodId").attr("disabled", tGubun);
+    		J("#gbnId").attr("disabled", tGubun);
+    		J("#unit").attr("disabled", tGubun);
+			
+			if(J("#gbnId").val()=="01"){
+				J("#actCalType").attr("disabled", tGubun);
+				
+				/*
+				J("input[name=baseValue]").attr("disabled", tGubun);
+				J("input[name=bestTarget]").attr("disabled", tGubun);
+				J("input[name=lowestTarget]").attr("disabled", tGubun);
+				J("input[name=stadConst]").attr("disabled", tGubun);
+				
+				J("input[name=lowestTarget3year]").attr("disabled", tGubun);
+				J("input[name=bestTarget3year]").attr("disabled", tGubun);
+				J("input[name=actual3year]").attr("disabled", tGubun);
+				J("input[name=rateYear]").attr("disabled", tGubun);
+				*/
+						
+				J('input[name=calTypeColNms]').attr("disabled", tGubun);
+				J('select[name=units]').attr("disabled", tGubun);
+				
+			}else{
+				J('textarea[name=detailEvalContents]').attr("disabled", tGubun);
+				J('textarea[name=evalContents]').attr("disabled", tGubun);
+							
+				J("#detailEvalSummaryComment").attr("disabled", tGubun);
+						
+			}
+		},500);
+	}
+	
+	/******************************************
+	 * 정평지표 정보 DISABLED
+	 ******************************************/
+	function setMetricDisabledNo(gubun) {
+		var tGubun = gubun;
+		J("#direcId").attr("disabled", tGubun);
+		J("#evalMethodId").attr("disabled", tGubun);
+		J("#gbnId").attr("disabled", tGubun);
+		J("#unit").attr("disabled", tGubun);
+		
+		if(J("#gbnId").val()=="01"){
+			J("#actCalType").attr("disabled", tGubun);
+			J("input[name=baseValue]").attr("disabled", tGubun);
+			J("input[name=bestTarget]").attr("disabled", tGubun);
+			J("input[name=lowestTarget]").attr("disabled", tGubun);
+			J("input[name=stadConst]").attr("disabled", tGubun);
+			
+			J("input[name=rateYear]").attr("disabled", tGubun);
+			J("input[name=actual3year]").attr("disabled", tGubun);
+			J("input[name=bestTarget3year]").attr("disabled", tGubun);
+			J("input[name=lowestTarget3year]").attr("disabled", tGubun);
+					
+			J('input[name=calTypeColNms]').attr("disabled", tGubun);
+			J('select[name=units]').attr("disabled", tGubun);
+			
+		}else{
+			J('textarea[name=detailEvalContents]').attr("disabled", tGubun);
+			J('textarea[name=evalContents]').attr("disabled", tGubun);
+						
+			J("#detailEvalSummaryComment").attr("disabled", tGubun);
+					
+		}
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/gov/bos/bosMetric/bosMetricProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden" 	id="index" 	 		name="index" />
+	$!{searchMap.makeHiddenFind()}
+	
+	<div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="기관장지표 등록">
+					<caption class="none">기관장지표 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="35%" />
+						<col width="15%" />
+						<col width="35%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+							<th scope="row"><label for="bossMetricId">평가지표코드</label></th>
+							<td>
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.BOSS_METRIC_ID)}
+									<input type="hidden" id="bossMetricId" name="bossMetricId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.BOSS_METRIC_ID)}" maxlength="7" readonly="readonly"/>
+								#else
+									<input type="hidden" id="bossMetricId" name="bossMetricId" class="inputbox w100" maxlength="7" />
+                                    ※ 저장시 자동으로 부여됩니다.
+								#end
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="evalCatGrpId">평가지표</label></th>
+							<td>
+								<input type="text" id="bossMetricNm" name="bossMetricNm" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.BOSS_METRIC_NM)}' maxlength="50"/>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="evalCatGrpId">평가범주</label></th>
+							<td>
+								<select id="evalCatGrpId" name="evalCatGrpId" class="select w160">
+    								<option value="">==선택==</option>
+									#foreach($evalCatGrpList in $evalCatGrpList)
+										<option value="$!{CS_HTML.txt2html($evalCatGrpList.EVAL_CAT_GRP_ID)}" $!{CS_HTML.getSelected($!{CS_HTML.txt2html($evalCatGrpList.EVAL_CAT_GRP_ID)}, $!{CS_HTML.txt2html($detail.EVAL_CAT_GRP_ID)})}>$!{CS_HTML.txt2html($evalCatGrpList.EVAL_CAT_GRP_NM)}</option>
+									#end
+    							</select>
+							</td>
+							<th scope="row"><label for="govMetricId">정평지표</label></th>
+							<td>
+								<input type="hidden" id="govMetricId" name="govMetricId" value="$!{CS_HTML.txt2html($detail.GOV_METRIC_ID)}" />
+								<input type="text" id="govMetricNm" name="govMetricNm" class="inputbox w200 disable" value='$!{CS_HTML.txt2html($detail.GOV_METRIC_NM)}' maxlength="50" readonly="readonly"/>
+								<a id="insertMetricSearch" href="$!{context_path}/gov/bos/bosMetric/popMetricSearch.vw?findYear=$!{searchMap.txt2html("year")}"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="정평지표선택" /></a> 
+								<a href="javascript:J.setInit('govMetricId','govMetricNm');"><img src="$!{img_path}/common/board/ic_cancel.gif" class="valign_middle" alt="정평지표선택 취소" /></a>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="direcId">지표방향성</label></th>
+							<td>
+								<select id="direcId" name="direcId" class="select w160" >
+									<option value="">==선택==</option>
+									$!CS_CODE.getCodeOption("147", $detail.DIREC_ID, $!{searchMap.txt2html("year")})
+								</select>
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="evalMethodId">평가방법</label></th>
+							<td>
+								<select id="evalMethodId" name="evalMethodId" class="select w160" onchange="chgMethod();">
+									<option value="">==선택==</option>
+									$!CS_CODE.getCodeOption("146", $detail.EVAL_METHOD_ID, $!{searchMap.txt2html("year")})
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="gbnId">지표유형</label></th>
+							<td>
+								<select id="gbnId" name="gbnId" class="select w160" >
+									<option value="">==선택==</option>
+									$!CS_CODE.getCodeOption("007", $detail.GBN_ID, $!{searchMap.txt2html("year")})
+								</select>
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="unit">단위</label></th>
+							<td>
+								<select id="unit" name="unit" class="select w160" >
+									<option value="">==선택==</option>
+									$!CS_CODE.getCodeOption("013", $detail.UNIT, $!{searchMap.txt2html("year")})
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="insertUserId">담당자</label></th>
+							<td>
+								<input type="hidden" id="insertUserId" name="insertUserId" class="inputbox w150" value="$!{CS_HTML.txt2html($detail.INSERT_USER_ID)}" />
+								<input type="text" id="insertUserNm" name="insertUserNm" class="inputbox w150 disable" value='$!{CS_HTML.txt2html($detail.INSERT_USER_NM)}' maxlength="20" readonly="readonly"/>
+								<a id="insertUserSearch" href="$!{context_path}/bsc/module/commModule/popSearchUser.vw?findYear=$!{searchMap.txt2html("year")}&amp;callBack=setInsertUserInfo"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="담당자선택" /></a> 
+								<a href="javascript:J.setInit('insertUserId','insertUserNm');"><img src="$!{img_path}/common/board/ic_cancel.gif" class="valign_middle" alt="담당자선택 취소" /></a>
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="scDeptId">주관부서</label></th>
+							<td>
+								<input type="hidden" id="scDeptId" name="scDeptId" value="$!{CS_HTML.txt2html($detail.SC_DEPT_ID)}" />
+    							<input type="text" id="scDeptNm" name="scDeptNm" class="inputbox w150 disable" value="$!{CS_HTML.txt2html($!{detail.SC_DEPT_NM})}" maxlength="20" readonly="readonly"/>
+    							<a id="icSearch" href="$!{context_path}/bsc/module/commModule/popScDeptTree.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;findSearchCodeId=$!{CS_HTML.txt2html($detail.SC_DEPT_ID)}">
+								<img src="$!{img_path}/common/board/ic_search.gif" id="icSearchImg" class="valign_middle" alt="부서선택" /></a> 
+    							<a href="javascript:J.setInit('scDeptId','scDeptNm');"><img src="$!{img_path}/common/board/ic_cancel.gif" id="icCancelImg" class="valign_middle" alt="부서선택 취소" /></a>
+                                <span id="upScDeptComment" style="color:red;"></span>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="weight">가중치</label></th>
+							<td>
+								<input type="text" id="weight" name="weight" class="inputbox w150" value='$!{CS_HTML.txt2html($detail.WEIGHT)}' maxlength="5"/>
+							</td>
+							<th scope="row"><label for="sortOrder">정렬순서</label></th>
+							<td>
+								<input type="text" id="sortOrder" name="sortOrder" class="inputbox w150" value='$!{CS_HTML.txt2html($detail.SORT_ORDER)}' maxlength="5"/>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="weight">사용여부</label></th>
+							<td colspan="3">
+								<select id="useYn" name="useYn" class="select w160" >
+    								$!CS_CODE.getCodeOption("011", $detail.USER_YN, $!{searchMap.txt2html("year")})	
+    							</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="content">지표정의</label></th>
+							<td colspan="3">
+								<textarea id="content" name="content" class="tabletext" title="지표정의" cols="" rows="5">$!{CS_HTML.txt2html($detail.CONTENT)}</textarea>
+								<span id="contentIndicator">0</span>/4000byte
+							</td>
+						</tr>
+					</tbody>
+    			</table>
+    		</div>
+			
+			<!-- 실적산식 -->
+			<span id="actCalTypeStr" class="none">※ $!{METRIC_NM}산식을 변경하시면, 산식항목을 새로 입력하셔야 합니다.</span>
+			<div id="actCalTypeArea" class="blockDetail2 none">
+    			<table id="actCalTypeTB" summary="산식항목 등록">
+    				<caption class="none">산식항목 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="65%" />
+						<col width="20%" />
+					</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row"><span class="txt_red">(*)</span><label for="actCalType">$!{METRIC_NM} 산식</label></th>
+    						<td colspan="3">
+								<input type="text" id="actCalType" name="actCalType" class="inputbox wp90" value='$!{CS_HTML.txt2html($detail.ACT_CAL_TYPE)}' maxlength="300" readonly="readonly"/>
+								<input type="image" onclick="javascript:popCalTypeCol();return false;" class="valign_middle" src="$!{img_path}/common/bt_05.gif" alt="산식입력"/>
+							</td>
+    					</tr>
+    					<tr id="actCalTypeList">
+    						<th scope="row">산식항목</th>
+    						<th scope="row"><span class="txt_red">(*)</span>산식항목명</th>
+							<th scope="row"><span class="txt_red">(*)</span>단위</th>
+						</tr>
+						
+                        #foreach($list in $calTypeColList)
+    						<tr>
+        						<td>
+									<span>$!{CS_HTML.txt2html($list.ACT_CAL_TYPE_COL_ID)}</span>
+									<input type="hidden" name="calTypeCols" class="inputbox wp90" value="$!{CS_HTML.txt2html($list.ACT_CAL_TYPE_COL_ID)}"/>
+								</td>
+        						<td>
+									<input type="text" name="calTypeColNms" class="inputbox wp90" value="$!{CS_HTML.txt2html($list.ACT_CAL_TYPE_COL_NM)}" maxlength="30" title="산식항목"/>
+								</td>
+    							<td>
+									<select name="units" class="select w90" title="단위">
+                                        <option value="">미지정</option>
+										$!CS_CODE.getCodeOption("013", $list.UNIT, $!{searchMap.txt2html("year")})
+									</select>
+								</td>
+    						</tr>
+                        #end
+						
+						<tr id="kpiActCalTypeNm">
+    						<th scope="row">$!{METRIC_NM} 산식명</th>
+							<td class="textLeft" colspan="3"><span>$!{calTypeColDesc}</span></td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		
+    		<div id="actMethodArea00" class="blockDetail none">
+    			<table summary="목표관리 등록">
+    				<caption class="none">목표관리 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+					</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row">목표</th>
+    						<td>
+								<input type="text" id="bestTarget" name="bestTarget" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.BEST_TARGET)}' maxlength="18" />
+							</td>
+    					</tr>
+					</tbody>
+    			</table>
+    		</div>
+			
+			<div id="actMethodArea01" class="blockDetail none">
+    			<table summary="목표관리 등록">
+    				<caption class="none">목표관리 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+					</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row"><span class="txt_red">(*)</span>기준치</th>
+    						<td>
+								<input type="text" id="baseValue" name="baseValue" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.BASE_VALUE)}' maxlength="18" />
+							</td>
+    					</tr>
+					</tbody>
+    			</table>
+    		</div>
+			
+			<div id="actMethodArea02" class="blockDetail none">
+    			<table summary="목표관리 등록">
+    				<caption class="none">목표관리 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="20%" />
+						<col width="15%" />
+    					<col width="20%" />
+						<col width="15%" />
+    					<col width="15%" />
+					</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row"><span class="txt_red">(*)</span>기준치</th>
+    						<td>
+								<input type="text" id="baseValue" name="baseValue" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.BASE_VALUE)}' maxlength="18" />
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span>최고목표</th>
+    						<td>
+								<input type="text" id="bestTarget" name="bestTarget" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.BEST_TARGET)}' maxlength="18" />
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span>최저목표</th>
+    						<td>
+								<input type="text" id="lowestTarget" name="lowestTarget" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.LOWEST_TARGET)}' maxlength="18" />
+							</td>
+    					</tr>
+					</tbody>
+    			</table>
+    		</div>
+			
+			<div id="actMethodArea03" class="blockDetail none">
+    			<table summary="목표관리 등록">
+    				<caption class="none">목표관리 등록</caption>
+    				<colgroup>
+    					<col width="12%" />
+    					<col width="13%" />
+						<col width="12%" />
+    					<col width="13%" />
+						<col width="12%" />
+    					<col width="13%" />
+						<col width="12%" />
+    					<col width="13%" />
+					</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row"><span class="txt_red">(*)</span>기준치</th>
+    						<td>
+								<input type="text" id="baseValue" name="baseValue" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.BASE_VALUE)}' maxlength="18" />
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span>최고목표</th>
+    						<td>
+								<input type="text" id="bestTarget" name="bestTarget" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.BEST_TARGET)}' maxlength="18" />
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span>최저목표</th>
+    						<td>
+								<input type="text" id="lowestTarget" name="lowestTarget" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.LOWEST_TARGET)}' maxlength="18" />
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span>표준편차</th>
+    						<td>
+								<input type="text" id="stadConst" name="stadConst" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.STAD_CONST)}' maxlength="18" />
+							</td>
+    					</tr>
+					</tbody>
+    			</table>
+    		</div>
+    		
+    		<div id="actMethodArea04" class="blockDetail none">
+    			<table summary="목표관리 등록">
+    				<caption class="none">목표관리 등록</caption>
+    				<colgroup>
+    					<col width="25%" />
+    					<col width="25%" />
+						<col width="25%" />
+    					<col width="25%" />
+					</colgroup>
+    				<tbody>
+    					<tr>
+							<th scope="row"><span class="txt_red">(*)</span>당년반영비중</th>
+    						<td>
+								<input type="text" id="rateYear" name="rateYear" class="inputbox w300" value='$!{CS_HTML.txt2html($detail.RATE_YEAR)}' maxlength="18" />
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span>3년평균실적</th>
+    						<td>
+								<input type="text" id="actual3year" name="actual3year" class="inputbox w300" value='$!{CS_HTML.txt2html($detail.ACTUAL_3YEAR)}' maxlength="18" />
+							</td>
+    					</tr>
+    					<tr>
+							<th scope="row"><span class="txt_red">(*)</span>최고목표</th>
+    						<td>
+								<input type="text" id="bestTarget" name="bestTarget" class="inputbox w300" value='$!{CS_HTML.txt2html($detail.BEST_TARGET)}' maxlength="18" />
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span>3년평균최고목표</th>
+    						<td>
+								<input type="text" id="bestTarget3year" name="bestTarget3year" class="inputbox w300" value='$!{CS_HTML.txt2html($detail.BEST_TARGET_3YEAR)}' maxlength="18" />
+							</td>
+    					</tr>
+    					<tr>
+							<th scope="row"><span class="txt_red">(*)</span>최저목표</th>
+							<td>
+								<input type="text" id="lowestTarget" name="lowestTarget" class="inputbox w300" value='$!{CS_HTML.txt2html($detail.LOWEST_TARGET)}' maxlength="18" />
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span>3년평균최저목표</th>
+    						<td>
+								<input type="text" id="lowestTarget3year" name="lowestTarget3year" class="inputbox w300" value='$!{CS_HTML.txt2html($detail.LOWEST_TARGET_3YEAR)}' maxlength="18" />
+							</td>
+    					</tr>
+					</tbody>
+    			</table>
+    		</div>
+    		
+			<div id="actDetailBtn" class="blockButton none"> 
+    			<ul>
+    				<li><input type="button" id="btnDetailAdd"   value="세부평가내용추가" /></li>
+    				<li><input type="button" id="btnDetailDel"   value="세부평가내용삭제" /></li>
+    			</ul>
+    		</div>
+			<br><br>
+			<div id="actDetailArea" class="blockDetail2 none">
+				<table id="actDetailTB" summary="세부평가내용 등록">
+    				<caption class="none">세부평가내용 등록</caption>
+    				<colgroup>
+    					<col width="5%" />
+						<col width="38%" />
+    					<col width="38%" />
+						<col width="19%" />
+					</colgroup>
+    				<tbody>
+    					<tr>
+							<th scope="row">&nbsp;&nbsp;<input type="checkbox"  id="checkAll" name="checkAll" title="전체선택"/></th>
+    						<th scope="row">세부평가내용</th>
+    						<th scope="row">평가착안사항</th>
+							<th scope="row">담당자</th>
+						</tr>
+						## 이전 row 의 detailEvalId
+						#set ($preDetailEvalId = "")
+						
+						#set ($detailEvalId = "") 
+						#set ($detailEvalNm = "")
+						#set ($conceptId = "")
+						#set ($conceptNm = "")
+						#set ($insertUserId = "")
+						#set ($insertUserNm = "")
+						
+						#set ($div = "")
+						
+						#set ($items = [])
+						#set ($detailEvalItems = [])
+						
+						#foreach($list in $detailEvalItemList)
+							#set ($isNew = ($preDetailEvalId == "" || $preDetailEvalId != $list.DETAIL_EVAL_ID))
+							
+							#if ($isNew)
+								#if ($preDetailEvalId != "")
+									#set($temp = $items.add($detailEvalId))
+        							#set($temp = $items.add($detailEvalNm))
+        							#set($temp = $items.add($conceptId))
+        							#set($temp = $items.add($conceptNm))
+        							#set($temp = $items.add($insertUserId))
+        							#set($temp = $items.add($insertUserNm))
+							
+									#set($temp = $items.add($div))
+									
+									#set($temp = $detailEvalItems.add($items))
+									
+									#set ($items = [])
+								#end
+							#end
+							
+							#set ($tmpDiv = "")
+							
+							#set ($tmpDiv = $tmpDiv + "<div name='div_$!{CS_HTML.txt2html($list.DETAIL_EVAL_ID)}' align='right'>")
+							#set ($tmpDiv = $tmpDiv + "		<input type='hidden' name='CONCEPT_$!{CS_HTML.txt2html($list.DETAIL_EVAL_ID)}' value='CONCEPT_$!{CS_HTML.txt2html($list.DETAIL_EVAL_ID)}_$!{CS_HTML.txt2html($list.CONCEPT_ID)}'/>")
+                            #set ($tmpDiv = $tmpDiv + "		<textarea name='CONCEPT_$!{CS_HTML.txt2html($list.DETAIL_EVAL_ID)}_$!{CS_HTML.txt2html($list.CONCEPT_ID)}' class='tabletext' title='평가착안사항' cols='' rows='3'>$!{CS_HTML.txt2html($list.CONCEPT_NM)}</textarea>")
+							#if (!$isNew)
+								#set ($tmpDiv = $tmpDiv + "		<input type='image' onclick='javascript:removeEvalConcept(this.parentNode); return false;' src='$!{img_path}/btn_del2.gif' alt='삭제' class='valign_middle' />")
+							#else
+								#set ($tmpDiv = $tmpDiv + "		<input type='image' onclick='javascript:addEvalConcept(this.parentNode, ${esc.getQ()}$!{CS_HTML.txt2html($list.DETAIL_EVAL_ID)}${esc.getQ()}); return false;' src='$!{img_path}/btn_add2.gif' alt='추가' class='valign_middle' />")
+							#end
+							#set ($tmpDiv = $tmpDiv + "</div>")
+							
+							#if ($isNew)
+								#set ($div = $tmpDiv)
+							#else
+								#set ($div = $div + $tmpDiv)
+							#end
+							
+							#set ($detailEvalId = $list.DETAIL_EVAL_ID) 
+    						#set ($detailEvalNm = $list.DETAIL_EVAL_NM)
+    						#set ($conceptId = $list.CONCEPT_ID)
+    						#set ($conceptNm = $list.CONCEPT_NM)
+    						#set ($insertUserId = $list.INSERT_USER_ID)
+    						#set ($insertUserNm = $list.INSERT_USER_NM)
+							
+							#set ($preDetailEvalId = $list.DETAIL_EVAL_ID)
+						#end
+						
+						#if ($detailEvalId != "")
+							#set($temp = $items.add($detailEvalId))
+							#set($temp = $items.add($detailEvalNm))
+							#set($temp = $items.add($conceptId))
+							#set($temp = $items.add($conceptNm))
+							#set($temp = $items.add($insertUserId))
+							#set($temp = $items.add($insertUserNm))
+							#set($temp = $items.add($div))
+							
+							#set($temp = $detailEvalItems.add($items))
+							
+							#set ($items = [])
+						#end
+						
+						#foreach($detailEvalItem in $detailEvalItems)
+						<tr>
+                            <td>
+								<input type="hidden" id="detailEvalIds" name="detailEvalIds" value="$!{CS_HTML.txt2html($detailEvalItem.get(0))}"/>
+								<input type="checkbox"  name="check"  value="" title="선택"/>
+                    		</td>
+                            <td style="text-align:left">
+								<textarea id="DETAIL_$!{CS_HTML.txt2html($detailEvalItem.get(0))}" name="DETAIL_$!{CS_HTML.txt2html($detailEvalItem.get(0))}" class="tabletext" title="세부평가내용" cols="" rows="4" style="resize:vertical;">$!{CS_HTML.txt2html($detailEvalItem.get(1))}</textarea>
+                    	    </td>
+                            <td style="text-align:left">
+								$detailEvalItem.get(6)
+                    	    </td>
+                    		<td>
+								<input type="hidden" id="USER_$!{CS_HTML.txt2html($detailEvalItem.get(0))}" name="USER_$!{CS_HTML.txt2html($detailEvalItem.get(0))}" value="$!{CS_HTML.txt2html($detailEvalItem.get(4))}"/>
+                    			<input type="text" id="detailUserNms" name="detailUserNms" class="inputbox w100 disable" maxlength="20" value="$!{CS_HTML.txt2html($detailEvalItem.get(5))}" readonly="readonly"/>
+                    			<input type="image" onclick="javascript:popInsertUser(this.parentNode.parentNode.rowIndex);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_search.gif" alt="담당자선택"/>
+                        		<input type="image" onclick="javascript:setInitUser(this.parentNode.parentNode.rowIndex);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_cancel.gif" alt="담당자선택 취소"/>
+                    		</td>
+                        </tr>
+                        #end
+						<tr id="actDetailList" class="none"></tr>
+					</tbody>
+    			</table>
+    		</div>
+			
+			<div id="actDetailSum" class="blockDetail none">
+    			<table summary="세부평가요약 등록">
+    				<caption class="none">세부평가요약 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+					</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row">세부평가요약</th>
+    						<td>
+								<input type="text" id="detailEvalSummaryComment" name="detailEvalSummaryComment" class="inputbox wp90" value="$!{CS_HTML.txt2html($detail.DETAIL_EVAL_SUMMARY_COMMENT)}" maxlength="200" />
+							</td>
+    					</tr>
+					</tbody>
+    			</table>
+    		</div>
+			
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+		<a id="anchor"></a>
+    	<div class="clear"></div>
+    </div>
+</form>
+
+<table id="actCalTypeTemplate" class="none" summary="산식항목">
+	<tr>
+        <td>
+			<span></span>
+			<input type="hidden" name="calTypeCols" class="inputbox wp90" value=""/>
+		</td>
+        <td>
+			<input type="text" name="calTypeColNms" class="inputbox wp90" value="" maxlength="30" title="산식항목"/>
+        </td>
+        <td>
+            <select name="units" class="select w90" title="단위">
+                <option value="">미지정</option>
+            	$!CS_CODE.getCodeOption("013", "", $!{searchMap.txt2html("year")})
+            </select>
+        </td>
+    </tr>
+</table>
+
+<table id="actDetailTemplate" class="none" summary="세부평가내용">
+	<tr>
+#*        
+		<td>
+			<input type="hidden" id="detailEvalIds" name="detailEvalIds"/>
+			<input type="checkbox"  name="check"  value="" title="선택"/>
+		</td>
+        <td style="text-align:left">
+			<textarea id="detailEvalContents" name="detailEvalContents" class="tabletext" title="세부평가내용" cols="" rows="3"></textarea>
+		</td>
+        <td style="text-align:left">
+            <textarea id="evalContents" name="evalContents" class="tabletext" title="평가착안사항" cols="" rows="3"></textarea>
+		</td>
+		<td>
+			<input type="hidden" id="detailUserIds" name="detailUserIds"/>
+			<input type="text" id="detailUserNms" name="detailUserNms" class="inputbox w100 disable" maxlength="20" readonly="readonly"/>
+			<input type="image" onclick="javascript:popInsertUser(this.parentNode.parentNode.rowIndex);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_search.gif" alt="담당자선택"/>
+    		<input type="image" onclick="javascript:setInitUser(this.parentNode.parentNode.rowIndex);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_cancel.gif" alt="담당자선택 취소"/>
+		</td>
+*#
+    </tr>
+</table>
+	
+<div id="evalConceptTemplate" class="none">
+</div>

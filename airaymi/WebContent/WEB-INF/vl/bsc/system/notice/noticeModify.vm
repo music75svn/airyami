@@ -1,0 +1,283 @@
+#*************************************************************************
+* CLASS 명      : noticeModify
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 6월 14일
+* 기    능      : 공지사항관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    김윤기      2012년 6월 14일             최 초 작 업
+**************************************************************************#
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/bsc/system/notice/noticeList.vw?type=template").submit();
+		});
+		#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#indicator"),
+			limit:3500
+		});
+		J("#content").trigger("keyup");
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+
+		/******************************************
+		 * 시작종료일자 클릭시 달력팝업 이벤트
+		 ******************************************/
+		J("#fromDt").datepicker({
+			dateFormat: 'yy.mm.dd'
+		});
+
+
+		J("#toDt").datepicker({
+			dateFormat: 'yy.mm.dd'
+		});
+
+		/******************************************
+		 * 신규로 입력할 때 팝업여부 예로 기본 체크
+		 ******************************************/
+		 if("ADD"=="$!{searchMap.txt2html("mode")}"){
+    		J("#popupGbn1").attr("checked","checked");
+		 }
+
+		/******************************************
+		 * 팝업 가로세로 길이는 숫자만 들어가도록 체크
+		 ******************************************/
+		J("#width").numeric();
+		J("#height").numeric();
+		J("#width").css("ime-mode","disabled");
+		J("#height").css("ime-mode","disabled");
+		#end
+	});
+
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+        var fileChk = true;
+
+		if(!J.checkLength("subject", "제목",1, 300)) {
+			return;
+		}
+
+		if(!J.checkLength("content", "공지내용",1, 3500)) {
+			return;
+		}
+
+		if (J("input[name='popupGbn']:checked").val() == undefined) {
+			J.showMsgBox("팝업사용여부를 선택해 주십시요", null, "popupGbn1");
+			return;
+		}
+
+		if(J("input[name='popupGbn']:checked").val()=="Y"){
+    		if(!J.checkLength("fromDt", "시작일자", 1, 10)) {
+    			return;
+    		}
+    		if(!J.checkLength("toDt", "종료일자", 1, 10)) {
+    			return;
+    		}
+    		if(!J.checkLength("width", "팝업가로", 1, 5)) {
+    			return;
+    		}
+    		if(!J.checkLength("height", "팝업세로", 1, 5)) {
+    			return;
+    		}
+
+		}
+
+        //첨부파일 확장자 체크
+        J(":file", "#form1").each(function(index, item) {
+            var fileFullName = J("input[name=" + item.name + "]").val();
+            var src = getFileExtension(fileFullName);
+
+            if (!((src.toLowerCase() == "xls") || (src.toLowerCase() == "xlsx") || (src.toLowerCase() == "ppt") || (src.toLowerCase() == "pptx")||
+                  (src.toLowerCase() == "doc") || (src.toLowerCase() == "docx") || (src.toLowerCase() == "hwp") || (src.toLowerCase() == "pdf") ||
+                  (src.toLowerCase() == "zip") || (src.toLowerCase() == "txt")  || (src.toLowerCase() == "gif") || (src.toLowerCase() == "jpg") ||
+                  (src.toLowerCase() == "png") || (src.toLowerCase() == "png")
+                )) {
+
+                fileChk = false;
+            }
+        });
+
+        if(fileChk == false) {
+            J.showMsgBox("허용되지 않는 파일형식입니다<br/>허용되는 파일형식 : <br/>xls, xlsx, ppt, pptx, doc, docx, hwp <br/> pdf, zip, txt, gif, jpg, png, jpeg", null, null);
+            return;
+        }
+
+		document.charset='utf-8';
+
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#fromDt").val((J("#fromDt").val().replace(/[.]/g, "")));
+		J("#toDt").val((J("#toDt").val().replace(/[.]/g, "")));
+		J("#form1").attr("action", "$!{context_path}/bsc/system/notice/noticeProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 파일추가
+	 ******************************************/
+	var fileIndex = 0;
+
+	function fileAttachAdd() {
+		J("#fileAttach").append("<li id=\"fileRow" + fileIndex + "\"><input type=\"file\" name=\"file" + fileIndex + "\" class=\"input\" size=\"70\" /> <input type=\"button\" value=\"삭제\" onclick=\"deleteRow(" + fileIndex + ")\" class=\"input\" size=\"70\"></li>");
+		fileIndex++;
+	}
+
+	/******************************************
+	 * 파일삭제
+	 ******************************************/
+	function deleteRow(fileIndex)	{
+    	J("#fileRow" + fileIndex).remove();
+    }
+
+
+//]]>
+</script>
+
+<form id="form1" name="form1" method="post" enctype="multipart/form-data" action="$!{context_path}/bsc/system/notice/noticeProcess.vw?type=template">
+    <input type="hidden"		id="mode"			name="mode"			value="$!{searchMap.txt2html("mode")}" />
+    <input type="hidden"		id="id"				name="id"			value="$!{detail.ID}" />
+
+    $!{searchMap.makeHiddenFind()}
+
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+    		<div class="blockDetail">
+    			<table summary="공지사항관리 등록">
+					<caption class="none">공지사항관리 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+						#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+    					<tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="subject">제목</label></th>
+                            <td>
+                            	<input type="text" id="subject" name="subject" class="inputbox w300" value='$!{CS_HTML.txt2html($detail.SUBJECT)}'/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="content">공지내용</label></th>
+                            <td>
+                                <textarea id="content" name="content" class="tabletext" title="공지내용" cols="" rows="10" value='$!{CS_HTML.txt2html($detail.CONTENT)}'>$!{CS_HTML.txt2html($detail.CONTENT)}</textarea>
+                                <span id="indicator">0</span>/3500byte
+                            </td>
+                        </tr>
+						#else
+						<tr>
+                            <th scope="row"><label for="subject">제목</label></th>
+                            <td>$!{CS_HTML.txt2html($detail.SUBJECT)}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="content">공지내용</label></th>
+                            <td>
+                                <textarea id="content" name="content" class="tabletext" title="공지내용" cols="" rows="10" value='$!{CS_HTML.txt2html($detail.CONTENT)}' readonly="readonly">$!{CS_HTML.txt2html($detail.CONTENT)}</textarea>
+                            </td>
+                        </tr>
+						#end
+						#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+                        <tr>
+                            <th scope="row">팝업사용여부<label for="popupGbn"></label></th>
+                            <td>
+    	                        <input type="radio" id="popupGbn1" name="popupGbn" value="Y"  $!{CS_HTML.getChecked("Y", $!detail.POPUP_GBN)} /> 예 &nbsp;&nbsp;&nbsp;
+    	                        <input type="radio" id="popupGbn2" name="popupGbn" value="N"  $!{CS_HTML.getChecked("N", $!detail.POPUP_GBN)} /> 아니오
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="fromDt">팝업시작일자</label></th>
+                            <td>
+                            	<input type="text" id="fromDt" name="fromDt" class="inputbox w100" value='$!{CS_FORMAT.dateFormat($detail.FROM_DT)}' maxlength="20" readonly />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="toDt">팝업종료일자</label></th>
+                            <td>
+                            	<input type="text" id="toDt" name="toDt" class="inputbox w100" value="$!{CS_FORMAT.dateFormat($detail.TO_DT)}" maxlength="20"  readonly />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="width">팝업가로</label></th>
+                            <td>
+                            	<input type="text" id="width" name="width" class="inputbox w100" value="$!{detail.WIDTH}" maxlength="20" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="height">팝업세로</label></th>
+                            <td>
+                            	<input type="text" id="height" name="height" class="inputbox w100" value="$!{detail.HEIGHT}" maxlength="20" />
+                            </td>
+                        </tr>
+						#end
+                        <tr>
+							<th scope="row"><label for="attach">첨부파일</label></th>
+							<td colspan="3">
+								#foreach($fileList in $fileList)
+									$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))}
+									#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+									&nbsp;&nbsp;<input type="checkbox" name="delAttachFiles" id="delAttachFile$!{fileList.get("SEQ")}" value="$!{fileList.get("SEQ")}" />&nbsp;<label for="delAttachFile$!{fileList.get("SEQ")}">첨부파일 삭제</label> <br/>
+									#end
+								#end
+								<br/>
+								#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+								<a href="javascript:fileAttachAdd();"><img src="$!{img_path}/common/btn_file.gif" class="valign_middle" alt="파일추가" /></a>&nbsp;(첨부파일 용량제한은 100M입니다)<br/>
+								#end
+								<div>
+									<ul id="fileAttach">
+									</ul>
+								</div>
+							</td>
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton">
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+					#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+					#end
+    			</ul>
+    		</div>
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

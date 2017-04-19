@@ -1,0 +1,332 @@
+#*************************************************************************
+* CLASS 명      : empEvalConReportModify
+* 작 업 자      : 심준혁 
+* 작 업 일      : 2014년 12월 22일 
+* 기    능      : 업무성과기술서    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    심준혁      2014년 12월 22일             최 초 작 업 
+**************************************************************************# 
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+    var J = jQuery;
+
+    J(document).ready(function(){
+    
+    	/******************************************
+         * 테이블 rowspan(소타이틀)
+         ******************************************/
+		#set($listSize = $!{CS_HTML.txt2html($rptDetail.size())})
+		var size = $listSize +1;
+		#if($listSize == 0)
+		J("#smallTitle").attr('rowspan', "2");
+		#else
+		J("#smallTitle").attr('rowspan', size);
+		#end
+    
+        /******************************************
+         * 취소버튼 (돌아가기)
+         ******************************************/
+        J("#btnBack").click(function() {
+            J("#form1").attr("action", "$!{context_path}/prs/evalCon/empEvalConReport/empEvalConReportList.vw?type=template").submit();
+        });
+        
+        /******************************************
+         * 저장버튼 이벤트
+         ******************************************/
+        J("#btnInsert").click(function(e) {
+            e.preventDefault();
+            saveChk();
+        });
+        
+        /******************************************
+         * 저장버튼 이중 클릭 방지
+         ******************************************/
+        J("form").submit(function(){
+            J("#btnInsert").unbind();
+        });
+        
+        
+        /******************************************
+         * 신규 등록
+         ******************************************/
+        J("#btnAdd").click(function() {
+            J("#year").val(J("#findYear").val());
+            J("#mode").val("ADD");
+            J("#form1").attr("action", "$!{context_path}/prs/evalCon/empEvalConReport/empEvalConReportMetricModify.vw?type=template").submit();
+        });
+        
+        /******************************************
+         * 삭제버튼 이벤트
+         ******************************************/
+        J("#btnDelete").click(function(e) {
+            e.preventDefault();
+            delChk();
+        });
+        
+
+
+    });
+
+    /******************************************
+     * 필수입력 체크
+     ******************************************/
+    function saveChk() {
+    
+        J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+    }
+    
+    /******************************************
+     * 저장
+     ******************************************/
+    function saveDo() {
+        J("#form1").attr("action", "$!{context_path}/prs/evalCon/empEvalConReport/empEvalConReportProcess.vw?type=template").submit();
+    }
+    
+    /******************************************
+     * 필수입력 체크
+     ******************************************/
+    function delChk() {
+    	var ids = $listSize;
+    	var chkCount = 0;
+    	
+    	for(var i = 0; i < ids; i++){
+    		if(ids == 1){
+				if(form1.chk.checked){
+					chkCount = chkCount + 1;
+				}
+    		}else{
+    			if(form1.chk[i].checked){
+					chkCount = chkCount + 1;
+				}
+    		}
+		}
+		
+		if(chkCount == 0){
+			alert("삭제할 대상을 선택해 주세요.");
+			return;
+		}
+    
+        J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+    }
+    
+    /******************************************
+     * 삭제처리
+     ******************************************/
+    function deleteDo() {
+        var ids = $listSize;
+        var rowdata = "";
+        var metricIds = "";
+        
+        if(ids == 1){
+        	metricIds += form1.chk.value  + '|';
+		}else if(ids > 1){
+			for(var i = 0; i < ids; i++){
+				if(form1.chk[i].checked){
+					metricIds += form1.chk[i].value  + '|';
+				}
+			}
+		}
+		
+		J("#metricIds").val(metricIds);
+        J("#mode").val("METRICDEL");
+        J("#year").val(J("#findYear").val());
+        J("#form1").attr("action", "$!{context_path}/prs/evalCon/empEvalConReport/empEvalConReportProcess.vw?type=template").submit();
+        return false;
+    }
+    
+    /******************************************
+	 * 파일추가
+	 ******************************************/
+	var fileIndex = 0;
+	
+	function fileAttachAdd() {
+		J("#fileAttach").append("<li id=\"fileRow" + fileIndex + "\"><input type=\"file\" name=\"file" + fileIndex + "\" class=\"input\" size=\"70\" /> <input type=\"button\" value=\"삭제\" onclick=\"deleteRow(" + fileIndex + ")\" class=\"input\" size=\"70\"></li>");
+		fileIndex++;
+	}
+	
+	function deleteRow(fileIndex)	{
+    	J("#fileRow" + fileIndex).remove();
+    }
+    
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" enctype="multipart/form-data" action="$!{context_path}/prs/evalCon/empEvalConReport/empEvalConReportProcess.vw?type=template">
+    <input type="hidden"     id="mode"            name="mode"              value="ADD" />
+    <input type="hidden"     id="year"            name="year"              value="$!{searchMap.txt2html("findYear")}" />
+    <input type="hidden"     id="listSize"        name="listSize"          value="$!{searchMap.txt2html("listSize")}" />
+    <input type="hidden"     id="metricIds"       name="metricIds"         value="$!{searchMap.txt2html("metricIds")}" />
+
+    $!{searchMap.makeHiddenFind()}
+    
+    <div id="Table">
+        <div id="Table_blockContainer">
+            <div class="tableTop">
+                #parse("/WEB-INF/vl/common/template/tabs.vm")
+                <div class="clear"></div>
+            </div>
+            <div class="tableTop">
+                <div class="clear"></div>
+            </div>
+            <div class="blockDetail">
+		    <table summary="자기평가기술서 관리 등록">
+		        <caption class="none">자기평가기술서 관리 등록</caption>
+		        <colgroup>
+		            <col width="10%" />
+		            <col width="30%" />
+		            <col width="10%" />
+		            <col width="20%" />
+		            <col width="10%" />
+		            <col width="20%" />
+		        </colgroup>
+		       <tbody>
+		       	<tr>
+		            <th colspan="6" scope="row" class="textCenter"><span>$!{CS_HTML.txt2html($rpt.YEAR)} 년도 직원 업무 성과 기술서</span></td>
+		        </tr>
+				<tr>
+		            <th scope="row"><label for="posTcNm">소속부서</label></th>
+		            <td>
+		            	<span>$!{CS_HTML.txt2html($rpt.DEPT_FULL_NM)}</span>
+		            	<input type="hidden" id="deptCd" name="deptCd" value="$!{CS_HTML.txt2html($rpt.DEPT_CD)}">
+		            </td>
+		            <th scope="row" rowspan="2"><label for="korNm">직급(직위)</label></th>
+		            <td rowspan="2"><span>$!{CS_HTML.txt2html($rpt.CAST_TC_NM)}($!{CS_HTML.txt2html($rpt.POS_TC_NM)})</span></td>
+		            <th scope="row" rowspan="2"><label for="deptKorNm">성명</label></th>
+		            <td rowspan="2">
+		            	<span>$!{CS_HTML.txt2html($rpt.KOR_NM)}</span>
+		            	<input type="hidden" id="evalMembEmpn" name="evalMembEmpn" value="$!{CS_HTML.txt2html($rpt.EMPN)}">
+		            </td>
+		        </tr>
+				<tr>
+					<th scope="row"><label for="approveUserNm">현부서전입일</label></th>
+		            <td><span>$!{CS_HTML.txt2html($rpt.MIN_DUTY_FROM_DT)}</span></td>
+		        </tr>
+				<tr>
+		            <th scope="row"><label for="approveUserNm">직무 수행기간</label></th>
+		            <td colspan="5">
+		            	<span>$!{CS_HTML.txt2html($rpt.DUTY_FROM_DT)} ~ $!{CS_HTML.txt2html($rpt.DUTY_END_DT)}</span>
+		            	<input type="hidden"     id="dutyFromDt"      name="dutyFromDt"         value="$!{CS_HTML.txt2html($rpt.FROM_DT)}" />
+    					<input type="hidden"     id="dutyEndDt"       name="dutyEndDt"          value="$!{CS_HTML.txt2html($rpt.END_DT)}" />
+		            </td>
+		        </tr>
+		    </tbody>
+		    </table>
+		    </div>
+            <div class="blockDetail">
+                <table summary="성과계획 및 실적">
+					<caption class="none">성과계획 및 실적</caption>
+					<colgroup>
+						<col width="3%" />
+						<col width="15%" />
+						<col width="30%" />
+						<col width="15%" />
+						<col width="5%" />
+						<col width="7%" />
+						<col width="5%" />
+						<col width="5%" />
+						<col width="5%" />
+						<col width="5%" />
+					</colgroup>
+					<tbody>
+						 <tr>
+						 	<th scope="row" class="textCenter"><label for="metricId"></label></th>
+		                    <th scope="row" class="textCenter"><label for="directionCd">지표구분</label></th>
+		                    <th scope="row" class="textCenter"><label for="metricGubun">지표명</label></th>
+		                    <th scope="row" class="textCenter"><label for="directionNm">지표특성</label></th>
+							<th scope="row" class="textCenter"><label for="metricNm">단위</label></th>
+							<th scope="row" class="textCenter"><label for="targetValue">목표</label></th>
+							<th scope="row" class="textCenter"><label for="unitNm">실적</label></th>
+							<th scope="row" class="textCenter"><label for="value">달성도</label></th>
+		                 </tr>
+						  #if($!{CS_HTML.txt2html($rptDetail.size())} == 0)
+		                     <tr class="textCenter"><td colspan="8">입력된 데이터가 없습니다.</td></tr>
+						  #else
+						  #foreach($rptDetail in $rptDetail)
+						 <tr>
+						 	<td class="textCenter"><input type="checkbox" id="chk" name="chk" value="$!{CS_HTML.txt2html($rptDetail.METRIC_ID)}"></td>
+		                    <td align="center">$!{CS_HTML.txt2html($rptDetail.METRIC_GUBUN_NM)}</td>
+		                    <td>$!{CS_HTML.txt2html($rptDetail.METRIC_NM)}</td>
+		                    <td align="center">$!{CS_HTML.txt2html($rptDetail.DIRECTION_NM)}</td>
+		                    <td>$!{CS_HTML.txt2html($rptDetail.UNIT)}</td>
+		                    <td>$!{CS_HTML.txt2html($rptDetail.TARGET_VALUE)}</td>
+		                    <td>$!{CS_HTML.txt2html($rptDetail.VALUE)}</td>
+		                    <td>$!{CS_HTML.txt2html($rptDetail.SCORE)}</td>
+		                 </tr>
+						 #end
+		    			 #end
+		    		</tbody>
+				</table>
+				</div>
+				<!--
+				<div class="blockButton">
+					<br/> 
+	                <ul>
+	                    <li><input type="button" id="btnAdd"   value="추가" /></li>
+	                    <li><input type="submit" id="btnDelete" value="삭제" /></li>
+	                </ul>
+	                <br/>
+	            </div>
+	            -->
+				<div class="blockDetail">
+                <table summary="주요내용">
+                	<tbody>
+		    			<tr>
+							<th colspan="8" scope="row" class="textCenter"><br/>1. 개인 고유지표 달성노력<br/></th>
+						</tr>
+						<tr>
+						 </tr>
+							<th class="textCenter" scope="row" width="20%">주요내용</th>
+							<td colspan="7" width="80%">
+								<textarea id="content" name="content" class="tabletext" title="개인 고유지표 달성노력" cols="" rows="10">$!{CS_HTML.txt2html($rpt.CONTENT)}</textarea>
+							</td>							
+						</tr>
+						<tr>
+							<th colspan="8" scope="row" class="textCenter"><br/>2. 부서 협업 수행노력<br/></th>
+						</tr>
+						<tr>
+							<th class="textCenter" scope="row" width="20%">주요내용</th>
+							<td colspan="7" width="80%">
+								<textarea id="content" name="content3" class="tabletext" title="부서 협업 수행노력" cols="" rows="10">$!{CS_HTML.txt2html($rpt.CONTENT3)}</textarea>
+							</td>							
+						</tr>
+						<tr>
+							<th colspan="8" scope="row" class="textCenter"><br/>3. 부서 전략지표 달성노력 (지역본부 지사는 작성 제외)<br/></th>
+						</tr>
+						<tr>
+							<th class="textCenter" scope="row" width="20%">주요내용</th>
+							<td colspan="7" width="80%">
+								<textarea id="content" name="content2" class="tabletext" title="부서 전략지표 달성노력" cols="" rows="10">$!{CS_HTML.txt2html($rpt.CONTENT2)}</textarea>
+							</td>							
+						</tr>
+						<tr>
+    						<th class="textCenter" scope="row"><label for="bbs_file">첨부파일</label></th>
+    						<td>
+								#foreach($fileList in $fileList)
+									$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))} 
+									&nbsp;&nbsp;<input type="checkbox" name="delAttachFiles" id="delAttachFile$!{fileList.get("SEQ")}" value="$!{fileList.get("SEQ")}" />&nbsp;<label for="delAttachFile$!{fileList.get("SEQ")}">첨부파일 삭제</label> <br/>
+								#end
+								<a href="javascript:fileAttachAdd();"><img src="$!{img_path}/common/btn_file.gif" class="valign_middle" alt="파일추가" /></a>&nbsp;(첨부파일 용량제한은 100M입니다)<br/>
+								<div>
+									<ul id="fileAttach">
+									</ul>
+								</div>
+							</td>
+    					</tr> 
+					</tbody>
+				</table>
+            </div>
+            <div class="blockButton"> 
+                <ul>
+                	<li><input type="button" id="btnAdd"   value="지표추가" /></li>
+	                <li><input type="submit" id="btnDelete" value="지표삭제" /></li>
+                    <li><input type="button" id="btnBack"   value="돌아가기" /></li>
+                    <li><input type="submit" id="btnInsert" value="저장" /></li>
+                </ul>
+            </div>    
+        </div>
+        <div class="clear"></div>
+    </div>
+</form>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="com.lexken.framework.scDeptUtil">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	<typeAlias alias="string" 			type="java.lang.String" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 성과조직 년도 정보 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getYearList" resultClass="hashMap">
+		SELECT YEAR, COUNT(*) AS SC_DEPT_COUNT
+		FROM BSC_SC_DEPT
+		WHERE DELETE_DT IS NULL
+		GROUP BY YEAR
+		ORDER BY YEAR
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 성과조직  정보 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="string" resultClass="hashMap">
+		SELECT YEAR, SC_DEPT_ID, SC_DEPT_NM, SC_DEPT_S_NM, UP_SC_DEPT_ID, LEVEL_ID, SC_DEPT_GRP_ID, BSC_USER_ID, MANAGER_USER_ID, SORT_ORDER, DEPT_KIND
+		FROM BSC_SC_DEPT
+		WHERE YEAR = #value#
+		  AND DELETE_DT IS NULL
+		ORDER BY LEVEL_ID, SORT_ORDER, SC_DEPT_ID
+	</select>
+
+
+</sqlMap>

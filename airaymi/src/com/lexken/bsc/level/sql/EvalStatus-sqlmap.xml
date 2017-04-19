@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.level.evalStatus">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.EVAL_USER_GRP_ID
+		     , A.EVAL_USER_ID
+		     , B.DEPT_NM
+		     , B.USER_NM 
+		     , B.POS_NM
+		     , B.EMAIL
+		     , NVL(A.EVAL_SUBMIT_YN, 'N') AS EVAL_SUBMIT_YN
+		     , F_CODE_NM('143', NVL(A.EVAL_SUBMIT_YN, 'N'), A.YEAR) AS EVAL_SUBMIT_YN_NM
+		     , C.EVAL_USER_GRP_NM
+		FROM BSC_LEVEL_EVAL_USER A
+		         LEFT OUTER JOIN V_ROLE_USER B ON A.EVAL_USER_ID = B.USER_ID
+		         INNER JOIN BSC_LEVEL_EVAL_USER_GRP C ON A.YEAR = C.YEAR AND A.EVAL_USER_GRP_ID = C.EVAL_USER_GRP_ID
+		WHERE A.YEAR = #findYear#
+		  AND A.EVAL_USER_GRP_ID = #findEvalUserGrpId#
+		  
+		<dynamic>
+       		<isNotEmpty property="findEvalSubmitYn" prepend="AND">
+       			NVL(A.EVAL_SUBMIT_YN, 'N') = #findEvalSubmitYn#
+       		</isNotEmpty>
+       	</dynamic>
+       	
+		ORDER BY B.USER_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군 마감정보 조회
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getEvalStatusInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR                  
+		     , A.EVAL_USER_GRP_ID      
+		     , A.EVAL_USER_GRP_NM          
+		     , NVL(A.EVAL_CLOSING_YN, 'N') AS EVAL_CLOSING_YN  
+		     ,(SELECT COUNT(*) 
+                 FROM BSC_LEVEL_EVAL_USER B
+                WHERE A.YEAR=B.YEAR      
+                  AND A.EVAL_USER_GRP_ID=B.EVAL_USER_GRP_ID
+               ) USER_CNT
+             ,(SELECT COUNT(*) 
+                 FROM BSC_LEVEL_EVAL_USER B
+                WHERE A.YEAR=B.YEAR      
+                  AND A.EVAL_USER_GRP_ID=B.EVAL_USER_GRP_ID
+                  AND B.EVAL_SUBMIT_YN='Y') SUBMIT_CNT
+		  FROM BSC_LEVEL_EVAL_USER_GRP A
+		 WHERE A.YEAR = #findYear#
+		   AND A.EVAL_USER_GRP_ID = #findEvalUserGrpId#
+	</select>	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가단 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_EVAL_USER_GRP
+	==================================================================
+	-->
+	<select id="getEvalUserGrpList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT EVAL_USER_GRP_ID
+		     , EVAL_USER_GRP_NM
+		  FROM BSC_LEVEL_EVAL_USER_GRP
+		 WHERE YEAR = #findYear#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가마감
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_LEVEL_EVAL_USER_GRP
+	==================================================================
+	-->	
+	<insert id="closeData" parameterClass="hashMap">
+		UPDATE BSC_LEVEL_EVAL_USER_GRP
+		   SET EVAL_CLOSING_YN = #closeYn#
+	     WHERE YEAR = #year#
+	       AND EVAL_USER_GRP_ID = #evalUserGrpId#
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->		
+	<parameterMap id="paramMap" class="java.util.HashMap">
+		<parameter property="year" 				jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>	
+		<parameter property="evalUserGrpId" 	jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가마감 실행
+	  #	기능	: PROCEDURES
+	  #	TABLE	: 
+	==================================================================
+	-->		
+	<procedure id="execData" parameterMap="paramMap">  
+		{CALL SP_BSC_LEVEL_SCORE(?, ?)}
+	</procedure>
+	
+	
+</sqlMap>
+
+

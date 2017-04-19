@@ -1,0 +1,406 @@
+#*************************************************************************
+* CLASS 명      : evalUserGrpMappingEvalItemList
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 11월 30일
+* 기    능      : 평가단별 지표/항목 매핑
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     정철수      2012년 11월 30일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/impon/evalUserGrpMappingEvalItem/evalUserGrpMappingEvalItemList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/impon/evalUserGrpMappingEvalItem/evalUserGrpMappingEvalItemList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도'
+						 , '평가구분 코드', '평가구분'
+						 , '평가단 코드', '평가단'
+						 , '평가대상지표POOL ID', '평가대상지표POOL'
+						 , '매핑여부', '평가대상 구분'
+						 , '평가조직', '평가방법 코드', '평가방법', '평가방법 구분 코드', '이전차수반영'
+						 , 'EUG_ROWSPAN_CNT', 'EUG_ROWSPAN_IDX', 'MG_ROWSPAN_CNT', 'MG_ROWSPAN_IDX'
+						 ],
+			colModel     :[
+							{name:'YEAR'                 ,index:'YEAR'                 ,width:999   ,align:'center' },
+                            {name:'EVAL_DEGREE_ID'       ,index:'EVAL_DEGREE_ID'       ,width:999   ,align:'center' },
+							{name:'EVAL_DEGREE_NM'     	 ,index:'EVAL_DEGREE_NM'       ,width:999   ,align:'center' },
+							{name:'EVAL_USER_GRP_ID'     ,index:'EVAL_USER_GRP_ID'     ,width:999   ,align:'center' },
+                            {name:'EVAL_USER_GRP_NM'     ,index:'EVAL_USER_GRP_NM'     ,width:100   ,align:'center' ,cellattr: attrEUGSetting },
+                            {name:'METRIC_GRP_ID'        ,index:'METRIC_GRP_ID'        ,width:999   ,align:'center' },
+                            {name:'METRIC_GRP_NM'        ,index:'METRIC_GRP_NM'        ,width:250   ,align:'left'   ,cellattr: attrMGSetting ,formatter:linkMappingUpdate},
+                            {name:'MAPPING_YN'           ,index:'MAPPING_YN'           ,width:999   ,align:'center' },
+							{name:'ITEM_GBN'             ,index:'ITEM_GBN'             ,width:999   ,align:'center' },
+                            {name:'EVAL_ITEM_NM'         ,index:'EVAL_ITEM_NM'         ,width:250   ,align:'left' },
+                            {name:'EVAL_METHOD_ID'       ,index:'EVAL_METHOD_ID'       ,width:999   ,align:'center' },
+                            {name:'EVAL_METHOD_NM'       ,index:'EVAL_METHOD_NM'       ,width:100   ,align:'center' ,cellattr: attrMGSetting ,formatter:linkEvalMethodUpdate},
+                            {name:'EVAL_METHOD_GBN_ID'   ,index:'EVAL_METHOD_GBN_ID'   ,width:999   ,align:'center' },
+                            {name:'OLD_DEGREE_REFL_NM'   ,index:'OLD_DEGREE_REFL_NM'   ,width:100   ,align:'center' ,cellattr: attrMGSetting ,formatter:linkOldDegree},
+                            {name:'EUG_ROWSPAN_CNT'      ,index:'EUG_ROWSPAN_CNT'      ,width:999   ,align:'center' },
+							{name:'EUG_ROWSPAN_IDX'      ,index:'EUG_ROWSPAN_IDX'      ,width:999   ,align:'center' },
+							{name:'MG_ROWSPAN_CNT'       ,index:'MG_ROWSPAN_CNT'       ,width:999   ,align:'center' },
+							{name:'MG_ROWSPAN_IDX'       ,index:'MG_ROWSPAN_IDX'       ,width:999   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			cmTemplate	 : {sortable:false},
+			caption		 :"평가단별 지표/항목 매핑"
+		}).jqGrid('hideCol',"YEAR")
+		.jqGrid('hideCol',"EVAL_DEGREE_ID").jqGrid('hideCol',"EVAL_DEGREE_NM")
+		.jqGrid('hideCol',"EVAL_USER_GRP_ID").jqGrid('hideCol',"METRIC_GRP_ID")
+		.jqGrid('hideCol',"MAPPING_YN").jqGrid('hideCol',"ITEM_GBN")
+		.jqGrid('hideCol',"EVAL_METHOD_ID")
+		.jqGrid('hideCol',"EVAL_METHOD_GBN_ID")
+		.jqGrid('hideCol',"OLD_DEGREE_REFL_NM")
+		.jqGrid('hideCol',"EUG_ROWSPAN_CNT").jqGrid('hideCol',"EUG_ROWSPAN_IDX")
+		.jqGrid('hideCol',"MG_ROWSPAN_CNT").jqGrid('hideCol',"MG_ROWSPAN_IDX")
+		.setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+
+		/******************************************
+		 * 평가년도  change 이벤트
+		 ******************************************/
+		$('#findYear').change(function(){
+			chgEvalYear();
+		});
+
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+	});
+
+
+	/******************************************
+	 * 평가년도 변경 시 평가구분, 평가단 변경 (AJAX)
+	 ******************************************/
+	function chgEvalYear(){
+
+		// 평가구분
+		J.ajax({
+        	url      : "$!{context_path}/bsc/impon/evalUserGrpMappingEvalItem/evalDegreeList_ajax.vw",﻿
+        	cache    : false,
+        	type     : "POST",
+			data     : J("#formFind").serialize(),
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+				var xmlDoc = J.parseXML(data);
+				J("#findEvalDegreeId").empty();
+				J(xmlDoc).find("data").each(function() {
+					J('<option/>').attr('value', J(this).find("value").text()).text(J(this).find("text").text()).appendTo('#findEvalDegreeId');
+				})
+        	}
+    	});
+
+		//평가단
+		J.ajax({
+        	url      : "$!{context_path}/bsc/impon/evalUserGrpMappingEvalItem/evalUserGrpList_ajax.vw",﻿
+        	cache    : false,
+        	type     : "POST",
+			data     : J("#formFind").serialize(),
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+				var xmlDoc = J.parseXML(data);
+				J("#findEvalUserGrpId").empty();
+
+				J('<option/>').attr('value', "").text("전체").appendTo('#findEvalUserGrpId');
+
+				J(xmlDoc).find("data").each(function() {
+					J('<option/>').attr('value', J(this).find("value").text()).text(J(this).find("text").text()).appendTo('#findEvalUserGrpId');
+				})
+        	}
+    	});
+	}
+
+
+	/*****************************************
+	 * 데이터 Rowspan 설정
+	 ******************************************/
+	function attrEUGSetting(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.EUG_ROWSPAN_IDX;
+		var rowSpan = rowObject.EUG_ROWSPAN_CNT;
+
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+		return result;
+	}
+
+
+	/*****************************************
+	 * 데이터 Rowspan 설정
+	 ******************************************/
+	function attrMGSetting(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.MG_ROWSPAN_IDX;
+		var rowSpan = rowObject.MG_ROWSPAN_CNT;
+
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+		return result;
+	}
+
+	/******************************************
+	 * jqGrid 평가항목 매핑 페이지 링크
+	 ******************************************/
+	function linkMappingUpdate(cellvalue, options, rowObject) {
+		return '<a href=javascript:goMappingModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+
+	/******************************************
+	 * 평가항목 매핑  수정
+	 ******************************************/
+	function goMappingModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+
+		J("#year").val(ret.YEAR);
+		J("#yearNm").val(ret.YEAR + "년");
+		J("#evalDegreeId").val(ret.EVAL_DEGREE_ID);
+		J("#evalDegreeNm").val(ret.EVAL_DEGREE_NM);
+		J("#evalUserGrpId").val(ret.EVAL_USER_GRP_ID);
+		J("#evalUserGrpNm").val(ret.EVAL_USER_GRP_NM);
+		J("#metricGrpId").val(ret.METRIC_GRP_ID);
+		J("#mode").val("MODMAPPING");
+		J("#formList").attr("action", "$!{context_path}/bsc/impon/evalUserGrpMappingEvalItem/evalUserGrpMappingEvalItemMappingModify.vw?type=template").submit();
+	}
+
+
+	/******************************************
+	 * jqGrid 평가방법 수정 페이지 링크
+	 ******************************************/
+	function linkEvalMethodUpdate(cellvalue, options, rowObject) {
+		var retVal = "";
+		var retTitle = "";
+		var mappingYn = rowObject.MAPPING_YN;
+
+		if( "Y" == mappingYn ){
+			var oldDegreeYn = rowObject.OLD_DEGREE_REFL_NM;
+			if( "" == oldDegreeYn ){
+				if( "" == cellvalue ){
+        			retTitle = "설정";
+        			retVal = '<a href=javascript:goEvalMethodModify(' + options.rowId + ')>' + retTitle + '<//a>';
+        		} else {
+					retTitle = cellvalue;
+					retVal = '<a href=javascript:goEvalMethodModify(' + options.rowId + ')>' + retTitle + '<//a>';
+				}
+    		}else {
+    			retVal = "";
+    		}
+
+		}
+		return retVal;
+	}
+
+	/******************************************
+	 * 평가방법 수정
+	 ******************************************/
+	function goEvalMethodModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+
+		J("#year").val(ret.YEAR);
+		J("#yearNm").val(ret.YEAR + "년");
+		J("#evalDegreeId").val(ret.EVAL_DEGREE_ID);
+		J("#evalDegreeNm").val(ret.EVAL_DEGREE_NM);
+		J("#evalUserGrpId").val(ret.EVAL_USER_GRP_ID);
+		J("#evalUserGrpNm").val(ret.EVAL_USER_GRP_NM);
+		J("#metricGrpId").val(ret.METRIC_GRP_ID);
+		J("#metricGrpNm").val( J(ret.METRIC_GRP_NM).text() );
+
+		J("#mode").val("MODMETHOD");
+		J("#formList").attr("action", "$!{context_path}/bsc/impon/evalUserGrpMappingEvalItem/evalUserGrpMappingEvalItemMethodModify.vw?type=template").submit();
+	}
+
+
+	/******************************************
+	 * jqGrid 이전차수반영 텍스트
+	 ******************************************/
+	function linkOldDegree(cellvalue, options, rowObject) {
+		var retVal = "";
+		var mappingYn = rowObject.MAPPING_YN;
+		if( "Y" == mappingYn ){
+    		if( "" == cellvalue){
+    			retVal = "미반영";
+    		}else {
+    			retVal = '<a href=javascript:goEvalMethodModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+    		}
+		}
+		return retVal;
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#evalDegreeNm").val(J("#findEvalDegreeId > option:selected").text());
+		J("#evalUserGrpNm").val(J("#findEvalUserGrpId > option:selected").text());
+		J("#mappingYnNm").val(J("#findMappingYn > option:selected").text());
+		J("#formList").attr("action", "$!{context_path}/bsc/impon/evalUserGrpMappingEvalItem/evalUserGrpMappingEvalItemListExcel.vw?type=excel").submit();
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">평가단별 지표/항목 매핑</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/impon/evalUserGrpMappingEvalItem/evalUserGrpMappingEvalItemList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="평가단별 지표/항목 매핑검색 조건">
+						<caption class="none">평가단별 지표/항목 매핑 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w200">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+
+								<td class="searchBox_tit w200">
+            						<span><label for="findEvalDegreeId">평가구분</label></span>
+            						<span class="searchBar">
+										<select id="findEvalDegreeId" name="findEvalDegreeId" class="select w100">
+										#foreach($list in $evalDegreeList)
+    										<option value="$!{CS_HTML.txt2html($list.EVAL_DEGREE_ID)}" $!{CS_HTML.getSelected($!{CS_HTML.txt2html($list.EVAL_DEGREE_ID)}, $!{searchMap.txt2html("findEvalDegreeId")})}>$!{CS_HTML.txt2html($list.EVAL_DEGREE_NM)}</option>
+										#end
+    									</select>
+            						</span>
+            					</td>
+
+								<td class="searchBox_tit w300">
+            						<span><label for="findEvalUserGrpId">평가단</label></span>
+            						<span class="searchBar">
+										<select id="findEvalUserGrpId" name="findEvalUserGrpId" class="select w200">
+										<option value="" $!{CS_HTML.getSelected("", $!{searchMap.txt2html("findEvalUserGrpId")})}>전체</option>
+										#foreach($list in $evalUserGrpList)
+    										<option value="$!{CS_HTML.txt2html($list.EVAL_USER_GRP_ID)}" $!{CS_HTML.getSelected($!{CS_HTML.txt2html($list.EVAL_USER_GRP_ID)}, $!{searchMap.txt2html("findEvalUserGrpId")})}>$!{CS_HTML.txt2html($list.EVAL_USER_GRP_NM)}</option>
+										#end
+    									</select>
+            						</span>
+            					</td>
+
+
+								<td class="searchBox_tit w200">
+            						<span><label for="findMappingYn">매핑여부</label></span>
+            						<span class="searchBar">
+										<select id="findMappingYn" name="findMappingYn" class="select w80">
+										<option value="" $!{CS_HTML.getSelected("", $!{searchMap.txt2html("findMappingYn")})}>전체</option>
+    									<option value="Y" $!{CS_HTML.getSelected("Y", $!{searchMap.txt2html("findMappingYn")})}>Y</option>
+										<option value="N" $!{CS_HTML.getSelected("N", $!{searchMap.txt2html("findMappingYn")})}>N</option>
+    									</select>
+            						</span>
+            					</td>
+
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/impon/evalUserGrpMappingEvalItem/evalUserGrpMappingEvalItemProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"       		name="year" />
+			<input type="hidden" id="yearNm"     		name="yearNm" />
+			<input type="hidden" id="evalDegreeId"      name="evalDegreeId" />
+			<input type="hidden" id="evalDegreeNm"     	name="evalDegreeNm" />
+			<input type="hidden" id="evalUserGrpId"     name="evalUserGrpId" />
+			<input type="hidden" id="evalUserGrpNm"     name="evalUserGrpNm" />
+			<input type="hidden" id="metricGrpId"     	name="metricGrpId" />
+			<input type="hidden" id="metricGrpNm"     	name="metricGrpNm" />
+			<input type="hidden" id="mappingYnNm"     	name="mappingYnNm" />
+
+
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="평가단별 지표/항목 매핑 조회결과">
+							<caption class="none">평가단별 지표/항목 매핑 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton" style="float:left; text-align:left; width:145px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

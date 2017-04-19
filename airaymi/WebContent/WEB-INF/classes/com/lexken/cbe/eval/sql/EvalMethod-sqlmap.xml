@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="cbe.eval.evalMethod">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: CBE_EVAL_CONVERT_METHOD
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가환산방법 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_EVAL_CONVERT_METHOD
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CODE_ID,
+               A.CODE_NM,
+               CASE WHEN A.ETC1 IS NOT NULL THEN A.ETC1 ELSE C.EVAL_METHOD_NM END
+               <!-- || CASE WHEN A.CODE_ID = '02' THEN '[ ' || D.EVU_STD_NM || ' ]' ELSE NULL END --> 
+               AS  EVAL_METHOD_NM
+          FROM BSC_CODE A
+          LEFT OUTER JOIN CBE_EVAL_CONVERT_METHOD B ON B.YEAR=#findYear# AND A.CODE_ID=B.EVAL_GBN_ID
+          LEFT OUTER JOIN BSC_ECM_EVAL_GRADE_CONVERT_TAB C ON B.YEAR=C.YEAR AND B.EVAL_METHOD_ID=C.EVAL_METHOD_ID
+         WHERE CODE_GRP_ID='153'
+         ORDER BY SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가단,평가대상지표POOL별 평가방법 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_GRADE_CONVERT_TAB
+	==================================================================
+	-->
+	<select id="getEvalMethodList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT EVAL_METHOD_ID, EVAL_METHOD_NM
+		  FROM BSC_ECM_EVAL_GRADE_CONVERT_TAB
+		 WHERE 1=1
+		   AND YEAR = #year#
+		   AND DELETE_DT IS NULL
+		 ORDER BY EVAL_METHOD_ID   
+	</select>
+	
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직평가 순위별 환산표 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_GRADE_CONVERT_TAB
+	==================================================================
+	-->
+	<select id="evalDeptRankReflList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT C.RANK_CNT
+		     , MAX(CASE WHEN SC_DEPT_CNT = 2  THEN CONVERT_SCORE ELSE NULL END ) CNT_02
+		     , MAX(CASE WHEN SC_DEPT_CNT = 3  THEN CONVERT_SCORE ELSE NULL END ) CNT_03
+		     , MAX(CASE WHEN SC_DEPT_CNT = 4  THEN CONVERT_SCORE ELSE NULL END ) CNT_04
+		     , MAX(CASE WHEN SC_DEPT_CNT = 5  THEN CONVERT_SCORE ELSE NULL END ) CNT_05
+		     , MAX(CASE WHEN SC_DEPT_CNT = 6  THEN CONVERT_SCORE ELSE NULL END ) CNT_06
+		     , MAX(CASE WHEN SC_DEPT_CNT = 7  THEN CONVERT_SCORE ELSE NULL END ) CNT_07
+		     , MAX(CASE WHEN SC_DEPT_CNT = 8  THEN CONVERT_SCORE ELSE NULL END ) CNT_08
+		     , MAX(CASE WHEN SC_DEPT_CNT = 9  THEN CONVERT_SCORE ELSE NULL END ) CNT_09
+		     , MAX(CASE WHEN SC_DEPT_CNT = 10 THEN CONVERT_SCORE ELSE NULL END ) CNT_10
+		     , MAX(CASE WHEN SC_DEPT_CNT = 11 THEN CONVERT_SCORE ELSE NULL END ) CNT_11
+		     , MAX(CASE WHEN SC_DEPT_CNT = 12 THEN CONVERT_SCORE ELSE NULL END ) CNT_12
+		     , MAX(CASE WHEN SC_DEPT_CNT = 13 THEN CONVERT_SCORE ELSE NULL END ) CNT_13
+		     , MAX(CASE WHEN SC_DEPT_CNT = 14 THEN CONVERT_SCORE ELSE NULL END ) CNT_14
+		     , MAX(CASE WHEN SC_DEPT_CNT = 15 THEN CONVERT_SCORE ELSE NULL END ) CNT_15
+		     , MAX(CASE WHEN SC_DEPT_CNT = 16 THEN CONVERT_SCORE ELSE NULL END ) CNT_16
+		     , MAX(CASE WHEN SC_DEPT_CNT = 17 THEN CONVERT_SCORE ELSE NULL END ) CNT_17
+		     , MAX(CASE WHEN SC_DEPT_CNT = 18 THEN CONVERT_SCORE ELSE NULL END ) CNT_18
+		     , MAX(CASE WHEN SC_DEPT_CNT = 19 THEN CONVERT_SCORE ELSE NULL END ) CNT_19
+		     , MAX(CASE WHEN SC_DEPT_CNT = 20 THEN CONVERT_SCORE ELSE NULL END ) CNT_20
+		  FROM 
+		    (SELECT LEVEL AS RANK_CNT
+		      FROM DUAL 
+		     CONNECT BY LEVEL <![CDATA[ <= ]]> 20 ) C
+		    LEFT OUTER JOIN 
+		    (SELECT YEAR, SC_DEPT_CNT, RANK AS RANK_CNT, CONVERT_SCORE
+		      FROM CBE_DEPT_RANK_CONVERT_TAB
+		     WHERE 1=1
+		       AND YEAR = #findYear#
+		       AND SC_DEPT_CNT <![CDATA[ <= ]]> 20
+		    )R
+		    ON C.RANK_CNT = R.RANK_CNT
+		 GROUP BY C.RANK_CNT
+		 ORDER BY C.RANK_CNT
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가환산방법 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: CBE_EVAL_CONVERT_METHOD
+	==================================================================
+	-->	
+	<update id="deleteDetpRankMngData" parameterClass="hashMap">
+		DELETE FROM CBE_DEPT_RANK_CONVERT_TAB 
+		 WHERE YEAR = #year#
+	</update>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가환산방법 등록
+	  #	기능	: INSERT
+	  #	TABLE	: CBE_EVAL_CONVERT_METHOD
+	==================================================================
+	-->	
+	<insert id="insertDeptRankMngData" parameterClass="hashMap">
+		INSERT INTO CBE_DEPT_RANK_CONVERT_TAB ( 
+			 YEAR
+			 , SC_DEPT_CNT
+			 , RANK 
+			 , CONVERT_SCORE
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #scDeptCnt#
+			 , #rank#
+			 , #convertScore#
+			 , SYSDATE
+			 )
+	</insert>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가환산방법 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CBE_EVAL_CONVERT_METHOD
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CODE_ID EVAL_GBN_ID,
+               A.CODE_NM EVAL_GBN_NM,
+               B.EVAL_METHOD_ID 
+          FROM BSC_CODE A
+          LEFT OUTER JOIN CBE_EVAL_CONVERT_METHOD B ON B.YEAR=#year# AND A.CODE_ID=B.EVAL_GBN_ID
+         WHERE A.CODE_GRP_ID='153'
+           AND A.CODE_ID=#evalGbnId#
+         ORDER BY A.SORT_ORDER         
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가환산방법 등록
+	  #	기능	: INSERT
+	  #	TABLE	: CBE_EVAL_CONVERT_METHOD
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO CBE_EVAL_CONVERT_METHOD ( 
+			   YEAR
+			 , EVAL_GBN_ID
+			 , EVAL_GBN_NM
+			 , EVAL_METHOD_ID
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #evalGbnId#
+			 , #evalGbnNm#
+			 , #evalMethodId#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가환산방법 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: CBE_EVAL_CONVERT_METHOD
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE CBE_EVAL_CONVERT_METHOD 
+		   SET EVAL_GBN_NM            = #evalGbnNm# 
+			 , EVAL_METHOD_ID         = #evalMethodId#
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_GBN_ID = #evalGbnId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가환산방법 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: CBE_EVAL_CONVERT_METHOD
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM CBE_EVAL_CONVERT_METHOD 
+		 WHERE YEAR = #year#
+		   AND EVAL_GBN_ID = #evalGbnId#
+	</update>
+	
+	
+</sqlMap>
+
+

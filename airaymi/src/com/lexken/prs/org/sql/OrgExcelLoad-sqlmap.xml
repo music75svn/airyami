@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.org.orgExcelLoad">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 세부항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_CONN_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	
+        SELECT /*+ ordered */                             
+               A.ORG_CONN_ITEM_ID
+             , A.ORG_CONN_ITEM_NM
+             , A.TYPE
+             , F_CODE_NM('062', A.TYPE, #findYear#) AS TYPE_NM          
+             , B.INTERFACE_DT
+             , F_CODE_NM('184', B.RESULT_YN, #findYear#) AS RESULT_YN
+        FROM ORG_CONN_ITEM A
+            LEFT OUTER JOIN
+                    (SELECT MAX (INTERFACE_DT) INTERFACE_DT
+                          , INTERFACE_ID
+                          , RESULT_YN
+                       FROM ORG_SYSTEM_INTERFACE_LOG                        
+                      GROUP BY INTERFACE_ID
+                          	 , RESULT_YN
+                     ) B
+            ON A.ORG_CONN_ITEM_ID = B.INTERFACE_ID
+		WHERE A.DELETE_DT IS NULL            
+		<isNotEmpty prepend="AND" property="findOrgConnItemNm">
+			UPPER(A.ORG_CONN_ITEM_ID||A.ORG_CONN_ITEM_NM) LIKE  '%' || TRIM(UPPER(#findOrgConnItemNm#)) ||'%'
+		</isNotEmpty>
+		ORDER BY A.ORG_CONN_ITEM_ID
+
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직관리역량평가 엑셀로딩 양식 다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getExcelTemplate" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT A.YEAR
+		       , D.DEPT_CD
+		       , E.DEPT_NM
+		       , A.ORG_EVAL_ITEM_ID
+		       , A.ORG_EVAL_ITEM_NM
+		       , B.CAL_TYPE_COL
+		       , B.CAL_TYPE_COL_NM
+		       , D.VALUE
+		    FROM ORG_EVAL_ITEM A
+		       , ORG_EVAL_ITEM_COL B
+		       , ORG_CONN_ITEM C
+		       , (SELECT A.YEAR
+		               , A.DEPT_CD
+		               , A.ORG_EVAL_ITEM_ID
+		               , B.CAL_TYPE_COL
+		               , B.SCORE VALUE
+		            FROM ORG_DEPT_EVAL_ITEM A, ORG_DEPT_EVAL_ITEM_COL_ACT B
+		           WHERE A.YEAR = B.YEAR(+)
+		             AND A.DEPT_CD = B.DEPT_CD(+)
+		             AND A.ORG_EVAL_ITEM_ID = B.ORG_EVAL_ITEM_ID(+)
+		             AND A.DELETE_DT IS NULL
+		             AND A.YEAR = #findYear#) D
+		       , (           SELECT YEAR, DEPT_CD, DEPT_KOR_NM DEPT_NM
+		                       FROM BSC_INSA_DEPT
+		                      WHERE YEAR = #findYear#
+		                 START WITH UP_DEPT_CD IS NULL
+		                 CONNECT BY PRIOR DEPT_CD = UP_DEPT_CD
+		                        AND PRIOR YEAR = YEAR
+		          ORDER SIBLINGS BY DEPT_CD) E
+		   WHERE A.YEAR = #findYear#
+		     AND A.DELETE_DT IS NULL
+		     AND A.YEAR = B.YEAR
+		     AND A.ORG_EVAL_ITEM_ID = B.ORG_EVAL_ITEM_ID
+		     AND B.ORG_CONN_ITEM_ID = C.ORG_CONN_ITEM_ID
+		     AND C.DELETE_DT IS NULL
+		     AND C.ORG_CONN_ITEM_ID = #itemCd#
+		     AND B.YEAR = D.YEAR
+		     AND B.ORG_EVAL_ITEM_ID = D.ORG_EVAL_ITEM_ID
+		     AND B.CAL_TYPE_COL = D.CAL_TYPE_COL
+		     AND D.YEAR = E.YEAR
+		     AND D.DEPT_CD = E.DEPT_CD
+		ORDER BY ORG_EVAL_ITEM_ID, DEPT_CD, CAL_TYPE_COL
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직관리역량평가 엑셀업로드 세부항목
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_CONN_ITEM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT ORG_CONN_ITEM_ID
+		       , ORG_CONN_ITEM_NM
+		    FROM ORG_CONN_ITEM C
+		   WHERE C.DELETE_DT IS NULL
+		     AND C.ORG_CONN_ITEM_ID = #itemCd#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 세부항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM_COL_ACT
+	==================================================================
+	-->	
+	<insert id="insertEvalItem" parameterClass="hashMap">
+		MERGE INTO ORG_DEPT_EVAL_ITEM_COL_ACT AA
+		     USING (SELECT #strYear# AS YEAR
+		                 , #strDeptCd# DEPT_CD
+		                 , #strOrgEvalItemId# ORG_EVAL_ITEM_ID
+		                 , #strCalTypeCol# CAL_TYPE_COL
+		                 , #strValue# SCORE
+		              FROM DUAL) BB
+		        ON (AA.YEAR = BB.YEAR
+		        AND AA.DEPT_CD = BB.DEPT_CD
+		        AND AA.ORG_EVAL_ITEM_ID = BB.ORG_EVAL_ITEM_ID
+		        AND AA.CAL_TYPE_COL = BB.CAL_TYPE_COL)
+		WHEN MATCHED
+		THEN
+		   UPDATE SET AA.SCORE = BB.SCORE, AA.CREATE_DT = SYSDATE
+		WHEN NOT MATCHED
+		THEN
+		   INSERT     (YEAR
+		             , DEPT_CD
+		             , ORG_EVAL_ITEM_ID
+		             , CAL_TYPE_COL
+		             , SCORE
+		             , CREATE_DT)
+		       VALUES (BB.YEAR
+		             , BB.DEPT_CD
+		             , BB.ORG_EVAL_ITEM_ID
+		             , BB.CAL_TYPE_COL
+		             , BB.SCORE
+		             , SYSDATE)
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 연계실행 실행자 기록
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_SYSTEM_INTERFACE_LOG
+	==================================================================
+	-->	
+	<update id="updateUser" parameterClass="hashMap">
+		UPDATE ORG_SYSTEM_INTERFACE_LOG
+		   SET USER_ID = #UserId#
+			 , USER_NM = #UserNm#
+	   	 WHERE INTERFACE_ID = #orgConnItemId#
+	</update>	
+				
+	<!--
+	==================================================================   
+	  # 설명	: 연계실행 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->		
+	<parameterMap id="interfaceParamMap" class="java.util.HashMap">
+		<parameter property="year" 		jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>				
+	</parameterMap>	
+					
+	<!--
+	==================================================================   
+	  # 설명	: 연계 프로시져 실행
+	  #	기능	: PROCEDURES
+	  #	TABLE	: ORG_INTERFACE_ORIGINAL_DATA
+	==================================================================
+	-->		
+	<procedure id="execInterface" parameterMap="interfaceParamMap">  
+		{CALL SP_ORG_$orgConnItemIdExec$_ORIGINAL_DATA(?)}
+	</procedure>				
+
+</sqlMap>
+
+

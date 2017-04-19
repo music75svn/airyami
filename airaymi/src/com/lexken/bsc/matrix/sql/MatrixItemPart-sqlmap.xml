@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.matrix.matrixItemPart">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_MAT_ITEM
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가세부항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MAT_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+               A.ITEM_GRP_ID,
+               B.ITEM_GRP_NM,
+               A.ITEM_ID,            
+               A.ITEM_NM,            
+               A.CONTENT,
+               A.WEIGHT,
+               A.SORT_ORDER,
+                (SELECT COUNT(*)
+                   FROM BSC_MAT_EVAL_USER C
+                  WHERE A.YEAR = C.YEAR
+                    AND EVAL_SUBMIT_YN='Y') SUBMIT_CNT    
+          FROM BSC_MAT_ITEM A
+          INNER JOIN BSC_MAT_ITEM_GRP B ON A.YEAR=B.YEAR AND A.ITEM_GRP_ID=B.ITEM_GRP_ID
+          WHERE A.YEAR=#findYear#
+            AND A.ITEM_GRP_ID = #findItemGrpId#	      
+          ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가세부항목 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MAT_ITEM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR                  
+			 , A.ITEM_ID          
+			 , A.ITEM_NM          
+			 , A.ITEM_GRP_ID      
+			 , A.CONTENT     
+			 , A.WEIGHT         
+			 , A.SORT_ORDER   
+			 ,(SELECT COUNT(*) 
+                 FROM  BSC_MAT_EVAL B
+                WHERE A.YEAR = B.YEAR) EVAL_CNT                 
+		  FROM BSC_MAT_ITEM A 
+		 WHERE A.YEAR = #year#
+		   AND A.ITEM_ID = #itemId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가세부항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_MAT_ITEM
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			<!-- SELECT F_PGM_SERI('BSC_MAT_EVAL_ITEM','','','','','') SEQ FROM DUAL -->
+			SELECT 'MGP'||LPAD(NVL(MAX(SUBSTR(ITEM_ID,4,6)),0)+1,4,'0') SEQ FROM BSC_MAT_ITEM
+		</selectKey>
+		INSERT INTO BSC_MAT_ITEM ( 
+			   YEAR
+			 , ITEM_ID
+			 , ITEM_NM
+			 , ITEM_GRP_ID
+			 , CONTENT
+			 , SORT_ORDER
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #itemNm#
+			 , #itemGrpId#
+			 , #content#
+			 , #sortOrder#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가세부항목 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_MAT_ITEM
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_MAT_ITEM 
+		   SET ITEM_NM                = #itemNm# 
+			 , CONTENT                = #content# 
+			 , SORT_ORDER             = #sortOrder# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND ITEM_ID = #itemId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가세부항목 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_MAT_ITEM
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_MAT_ITEM 
+		 WHERE YEAR = #year#
+		   AND ITEM_ID = #itemId#
+	</update>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가세부항목으로 등록된 평가결과 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_MAT_EVAL
+	==================================================================
+	-->	
+	<update id="deleteEvalData" parameterClass="hashMap">
+		DELETE FROM BSC_MAT_EVAL 
+		 WHERE YEAR = #year#
+		   AND ITEM_ID = #itemId#
+	</update>
+	
+</sqlMap>
+
+

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.eval.memMetricAct">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MEM_MEET
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공통지표실적 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_MEET
+	==================================================================
+	-->
+	<select id="getMetricGrpList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT METRIC_GRP_ID
+		     , METRIC_GRP_NM
+		  FROM MEM_METRIC_GRP
+		 WHERE EVAL_GBN_ID = '02'
+		   AND DELETE_DT IS NULL
+		   AND YEAR = #findYear#
+		 ORDER BY METRIC_GRP_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공통지표실적 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_MEET
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+		       A.YEAR
+		     , A.METRIC_ID
+		     , A.METRIC_NM
+		     , A.EMP_NO
+		     , B.EMP_NM
+		     , C.TGT_VALUE
+		     , D.VALUE
+		     , D.SCORE
+        	 , F_CODE_NM('235', D.FINAL_GRADE, #findYear# /**P*/) AS FINAL_GRADE
+		     , D.FINAL_SCORE
+		  FROM MEM_METRIC A
+		     , MEM_USER B
+		     , MEM_METRIC_TARGET C
+		     , MEM_ACT_IN D
+		 WHERE 1 = 1
+		   AND A.YEAR = B.YEAR
+		   AND A.EMP_NO = B.EMP_NO
+		   AND A.YEAR = C.YEAR
+		   AND A.METRIC_ID = C.METRIC_ID
+		   AND C.YEAR = D.YEAR(+)
+		   AND C.METRIC_ID = D.METRIC_ID(+)
+		   AND C.MON = D.MON(+)
+		   AND A.YEAR = #findYear#
+	<isNotEmpty prepend="AND" property="findMetricGrpId">
+			   A.METRIC_GRP_ID = #findMetricGrpId#
+	</isNotEmpty>
+		   AND C.MON = #findMon#
+		   AND A.DELETE_DT IS NULL
+		   AND C.DELETE_DT IS NULL
+		 ORDER BY B.EMP_NM
+	</select>
+
+ 	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩 양식 다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getExcelTemplate" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+		       A.YEAR
+		     , #findMon# AS MON
+		     , A.METRIC_ID
+		     , A.METRIC_NM
+		     , C.CAL_TYPE_COL
+		     , C.CAL_TYPE_COL_NM
+		     , A.EMP_NO
+		     , B.EMP_NM
+		  FROM MEM_METRIC A
+		     , MEM_USER B
+		     , MEM_CAL_TYPE_COL C
+		 WHERE 1 = 1
+		   AND A.YEAR = B.YEAR
+		   AND A.EMP_NO = B.EMP_NO
+		   AND A.YEAR = C.YEAR
+		   AND A.METRIC_ID = C.METRIC_ID
+		   AND A.YEAR = #findYear#
+	<isNotEmpty prepend="AND" property="findMetricGrpId">
+			   A.METRIC_GRP_ID = #findMetricGrpId#
+	</isNotEmpty>
+		   AND A.DELETE_DT IS NULL
+		   AND C.DELETE_DT IS NULL
+		 ORDER BY B.EMP_NM
+	</select>
+</sqlMap>
+
+

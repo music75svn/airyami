@@ -1,0 +1,105 @@
+#*************************************************************************
+* CLASS 명      : popExcelUpload.vm
+* 작 업 자      : 정철수
+* 작 업 일      : 2012.11.27
+* 기    능      : 엑셀업로드
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     정철수      2012.11.27          최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+		/******************************************
+		 * 닫기 버튼 이벤트
+		 ******************************************/
+		J("#btnClose").click(function(e) {
+			J.fancybox.close();
+		});
+		
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnExcelInsert").click(function(e) {
+			e.preventDefault();
+			savePopDo();
+		});
+		
+		/******************************************
+		 * 엑셀업로드
+		 ******************************************/
+		J("#formFindPop").submit(function(event) {
+			//dummy
+		});
+		
+		try {
+			$("input", ".blockButton" ).button(); //버튼 ui 적용
+		} catch(err) { }
+	});
+	
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function savePopDo() {
+	
+		if(J("#file1").val() == "") {
+			//J.showMsgBox("파일을 선택해 주십시요", null, null);
+			alert("파일을 선택해 주십시요");
+			return;
+		}
+		
+		if(J("#file1").val().indexOf(".xls") < 0) {
+			alert("엑셀파일만 등록가능합니다");
+			return;		
+		}
+		
+		document.charset='utf-8';
+		
+		J("#formFindPop").attr("action", "$!{searchMap.txt2html("context")}/prs/mngCon/scoreUpload/scoreUploadProcess.vw?type=template").submit();
+	}
+ 
+//]]>
+</script>
+
+<form id="formFindPop" name="formFindPop" method="post" enctype="multipart/form-data" action="$!{searchMap.txt2html("context")}/prs/mngCon/scoreUpload/excelUploadProcess.vw?type=template">
+	<input type="hidden" 	name="mode" 			value="ADD"/>
+	<input type="hidden"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+	<input type="hidden"   	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+	<input type="hidden" 	name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+	<input type="hidden" 	name="findYear"			value="$!{searchMap.txt2html("findYear")}" />
+	<input type="hidden" 	name="findEvalGrpId"	value="$!{searchMap.txt2html("findEvalGrpId")}" />
+	
+	
+    <div style="width:500px;height:130px;margin-top:5px;">
+    	<div class="blockDetail">
+    		<table summary="엑셀업로드">
+    			<caption class="none">엑셀업로드</caption>
+    			<colgroup>
+    				<col width="15%" />
+    				<col width="85%" />
+    			</colgroup>
+    			<tbody>
+
+    				<tr>
+    					<th scope="row"><label for="file1">파일선택</label></th>
+    					<td>
+    						<input type="file" id="file1" name="file1" size="45" />
+    					</td>
+    				</tr>
+    				
+    			</tbody>
+    		</table>
+    	</div>
+    	<div class="blockButton"> 
+    		<ul>
+    			<li><input type="button" id="btnClose" value="닫기" /></li>
+    			<li><input type="submit" id="btnExcelInsert" value="엑셀로딩" /></li>
+    		</ul>
+    	</div>	
+    </div>
+</form>

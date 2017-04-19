@@ -1,0 +1,205 @@
+#*************************************************************************
+* CLASS 명      : resultActualModify
+* 작 업 자      : 현걸욱 
+* 작 업 일      : 2012년 11월 7일 
+* 기    능      : 비계량지적및조치사항    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    현걸욱      2012년 11월 7일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/gov/unmeasure/resultActual/resultActualList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("#sortOrder").numeric();
+		J("#sortOrder").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#pointOutContent").checkbyte({
+			indicator:J("#pointOutContentIndicator"),
+			limit:3000
+		});
+		J("#pointOutContent").trigger("keyup");
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#improvement").checkbyte({
+			indicator:J("#improvementIndicator"),
+			limit:3000
+		});
+		J("#improvement").trigger("keyup");
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#comments").checkbyte({
+			indicator:J("#commentsIndicator"),
+			limit:3000
+		});
+		J("#comments").trigger("keyup");
+
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+	
+		if(!J.checkLength("pointOutContent", "지적권고사항", 1, 3000)) {
+			return;
+		}
+		
+		if(!J.checkLength("improvement", "조치및 개선실적", 1, 3000)) {
+			return;
+		}
+	
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/gov/unmeasure/resultActual/resultActualProcess.vw?type=template").submit();
+	}
+
+//]]>
+
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/gov/unmeasure/resultActual/resultActualProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="govMetricId"    name="govMetricId"    value="$!{searchMap.txt2html("govMetricId")}" />
+	<input type="hidden"	id="pointOutGbnId"  name="pointOutGbnId"  value="$!{searchMap.txt2html("pointOutGbnId")}" />
+	<input type="hidden"	id="insertUserId"   name="insertUserId"   value="$!{searchMap.txt2html("insertUserId")}" />
+
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="비계량지적및조치사항 등록">
+					<caption class="none">비계량지적및조치사항 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row"><label for="measId">지적사항코드</label></th>
+    						<td colspan="5">
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.POINT_OUT_ID)}
+									<input type="hidden" id="pointOutId" name="pointOutId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.POINT_OUT_ID)}" maxlength="7" readonly="readonly"/>
+								#else
+									<input type="hidden" id="pointOutId" name="pointOutId" class="inputbox w100" maxlength="7" />
+									※ 저장시 자동으로 부여됩니다.
+								#end
+							</td>
+    					</tr>
+						<tr>
+							<th scope="row"><label for="pointOutGbnId">지적사항구분</label></th>
+							<td>
+								#if($!{searchMap.txt2html("pointOutGbnId")} == '01')
+									경영실적평가 지적사항
+							    #elseif($!{searchMap.txt2html("pointOutGbnId")} == '02')
+									국회 및 감사원 지적사항
+								#elseif($!{searchMap.txt2html("pointOutGbnId")} == '03')	
+									언론 지적사항
+								#end
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="pointOutContent">지적권고사항</label></th>
+							<td>
+    							<textarea id="pointOutContent" name="pointOutContent" class="tabletext" title="지적권고사항" cols="10" rows="3">$!{CS_HTML.txt2html($detail.POINT_OUT_CONTENT)}</textarea>
+								<span id="pointOutContentIndicator">0</span>/3000byte
+    						</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="improvement">조치및 개선실적</label></th>
+							<td>
+    							<textarea id="improvement" name="improvement" class="tabletext" title="목표설정 근거" cols="10" rows="3">$!{CS_HTML.txt2html($detail.IMPROVEMENT)}</textarea>
+								<span id="improvementIndicator">0</span>/3000byte
+    						</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="comments">비고</label></th>
+							<td>
+    							<textarea id="comments" name="comments" class="tabletext" title="목표설정 근거" cols="10" rows="3">$!{CS_HTML.txt2html($detail.COMMENTS)}</textarea>
+								<span id="commentsIndicator">0</span>/3000byte
+    						</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="sortOrder">정렬순서</label></th>
+							<td><input type="text" id="sortOrder" name="sortOrder" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.SORT_ORDER)}' maxlength="22"/></td>
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

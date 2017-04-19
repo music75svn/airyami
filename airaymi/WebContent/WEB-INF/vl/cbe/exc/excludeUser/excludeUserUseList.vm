@@ -1,0 +1,166 @@
+#*************************************************************************
+* CLASS 명      : excludeUserUseList
+* 작 업 자      : 박종호
+* 작 업 일      : 2013년 09월 04일
+* 기    능      : 간부 별도평가군 별도평가제외자 대상자관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     박종호      2013년 05월 31일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/cbe/exc/excludeUser/excludeUserUseList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/cbe/exc/excludeUser/excludeUserUseList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['사번', '이름', '평가차수', '직급', '직위', '부서', '근무기간'],
+			colModel     :[
+                            {name:'EMPN'          		,index:'EMPN'          		,width:100   ,align:'center' },
+							{name:'KOR_NM'           	,index:'KOR_NM'          	,width:100   ,align:'center' },
+							{name:'EVAL_DEGREE_ID'      ,index:'EVAL_DEGREE_ID'     ,width:100   ,align:'center' },
+							{name:'CAST_TC_NM'          ,index:'CAST_TC_NM'         ,width:100   ,align:'center' },
+							{name:'POS_TC_NM'          	,index:'POS_TC_NM'          ,width:120   ,align:'center' },
+                            {name:'DEPT_KOR_NM'         ,index:'DEPT_KOR_NM'        ,width:120   ,align:'center' },
+                            {name:'TOT_MON'           	,index:'TOT_MON'           	,width:120   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			caption:"평가군"
+		}).setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			goInsert();
+			return false;
+		});
+
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#formList").attr("action", "$!{context_path}/cbe/exc/excludeUser/excludeUserList.vw?type=template").submit();
+		});
+
+	});
+
+	/******************************************
+	 * jqGrid 신규페이지 링크
+	 ******************************************/
+	function goInsert(rowId){
+
+		J("#year").val(J("#findYear").val());
+		J("#codeId").val(J("#codeId").val());
+		J("#mode").val("ADD");
+		J("#formList").attr("action", "$!{context_path}/cbe/exc/excludeUser/excludeUserUseModify.vw?type=template").submit();
+	}
+
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">간부 별도평가군 별도평가제외자</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/cbe/exc/excludeUser/excludeUserUseList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"    id="findYear"       name="findYear"         value="$!{searchMap.txt2html("findYear")}" />
+				<input type="hidden"    id="codeId"         name="codeId"           value="$!{searchMap.txt2html("codeId")}" />
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="간부 별도평가군">
+						<caption class="none">간부 별도평가군 별도평가제외자 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+               					<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+                                <td class="searchBox_tit w300">
+                					<span>별도평가군 : </span>
+									<span class="searchBar">$!{CS_HTML.txt2html($excGrpUseDatail.CODE_NM)}</span>
+                                </td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/cbe/exc/excludeUser/excludeUserUseProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"       		name="year" />
+			<input type="hidden" id="empns" 			name="empns" />
+			<input type="hidden" id="codeId"       		name="codeId"         value="$!{searchMap.txt2html("codeId")}" />
+
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="간부 별도평가군 별도평가제외자 대상자 조회결과">
+							<caption class="none">간부 별도평가군 별도평가제외자 대상자 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+								<li><input type="button" id="btnInsert" value="대상자관리" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

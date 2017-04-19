@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.gasFacilitiesCheck">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.SUMM_YY
+            , A.SUMM_MM
+            , B.DEPT_NM
+            , A.INSP_KIND_TC_NM
+            , A.ROLE_TC_NM
+            , A.STIC_LAG_TC_NM
+            , A.STIC_MID_TC_NM
+            , A.REQ_QTY
+            FROM V_GHF0221D_001 A
+		LEFT OUTER JOIN BSC_DEPTINFO B
+		ON A.BR_CD = B.DEPT_ID
+		WHERE A.BR_CD = '2200' AND A.ROLE_TC = '01' AND A.INSP_KIND_TC IN ('03', '04', '07')
+		AND A.SUMM_YY = #findYear#
+		AND A.SUMM_MM = #findMon#
+		ORDER BY A.SUMM_YY, A.SUMM_MM
+	</select>
+
+</sqlMap>
+
+

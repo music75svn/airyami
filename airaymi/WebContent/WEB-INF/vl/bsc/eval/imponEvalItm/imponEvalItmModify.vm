@@ -1,0 +1,193 @@
+#*************************************************************************
+* CLASS 명      : imponEvalItmModify
+* 작 업 자      : 김윤기 
+* 작 업 일      : 2012년 7월 24일 
+* 기    능      : 비계량평가항목관리    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    김윤기      2012년 7월 24일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/bsc/eval/imponEvalItm/imponEvalItmList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		
+		/******************************************
+		 * 평가항목명 byte 체크
+		 ******************************************/
+		J(":input[name=itemNm]").checkbyte({
+			//indicator:J("#indicator"),
+			limit:700
+		});
+		J(":input[name=itemNm]").trigger("keyup");
+		
+		
+		/******************************************
+		 * 설명 byte 체크
+		 ******************************************/
+		var count = J("input[name=grades]").length;
+		for(var i=1; i<=count; i++){
+    		J("#contents_"+i).checkbyte({
+    			indicator:J("#indicator_"+i),
+    			limit:1000
+    		});
+    		J("#contents_"+i).trigger("keyup");
+		}
+		
+		/******************************************
+		 * 가중치 숫자 체크
+		 ******************************************/
+		/*
+		J("#itemWeight").click(function(){
+			J("#itemWeight").numeric();
+			J("#itemWeight").css("ime-mode", "disabled"); //한글사용 비활성화
+		});
+		*/
+		        
+		
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(!J.checkLength("itemNm", "평가항목명", 1, 700)) {
+			return;
+		}
+        
+		var map = J("textarea[name=contents]");
+		var flag = true;
+		
+		J.each(map, function(key, value) { 	
+    		if(!J(value).val()) {
+				flag=false;
+				return ;
+    		}
+			
+        });
+		
+		/*
+		if(!J.checkLength("itemWeight", "가중치", 1, 5)) {
+			return;
+		}
+		*/
+		
+		if (J("input[name='useYn']:checked").val() == undefined) {
+			J.showMsgBox("사용여부를 선택해 주십시요", null, "userYnY");
+			return;
+		}
+		
+		
+		if(flag){
+    		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+		}else{
+			J.showMsgBox("[설명] : 입력해주십시오", null, "userYnY");
+		}
+		
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/bsc/eval/imponEvalItm/imponEvalItmProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/eval/imponEvalItm/imponEvalItmProcess.vw?type=template">
+    <input type="hidden" id="mode"			name="mode"			value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden" id="year"		 	name="year" 		value="$!{searchMap.txt2html("year")}"/>
+	<input type="hidden" id="cycle"		 	name="cycle"  		value="$!{searchMap.txt2html("cycle")}"/>
+	<input type="hidden" id="metricGrpId"	name="metricGrpId" 	value="$!{searchMap.txt2html("metricGrpId")}"/>
+    <input type="hidden" id="itemCd"		name="itemCd"		value="$!{searchMap.txt2html("itemCd")}" />
+	
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+    		
+			<div class="blockDetail">
+    			<table summary="비계량평가항목관리 등록">
+					<caption class="none">비계량평가항목관리 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row"><label for="itemNm">평가항목명</label></th>
+    						<td><input type="text" id="itemNm" name="itemNm" class="inputbox w400" value="$!{CS_HTML.txt2html($detail.ITEM_NM)}"  /></td>
+    					</tr>
+						#foreach($detailList in $detailList)
+    						<tr>
+    							<th scope="row">
+									<label for="grades_$velocityCount">$!{CS_HTML.txt2html($detailList.GRADE)}</label>
+								</th>
+    							<td>
+									<input  type="hidden" id="grades_$velocityCount" name="grades" value="$!{CS_HTML.txt2html($detailList.GRADE)}"/>
+        							<textarea  id="contents_$velocityCount" name="contents" class="tabletext" title="설명" cols="" rows="3" >$!{CS_HTML.txt2html($detailList.CONTENT)}</textarea>
+									<div class="floatRight" style="margin-right:10px;"><span id="indicator_$velocityCount">0</span>/1000byte</div>
+    							</td>
+        					</tr>
+                        #end
+    					<tr>
+    						<th scope="row"><label for="itemWeight">가중치</label></th>
+							<td>
+								<input type="hidden" id="itemWeight" name="itemWeight"  value="$!{CS_HTML.txt2html($detail.ITEM_WEIGHT)}" maxlength="3" />
+								$!{CS_HTML.txt2html($detail.ITEM_WEIGHT)}
+							</td>
+    					</tr> 
+    					<tr>
+                            <th scope="row">사용여부<label for="useYnY"></label></th>
+                            <td>
+    	                        <input type="radio" id="useYnY" name="useYn" value="Y"  $!{CS_HTML.getChecked("Y", $!{CS_STATIC.nullToDefault($!detail.USE_YN,"Y")})}  /> 예 &nbsp;&nbsp;&nbsp;
+    	                        <input type="radio" id="useYnN" name="useYn" value="N"  $!{CS_HTML.getChecked("N", $!{CS_STATIC.nullToDefault($!detail.USE_YN,"Y")})}  /> 아니오
+                            </td>
+    					</tr> 
+    				</tbody>
+    			</table>
+    		</div>
+			
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장"     /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

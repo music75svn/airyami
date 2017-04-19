@@ -1,0 +1,290 @@
+#*************************************************************************
+* CLASS 명      : archiveTotMonList
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 11월 13일
+* 기    능      : 계량평가지표현황표
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     하윤식      2012년 11월 13일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/gov/measure/archiveTotMon/archiveTotMonList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/gov/measure/archiveTotMon/archiveTotMonList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가부문', '평가범주', '$!{METRIC_NM}코드', '$!{METRIC_NM}명', '관리부서', '담당자', '실적', '달성율' ##, '상태'
+							#foreach($list in $mappingDeptList)
+								, '$!{CS_HTML.txt2html($list.SC_DEPT_NM)}'
+							#end
+						    , '대표여부'
+						  ],
+			colModel     :[
+							{name:'EVAL_CAT_NM'          ,index:'EVAL_CAT_NM'          ,width:150   ,align:'center' ,sortable:true},
+                            {name:'EVAL_CAT_GRP_NM'      ,index:'EVAL_CAT_GRP_NM'      ,width:150   ,align:'center' ,sortable:true},
+                            {name:'GOV_METRIC_ID'        ,index:'GOV_METRIC_ID'        ,width:150   ,align:'center' ,sortable:true},
+                            {name:'GOV_METRIC_NM'        ,index:'GOV_METRIC_NM'        ,width:150   ,align:'left'   ,sortable:true ,formatter:linkUpdate},
+                            {name:'SC_DEPT_NM'           ,index:'SC_DEPT_NM'           ,width:120   ,align:'left'   ,sortable:true},
+                            {name:'INSERT_USER_NM'       ,index:'INSERT_USER_NM'       ,width:80    ,align:'center' ,sortable:true},
+                            {name:'ACTUAL'               ,index:'ACTUAL'               ,width:90    ,align:'right'  ,sortable:true},
+                            {name:'SCORE'                ,index:'SCORE'                ,width:90    ,align:'right'  ,sortable:true},
+                            ##{name:'STATUS_ID'            ,index:'STATUS_ID'            ,width:60    ,align:'center' ,sortable:true ,formatter:linkSignal},
+
+							#foreach($list in $mappingDeptList)
+								{name:'DEPT_$!{CS_HTML.txt2html($list.SC_DEPT_ID)}' ,index:'DEPT_$!{CS_HTML.txt2html($list.SC_DEPT_ID)}' ,width:70 ,align:'center' ,formatter:linkSignal2},
+							#end
+
+							{name:'MAIN_METRIC_YN'       ,index:'MAIN_METRIC_YN'       ,width:150   ,align:'center'}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			##cmTemplate	 : {sortable:false},
+			caption:"계량평가지표현황표"
+        }).jqGrid('hideCol',"EVAL_CAT_NM").jqGrid('hideCol',"GOV_METRIC_ID").jqGrid('hideCol',"MAIN_METRIC_YN").setGridWidth($!{jqGrid_width});
+
+		J("#list").jqGrid('setGroupHeaders', {
+          useColSpanStyle: true,
+          groupHeaders:[
+				#foreach($list in $groupInfoList)
+					{startColumnName: 'DEPT_$!{CS_HTML.txt2html($list.SC_DEPT_ID)}', numberOfColumns: $!{CS_HTML.txt2html($list.ITEM_CNT)}, titleText: '<em>$!{CS_HTML.txt2html($list.SC_DEPT_GRP_NM)}</em>'},
+				#end
+
+			{startColumnName: 'EVAL_CAT_NM', numberOfColumns: 1, titleText: ''}
+          ]
+        });
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#year").val(J("#findYear").val());
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/gov/measure/archiveTotMon/archiveTotMonModify.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+	});
+
+	/******************************************
+	 * jqGrid 신호등
+	 ******************************************/
+	function linkSignal(cellvalue, options, rowObject) {
+		if(cellvalue == "") {
+			return "";
+		} else {
+			return "<img name=\'sig\'  src=\'$!{img_path}/common/ball/ball_" + cellvalue + ".gif\' >";
+		}
+	}
+
+	/******************************************
+	 * jqGrid 내평 신호등
+	 ******************************************/
+	function linkSignal2(cellvalue, options, rowObject) {
+		var status = "";
+		var metricId = "";
+
+		if(cellvalue == '|') {
+			return "";
+		} else {
+			if(cellvalue.length > 8) {
+				status = cellvalue.substring(0,2);
+				metricId = cellvalue.substring(3,10);
+			} else {
+				metricId = cellvalue.substring(1,8);
+			}
+			return "<a href=javascript:goPopMetricActualDetail('" + metricId + "')>" + "<img name=\'sig\'  src=\'$!{img_path}/common/ball/ball_" + status + ".gif\' >" + "</a>";
+		}
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) {
+		var str = cellvalue;
+
+		if(rowObject.MAIN_METRIC_YN == "N") {
+			str = "<img src=\'$!{img_path}/tree.gif\' align='absmiddle'>" + str
+		}
+
+		return str;
+	}
+
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+
+		J("#year").val(J("#findYear").val());
+		J("#mode").val("MOD");
+		J("#formList").attr("action", "$!{context_path}/gov/measure/archiveTotMon/archiveTotMonModify.vw?type=template").submit();
+	}
+
+
+	/*****************************************************
+	 * 실적상세 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail(metricId){
+		var year = J("#findYear :selected").val();
+		var mon = J("#findMon :selected").val();
+		var analCycle = "Y";
+
+		var param = "&amp;year=" + year + "&amp;findMon=" + mon + "&amp;metricId=" + metricId + "&amp;analCycle="+analCycle;
+
+		var url = "$!{context_path}/bsc/mon/metricActualDetail/popMetricActualDetailList.vw?type=popup" + param;
+		openWinByName(url,'popMetricDetail','1250','650','yes');
+    }
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#year").val(J("#findYear").val());
+		J("#mon").val(J("#findMon").val());
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#monNm").val(J("#findMon > option:selected").text());
+		J("#formList").attr("action", "$!{context_path}/gov/measure/archiveTotMon/archiveTotMonListExcel.vw?type=excel").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 평가년월 선택시 검색
+	 ******************************************/
+	function goSearch() {
+		J("#formFind").attr("action", "$!{context_path}/gov/measure/archiveTotMon/archiveTotMonList.vw?type=template").submit();
+
+	}
+
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">계량평가지표현황표</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/gov/measure/archiveTotMon/archiveTotMonList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="계량평가지표현황표검색 조건">
+						<caption class="none">계량평가지표현황표 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80" onchange="goSearch();">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+										<select id="findMon" name="findMon" class="select w70" onchange="goSearch();">
+            								$!CS_CODE.getCodeOption("024", $!{searchMap.txt2html("findMon")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/gov/measure/archiveTotMon/archiveTotMonProcess.vw?type=template">
+			<input type="hidden" id="mode"       name="mode" />
+			<input type="hidden" id="year"		 name="year" />
+			<input type="hidden" id="mon"		 name="mon" />
+			<input type="hidden" id="yearNm" 	 name="yearNm" />
+			<input type="hidden" id="monNm" 	 name="monNm" />
+			<input type="hidden" id="statusNm" 	 name="statusNm" />
+
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="계량평가지표현황표 조회결과">
+							<caption class="none">계량평가지표현황표 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton" style="float:left; text-align:left; width:145px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<!--
+							<ul>
+								<li><input type="button" id="btnInsert" value="신규" /></li>
+								<li><input type="submit" id="btnDelete" value="삭제" /></li>
+							</ul>
+							-->
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

@@ -1,0 +1,51 @@
+#*************************************************************************
+* CLASS 명      : empEvalConResultList_xml
+* 작 업 자      : 김효은
+* 작 업 일      : 2014년 3월 19일 
+* 기    능      : 직원개인기여도평가 평가결과 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김효은     2014년 3월 19일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())}) 
+#set($idx = 0)
+
+{
+    "page": "1",
+    "total": 1,
+    "records": "$listSize",
+    "rows":[
+
+#foreach($list in $list)
+    {
+        "EVAL_GRP_ID"          : "$!{CS_HTML.txt2html($list.EVAL_GRP_ID)}", 
+        "EVAL_GRP_NM"          : "$!{CS_HTML.txt2html($list.EVAL_GRP_NM)}", 
+        "EMPN"                 : "$!{CS_HTML.txt2html($list.EMPN)}", 
+        "EMPNID"               : "$!{CS_HTML.txt2html($list.EMPN)}", 
+        "KOR_NM"               : "$!{CS_HTML.txt2html($list.KOR_NM)}", 
+        "KOR_NMC"              : "$!{CS_HTML.txt2html($list.KOR_NM)}", 
+        "DEPT_CD"              : "$!{CS_HTML.txt2html($list.DEPT_CD)}", 
+        "DEPT_KOR_NM"          : "$!{CS_HTML.txt2html($list.DEPT_KOR_NM)}", 
+        "UP_DEPT_KOR_NM"       : "$!{CS_HTML.txt2html($list.UP_DEPT_KOR_NM)}", 
+        "CAST_TC_NM"           : "$!{CS_HTML.txt2html($list.CAST_TC_NM)}", 
+        "POS_TC_NM"            : "$!{CS_HTML.txt2html($list.POS_TC_NM)}"
+		#foreach($itemList in $itemList)
+		,"$!CS_HTML.txt2html($itemList.EVAL_ITEM_ID)"		: "$!{CS_HTML.txt2html($list.get($itemList.EVAL_ITEM_ID))}"
+		,"$!CS_HTML.txt2html($itemList.EVAL_GBN)"			: "$!{CS_HTML.txt2html($itemList.EVAL_GBN)}"
+		,"$!CS_HTML.txt2html($itemList.EVAL_ITEM_SCORE)"	: "$!{CS_HTML.txt2html($list.get($itemList.EVAL_ITEM_SCORE))}"
+		#end
+        , "SCORE"              : "$!{CS_HTML.txt2html($list.SCORE)}"
+        , "RANKING"            : "$!{CS_HTML.txt2html($list.RANKING)}"
+        , "GRADE"              : "$!{CS_HTML.txt2html($list.GRADE)}" 
+        , "EVAL_SUBMIT_YN"     : "$!{CS_HTML.txt2html($list.EVAL_SUBMIT_YN)}"
+	    , "SCORE_ETC"		   : "$!{CS_HTML.txt2html($list.SCORE_ETC)}"
+    }
+    #set($idx = $idx + 1)
+    #if($idx != $listSize)
+     ,
+    #end
+#end
+
+    ]
+}

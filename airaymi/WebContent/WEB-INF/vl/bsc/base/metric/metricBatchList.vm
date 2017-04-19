@@ -1,0 +1,517 @@
+#*************************************************************************
+* CLASS 명      : metricBatchList.vm
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 6월 26일 
+* 기    능      : 조직별KPI관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     하윤식      2012년 6월 26일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/bsc/base/metric/metricList.vw")
+<script type="text/javascript" language="javascript">
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+	 	var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/base/metric/metricList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_r_width},
+			colNames     :[ '$!{PERSPECTIVE_NM}', '$!{STRATEGY_NM}', '$!{METRIC_NM} ID', '$!{METRIC_NM}', '실적입력자', '실적확인자', '실적입력자', '실적확인자', '가중치', '상위지표ID'],
+			colModel     :[
+							{name:'PERSPECTIVE_NM'       ,index:'PERSPECTIVE_NM'       ,width:100   ,align:'left'   },
+                            {name:'STRATEGY_NM'          ,index:'STRATEGY_NM'          ,width:100   ,align:'left'   },
+                            {name:'METRIC_ID'            ,index:'METRIC_ID'            ,width:100   ,align:'left'   ,formatter:linkMetricId},
+							{name:'METRIC_NM'            ,index:'METRIC_NM'            ,width:130   ,align:'left'   ,formatter:linkUpdate},
+							{name:'INSERT_USER_ID'       ,index:'INSERT_USER_ID'       ,width:100   ,align:'center' ,formatter:linkInsertUserId},
+							{name:'APPROVE_USER_ID'      ,index:'APPROVE_USER_ID'      ,width:100   ,align:'center' ,formatter:linkApproveUserId},
+							{name:'INSERT_USER_NM'       ,index:'INSERT_USER_NM'       ,width:100   ,align:'center' ,formatter:linkInsertUserNm},
+							{name:'APPROVE_USER_NM'      ,index:'APPROVE_USER_NM'      ,width:100   ,align:'center' ,formatter:linkApproveUserNm},
+							{name:'WEIGHT'               ,index:'WEIGHT'               ,width:80    ,align:'center' ,formatter:linkWeight},
+							{name:'UP_METRIC_ID'         ,index:'UP_METRIC_ID'         ,width:60    ,align:'center' ,sortable:false}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : false,
+			gridview     : true,
+			multiselect  : false,
+			cmTemplate	 : {sortable:false},
+			cellEdit     : true,
+			loadComplete : function() {
+								J("input[name=sortOrders]").numeric();
+								J("input[name=sortOrders]").css("ime-mode", "disabled"); //한글사용 비활성화
+								J("input[name=weights]").numeric({allow:"."});        //특정문자 허용(.)
+								J("input[name=weights]").css("ime-mode", "disabled"); //한글사용 비활성화
+								
+								getWeightSum();    //가중치 합계가져오기
+								getScDeptInfo();   //조직별 담당자 및 KPI 승인상태 가져오기
+                           },
+			caption:"조직별KPI관리"
+		}).jqGrid('hideCol','METRIC_ID').jqGrid('hideCol','UP_METRIC_ID').jqGrid('hideCol','INSERT_USER_ID').jqGrid('hideCol','APPROVE_USER_ID').setGridWidth($!{jqGrid_r_width});
+		
+		J("#list").jqGrid('sortableRows');
+		
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchor").fancybox(); 
+		
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			var findYear = J("#findYear").val();
+			var oldYear = J("#oldYear").val();
+			
+			if(findYear == oldYear) { 
+    			goGridSearch();
+    			return false;
+			}
+		});
+		
+		/******************************************
+		 * 저장버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			goInsert();
+			return false;
+		});
+		
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#scDeptId").val(J("#findScDeptId").val());
+			J("#scDeptNm").val(J("#findScDeptNm").val());
+			J("#formList").attr("action", "$!{context_path}/bsc/base/metric/metricList.vw?type=template").submit();
+		});
+		
+		/******************************************
+		 * 가중치 입력시 이벤트
+		 ******************************************/
+		J(":input[name=weights]").live("keyup", function(){
+			compute();
+		});
+        
+	});
+	
+	/******************************************
+	 * 지표가중치 합계 가져오기
+	 ******************************************/
+	function getWeightSum() { 
+		var findYear = J("#findYear").val();
+		var findScDeptId = J("#findScDeptId").val();
+		var findBscMetricGbn = J("#findBscMetricGbn").val();
+		var findUseYn = J("#findUseYn").val();
+		
+		J.ajax({
+			url        : "$!{context_path}/bsc/base/metric/metricWeightSum_ajax.vw",
+        	type       : "POST",
+			data       : "findYear=" + findYear + "&amp;findScDeptId=" + findScDeptId + "&amp;findBscMetricGbn=" + findBscMetricGbn + "&amp;findUseYn=" + findUseYn,
+        	dataType   : "xml",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success    : function (xml) {
+				if(J(xml).find("items").find("item").length > 0) {
+					J(xml).find("items").find("item").each(function() {
+                        var weightSum = J(this).find("weightSum").text();
+						J("#weightSum").text(weightSum);
+						
+						if(weightSum != "100") {
+							J("#weightAlert").show();
+						} else {
+							J("#weightAlert").hide();
+						}
+                    });
+				}
+        	},  
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+    	});
+	}
+	
+	/******************************************
+	 * 조직별 담당자 및 KPI 승인상태 가져오기
+	 ******************************************/
+	function getScDeptInfo() { 
+		var findYear = J("#findYear").val();
+		var findScDeptId = J("#findScDeptId").val();
+		
+		J.ajax({
+			url        : "$!{context_path}/bsc/base/metric/scDeptInfo_ajax.vw",
+        	type       : "POST",
+			data       : "findYear=" + findYear + "&amp;findScDeptId=" + findScDeptId,
+        	dataType   : "xml",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success    : function (xml) {
+				if(J(xml).find("items").find("item").length > 0) {
+					J(xml).find("items").find("item").each(function() {
+                        var approveStatusId = J(this).find("approveStatusId").text();
+						var approveStatusNm = J(this).find("approveStatusNm").text();
+						var bscUserId = J(this).find("bscUserId").text();
+						var managerUserId = J(this).find("managerUserId").text();
+						
+						J("#approveStatus").text(approveStatusNm);
+						J("#bscUserId").val(bscUserId);
+						J("#managerUserId").val(managerUserId);
+                    });
+				}
+        	},  
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+    	});
+	}
+	
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) { 
+		var str = cellvalue;
+		
+		if(rowObject.UP_METRIC_ID != "") {
+			str = "<img src=\'$!{img_path}/tree.gif\' align='absmiddle'>" + str
+		}
+		
+		return str;
+	}
+	
+	/******************************************
+	 * jqGrid 지표코드
+	 ******************************************/
+	function linkMetricId(cellvalue, options, rowObject) {
+		return '<input type="text" name="metricIds" value="' + cellvalue + '" class="wp50"/>';
+	}
+
+	/******************************************
+	 * jqGrid KPI담당자ID
+	 ******************************************/
+	function linkInsertUserId(cellvalue, options, rowObject) {
+		return '<input type="text" name="insertUserIds" value="' + cellvalue + '" class="wp50"/>';
+	}
+	
+	/******************************************
+	 * jqGrid 실적승인자ID
+	 ******************************************/
+	function linkApproveUserId(cellvalue, options, rowObject) { 
+		return '<input type="text" name="approveUserIds" value="' + cellvalue + '" class="wp50"/>';
+	}
+	
+	/******************************************
+	 * jqGrid KPI담당자명
+	 ******************************************/
+	function linkInsertUserNm(cellvalue, options, rowObject) {
+		var str = '';
+		str += '<input type="text" name="insertUserNms" value="' + cellvalue + '" class="inputbox w40"/>&nbsp;';
+		str += '<input type="image" onclick="javascript:popInsertUser(' + options.rowId + ');return false;" class="valign_middle" src="$!{img_path}/common/board/ic_search.gif" alt="승인자선택"/>&nbsp;';
+		str += '<input type="image" onclick="javascript:setInsertInit(' + options.rowId + ');return false;" class="valign_middle" readonly="readonly" src="$!{img_path}/common/board/ic_cancel.gif" alt="승인자취소"/>&nbsp;';
+		return str;
+	}
+	
+	/******************************************
+	 * jqGrid 실적승인자명
+	 ******************************************/
+	function linkApproveUserNm(cellvalue, options, rowObject) { 
+		var str = '';
+		str += '<input type="text" name="approveUserNms" value="' + cellvalue + '" class="inputbox w40"/>&nbsp;';
+		str += '<input type="image" onclick="javascript:popApproveUser(' + options.rowId + ');return false;" class="valign_middle" src="$!{img_path}/common/board/ic_search.gif" alt="승인자선택"/>&nbsp;';
+		str += '<input type="image" onclick="javascript:setApproveInit(' + options.rowId + ');return false;" class="valign_middle" readonly="readonly" src="$!{img_path}/common/board/ic_cancel.gif" alt="승인자취소"/>&nbsp;';
+		return str;
+	}
+	
+	/******************************************
+	 * jqGrid 정렬순서
+	 ******************************************/
+	function linkSortOrder(cellvalue, options, rowObject) { 
+		return '<input type="text" name="sortOrders" value="' + cellvalue + '" class="inputbox wp70" maxlength="5" />';
+	}
+	
+	/******************************************
+	 * jqGrid 가중치
+	 ******************************************/
+	function linkWeight(cellvalue, options, rowObject) { 
+		var str = '';
+		str += '<input type="hidden" name="weightsChk" value="' + rowObject.UP_METRIC_ID + '" class="inputbox wp70"/>';
+		str += '<input type="text" name="weights" value="' + cellvalue + '" class="inputbox wp70" maxlength="6" />';
+		return str;
+	}
+	
+	/******************************************
+	 * 그리드 ajax 조회
+	 ******************************************/
+	function goGridSearch() {
+		J("#list").setGridParam({url:"$!{context_path}/bsc/base/metric/metricList_xml.vw?"+J("#formFind").serialize()}); 
+		J("#list").trigger("reloadGrid");
+	}
+
+	/******************************************
+	 * 조직트리 선택
+	 ******************************************/
+	function goAction(code, name) {
+		var scDeptNm = J(name).text();
+		J("#findScDeptId").val(code);
+		J("#findScDeptNm").val(scDeptNm);
+		goGridSearch();
+	}
+
+	/******************************************
+	 * KPI 승인자 선택 팝업
+	 ******************************************/
+	function popApproveUser(index) {
+		J("#index").val(index);
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popSearchUser.vw?findYear=$!{searchMap.txt2html("year")}&amp;callBack=setApproveUserInfo");
+		J("#anchor").click();
+	}
+	
+	/*****************************************************
+	 * KPI 승인자 설정
+	 *****************************************************/ 
+	function setApproveUserInfo(arguments) {
+		var index = J("#index").val();
+		J("input[name=approveUserIds]").eq(index-1).val(arguments[0]);
+		J("input[name=approveUserNms]").eq(index-1).val(arguments[1]);
+		J.fancybox.close();
+	}
+	
+	/******************************************
+	 * KPI 승인자 선택 취소
+	 ******************************************/
+	function setApproveInit(index) {
+		J("input[name=approveUserIds]").eq(index-1).val("");
+		J("input[name=approveUserNms]").eq(index-1).val("");
+	}
+
+	/******************************************
+	 * KPI 담당자 선택 팝업
+	 ******************************************/
+	function popInsertUser(index) {
+		J("#index").val(index);
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popSearchUser.vw?findYear=$!{searchMap.txt2html("year")}&amp;callBack=setInsertUserInfo");
+		J("#anchor").click();
+	}
+	
+	/*****************************************************
+	 * KPI 담당자 설정
+	 *****************************************************/ 
+	function setInsertUserInfo(arguments) {
+		var index = J("#index").val();
+		J("input[name=insertUserIds]").eq(index-1).val(arguments[0]);
+		J("input[name=insertUserNms]").eq(index-1).val(arguments[1]);
+		J.fancybox.close();
+	}
+	
+	/******************************************
+	 * KPI 담당자 선택 취소
+	 ******************************************/
+	function setInsertInit(index) {
+		J("input[name=insertUserIds]").eq(index-1).val("");
+		J("input[name=insertUserNms]").eq(index-1).val("");
+	}
+	
+	/******************************************
+	 * 일괄등록
+	 ******************************************/
+	function goInsert() {
+        var weightSum = 0;
+        var saveChk   = true;
+        J("input[name=weights]", "#formList").each(function(index, item) {
+            if( isNaN(J(item).val())) {
+                J.showMsgBox("가중치는 숫자만 입력 가능합니다.", null, J('input[name=weights]').eq(index));
+                saveChk = false;
+                return false;
+            }
+            weightSum += Number(J(item).val());
+        });
+        
+        if( !saveChk ) {
+            return;
+        }
+        
+        if( weightSum != 100  ) {
+            alert("가중치의 합은 100이여야 합니다.");
+            return;
+        }
+    
+		J.showConfirmBox("일괄등록 하시겠습니까?", "insertDo"); //insertDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function insertDo() {
+		J("#year").val(J("#findYear").val());
+		J("#scDeptId").val(J("#findScDeptId").val());
+		J("#scDeptNm").val(J("#findScDeptNm").val());
+		J("#mode").val("BATCH");
+		J("#formList").attr("action", "$!{context_path}/bsc/base/metric/metricProcess.vw?type=template").submit();
+		return false;
+	}
+	
+	/******************************************
+	 * 가중치 합계 계산
+	 ******************************************/
+	function compute() {
+		var weightSum = 0;
+		
+		J(":input[name=weights]").each(function(index, item) {
+			if(J(":input[name=weightsChk]").eq(index).val()==""){
+    			if(J(item).val() != "" && J(item).val() != "0") {
+    				weightSum  = parseFloat(weightSum) + parseFloat(J(item).val());
+    			}
+			}
+		});
+		
+		weightSum = Math.round(weightSum*100)/100;
+		
+		J("#weightSum").text(weightSum);
+						
+		if(weightSum != "100") {
+			J("#weightAlert").show();
+		} else {
+			J("#weightAlert").hide();
+		}
+	}
+	
+	
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">조직별$!{METRIC_NM}관리</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/base/metric/metricBatchList.vw?type=template">
+				<input type="hidden" 	id="oldYear"		name="oldYear"			value="$!{searchMap.txt2html("findYear")}" />
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="조직별KPI관리검색 조건">
+						<caption class="none">조직별KPI관리 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w140">
+            						<span>$!{YEAR}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w220">
+            						<span>$!{SC_DEPT_NM}</span>
+            						<span class="searchBar">
+										<input type="hidden" id="findScDeptId" name="findScDeptId" value="$!{searchMap.txt2html("scDeptId", $!{topCodeInfo.SC_DEPT_ID})}"/>
+										<input type="text" id="findScDeptNm" name="findScDeptNm" value="$!{searchMap.txt2html("scDeptNm", $!{topCodeInfo.SC_DEPT_NM})}" class="disable" readonly="readonly"/>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w150">
+									<span>$!{METRIC_NM}유형</span>
+            						<span class="searchBar">
+            							<select id="findBscMetricGbn" name="findBscMetricGbn" class="select w70">
+											<option value="">전체</option>
+            								$!CS_CODE.getCodeOption("106", $!{searchMap.txt2html("findBscMetricGbn")}, $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w150">
+									<span>사용여부</span>
+            						<span class="searchBar">
+            							<select id="findUseYn" name="findUseYn" class="select w70">
+            								$!CS_CODE.getCodeOption("011", $!{searchMap.txt2html("findUseYn")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w140">
+									<span>$!{WEIGHT}합계 : </span>
+            						<span id="weightSum" class="searchBar"></span>
+            					</td>
+								<td class="searchBox_tit w140" style="display:none">
+									<span>$!{METRIC_NM}승인상태 : </span>
+            						<span id="approveStatus"class="searchBar"></span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/base/metric/metricProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"				name="year" />
+			<input type="hidden" id="metricId"  		name="metricId" />
+			<input type="hidden" id="scDeptId"  		name="scDeptId" />
+			<input type="hidden" id="scDeptNm"  		name="scDeptNm" />
+			<input type="hidden" id="index" 	 		name="index" />
+			<input type="hidden" id="bscUserId"			name="bscUserId" />
+			<input type="hidden" id="managerUserId"		name="managerUserId" />
+			$!{searchMap.makeHiddenFind()}
+		
+    		<div id="splitterBox">
+    			<div>
+    				<!-- 조직트리 Start -->
+    				<div class="blockGridTreeTable">
+    					#parse("/WEB-INF/vl/bsc/module/commModule/commonTree.vm") 
+    				</div>
+    
+    				<div id="mainListData">
+    					<!-- 데이터그리드 Start -->
+    					<div class="blockGridListTable floatRight">
+    						<table id="list" summary="조직별KPI관리 조회결과">
+    							<caption class="none">조직별KPI관리 조회</caption>
+    							<thead><tr><th></th></tr></thead>
+    							<tbody><tr><td></td></tr></tbody>
+    						</table>
+    						<div id="pager"></div>
+    					</div>
+    					<!--// 데이터그리드 End -->
+    					<div class="blockButton_all floatLeft">
+    						<div class="blockButton_l">
+								<span class="txt_blue">※ 마우스로 드래그하여 정렬순서를 조정하십시요.</span><br />
+								<span id="weightAlert" class="txt_red2 none">※가중치 합계가 100이 되어야 합니다. 재조정 해주세요.</span></div>
+    						<div class="blockButton">
+    							<ul>
+    								<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    								<li><input type="submit" id="btnInsert" value="저장" /></li>
+    							</ul>
+    						</div>
+    					</div>
+    				</div>
+    			</div>
+    		</div>
+		</form>
+	</div>
+	<a id="anchor"></a>
+	<div id="paramSet" class="none"></div>
+	<div class="clear"></div>
+</div>

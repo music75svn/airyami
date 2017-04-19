@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.eval.memDeptEmpScore">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		  
+		  SELECT TB_PAGE.ROWCNT AS "rowNum", TB_PAGE.*,
+		         COUNT (*) OVER (PARTITION BY TB_PAGE.YEAR, TB_PAGE.EMP_NO) CNT,
+			     ROW_NUMBER () OVER (PARTITION BY TB_PAGE.YEAR, TB_PAGE.EMP_NO ORDER BY TB_PAGE.START_PCMT_DATE) CNT_INDEX
+			FROM (
+				SELECT  TA_PAGE.*, ROWNUM AS ROWCNT
+				FROM (
+		    SELECT A.YEAR, 
+			       A.EMP_NO,
+			       A.EMP_NM,
+			       B.SER,
+			       A.CAST_TC,
+			       F_CODE_NM('170',A.CAST_TC,A.YEAR) AS CAST_TC_NM,
+			       A.POS_TC,
+			       F_CODE_NM('171',A.POS_TC,A.YEAR) AS POS_TC_NM,
+			       B.DEPT_CD,
+			       F_DEPT_LEV2_NM(B.YEAR,B.DEPT_CD) AS DEPT_NM,
+			       TO_CHAR(TO_DATE(B.START_PCMT_DATE,'YYYYMMDD'),'YYYY.MM.DD') AS START_PCMT_DATE,
+			       TO_CHAR(TO_DATE(B.END_PCMT_DATE,'YYYYMMDD'),'YYYY.MM.DD') AS END_PCMT_DATE,
+			       B.PCMT_TC,
+			       B.PCMT_TC_NM,
+			       B.WORK_MON,
+			       B.DEPT_SCORE,
+			       C.DEPT_FINAL_SCORE,
+			       SUM(B.WORK_MON) OVER(PARTITION BY A.YEAR, A.EMP_NO) AS TOT_WORK_MON
+			       <!-- 
+			       COUNT (*) OVER (PARTITION BY A.YEAR, A.EMP_NO) CNT,
+			       ROW_NUMBER () OVER (PARTITION BY A.YEAR, A.EMP_NO ORDER BY B.START_PCMT_DATE) CNT_INDEX
+			       -->
+			  FROM MEM_USER A
+			       INNER JOIN MEM_USER_DEPT_HIS_SCORE B
+			       ON A.YEAR = B.YEAR
+			       AND A.EMP_NO = B.EMP_NO
+			       INNER JOIN BSC_INSA_DEPT I
+			       ON B.YEAR = I.YEAR
+			       AND B.DEPT_CD = I.DEPT_CD
+			       LEFT OUTER JOIN MEM_USER_DEPT_SCORE C
+			       ON B.YEAR = C.YEAR
+			       AND B.EMP_NO = C.EMP_NO
+			 WHERE A.YEAR = #findYear#
+			       <isNotEmpty prepend="AND" property="findDeptCd">
+		           A.DEPT_CD = #findDeptCd#
+		           </isNotEmpty>
+		           <isNotEmpty prepend="AND" property="findCastTc">
+		           A.CAST_TC = #findCastTc#
+		           </isNotEmpty>
+		           <isNotEmpty prepend="AND" property="findPosTc">
+		           A.POS_TC = #findPosTc#
+		           </isNotEmpty>
+		           <isNotEmpty prepend="AND" property="findEmpNm">
+		           A.EMP_NM LIKE '%' || TRIM(#findEmpNm#) || '%'
+           		   </isNotEmpty>
+			 ORDER BY A.EMP_NO, B.START_PCMT_DATE
+				) TA_PAGE
+				WHERE ROWNUM <![CDATA[<=]]> #endRow#
+			) TB_PAGE
+			WHERE ROWCNT <![CDATA[>=]]> #startRow#
+		  
+	</select>	
+	
+	<select id="getExcelList" parameterClass="hashMap" resultClass="hashMap">
+		  
+		  SELECT TB_PAGE.ROWCNT AS "rowNum", TB_PAGE.*,
+		         COUNT (*) OVER (PARTITION BY TB_PAGE.YEAR, TB_PAGE.EMP_NO) CNT,
+			     ROW_NUMBER () OVER (PARTITION BY TB_PAGE.YEAR, TB_PAGE.EMP_NO ORDER BY TB_PAGE.START_PCMT_DATE) CNT_INDEX
+			FROM (
+				SELECT  TA_PAGE.*, ROWNUM AS ROWCNT
+				FROM (
+		    SELECT A.YEAR, 
+			       A.EMP_NO,
+			       A.EMP_NM,
+			       B.SER,
+			       A.CAST_TC,
+			       F_CODE_NM('170',A.CAST_TC,A.YEAR) AS CAST_TC_NM,
+			       A.POS_TC,
+			       F_CODE_NM('171',A.POS_TC,A.YEAR) AS POS_TC_NM,
+			       B.DEPT_CD,
+			       F_DEPT_LEV2_NM(B.YEAR,B.DEPT_CD) AS DEPT_NM,
+			       TO_CHAR(TO_DATE(B.START_PCMT_DATE,'YYYYMMDD'),'YYYY.MM.DD') AS START_PCMT_DATE,
+			       TO_CHAR(TO_DATE(B.END_PCMT_DATE,'YYYYMMDD'),'YYYY.MM.DD') AS END_PCMT_DATE,
+			       B.PCMT_TC,
+			       B.PCMT_TC_NM,
+			       B.WORK_MON,
+			       B.DEPT_SCORE,
+			       C.DEPT_FINAL_SCORE,
+			       SUM(B.WORK_MON) OVER(PARTITION BY A.YEAR, A.EMP_NO) AS TOT_WORK_MON
+			       <!-- 
+			       COUNT (*) OVER (PARTITION BY A.YEAR, A.EMP_NO) CNT,
+			       ROW_NUMBER () OVER (PARTITION BY A.YEAR, A.EMP_NO ORDER BY B.START_PCMT_DATE) CNT_INDEX
+			       -->
+			  FROM MEM_USER A
+			       INNER JOIN MEM_USER_DEPT_HIS_SCORE B
+			       ON A.YEAR = B.YEAR
+			       AND A.EMP_NO = B.EMP_NO
+			       INNER JOIN BSC_INSA_DEPT I
+			       ON B.YEAR = I.YEAR
+			       AND B.DEPT_CD = I.DEPT_CD
+			       LEFT OUTER JOIN MEM_USER_DEPT_SCORE C
+			       ON B.YEAR = C.YEAR
+			       AND B.EMP_NO = C.EMP_NO
+			 WHERE A.YEAR = #findYear#
+			       <isNotEmpty prepend="AND" property="findDeptCd">
+		           A.DEPT_CD = #findDeptCd#
+		           </isNotEmpty>
+		           <isNotEmpty prepend="AND" property="findCastTc">
+		           A.CAST_TC = #findCastTc#
+		           </isNotEmpty>
+		           <isNotEmpty prepend="AND" property="findPosTc">
+		           A.POS_TC = #findPosTc#
+		           </isNotEmpty>
+		           <isNotEmpty prepend="AND" property="findEmpNm">
+		           A.EMP_NM LIKE '%' || TRIM(#findEmpNm#) || '%'
+           		   </isNotEmpty>
+			 ORDER BY A.EMP_NO, B.START_PCMT_DATE
+				) TA_PAGE
+			) TB_PAGE
+		  
+	</select>			  
+	
+	<select id="selectAllRecords"  parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT COUNT(1) FROM (SELECT A.YEAR, 
+			       A.EMP_NO,
+			       A.EMP_NM,
+			       B.SER,
+			       A.CAST_TC,
+			       F_CODE_NM('170',A.CAST_TC,A.YEAR) AS CAST_TC_NM,
+			       A.POS_TC,
+			       F_CODE_NM('171',A.POS_TC,A.YEAR) AS POS_TC_NM,
+			       B.DEPT_CD,
+			       B.DEPT_KOR_NM AS DEPT_NM,
+			       B.START_PCMT_DATE,
+			       B.END_PCMT_DATE,
+			       B.PCMT_TC,
+			       B.PCMT_TC_NM,
+			       B.WORK_MON,
+			       B.DEPT_SCORE,
+			       C.DEPT_FINAL_SCORE,
+			       COUNT (*) OVER (PARTITION BY A.YEAR, A.EMP_NO) CNT,
+			       ROW_NUMBER () OVER (PARTITION BY A.YEAR, A.EMP_NO ORDER BY B.START_PCMT_DATE) CNT_INDEX
+			  FROM MEM_USER A
+			       INNER JOIN MEM_USER_DEPT_HIS_SCORE B
+			       ON A.YEAR = B.YEAR
+			       AND A.EMP_NO = B.EMP_NO
+			       LEFT OUTER JOIN MEM_USER_DEPT_SCORE C
+			       ON B.YEAR = C.YEAR
+			       AND B.EMP_NO = C.EMP_NO
+			 WHERE A.YEAR = #findYear#
+			       <isNotEmpty prepend="AND" property="findDeptCd">
+		           A.DEPT_CD = #findDeptCd#
+		           </isNotEmpty>
+		           <isNotEmpty prepend="AND" property="findCastTc">
+		           A.CAST_TC = #findCastTc#
+		           </isNotEmpty>
+		           <isNotEmpty prepend="AND" property="findPosTc">
+		           A.POS_TC = #findPosTc#
+		           </isNotEmpty>
+		           <isNotEmpty prepend="AND" property="findEmpNm">
+		           A.EMP_NM LIKE '%' || TRIM(#findEmpNm#) || '%'
+                   </isNotEmpty>
+			 ORDER BY A.EMP_NO, B.START_PCMT_DATE) A
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 개인별 조직관리역량평가 결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_DEPT_SCORE
+	==================================================================
+	-->
+	<!-- 
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		    SELECT A.YEAR, 
+			       A.EMP_NO,
+			       A.EMP_NM,
+			       B.SER,
+			       A.CAST_TC,
+			       F_CODE_NM('170',A.CAST_TC,A.YEAR) AS CAST_TC_NM,
+			       A.POS_TC,
+			       F_CODE_NM('171',A.POS_TC,A.YEAR) AS POS_TC_NM,
+			       B.DEPT_CD,
+			       B.DEPT_KOR_NM AS DEPT_NM,
+			       B.START_PCMT_DATE,
+			       B.END_PCMT_DATE,
+			       B.PCMT_TC,
+			       B.PCMT_TC_NM,
+			       B.WORK_MON,
+			       B.DEPT_SCORE,
+			       C.DEPT_FINAL_SCORE,
+			       COUNT (*) OVER (PARTITION BY A.YEAR, A.EMP_NO) CNT,
+			       ROW_NUMBER () OVER (PARTITION BY A.YEAR, A.EMP_NO ORDER BY B.START_PCMT_DATE) CNT_INDEX
+			  FROM MEM_USER A
+			       INNER JOIN MEM_USER_DEPT_HIS_SCORE B
+			       ON A.YEAR = B.YEAR
+			       AND A.EMP_NO = B.EMP_NO
+			       LEFT OUTER JOIN MEM_USER_DEPT_SCORE C
+			       ON B.YEAR = C.YEAR
+			       AND B.EMP_NO = C.EMP_NO
+			 WHERE A.YEAR = #findYear#
+			       <isNotEmpty prepend="AND" property="findDeptCd">
+		           A.DEPT_CD = #findDeptCd#
+		           </isNotEmpty>
+		           <isNotEmpty prepend="AND" property="findCastTc">
+		           A.CAST_TC = #findCastTc#
+		           </isNotEmpty>
+		           <isNotEmpty prepend="AND" property="findPosTc">
+		           A.POS_TC = #findPosTc#
+		           </isNotEmpty>
+		           <isNotEmpty prepend="AND" property="findEmpNm">
+		           A.EMP_NM LIKE '%' || TRIM(#findEmpNm#) || '%'
+           </isNotEmpty>
+			 ORDER BY A.EMP_NO, B.START_PCMT_DATE
+	</select>
+	-->
+	
+	<!--
+	==================================================================
+	  # 설명	: 조직월한계산 초기화
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<parameterMap id="execDBParamMap" class="java.util.HashMap">
+		<parameter property="year" 				jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 복사 프로시져 실행
+	  #	기능	: PROCEDURES
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<procedure id="execDB" parameterMap="execDBParamMap">
+		{CALL SP_MEM_DEPT_HIS_SCORE(?)}
+	</procedure>
+	
+	<!--
+	==================================================================
+	  # 설명	: 개인별 조직관리역량평가 등록
+	  #	기능	: INSERT
+	  #	TABLE	: ORG_DEPT_SCORE
+	==================================================================
+	-->
+	<update id="updateDB" parameterClass="hashMap">
+	<![CDATA[
+		UPDATE MEM_USER_DEPT_HIS_SCORE
+		   SET START_PCMT_DATE = #startPcmtDate#,
+		       END_PCMT_DATE = #endPcmtDate#,
+		       WORK_MON = CASE WHEN #endPcmtDate# = #startPcmtDate# THEN 0
+						       ELSE 
+						           ROUND(MONTHS_BETWEEN(TO_CHAR(LAST_DAY(#endPcmtDate#),'YYYYMMDD'),SUBSTR(#startPcmtDate#,1,6)||'01'))
+						           + CASE WHEN ROUND(MONTHS_BETWEEN(#endPcmtDate#,SUBSTR(#endPcmtDate#,1,6)||'01'),3) < ROUND(MONTHS_BETWEEN(TO_CHAR(LAST_DAY(#endPcmtDate#),'YYYYMMDD'),SUBSTR(#endPcmtDate#,1,6)||'01')/2,3) THEN -1 ELSE 0 END
+						           + CASE WHEN ROUND(MONTHS_BETWEEN(TO_CHAR(LAST_DAY(#startPcmtDate#),'YYYYMMDD'),#startPcmtDate#),3) < ROUND(MONTHS_BETWEEN(TO_CHAR(LAST_DAY(#startPcmtDate#),'YYYYMMDD'),SUBSTR(#startPcmtDate#,1,6)||'01')/2,3) THEN -1 ELSE 0 END 
+						       END
+	     WHERE YEAR = #year#
+	       AND EMP_NO = #empNo#
+	       AND SER = #ser#					       
+	]]>	 				       
+	</update>
+	
+	<!--
+	==================================================================
+	  # 설명	: 개인별 조직관리역량평가 등록
+	  #	기능	: INSERT
+	  #	TABLE	: ORG_DEPT_SCORE
+	==================================================================
+	-->
+	<update id="updateScoreDB" parameterClass="hashMap">
+		UPDATE MEM_USER_DEPT_SCORE
+		   SET DEPT_FINAL_SCORE = (SELECT SUM(DEPT_SCORE*(WORK_MON/12))
+		                             FROM MEM_USER_DEPT_HIS_SCORE
+		                            WHERE YEAR = #year#
+	       							  AND EMP_NO = #empNo#
+	       						  )
+	     WHERE YEAR = #year#
+	       AND EMP_NO = #empNo#					       
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 개인별 조직관리역량평가 등록
+	  #	기능	: INSERT
+	  #	TABLE	: ORG_DEPT_SCORE
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		MERGE INTO ORG_DEPT_SCORE AA
+		     USING (SELECT #year# AS YEAR
+        		         , #deptCd# AS DEPT_CD
+                 		 , UPPER(#grade#) AS GRADE
+                 		 , #score# AS SCORE
+              		FROM DUAL) BB
+		        ON (AA.YEAR = BB.YEAR
+        		AND AA.DEPT_CD = BB.DEPT_CD)
+		WHEN MATCHED
+		THEN
+		   UPDATE SET AA.GRADE = BB.GRADE, AA.SCORE = BB.SCORE, AA.CREATE_DT = SYSDATE
+		WHEN NOT MATCHED
+		THEN
+		   INSERT     (YEAR
+		             , DEPT_CD
+             		 , GRADE
+		             , SCORE
+		             , CREATE_DT)
+		       VALUES (BB.YEAR
+        		     , BB.DEPT_CD
+		             , BB.GRADE
+		             , BB.SCORE
+		             , SYSDATE)
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직트리
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getScDeptList" parameterClass="hashMap" resultClass="hashMap">
+		           SELECT A.DEPT_CD AS CODE_ID
+		                , A.DEPT_KOR_NM AS CODE_NM
+		                , A.UP_DEPT_CD AS UP_CODE_ID
+		                , LEVEL AS LEVEL_ID
+		             FROM (SELECT T.*
+		                        , NVL ( (  SELECT COUNT (1)
+		                                     FROM BSC_INSA_DEPT
+		                                    WHERE YEAR = T.YEAR
+		                                      AND UP_DEPT_CD = T.DEPT_CD
+		                                 GROUP BY YEAR, UP_DEPT_CD)
+		                             , '0')
+		                             AS CHILD_DEPT_CNT
+		                     FROM BSC_INSA_DEPT T) A
+		            WHERE A.YEAR = #findYear#
+		       START WITH A.UP_DEPT_CD IS NULL
+		       CONNECT BY PRIOR A.DEPT_CD = A.UP_DEPT_CD
+		              AND PRIOR A.YEAR = A.YEAR
+		ORDER SIBLINGS BY DISP_ORDER
+	</select>
+
+</sqlMap>
+
+

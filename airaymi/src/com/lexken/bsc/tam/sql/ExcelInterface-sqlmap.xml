@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.tam.excelInterface">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR 
+		     , B.MON
+		     , A.ITEM_CD
+		     , A.ITEM_NM
+		     , A.ITEM_ACTUAL_DIVI
+		     , B.USER_ID
+		     , B.USER_NM 
+		     , CASE WHEN B.YEAR IS NOT NULL THEN B.YEAR||'.'||B.MON END YM
+		     , B.RESULT_YN
+		     , B.INPUT_VALUE
+		     , TO_CHAR(B.INTERFACE_DT, 'YYYY-MM-DD HH24:MI:SS') INTERFACE_DT
+		FROM BSC_SYSTEM_ITEM A
+		         LEFT OUTER JOIN (SELECT YEAR, MON, ITEM_CD, USER_ID, USER_NM, RESULT_YN, INPUT_VALUE, INTERFACE_DT
+		                            FROM BSC_SYSTEM_INT_LOG_EXT 
+		                           WHERE (YEAR, ITEM_CD, INTERFACE_DT) 
+		                                  IN (SELECT YEAR, ITEM_CD, MAX(INTERFACE_DT)
+		                                        FROM BSC_SYSTEM_INT_LOG_EXT
+		                                       WHERE YEAR = #findYear#
+		                                    GROUP BY YEAR, ITEM_CD)) B
+		                           ON A.YEAR = B.YEAR AND A.ITEM_CD = B.ITEM_CD
+		WHERE A.YEAR = #findYear#
+		  AND A.ITEM_DIVI = '02' 
+		  AND A.DELETE_DT IS NULL
+		
+		<isNotEmpty prepend="AND" property="findItemActualDivi" >
+		       A.ITEM_ACTUAL_DIVI = #findItemActualDivi#
+		 </isNotEmpty>
+		 	
+		<isNotEmpty prepend="AND" property="findExcelUserId">
+	    	A.EXCEL_USER_ID = #findExcelUserId#
+	    </isNotEmpty>
+		 	
+		<isNotEmpty prepend="AND" property="findItemNm">
+			UPPER(A.ITEM_NM) LIKE  '%' || TRIM(UPPER(#findItemNm#)) ||'%'
+		</isNotEmpty>
+		
+		ORDER BY A.ITEM_NM ASC                                                                                                         
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩관리 목록 보기(담당자)
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT T1.EXCEL_USER_ID, T2.NAME_HAN EXCEL_USER_NM 
+		  FROM BSC_SYSTEM_ITEM T1 
+		       LEFT OUTER JOIN V_ROLE_USER T2 ON T1.EXCEL_USER_ID=T2.SABUN
+		 WHERE T1.YEAR = #findYear#
+		   AND T1.ITEM_DIVI = '02'
+           AND T1.EXCEL_USER_ID IS NOT NULL
+		   AND T1.DELETE_DT IS NULL
+	     ORDER BY T2.NAME_HAN
+	</select>
+	
+	
+ 	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩 양식 다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getExcelTemplate" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT 
+		       C.DEPT_ID
+		     , C.SC_DEPT_NM AS DEPT_NM
+		FROM BSC_METRIC A 
+		         INNER JOIN BSC_SC_DEPT B ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID AND B.DELETE_DT IS NULL
+		         LEFT OUTER JOIN (SELECT YEAR
+		         					   , DEPT_ID
+		         					   , SC_DEPT_ID
+		         					   , SC_DEPT_NM 
+		         				    FROM V_DEPT_MAPPING_REAL
+		         		   		   UNION
+		         				  SELECT B.YEAR
+							           , B.DEPT_ID
+							           , B.SC_DEPT_ID
+							           , A.SC_DEPT_NM
+							        FROM BSC_SC_DEPT A
+							        LEFT OUTER JOIN BSC_SC_dEPT_MAPPING B
+							          ON A.YEAR = B.YEAR
+							         AND A.SC_dEPT_ID = B.SC_DEPT_ID
+							        LEFT OUTER JOIN BSC_DEPTINFO C
+							          ON B.DEPT_ID = C.DEPT_ID
+							       INNER JOIN BSC_METRIC D
+							          ON A.YEAR = D.YEAR
+								     AND A.SC_DEPT_ID = D.SC_DEPT_ID
+								   WHERE A.YEAR = #findYear#
+								     AND C.DEPT_NM IS NULL
+								     AND D.METRIC_ID IN ( SELECT METRIC_ID                           
+												            FROM BSC_CAL_TYPE_COL                          
+												           WHERE YEAR =  #findYear#                            
+												             AND ITEM_CD =  #itemCd# 
+												             AND DELETE_DT IS NULL
+								        )
+		         				 ) C 
+		                      ON B.YEAR = C.YEAR AND B.SC_DEPT_ID = C.SC_DEPT_ID  
+		WHERE A.YEAR = #findYear#
+		  AND A.METRIC_ID IN (SELECT METRIC_ID
+		                        FROM BSC_CAL_TYPE_COL
+		                       WHERE YEAR = #findYear#
+		                         AND ITEM_CD = #itemCd#
+		                         AND DELETE_DT IS NULL)
+          AND C.DEPT_ID IS NOT NULL
+		  AND A.DELETE_DT IS NULL
+		  AND C.DEPT_ID NOT IN ('8245', '6420', '6520','6320')
+		  UNION ALL
+		  SELECT 'ZZZZ', 'KGS' FROM DUAL
+		  UNION ALL
+		  SELECT 'GGGG', 'GOV_EVAL' FROM DUAL
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩 양식 다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getExcelTargetTemplate" parameterClass="hashMap" resultClass="hashMap">
+		   SELECT A.METRIC_ID,
+                  A.METRIC_NM,
+                  B.SC_DEPT_NM,
+                  TM.MON,
+                  TO_CHAR(TRIM(D.TGT_VALUE)) AS TGT_VALUE
+            FROM BSC_METRIC A 
+                 INNER JOIN BSC_ACT_REG_DEF_MON TM
+                 ON A.YEAR = TM.YEAR
+                 AND A.METRIC_ID = TM.METRIC_ID
+                 INNER JOIN BSC_SC_DEPT B 
+                 ON A.YEAR = B.YEAR 
+                 AND A.SC_DEPT_ID = B.SC_DEPT_ID 
+                 AND B.DELETE_DT IS NULL
+                 LEFT OUTER JOIN BSC_TARGET D
+                 ON TM.YEAR= D.YEAR
+                 AND TM.MON = D.MON
+                 AND A.METRIC_ID = D.METRIC_ID
+                 AND D.ANAL_CYCLE = 'M'
+           WHERE A.YEAR = #findYear#
+             AND A.ITEM_CD  = #itemCd#
+             AND A.DELETE_DT IS NULL 
+           ORDER BY B.SC_DEPT_ID, B.SORT_ORDER, A.SORT_ORDER, TM.MON      
+	</select>
+	
+
+ 	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩 팝업 상세
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.ITEM_CD
+		     , A.ITEM_NM
+		     , A.EXCEL_USER_ID
+		     , B.USER_NM EXCEL_USER_NM
+		FROM BSC_SYSTEM_ITEM A
+		        LEFT OUTER JOIN V_ROLE_USER B ON A.EXCEL_USER_ID = B.USER_ID
+		WHERE A.YEAR = #findYear#
+		  AND A.ITEM_CD= #itemCd#
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_INTERFACE_ORIGINAL_DATA (
+                    YEAR
+                  , MON
+                  , ITEM_CD
+                  , DEPT_ID
+                  , ACTUAL
+                  , CREATE_DT
+                ) VALUES (
+                    #year#
+                  , #mon#
+                  , #itemCd#
+                  , #deptId#
+                  , #actual#
+                  , SYSDATE
+                )  
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertTgtData" parameterClass="hashMap">
+		INSERT INTO BSC_INTERFACE_EXCEL_DATA (
+                    YEAR
+                  , MON
+                  , ITEM_CD
+                  , METRIC_ID
+                  , TGT_VALUE
+                  , CREATE_DT
+                ) VALUES (
+                    #year#
+                  , #mon#
+                  , #itemCd#
+                  , #metricId#
+                  , #target#
+                  , SYSDATE
+                )  
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩 로그 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_SYSTEM_INT_LOG_EXT
+	==================================================================
+	-->	
+	<insert id="insertLog" parameterClass="hashMap">
+		INSERT INTO BSC_SYSTEM_INT_LOG_EXT (
+                    YEAR
+                  , MON
+                  , ITEM_CD
+                  , USER_ID
+                  , USER_NM
+                  , RESULT_YN
+                  , INPUT_VALUE
+                  , INTERFACE_DT
+				) VALUES (
+                    #year#
+                  , #mon#
+                  , #itemCd#
+                  , #loginUserId#
+                  , #loginUserNm#
+                  , #resultYn#
+                  , #inputValue#
+                  , SYSDATE
+				)
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 기존 엑셀로딩자료 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_INTERFACE_ORIGINAL_DATA
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_INTERFACE_ORIGINAL_DATA
+		 WHERE YEAR = #year#
+		   AND MON = #mon#
+		   AND ITEM_CD = #itemCd#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 기존 엑셀로딩자료 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_INTERFACE_ORIGINAL_DATA
+	==================================================================
+	-->	
+	<update id="deleteTgtValueData" parameterClass="hashMap">
+		DELETE FROM BSC_TARGET
+		 WHERE YEAR = #year#
+		   AND METRIC_ID = #metricId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 기존 엑셀로딩자료 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_INTERFACE_ORIGINAL_DATA
+	==================================================================
+	-->	
+	<update id="deleteTgtData" parameterClass="hashMap">
+		DELETE FROM BSC_INTERFACE_EXCEL_DATA
+		 WHERE YEAR = #year#
+		   AND ITEM_CD = #itemCd#
+	</update>		
+ 
+ 	<!--
+	==================================================================   
+	  # 설명	: 기존 엑셀로딩 로그 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_SYSTEM_INT_LOG_EXT
+	==================================================================
+	-->	
+	<update id="deleteLog" parameterClass="hashMap">
+		DELETE FROM BSC_SYSTEM_INT_LOG_EXT
+		 WHERE YEAR = #year#
+		   AND MON = #mon#
+		   AND ITEM_CD = #itemCd#
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩 데이터 상세 리스트
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INTERFACE_ORIGINAL_DATA
+	==================================================================
+	-->
+	<select id="getDetailList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.MON
+		     , A.ITEM_CD
+		     , A.DEPT_ID
+		     , C.SC_DEPT_NM AS DEPT_NM
+		     , A.ACTUAL
+		FROM BSC_INTERFACE_ORIGINAL_DATA A
+		INNER JOIN (SELECT YEAR
+		         					   , DEPT_ID
+		         					   , SC_DEPT_ID
+		         					   , SC_DEPT_NM 
+		         					   , OUORDER
+		         				    FROM V_DEPT_MAPPING_REAL
+		         		   		   UNION
+		         				  SELECT B.YEAR
+							           , B.DEPT_ID
+							           , B.SC_DEPT_ID
+							           , A.SC_DEPT_NM
+							           , C.OUORDER
+							        FROM BSC_SC_DEPT A
+							        LEFT OUTER JOIN BSC_SC_dEPT_MAPPING B
+							          ON A.YEAR = B.YEAR
+							         AND A.SC_dEPT_ID = B.SC_DEPT_ID
+							        LEFT OUTER JOIN BSC_DEPTINFO C
+							          ON B.DEPT_ID = C.DEPT_ID
+							       INNER JOIN BSC_METRIC D
+							          ON A.YEAR = D.YEAR
+								     AND A.SC_DEPT_ID = D.SC_DEPT_ID
+								   WHERE A.YEAR = #findYear#
+								     AND C.DEPT_NM IS NULL
+								     AND D.METRIC_ID IN ( SELECT METRIC_ID                           
+												            FROM BSC_CAL_TYPE_COL                          
+												           WHERE YEAR =  #findYear#                            
+												             AND ITEM_CD =  #itemCd# 
+												             AND DELETE_DT IS NULL
+								        )
+		         				 ) C 
+		  ON A.YEAR = C.YEAR 
+		 AND A.DEPT_ID = C.DEPT_ID
+		WHERE A.YEAR = #findYear#
+		  AND A.MON = #findMon#
+		  AND A.ITEM_CD = #itemCd#
+		ORDER BY C.OUORDER ASC 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩 데이터 상세 리스트
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INTERFACE_ORIGINAL_DATA
+	==================================================================
+	-->
+	<select id="getExcelTempList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.MON
+		     , A.ITEM_CD
+		     , A.DEPT_ID
+		     , B.DEPT_NM
+		     , A.ACTUAL
+		FROM BSC_INTERFACE_ORIGINAL_DATA A
+		     LEFT OUTER JOIN BSC_DEPTINFO B ON A.DEPT_ID = B.DEPT_ID
+		WHERE A.YEAR = #findYear#
+		  AND A.MON = #findMon#
+		  AND A.ITEM_CD = #itemCd#
+		ORDER BY B.OUORDER ASC 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩 데이터 상세 리스트
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INTERFACE_ORIGINAL_DATA
+	==================================================================
+	-->
+	<select id="getExcelTempTgtList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.MON
+		     , A.ITEM_CD
+		     , A.METRIC_ID
+		     , TRIM(TO_CHAR(A.TGT_VALUE)) TGT_VALUE   
+		FROM BSC_INTERFACE_EXCEL_DATA A
+	   WHERE A.YEAR = #year#
+	     AND A.ITEM_CD = #itemCd#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 엑셀로딩 데이터 상세 리스트
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INTERFACE_ORIGINAL_DATA
+	==================================================================
+	-->
+	<select id="getExcelTempDistinctList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT A.METRIC_ID
+		FROM BSC_INTERFACE_EXCEL_DATA A
+	   WHERE A.YEAR = #year#
+	     AND A.ITEM_CD = #itemCd#
+	</select>
+	
+</sqlMap>
+
+

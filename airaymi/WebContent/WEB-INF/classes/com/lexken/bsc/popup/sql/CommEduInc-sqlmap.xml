@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.commEduInc">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+			SELECT YEAR
+			      ,MON
+			      ,'D006288' AS DEPT_CD
+			      ,DEPT_CD AS INNER_DEPT_CD
+			      ,DEPT_NM
+			      ,RPT_TC_NM
+			      ,ROLE_TC_NM
+			      ,INSP_KIND_TC_NM
+			      ,LAW_TC_NM
+			      ,STIC_LAG_TC_NM
+			      ,STIC_MID_TC_NM
+			      ,STIC_SML_TC_NM
+			      ,(REQ_AMT / 1000000) AS REQ_AMT
+			  FROM (SELECT A.SUMM_YY AS YEAR
+			              ,A.SUMM_MM AS MON
+			              ,A.BR_CD AS DEPT_CD
+			              ,B.DEPT_NM
+			              ,A.RPT_TC_NM
+			              ,A.ROLE_TC_NM
+			              ,A.INSP_KIND_TC_NM
+			              ,A.LAW_TC_NM
+			              ,A.STIC_LAG_TC_NM
+			              ,A.STIC_MID_TC_NM
+			              ,A.STIC_SML_TC_NM
+			              ,A.REQ_AMT
+			          FROM V_GHF0221D_001 A
+			    INNER JOIN BSC_DEPTINFO B
+			            ON A.BR_CD = B.DEPT_ID
+			           AND SUMM_YY = #findYear#
+			           AND SUMM_MM = #findMon#
+			           AND RPT_TC = '04'
+			           AND ROLE_TC = '31'
+			           AND INSP_KIND_TC = '05'
+			           AND BR_CD IN ('5130', '5135', '5265', '5270', '5275', '5285', '5100', '5200')
+			        )
+	     ORDER BY DEPT_CD, INSP_KIND_TC_NM, LAW_TC_NM, STIC_LAG_TC_NM, STIC_MID_TC_NM, STIC_SML_TC_NM, REQ_AMT
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 부서조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DEPT_ID, B.DEPT_NM
+		  FROM BSC_SC_DEPT_MAPPING A
+	LEFT OUTER JOIN BSC_DEPTINFO B
+			ON A.DEPT_ID = B.DEPT_ID
+		 WHERE (YEAR, SC_DEPT_ID) IN
+		          (SELECT YEAR, SC_DEPT_ID
+		             FROM BSC_METRIC
+		            WHERE (METRIC_GRP_ID, YEAR) IN
+		                     (SELECT METRIC_GRP_ID, YEAR
+		                        FROM BSC_METRIC
+		                       WHERE YEAR = #findYear# AND METRIC_ID = #findMetricId#))
+<![CDATA[		   AND OULEVEL < 2 ]]>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_SYSTEM_ITEM (
+		             YEAR
+		           , ITEM_CD
+		           , ITEM_NM
+		           , ITEM_ACTUAL_DIVI
+		           , ITEM_DIVI
+		           , SYSTEM_GBN
+		           , CONTENT
+		           , EXCEL_USER_ID
+		           , DEPT_APPLY_SCOPE
+		           , CREATE_DT
+		           , MODIFY_DT
+		           , DELETE_DT
+		     ) VALUES (
+		             #year#
+		           , #itemCd#
+		           , #itemNm#
+		           , #itemActualDivi#
+		           , #itemDivi#
+		           , #systemGbn#
+		           , #content#
+		           , #excelUserId#
+		           , #deptApplyScope#
+		           , SYSDATE
+		           , SYSDATE
+		<isEqual property="useYn" compareValue="N">
+		           , SYSDATE
+		</isEqual>
+		<isNotEqual property="useYn" compareValue="N">
+		           , NULL
+		</isNotEqual>
+		            )
+	</insert>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 연계개수 팝업 데이터 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAL_TYPE_COL, BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getPopItemCntList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT   A.YEAR
+		       , C.SC_DEPT_ID
+		       , D.SC_DEPT_NM
+		       , A.METRIC_ID
+		       , C.METRIC_NM
+		       , A.CAL_TYPE_COL
+		       , A.CAL_TYPE_COL_NM
+		       , B.ITEM_CD
+		       , B.ITEM_NM
+		    FROM BSC_CAL_TYPE_COL A INNER JOIN BSC_SYSTEM_ITEM B ON A.YEAR = B.YEAR
+		                                                       AND A.ITEM_CD = B.ITEM_CD
+		                                                       AND B.DELETE_DT IS NULL
+		         INNER JOIN BSC_METRIC C ON A.YEAR = C.YEAR
+		                               AND A.METRIC_ID = C.METRIC_ID
+		                               AND C.DELETE_DT IS NULL
+		         INNER JOIN BSC_SC_DEPT D ON C.YEAR = D.YEAR
+		                                AND C.SC_DEPT_ID = D.SC_DEPT_ID
+		                                AND D.DELETE_DT IS NULL
+		   WHERE A.YEAR = #findYear#
+		     AND A.ITEM_CD = #findItemCd#
+		     AND A.DELETE_DT IS NULL
+		     AND A.ITEM_CD IS NOT NULL
+		ORDER BY A.METRIC_ID, A.CAL_TYPE_COL
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+             AND B.INSERT_GUBUN = '01'
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getScDeptMapping" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DEPT_ID
+		  FROM ( SELECT DEPT_ID
+				   FROM BSC_SC_DEPT_MAPPING
+				  WHERE YEAR = #findYear#
+				    AND SC_DEPT_ID = #findScDeptCd# ORDER BY DEPT_ID )
+		 WHERE ROWNUM = 1
+	</select>
+
+</sqlMap>
+
+

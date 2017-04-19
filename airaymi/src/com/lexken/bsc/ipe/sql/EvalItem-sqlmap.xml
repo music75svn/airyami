@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.ipe.evalItem">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_IPE_ITEM
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap" remapResults="true">
+		 SELECT ITEM_NM
+			   ,ITEM_ID
+			   ,WEIGHT
+			   ,EVAL_DEGREE_ID
+			   ,METRIC_GRP_ID
+			   ,SORT_ORDER
+			   ,DECODE(DELETE_DT, '', 'Y', 'N') AS DELETE_DT
+		    FROM
+		        BSC_IPE_EVAL_ITEM
+		    WHERE
+		        YEAR =  #findYear#
+		        AND EVAL_DEGREE_ID= #findEvalDegreeId#
+		        AND METRIC_GRP_ID= #findMetricGrpId#
+	        <dynamic>
+			 	<isEqual prepend="AND" property="findUseYn" compareValue="N">
+	            	DELETE_DT IS NOT NULL
+			    </isEqual>
+
+			    <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+	            	DELETE_DT IS NULL
+			    </isNotEqual>
+    		</dynamic>
+		    ORDER BY
+		        SORT_ORDER, ITEM_NM
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 평가항목 가중치 합계 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getWeightSum" parameterClass="hashMap" resultClass="java.lang.Integer">
+		 SELECT NVL(SUM(WEIGHT), 0)
+		    FROM
+		        BSC_IPE_EVAL_ITEM
+		    WHERE
+		        YEAR =  #findYear#
+		        AND EVAL_DEGREE_ID = #findEvalDegreeId#
+		        AND METRIC_GRP_ID = #findMetricGrpId#
+	        	AND DELETE_DT IS NULL
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 평가항목 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+			  ,EVAL_DEGREE_ID
+			  ,METRIC_GRP_ID
+			  ,ITEM_ID
+			  ,ITEM_NM
+			  ,WEIGHT
+			  ,SORT_ORDER
+			  ,DECODE(DELETE_DT, '', 'Y', 'N') AS DELETE_DT
+		  FROM BSC_IPE_EVAL_ITEM
+		 WHERE 1 = 1
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND ITEM_ID = #itemId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 평가차수 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_DEGREE
+	==================================================================
+	-->
+	<select id="getDegreeList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR,
+               EVAL_DEGREE_ID,
+               EVAL_DEGREE_NM
+          FROM BSC_ECM_EVAL_DEGREE
+          WHERE YEAR=#findYear#
+    </select>
+
+    <!--
+	==================================================================
+	  # 설명	: 비계량 지표 pool목록조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC_GRP
+	==================================================================
+	-->
+	<select id="getPoolList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT DISTINCT A.YEAR,
+                A.METRIC_GRP_ID,
+                A.METRIC_GRP_NM
+           FROM BSC_METRIC_GRP A
+           INNER JOIN BSC_METRIC B
+           	 ON A.YEAR=B.YEAR
+           	AND A.METRIC_GRP_ID = B.METRIC_GRP_ID
+           	AND B.DELETE_DT IS NULL
+          WHERE A.YEAR=#findYear#
+            AND A.TYPE_ID='02'
+            AND A.DELETE_DT IS NULL
+          ORDER BY A.METRIC_GRP_NM
+    </select>
+
+    <!--
+	==================================================================
+	  # 설명	: 평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MAT_ITEM
+	==================================================================
+	-->
+	<select id="getItemList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.METRIC_ID, B.SC_DEPT_NM, 'DEPT_'||A.METRIC_ID AS COL_NM
+          FROM BSC_METRIC A
+          LEFT OUTER JOIN BSC_SC_DEPT B
+            ON A.YEAR=B.YEAR
+           AND A.SC_DEPT_ID = B.SC_DEPT_ID
+           AND B.DELETE_DT IS NULL
+         WHERE A.YEAR=#findYear#
+           AND A.METRIC_GRP_ID = #findMetricGrpId#
+           AND A.DELETE_DT IS NULL
+         ORDER BY B.SORT_ORDER
+	</select>
+
+	 <!--
+	==================================================================
+	  # 설명	: 평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MAT_ITEM
+	==================================================================
+	-->
+	<select id="getItemWeightList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.METRIC_ID
+		     , B.SC_DEPT_NM
+		     , C.WEIGHT
+          FROM BSC_METRIC A
+  LEFT OUTER JOIN BSC_SC_DEPT B
+               ON A.YEAR = B.YEAR
+              AND A.SC_DEPT_ID = B.SC_DEPT_ID
+              AND B.DELETE_DT IS NULL
+   LEFT OUTER JOIN BSC_IPE_ITEM_WEIGHT C
+   			ON A.YEAR = C.YEAR AND A.METRIC_ID = C.METRIC_ID
+   			AND C.EVAL_DEGREE_ID=#evalDegreeId# AND C.ITEM_ID = #itemId#
+         WHERE A.YEAR = #year#
+           AND A.METRIC_GRP_ID=#metricGrpId#
+           AND A.DELETE_DT IS NULL
+         ORDER BY B.SORT_ORDER
+   </select>
+
+
+	 <!--
+	==================================================================
+	  # 설명	: 평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC_GRP
+	==================================================================
+	-->
+	<select id="getFindList" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT A.METRIC_GRP_ID
+		       , A.METRIC_GRP_NM
+		       , B.EVAL_DEGREE_ID
+		       , B.EVAL_DEGREE_NM
+		    FROM BSC_METRIC_GRP A
+		       , BSC_ECM_EVAL_DEGREE B
+		   WHERE A.YEAR = #findYear#
+		     AND A.METRIC_GRP_ID = #metricGrpId#
+		     AND A.DELETE_DT IS NULL
+		     AND A.YEAR = B.YEAR
+		     AND B.EVAL_DEGREE_ID = #evalDegreeId#
+   </select>
+
+	<!--
+	==================================================================
+	  # 설명	: 경평지표관리 코드 채번
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getItemId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT 'I'||LPAD(NVL(MAX(SUBSTR(ITEM_ID,2,6)),0)+1,6,'0') FROM BSC_IPE_EVAL_ITEM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 평가항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_IPE_ITEM
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_IPE_EVAL_ITEM (
+			   YEAR
+			 ,EVAL_DEGREE_ID
+			 ,METRIC_GRP_ID
+			 ,ITEM_ID
+			 ,ITEM_NM
+			 ,WEIGHT
+			 ,CREATE_DT
+			 ,SORT_ORDER
+			 ) VALUES (
+			   #year#
+			 ,#evalDegreeId#
+			 ,#metricGrpId#
+			 ,#itemId#
+			 ,#itemNm#
+			 ,#weights#
+			 ,SYSDATE
+			 ,#sortOrder#
+			 )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 평가항목 가중치 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_IPE_ITEM_WEIGHT
+	==================================================================
+	-->
+	<insert id="insertWeightData" parameterClass="hashMap">
+		INSERT INTO BSC_IPE_ITEM_WEIGHT (
+			   YEAR
+			 , EVAL_DEGREE_ID
+			 , METRIC_GRP_ID
+			 , METRIC_ID
+			 , ITEM_ID
+			 , WEIGHT
+			 , CREATE_DT
+			 ) VALUES (
+			   #year#
+			 , #evalDegreeId#
+			 , #metricGrpId#
+			 , #metricId#
+			 , #itemId#
+			 , #weight#
+			 , SYSDATE
+			 )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 평가항목 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IPE_ITEM
+	==================================================================
+	-->
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_IPE_EVAL_ITEM
+		   SET ITEM_NM                = #itemNm#
+			 , WEIGHT            	  = #weights#
+			 , MODIFY_DT              = SYSDATE
+			 , SORT_ORDER             = #sortOrder#
+
+			 <dynamic>
+			 	<isEqual prepend="," property="deleteDt" compareValue="N">
+	            	DELETE_DT = SYSDATE
+			    </isEqual>
+
+			    <isNotEqual prepend="," property="deleteDt" compareValue="N">
+	            	DELETE_DT = ''
+			    </isNotEqual>
+    		</dynamic>
+
+		 WHERE YEAR 				  = #year#
+		   AND EVAL_DEGREE_ID 		  = #evalDegreeId#
+		   AND METRIC_GRP_ID 		  = #metricGrpId#
+		   AND ITEM_ID 				  = #itemId#
+	</update>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 평가항목 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IPE_ITEM
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE BSC_IPE_EVAL_ITEM
+		   SET DELETE_DT 	 	= SYSDATE
+		 WHERE YEAR 			= #year#
+		   AND EVAL_DEGREE_ID   = #evalDegreeId#
+		   AND METRIC_GRP_ID    = #metricGrpId#
+		   AND ITEM_ID 		    = #itemId#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 평가항목 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IPE_ITEM
+	==================================================================
+	-->
+	<update id="deleteWeightData" parameterClass="hashMap">
+		DELETE FROM BSC_IPE_ITEM_WEIGHT
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND ITEM_ID = #itemId#
+	</update>
+
+
+</sqlMap>
+
+

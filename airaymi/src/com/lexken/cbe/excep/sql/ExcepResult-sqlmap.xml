@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="cbe.excep.excepResult">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_SPE_EVAL_DEPT
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SPE_EVAL_DEPT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+               A.EVAL_DEGREE_ID,
+               A.SC_DEPT_ID,
+               B.SC_DEPT_NM,
+              A.GRADE_ITEM_NM
+         FROM BSC_SPE_EVAL_DEPT A
+         INNER JOIN(
+                     SELECT YEAR,
+                            SC_DEPT_ID,
+                            SUBSTR(SYS_CONNECT_BY_PATH(SC_DEPT_NM,'>'),2, length(SYS_CONNECT_BY_PATH(SC_DEPT_NM,'>')))SC_DEPT_NM                                 
+                       FROM ( SELECT * FROM BSC_SC_DEPT WHERE YEAR = #findYear#)         
+                      WHERE DELETE_DT IS NULL                                
+                      START WITH UP_SC_DEPT_ID IS NULL                        
+                      CONNECT BY PRIOR SC_DEPT_ID = UP_SC_DEPT_ID) B ON A.YEAR=B.YEAR AND A.SC_DEPT_ID=B.SC_DEPT_ID
+         LEFT OUTER JOIN BSC_ECM_EVAL_GRADE_CONVERT_TAB C ON A.YEAR=C.YEAR AND A.EVAL_METHOD_ID=C.EVAL_METHOD_ID                    
+        WHERE A.YEAR=#findYear#
+          AND A.EVAL_DEGREE_ID=#findEvalDegreeId#
+          <isNotEmpty property="findScDeptId" prepend="AND">
+       		   A.SC_DEPT_ID = #findScDeptId#
+       	  </isNotEmpty> 
+         ORDER BY A.SORT_ORDER
+	</select>
+	
+	 <!--
+	==================================================================   
+	  # 설명	: 사용자 조직보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_DEGREE
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT C.SC_DEPT_ID,
+               C.SC_DEPT_NM
+          FROM V_ROLE_USER A
+          LEFT OUTER JOIN BSC_SC_DEPT_MAPPING B ON B.YEAR=#findYear# AND A.DEPT_ID=B.DEPT_ID
+          LEFT OUTER JOIN BSC_SC_DEPT C ON B.YEAR=C.YEAR AND B.SC_DEPT_ID=C.SC_DEPT_ID           
+         WHERE USER_ID=#findInsertUserId#
+    </select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SPE_EVAL_DEPT
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_DEGREE_ID        
+			 , SC_DEPT_ID            
+			 , EVAL_BASE_CHARGE_USER_ID
+			 , EVAL_USER_ID          
+			 , EVAL_METHOD_ID        
+			 , GRADE_ITEM_ID         
+			 , GRADE_ITEM_NM         
+			 , EVAL_SUBMIT_YN        
+			 , SORT_ORDER            
+		  FROM BSC_SPE_EVAL_DEPT 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND SC_DEPT_ID = #scDeptId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_SPE_EVAL_DEPT
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('BSC_SPE_EVAL_DEPT','','','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO BSC_SPE_EVAL_DEPT ( 
+			   YEAR
+			 , EVAL_DEGREE_ID
+			 , SC_DEPT_ID
+			 , EVAL_BASE_CHARGE_USER_ID
+			 , EVAL_USER_ID
+			 , EVAL_METHOD_ID
+			 , GRADE_ITEM_ID
+			 , GRADE_ITEM_NM
+			 , EVAL_SUBMIT_YN
+			 , CREATE_DT
+			 , SORT_ORDER
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #scDeptId#
+			 , #evalBaseChargeUserId#
+			 , #evalUserId#
+			 , #evalMethodId#
+			 , #gradeItemId#
+			 , #gradeItemNm#
+			 , #evalSubmitYn#
+			 , SYSDATE
+			 , #sortOrder#
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_SPE_EVAL_DEPT
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_SPE_EVAL_DEPT 
+		   SET EVAL_BASE_CHARGE_USER_ID = #evalBaseChargeUserId# 
+			 , EVAL_USER_ID           = #evalUserId# 
+			 , EVAL_METHOD_ID         = #evalMethodId# 
+			 , GRADE_ITEM_ID          = #gradeItemId# 
+			 , GRADE_ITEM_NM          = #gradeItemNm# 
+			 , EVAL_SUBMIT_YN         = #evalSubmitYn# 
+			 , MODIFY_DT              = SYSDATE 
+			 , SORT_ORDER             = #sortOrder# 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND SC_DEPT_ID = #scDeptId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_SPE_EVAL_DEPT
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_SPE_EVAL_DEPT 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND SC_DEPT_ID = #scDeptId#
+	</update>
+	
+	
+</sqlMap>
+
+

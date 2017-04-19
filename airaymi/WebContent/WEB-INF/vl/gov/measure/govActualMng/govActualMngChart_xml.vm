@@ -1,0 +1,51 @@
+#*************************************************************************
+* CLASS 명      : govActualMngChart_xml.vm
+* 작 업 자      : 남기영
+* 작 업 일      : 2013년 12월 20일 
+* 기    능      : 정부경영평가지표실적상세 차트 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김윤기     2012년 8월 29일            최 초 작 업
+**************************************************************************# 
+<chart palette="1" 
+    caption="" 
+    showLabels="1" 
+    showvalues="0" 
+    numberPrefix="" 
+    PYAxisName="" 
+    SYAxisName=""
+    sYAxisValuesDecimals="2" 
+    connectNullData="0" 
+    numDivLines="4"
+    formatNumberScale="0"
+    bgColor='EBEFF1,FFFFFF'
+    labelDisplay='none'
+    baseFontSize='11'
+    showLegend='1'
+    legendPosition='BOTTOM'
+    legendBorderThickness='1'
+    legendBorderAlpha='4'
+    legendShadow='1'
+    >
+    <categories>
+    #foreach($i in [1..12])
+        <category label="$!{CS_CODE.getCodeName('024',$CS_FORMAT.monthOrDayFormat($CS_HTML.txt2html($velocityCount)))}"></category>
+    #end
+    </categories>
+    <dataset seriesName="목표" color="AFD8F8" showValues="1">
+        #foreach($detail in $list)
+            <set value="$CS_HTML.txt2html($detail.TARGET)" />
+        #end
+    </dataset>
+    <dataset seriesName="실적" color="F6BD0F" showValues="1" >
+        #foreach($detail in $list)
+            <set value="$CS_HTML.txt2html($detail.ACTUAL)" />
+        #end
+    </dataset>
+    <dataset seriesName="점수" color="8BBA00" showValues="0" parentYAxis="S" >
+        #foreach($detail in $list)
+            <set value="$CS_HTML.txt2html($detail.SCORE)" />
+        #end  
+    </dataset>
+</chart>

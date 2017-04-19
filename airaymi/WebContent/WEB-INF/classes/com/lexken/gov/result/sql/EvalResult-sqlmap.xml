@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.result.evalResult">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 경영평가결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		WITH SIGNAL AS (SELECT A.CODE_ID, B.FROM_VALUE, B.TO_VALUE ,B.COLOR
+		                  FROM BSC_CODE A
+		                       LEFT OUTER JOIN
+		                       BSC_COMMON_STATUS B
+		                       ON A.CODE_ID = B.STATUS_ID
+		                      AND B.YEAR = A.YEAR
+		                 WHERE A.CODE_GRP_ID = '021'
+		                   AND A.DELETE_DT IS NULL
+		                   AND A.YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #findYear# ELSE '9999' END
+		                                   FROM BSC_CODE_GRP WHERE CODE_GRP_ID = '021')
+		               )
+		SELECT GR.YEAR
+			, GR.EVAL_CAT_GRP_ID
+			, GR.EVAL_CAT_GRP_NM
+		    , GR.EVAL_CAT_ID
+		    , GR.EVAL_CAT_NM
+		    , GR.GOV_METRIC_ID
+		    , GR.GOV_METRIC_NM
+		    , GR.EVAL_METHOD_ID
+		    , GR.EVAL_METHOD_NM
+		    , GR.WEIGHT GM_WEIGHT
+		    , GR.GM_GRADE
+		    , GR.GOV_SCORE GM_SCORE
+		    , GR.GM_WEIGHT TOT_WEIGHT
+		    , GR.GM_SCORE TOT_SCORE
+		    , ECG_SG.CODE_ID AS ECG_STATUS_ID
+		    , EC_SG.CODE_ID AS EC_STATUS_ID
+		    , GM_SG.CODE_ID AS GM_STATUS_ID
+		    , GR.ECG_CNT AS ECG_CNT
+		    , GR.EC_CNT AS EC_CNT
+		    , ROW_NUMBER() OVER(PARTITION BY EVAL_CAT_GRP_ID
+		                             ORDER BY ECG_SORT_ORDER NULLS LAST, EVAL_CAT_GRP_ID
+		                                    , EC_SORT_ORDER NULLS LAST, EVAL_CAT_ID
+		                                    , GM_SORT_ORDER NULLS LAST, GOV_METRIC_ID ) AS ECG_ROWNUM
+		    , ROW_NUMBER() OVER(PARTITION BY EVAL_CAT_GRP_ID, EVAL_CAT_ID
+		                             ORDER BY ECG_SORT_ORDER NULLS LAST, EVAL_CAT_GRP_ID
+		                                    , EC_SORT_ORDER NULLS LAST, EVAL_CAT_ID
+		                                    , GM_SORT_ORDER NULLS LAST, GOV_METRIC_ID ) AS EC_ROWNUM
+			, (SELECT COUNT(T1.GOV_METRIC_GRP_ID)
+            	FROM GOV_OFFICE_METRIC T1
+           		WHERE  T1.YEAR = #findYear#
+                AND T1.GOV_METRIC_GRP_ID = GR.GOV_METRIC_GRP_ID) as COMPARE_CNT
+		  FROM
+		    (SELECT YEAR
+		         , EVAL_CAT_GRP_ID
+		         , EVAL_CAT_GRP_NM
+		         , EVAL_CAT_ID
+		         , EVAL_CAT_NM
+		         , GOV_METRIC_GRP_ID
+		         , GOV_METRIC_ID
+		         , GOV_METRIC_NM
+		         , GM_WEIGHT
+		         , EVAL_METHOD_ID
+		         , EVAL_METHOD_NM
+		         , GM_GRADE
+		         , GM_SCORE
+		         , WEIGHT
+		         , GOV_SCORE
+		         , F_CAL_GOVWEIGHT( ECG_SCORE, ECG_WEIGHT, 100) AS ECG_SIGNAL_SCORE
+		         , F_CAL_GOVWEIGHT( EC_SCORE, EC_WEIGHT, 100) AS EC_SIGNAL_SCORE
+		         , F_CAL_GOVWEIGHT( GM_SCORE, GM_WEIGHT, 100) AS GM_SIGNAL_SCORE
+		         , COUNT(*) OVER( PARTITION BY EVAL_CAT_GRP_ID) AS ECG_CNT
+		         , COUNT(*) OVER( PARTITION BY EVAL_CAT_GRP_ID, EVAL_CAT_ID) AS EC_CNT
+		         , MAIN_METRIC_YN, ECG_SORT_ORDER, EC_SORT_ORDER, GM_SORT_ORDER
+		      FROM
+		        (SELECT A.YEAR
+	                  , A.EVAL_CAT_GRP_ID
+	                  , ECG.EVAL_CAT_GRP_NM
+	                  , A.EVAL_CAT_ID
+	                  , NVL(EC.EVAL_CAT_NM, 'TOTAL') EVAL_CAT_NM
+	                  , B.GOV_METRIC_GRP_ID
+	                  , A.GOV_METRIC_ID
+	                  , NVL(B.GOV_METRIC_NM, 'TOTAL') GOV_METRIC_NM
+	                  , A.WEIGHT
+	                  , A.GOV_SCORE
+	                  , B.EVAL_METHOD_ID
+	                  , F_CODE_NM ('146', B.EVAL_METHOD_ID, B.YEAR) AS EVAL_METHOD_NM
+	                  , B.MAIN_METRIC_YN
+	                  , SUM (GMS.GOV_SCORE)
+	                       OVER (PARTITION BY A.EVAL_CAT_GRP_ID)
+	                       AS ECG_SCORE
+	                  , SUM (B.WEIGHT) OVER (PARTITION BY A.EVAL_CAT_GRP_ID)
+	                       AS ECG_WEIGHT
+	                  , SUM (GMS.GOV_SCORE)
+	                    OVER (PARTITION BY A.EVAL_CAT_GRP_ID, A.EVAL_CAT_ID)
+	                       AS EC_SCORE
+	                  , SUM (B.WEIGHT)
+	                    OVER (PARTITION BY A.EVAL_CAT_GRP_ID, A.EVAL_CAT_ID)
+	                       AS EC_WEIGHT
+	                  , B.WEIGHT AS GM_WEIGHT
+	                  , GMS.GOV_SCORE AS GM_SCORE
+	                  , GMS.GRADE AS GM_GRADE
+	                  , ECG.SORT_ORDER AS ECG_SORT_ORDER
+	                  , EC.SORT_ORDER AS EC_SORT_ORDER
+	                  , B.SORT_ORDER AS GM_SORT_ORDER
+	               FROM (
+				          SELECT A.YEAR
+				               , A.EVAL_CAT_GRP_ID
+				               , A.EVAL_CAT_ID
+				               , A.GOV_METRIC_ID
+				               , NVL(SUM(A.WEIGHT), 0) WEIGHT
+				               , NVL(SUM(B.GOV_SCORE), 0) GOV_SCORE
+				            FROM V_GOV_METRIC A
+				            LEFT OUTER JOIN GOV_SCORE_YEAR B
+				              ON A.YEAR = B.YEAR 
+				             AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+				           WHERE A.YEAR = #findYear#
+				             <!--AND A.DELETE_DT IS NULL -->
+				           GROUP BY ROLLUP (A.YEAR, EVAL_CAT_GRP_ID, EVAL_CAT_ID, A.GOV_METRIC_ID)
+				          ) A
+				            LEFT OUTER JOIN GOV_METRIC B
+				              ON A.YEAR = B.YEAR 
+				             AND A.EVAL_CAT_GRP_ID = B.EVAL_CAT_GRP_ID 
+				             AND A.EVAL_CAT_ID = B.EVAL_CAT_ID 
+				             AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+				            LEFT OUTER JOIN GOV_EVAL_CAT_GRP ECG
+				              ON A.YEAR = ECG.YEAR
+				             AND A.EVAL_CAT_GRP_ID = ECG.EVAL_CAT_GRP_ID
+				            LEFT OUTER JOIN GOV_EVAL_CAT EC
+				              ON A.YEAR = EC.YEAR
+				             AND A.EVAL_CAT_GRP_ID = EC.EVAL_CAT_GRP_ID
+				             AND A.EVAL_CAT_ID = EC.EVAL_CAT_ID
+				            LEFT OUTER JOIN GOV_SCORE_YEAR GMS
+				              ON A.YEAR = GMS.YEAR
+				             AND A.GOV_METRIC_ID = GMS.GOV_METRIC_ID
+				   WHERE 1 = 1
+				     AND A.YEAR = #findYear#
+				     AND B.DELETE_DT IS NULL
+				     AND A.EVAL_CAT_GRP_ID IS NOT NULL
+				 <!--AND B.MAIN_METRIC_YN = 'Y' -->    
+				   ORDER BY A.YEAR, A.EVAL_CAT_GRP_ID, A.EVAL_CAT_ID, B.GOV_METRIC_ID
+		        )
+		    ) GR
+		    LEFT OUTER JOIN SIGNAL ECG_SG
+			<![CDATA[
+		    ON ECG_SG.FROM_VALUE < GR.ECG_SIGNAL_SCORE
+		   AND GR.ECG_SIGNAL_SCORE <= ECG_SG.TO_VALUE
+		    LEFT OUTER  JOIN SIGNAL EC_SG
+		    ON EC_SG.FROM_VALUE  < GR.EC_SIGNAL_SCORE
+		   AND GR.EC_SIGNAL_SCORE <= EC_SG.TO_VALUE
+		    LEFT OUTER  JOIN SIGNAL GM_SG
+		    ON GM_SG.FROM_VALUE  < GR.GM_SIGNAL_SCORE
+		   AND GR.GM_SIGNAL_SCORE <= GM_SG.TO_VALUE
+		    ]]>
+		 ORDER BY ECG_SORT_ORDER NULLS LAST
+				, EVAL_CAT_GRP_ID
+		        , EC_SORT_ORDER NULLS LAST
+		        , EVAL_CAT_ID
+		        , GM_SORT_ORDER NULLS LAST
+		        , GOV_METRIC_ID
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 경영평가결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		WITH SIGNAL AS (SELECT A.CODE_ID, B.FROM_VALUE, B.TO_VALUE ,B.COLOR
+		                  FROM BSC_CODE A
+		                       LEFT OUTER JOIN
+		                       BSC_COMMON_STATUS B
+		                       ON A.CODE_ID = B.STATUS_ID
+		                      AND B.YEAR = A.YEAR
+		                 WHERE A.CODE_GRP_ID = '021'
+		                   AND A.DELETE_DT IS NULL
+		                   AND A.YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #findYear# ELSE '9999' END
+		                                   FROM BSC_CODE_GRP WHERE CODE_GRP_ID = '021')
+		               )
+		SELECT GR.YEAR
+			, GR.EVAL_CAT_GRP_ID
+			, GR.EVAL_CAT_GRP_NM
+		    , GR.EVAL_CAT_ID
+		    , GR.EVAL_CAT_NM
+		    , GR.GOV_METRIC_ID
+		    , GR.GOV_METRIC_NM
+		    , GR.EVAL_METHOD_ID
+		    , GR.EVAL_METHOD_NM
+		    , GR.GM_WEIGHT
+		    , GR.GM_GRADE
+		    , GR.GM_SCORE
+		    , ECG_SG.CODE_ID AS ECG_STATUS_ID
+		    , EC_SG.CODE_ID AS EC_STATUS_ID
+		    , GM_SG.CODE_ID AS GM_STATUS_ID
+		    , GR.ECG_CNT AS ECG_CNT
+		    , GR.EC_CNT AS EC_CNT
+		    , ROW_NUMBER() OVER(PARTITION BY EVAL_CAT_GRP_ID
+		                             ORDER BY ECG_SORT_ORDER NULLS LAST, EVAL_CAT_GRP_ID
+		                                    , EC_SORT_ORDER NULLS LAST, EVAL_CAT_ID
+		                                    , GM_SORT_ORDER NULLS LAST, GOV_METRIC_ID ) AS ECG_ROWNUM
+		    , ROW_NUMBER() OVER(PARTITION BY EVAL_CAT_GRP_ID, EVAL_CAT_ID
+		                             ORDER BY ECG_SORT_ORDER NULLS LAST, EVAL_CAT_GRP_ID
+		                                    , EC_SORT_ORDER NULLS LAST, EVAL_CAT_ID
+		                                    , GM_SORT_ORDER NULLS LAST, GOV_METRIC_ID ) AS EC_ROWNUM
+			, (SELECT COUNT(T1.GOV_METRIC_GRP_ID)
+            	FROM GOV_OFFICE_METRIC T1
+           		WHERE  T1.YEAR = #findYear#
+                AND T1.GOV_METRIC_GRP_ID = GR.GOV_METRIC_GRP_ID) as COMPARE_CNT
+		  FROM
+		    (SELECT YEAR
+		         , EVAL_CAT_GRP_ID
+		         , EVAL_CAT_GRP_NM
+		         , EVAL_CAT_ID
+		         , EVAL_CAT_NM
+		         , GOV_METRIC_GRP_ID
+		         , GOV_METRIC_ID
+		         , GOV_METRIC_NM
+		         , GM_WEIGHT
+		         , EVAL_METHOD_ID
+		         , EVAL_METHOD_NM
+		         , GM_GRADE
+		         , GM_SCORE
+		         , F_CAL_GOVWEIGHT( ECG_SCORE, ECG_WEIGHT, 100) AS ECG_SIGNAL_SCORE
+		         , F_CAL_GOVWEIGHT( EC_SCORE, EC_WEIGHT, 100) AS EC_SIGNAL_SCORE
+		         , F_CAL_GOVWEIGHT( GM_SCORE, GM_WEIGHT, 100) AS GM_SIGNAL_SCORE
+		         , COUNT(*) OVER( PARTITION BY EVAL_CAT_GRP_ID) AS ECG_CNT
+		         , COUNT(*) OVER( PARTITION BY EVAL_CAT_GRP_ID, EVAL_CAT_ID) AS EC_CNT
+		         , MAIN_METRIC_YN, ECG_SORT_ORDER, EC_SORT_ORDER, GM_SORT_ORDER
+		      FROM
+		        (SELECT GM.YEAR
+				, ECG.EVAL_CAT_GRP_ID
+				, ECG.EVAL_CAT_GRP_NM
+				, GM.GOV_METRIC_GRP_ID
+		        , EC.EVAL_CAT_ID
+		        , EC.EVAL_CAT_NM
+		        , GM.GOV_METRIC_ID
+		        , GM.GOV_METRIC_NM
+		        , GM.EVAL_METHOD_ID
+		        , F_CODE_NM('146', GM.EVAL_METHOD_ID, GM.YEAR) AS EVAL_METHOD_NM
+		        , GM.MAIN_METRIC_YN
+		        , SUM( GMS.GOV_SCORE ) OVER( PARTITION BY GM.EVAL_CAT_GRP_ID ) AS ECG_SCORE
+		        , SUM( GM.WEIGHT )     OVER( PARTITION BY GM.EVAL_CAT_GRP_ID ) AS ECG_WEIGHT
+		        , SUM( GMS.GOV_SCORE ) OVER( PARTITION BY GM.EVAL_CAT_GRP_ID, GM.EVAL_CAT_ID ) AS EC_SCORE
+		        , SUM( GM.WEIGHT )     OVER( PARTITION BY GM.EVAL_CAT_GRP_ID, GM.EVAL_CAT_ID ) AS EC_WEIGHT
+		        , GM.WEIGHT AS GM_WEIGHT
+		        , GMS.GOV_SCORE AS GM_SCORE
+		        , GMS.GRADE AS GM_GRADE
+		        , ECG.SORT_ORDER AS ECG_SORT_ORDER
+		        , EC.SORT_ORDER AS EC_SORT_ORDER
+		        , GM.SORT_ORDER AS GM_SORT_ORDER
+		        FROM GOV_METRIC GM
+		        	   INNER JOIN 
+		        	   GOV_METRIC_GRP G
+                       ON GM.YEAR = G.YEAR 
+                       AND GM.GOV_METRIC_GRP_ID = G.GOV_METRIC_GRP_ID
+		               LEFT OUTER JOIN
+		               GOV_EVAL_CAT_GRP ECG
+		               ON GM.YEAR = ECG.YEAR
+		              AND GM.EVAL_CAT_GRP_ID = ECG.EVAL_CAT_GRP_ID
+		               LEFT OUTER JOIN
+		               GOV_EVAL_CAT EC
+		               ON GM.YEAR = EC.YEAR
+		              AND GM.EVAL_CAT_GRP_ID = EC.EVAL_CAT_GRP_ID
+		              AND GM.EVAL_CAT_ID = EC.EVAL_CAT_ID
+		               LEFT OUTER JOIN
+		               GOV_SCORE_YEAR GMS
+		               ON GM.YEAR = GMS.YEAR
+		              AND GM.GOV_METRIC_ID = GMS.GOV_METRIC_ID
+		        WHERE 1=1
+		           AND GM.YEAR = #findYear#
+		           AND GM.DELETE_DT IS NULL
+		           AND GM.MAIN_METRIC_YN = 'Y'
+		        )
+		    ) GR
+		    LEFT OUTER JOIN SIGNAL ECG_SG
+			<![CDATA[
+		    ON ECG_SG.FROM_VALUE < GR.ECG_SIGNAL_SCORE
+		   AND GR.ECG_SIGNAL_SCORE <= ECG_SG.TO_VALUE
+		    LEFT OUTER  JOIN SIGNAL EC_SG
+		    ON EC_SG.FROM_VALUE  < GR.EC_SIGNAL_SCORE
+		   AND GR.EC_SIGNAL_SCORE <= EC_SG.TO_VALUE
+		    LEFT OUTER  JOIN SIGNAL GM_SG
+		    ON GM_SG.FROM_VALUE  < GR.GM_SIGNAL_SCORE
+		   AND GR.GM_SIGNAL_SCORE <= GM_SG.TO_VALUE
+		    ]]>
+		 ORDER BY ECG_SORT_ORDER NULLS LAST
+				, EVAL_CAT_GRP_ID
+		        , EC_SORT_ORDER NULLS LAST
+		        , EVAL_CAT_ID
+		        , GM_SORT_ORDER NULLS LAST
+		        , GOV_METRIC_ID
+	</select>
+	-->
+
+	<!--
+	==================================================================
+	  # 설명	: 경영평가결과 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 		  FROM
+		 WHERE 1 = 1
+	</select>
+	<!--
+	==================================================================
+	  # 설명	: 경영평가결과 비교 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getCompare" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT E.YEAR
+		       , E.GOV_METRIC_GRP_ID
+		       , E.OFFICE_NM
+		       , E.GOV_METRIC_NM
+		       , E.WEIGHT
+		       , E.SCORE
+		       , RANK () OVER (ORDER BY NVL (E.SCORE,0)/NVL(E.WEIGHT, 0) DESC) RANK
+		    FROM (SELECT C.YEAR
+		               , C.GOV_METRIC_GRP_ID
+		               , 'KGS' OFFICE_NM
+		               , C.GOV_METRIC_NM
+		               , C.WEIGHT
+		               , D.GOV_SCORE SCORE
+		            FROM    GOV_METRIC C
+		            	 INNER JOIN 
+		            	 	GOV_METRIC_GRP E
+				         ON C.YEAR = E.YEAR
+				         AND C.GOV_METRIC_GRP_ID = E.GOV_METRIC_GRP_ID
+		                 LEFT OUTER JOIN
+		                    GOV_SCORE_YEAR D
+		                 ON C.YEAR = D.YEAR
+		                AND C.GOV_METRIC_ID = D.GOV_METRIC_ID
+		           WHERE C.YEAR = #findYear#
+		             AND C.GOV_METRIC_ID = #govMetricId#
+		          UNION ALL
+		          SELECT A.YEAR
+		               , A.GOV_METRIC_GRP_ID
+		               , OFFICE_NM
+		               , A.GOV_METRIC_GRP_NM
+		               , WEIGHT
+		               , B.SCORE
+		            FROM GOV_METRIC_GRP A, GOV_OFFICE_METRIC B, GOV_OFFICE C
+		           WHERE 1 = 1
+		             AND A.YEAR = B.YEAR
+		             AND A.GOV_METRIC_GRP_ID = B.GOV_METRIC_GRP_ID
+		             AND B.YEAR = C.YEAR
+		             AND B.OFFICE_ID = C.OFFICE_ID
+		             AND A.YEAR = #findYear#
+		             AND A.GOV_METRIC_GRP_ID = (SELECT C.GOV_METRIC_GRP_ID
+		                                          FROM    GOV_METRIC C
+		                                          	    INNER JOIN 
+		                                          	    	GOV_METRIC_GRP E
+									                    ON C.YEAR = E.YEAR
+									                       AND C.GOV_METRIC_GRP_ID = E.GOV_METRIC_GRP_ID
+		                                               LEFT OUTER JOIN
+		                                                  GOV_SCORE_YEAR D
+		                                               ON C.YEAR = D.YEAR
+		                                              AND C.GOV_METRIC_ID = D.GOV_METRIC_ID
+		                                         WHERE C.YEAR = #findYear#
+		                                           AND C.GOV_METRIC_ID = #govMetricId#)) E
+   WHERE WEIGHT IS NOT NULL AND WEIGHT <![CDATA[<>]]> '0' AND SCORE IS NOT NULL AND SCORE <![CDATA[<>]]> '0'
+		ORDER BY RANK, OFFICE_NM 
+	</select>
+
+</sqlMap>

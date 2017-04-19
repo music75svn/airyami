@@ -1,0 +1,196 @@
+#*************************************************************************
+* CLASS 명      : evalItemModify
+* 작 업 자      : 박경태
+* 작 업 일      : 2013년 08월 08일
+* 기    능      : 평가항목
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    박경태      2013년 08월 08일             최 초 작 업
+**************************************************************************#
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/bsc/ipe/evalItem/evalItemList.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("#sortOrder").numeric();
+		J("#sortOrder").css("ime-mode", "disabled");
+
+		J("input[name=weights]").numeric({allow:"."});
+		J("input[name=weights]").css("ime-mode", "disabled");
+
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#insertUserSearch").fancybox();
+
+	});
+
+	/*****************************************************
+	 * 담당자 설정
+	 *****************************************************/
+	function setInsertUserInfo(arguments) {
+		J("#actRptInsertUserId").val(arguments[0]);
+		J("#actRptInsertUserNm").val(arguments[1]);
+		J.fancybox.close();
+	}
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(!J.checkLength("itemNm", "평가항목", 1, 400)) {
+			return;
+		}
+		var weightSum = J("#weightSum").val();
+		var weights = J("#weights").val();
+		var selWeight = J("#selWeight").val();
+		var weight = (parseInt(weightSum)-parseInt(selWeight)) + parseInt(weights);
+
+		if(weight > 100) {
+		    J.showMsgBox("가중치의 총합이 100을 초과 할 수 없습니다.", null, "weights");
+			return;
+		}
+
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/bsc/ipe/evalItem/evalItemProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>
+
+<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/ipe/evalItem/evalItemProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="weightSum"      name="weightSum"      value="$!{searchMap.txt2html("weightSum")}" />
+	<input type="hidden"	id="selWeight"      name="selWeight"      value="$!{searchMap.txt2html("selWeight")}" />
+    $!{searchMap.makeHiddenFind()}
+
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>
+                    <table summary="검색조건">
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="평가항목 등록">
+					<caption class="none">평가항목 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row"><label for="itemId">평가항목코드</label></th>
+    						<td>
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.ITEM_ID)}
+									<input type="hidden" id="itemId" name="itemId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.ITEM_ID)}" maxlength="7" readonly="readonly"/>
+								#else
+									<input type="hidden" id="itemId" name="itemId" class="inputbox w100" maxlength="7" />
+									※ 저장시 자동으로 부여됩니다.
+								#end
+							</td>
+    					</tr>
+						<tr>
+    						<th scope="row"><label for="metricGrpId">평가대상지표POOL</label></th>
+    						<td>
+								$!{CS_HTML.txt2html($detailFindList.METRIC_GRP_NM)}
+								<input type="hidden" id="metricGrpId" name="metricGrpId" class="inputbox w100" value="$!{CS_HTML.txt2html($detailFindList.METRIC_GRP_ID)}" maxlength="7" readonly="readonly"/>
+							</td>
+    					</tr>
+						<tr>
+    						<th scope="row"><label for="evalDegreeId">평가구분</label></th>
+    						<td>
+								$!{CS_HTML.txt2html($detailFindList.EVAL_DEGREE_NM)}
+								<input type="hidden" id="evalDegreeId" name="evalDegreeId" class="inputbox w100" value="$!{CS_HTML.txt2html($detailFindList.EVAL_DEGREE_ID)}" maxlength="7" readonly="readonly"/>
+							</td>
+    					</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="itemNm">평가항목</label></th>
+							<td><input type="text" id="itemNm" name="itemNm" class="inputbox w600" value='$!{CS_HTML.txt2html($detail.ITEM_NM)}' maxlength="400"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="weights">가중치</label></th>
+							<td><input type="text" id="weights" name="weights" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.WEIGHT)}' maxlength="5"/></td>
+						</tr>
+
+						<tr>
+							<th scope="row"><label for="sortOrder">정렬순서</label></th>
+							<td><input type="text" id="sortOrder" name="sortOrder" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.SORT_ORDER)}' maxlength="5"/></td>
+						</tr>
+						<tr>
+    						<th scope="row"><label for="deleteDt">사용여부</label></th>
+    						<td>
+    							<select id="deleteDt" name="deleteDt" class="select w100">
+    								$!CS_CODE.getCodeOption("011", $detail.DELETE_DT)
+    							</select>
+    						</td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton">
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>
+    	</div>
+		<a id="anchor"></a>
+    	<div class="clear"></div>
+    </div>
+</form>

@@ -1,0 +1,59 @@
+<chart 
+	caption='' 
+	subCaption='' 
+	xAxisName='' 
+	yAxisMaxValue='100' 
+	bgColor='EBEFF1,FFFFFF' 
+	divLineColor='91AF46' 
+	divLineAlpha='30' 
+	alternateHGridAlpha='5' 
+	canvasBorderColor='666666' 
+	baseFontColor='666666' 
+	lineColor='91AF46' 
+	numVDivlines='7' 
+	showAlternateVGridColor='1' 
+	anchorSides='3' 
+	rotate='90'
+	anchorRadius='5' 
+	showValues='0'
+	labelDisplay='none'>
+	
+	#foreach($list in $chartList)
+		<set label='$!{CS_HTML.txt2html($list.DAY)}'  value='$!{CS_HTML.txt2html($list.A)}'/> 
+	#end
+	
+	
+	
+	<trendlines>
+		<!--
+		<line startvalue='50' 
+			endValue='80' 
+			displayValue='Very good' 
+			color='BC9F3F' 
+			isTrendZone='1' 
+			showOnTop='0' 
+			alpha='25' 
+			valueOnRight='1'/>
+		<line startvalue='80' 
+			endValue='100' 
+			displayValue='Good' 
+			color='894D1B' 
+			isTrendZone='1' 
+			showOnTop='0' 
+			alpha='25' 
+			valueOnRight='1'/>
+		-->
+	</trendlines>
+	<styles>
+		<definition>
+			<style name='Anim1' 
+				type='animation' 
+				param='_alpha' 
+				start='0' duration='1' />
+		</definition>
+		<application>
+			<apply toObject='TRENDLINES' 
+				styles='Anim1' />
+		</application>
+	</styles>
+</chart>

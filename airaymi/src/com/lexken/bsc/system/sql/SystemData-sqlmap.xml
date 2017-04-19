@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.systemData">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 시스템 연계데이터 조회 목록 SQL
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<sql id="getSelect">
+	<![CDATA[
+		SELECT A.YEAR
+		     , F.MON
+		     , A.SC_DEPT_ID
+		     , A.SC_DEPT_NM
+		     , B.DEPT_ID
+		     , C.METRIC_ID
+		     , C.METRIC_NM 
+		     , D.CAL_TYPE_COL_NM
+		     , C.METRIC_NM || '_' || D.CAL_TYPE_COL_NM AS METRIC_NM_CAL
+		     , E.ITEM_CD
+		     , E.ITEM_NM
+		     , E.ITEM_DIVI
+		     , E.ITEM_DIVI_NM
+		     , C.TIME_ROLLUP
+		     , C.TIME_ROLLUP_NM
+		     , G.ACTUAL AS SYSTEM_ACTUAL
+		     , D.CAL_TYPE_COL
+		     , CASE D.CAL_TYPE_COL
+		          WHEN 'A'
+		             THEN F.A
+		          WHEN 'B'
+		             THEN F.B
+		          WHEN 'C'
+		             THEN F.C
+		          WHEN 'D'
+		             THEN F.D
+		          WHEN 'E'
+		             THEN F.E
+		          WHEN 'F'
+		             THEN F.F
+		          WHEN 'G'
+		             THEN F.G
+		          WHEN 'H'
+		             THEN F.H
+		          ELSE F.VALUE
+		       END AS ACTUAL
+		     , D.UNIT
+		     , D.UNIT_NM
+		     , C.TAM_SHARE_YN
+		     , A.SORT_ORDER
+		  FROM BSC_SC_DEPT A INNER JOIN BSC_SC_DEPT_MAPPING B
+		       ON A.YEAR = B.YEAR
+		     AND A.SC_DEPT_ID = B.SC_DEPT_ID
+		       INNER JOIN
+		       (SELECT X.*
+		             , Y.CODE_NM AS TIME_ROLLUP_NM
+		          FROM BSC_METRIC X INNER JOIN BSC_CODE Y
+		               ON Y.CODE_GRP_ID = '009'
+		             AND Y.DELETE_DT IS NULL
+		             AND X.YEAR =
+		                         DECODE (NVL (Y.YEAR, '9999')
+		                               , '9999', X.YEAR
+		                               , Y.YEAR
+		                                )
+		             AND X.TIME_ROLLUP = Y.CODE_ID
+		               ) C
+		       ON A.YEAR = C.YEAR
+		     AND A.SC_DEPT_ID = C.SC_DEPT_ID
+		     AND C.DELETE_DT IS NULL
+		       INNER JOIN
+		       (SELECT X.*
+		             , Y.CODE_NM AS UNIT_NM
+		          FROM BSC_CAL_TYPE_COL X INNER JOIN BSC_CODE Y
+		               ON Y.CODE_GRP_ID = '013'
+		             AND Y.DELETE_DT IS NULL
+		             AND X.YEAR =
+		                         DECODE (NVL (Y.YEAR, '9999')
+		                               , '9999', X.YEAR
+		                               , Y.YEAR
+		                                )
+		             AND X.UNIT = Y.CODE_ID
+		               ) D
+		       ON C.YEAR = D.YEAR
+		     AND C.METRIC_ID = D.METRIC_ID
+		     AND D.DELETE_DT IS NULL
+		       INNER JOIN
+		       (SELECT X.*
+		             , Y.CODE_NM AS ITEM_DIVI_NM
+		          FROM BSC_SYSTEM_ITEM X INNER JOIN BSC_CODE Y
+		               ON Y.CODE_GRP_ID = '062'
+		             AND Y.DELETE_DT IS NULL
+		             AND X.YEAR =
+		                         DECODE (NVL (Y.YEAR, '9999')
+		                               , '9999', X.YEAR
+		                               , Y.YEAR
+		                                )
+		             AND X.ITEM_DIVI = Y.CODE_ID
+		               ) E
+		       ON D.YEAR = E.YEAR
+		     AND D.ITEM_CD = E.ITEM_CD
+		     AND E.DELETE_DT IS NULL
+		       INNER JOIN BSC_ACTUAL F ON C.YEAR = F.YEAR
+		                             AND C.METRIC_ID = F.METRIC_ID
+		       LEFT OUTER JOIN BSC_INTERFACE_ORIGINAL_DATA G
+		       ON E.YEAR = G.YEAR
+		     AND E.ITEM_CD = G.ITEM_CD
+		     AND G.DEPT_ID = B.DEPT_ID
+		     AND F.MON = G.MON
+		 WHERE 1 = 1
+		   AND A.DELETE_DT IS NULL
+		   AND D.INSERT_GUBUN = '01'
+		   AND F.ANAL_CYCLE = 'Y'
+	]]>
+	</sql>
+
+	<!--
+	==================================================================   
+	  # 설명	: 시스템 연계데이터 조회 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT   *
+            FROM (
+                 <include refid="getSelect"/>
+                 )		
+		 WHERE 1 = 1
+		 <isNotEmpty prepend="AND" property="findYear" >
+		       YEAR = #findYear#
+		 </isNotEmpty>
+		 <isNotEmpty prepend="AND" property="findMon" >
+		       MON = #findMon#
+		 </isNotEmpty>		 
+		 <isNotEmpty prepend="AND" property="findScDeptId" >
+		       <!--  SC_DEPT_NM LIKE '%' || #findScDeptNm# || '%' -->
+		       SC_DEPT_ID = #findScDeptId# 
+		 </isNotEmpty>
+		 <isNotEmpty prepend="AND" property="findMetricNm" >
+		       METRIC_NM LIKE '%' || #findMetricNm# || '%'
+		 </isNotEmpty>
+		 <isEqual prepend="AND" compareValue="Y" property="findTamShareYn">
+		       NVL (TAM_SHARE_YN, 'N') <![CDATA[<>]]> 'Y'
+		 </isEqual>
+		ORDER BY SORT_ORDER
+		       , METRIC_ID
+		       , CAL_TYPE_COL
+	</select>
+	
+	
+</sqlMap>
+
+

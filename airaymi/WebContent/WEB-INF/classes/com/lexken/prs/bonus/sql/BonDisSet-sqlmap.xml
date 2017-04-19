@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.bonus.bonDisSet">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BON_DIS_SET
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 파견직설정 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BON_DIS_SET
+	==================================================================
+	-->
+	<select id="getConfirm" parameterClass="hashMap" resultClass="hashMap">
+		SELECT TO_CHAR(S.CONFIRM_DT,'YYYY.MM.DD HH24:MI:SS') CONFIRM_DT
+          FROM BON_SET S
+		 WHERE S.YEAR = #findYear#
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 파견직설정 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BON_DIS_SET
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+              D.YEAR
+            , D.EMPN, KOR_NM
+            , D.DEPT_NM
+            , D.DEPT_DETAIL_NM
+            , D.CAST_TC_NM
+            , D.POS_TC_NM
+            , D.START_PCMT_DATE
+            , D.WORK_MON
+            , TO_CHAR(ROUND(D.SEP_PAY , -1)) SEP_PAY
+            , TO_CHAR(S.CONFIRM_DT,'YYYY.MM.DD HH24:MI:SS') CONFIRM_DT
+        FROM BON_DIS_SET D
+           , BON_SET S
+		WHERE D.YEAR = S.YEAR
+		  AND D.YEAR = #findYear#
+		ORDER BY D.EMPN
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 설정 파견직격려금 카운터
+	  #	기능	: SELECT
+	  #	TABLE	: BON_SET
+	==================================================================
+	-->
+	<select id="getCount" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+			COUNT(DIS_STAND_PAY) CNT
+		FROM BON_SET
+		WHERE YEAR = #findYear#
+	</select>
+
+	<!--
+    ==================================================================
+      # 설명  : 파견직설정 수정
+      # 기능  : INSERT
+      # TABLE : BON_DIS_SET
+    ==================================================================
+    -->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BON_DIS_SET (
+			  YEAR
+			, EMPN
+			, KOR_NM
+			, DEPT_NM
+			, DEPT_DETAIL_NM
+			, CAST_TC_NM
+			, POS_TC_NM
+			, START_PCMT_DATE
+			, WORK_MON
+			, SEP_PAY
+		) VALUES (
+			  #findYear#
+			, #empn#
+			, #korNm#
+			, #deptNm#
+			, #deptDetailNm#
+			, #castTcNm#
+			, #posTcNm#
+			, #startPcmtDate#
+			, #workMon#
+			, ROUND((SELECT DIS_STAND_PAY * (TO_NUMBER(#workMon#)/12) FROM BON_SET WHERE YEAR = #findYear#), 0)
+				)
+	</insert>
+
+	<!--
+    ==================================================================
+      # 설명    : 파견직설정 삭제
+      # 기능    : DELETE
+      # TABLE   : BON_DIS_SET
+    ==================================================================
+    -->
+    <delete id="deleteData" parameterClass="hashMap">
+        DELETE FROM BON_DIS_SET
+         WHERE YEAR				= #findYear#
+
+    </delete>
+
+
+</sqlMap>
+
+

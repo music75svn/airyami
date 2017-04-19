@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.base.memExtraPoint">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 공모직 대상자 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EXTRA_POINT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	    SELECT
+	        F_DEPT_LEV2_NM(#findYear#, B.DEPT_CD) AS DEPT_NM        ,
+	        A.EMP_NO        ,
+	        B.KOR_NM AS EMP_NM     
+	    FROM
+	        MEM_EXTRA_POINT A        ,
+	        BSC_INSA B       
+	    WHERE
+	        A.YEAR =  #findYear# /**P*/      
+	        AND A.YEAR = B.YEAR
+	        AND A.EMP_NO = B.EMPN
+	    ORDER BY
+	        B.KOR_NM
+	</select>
+	
+	<!--
+    ==================================================================
+      # 설명    : 공모직 대상자 삭제
+      # 기능    : DELETE
+      # TABLE   : MEM_EXTRA_POINT
+    ==================================================================
+    -->
+    <delete id="deleteExtraPontData" parameterClass="hashMap">
+        DELETE FROM MEM_EXTRA_POINT
+         WHERE YEAR				= #year#
+		   AND EMP_NO			= #empNo#
+    </delete>
+    
+	<!--
+    ==================================================================
+      # 설명    : 공모직 대상자 전체삭제
+      # 기능    : DELETE
+      # TABLE   : MEM_EXTRA_POINT
+    ==================================================================
+    -->
+    <delete id="deleteAllExtraPontData" parameterClass="hashMap">
+        DELETE FROM MEM_EXTRA_POINT
+         WHERE YEAR	= #year#
+    </delete>
+    
+    <!--
+    ==================================================================
+      # 설명  : 공모직 대상자 등록 
+      # 기능  : UPDATE
+      # TABLE : MEM_EXTRA_POINT
+    ==================================================================
+    -->
+	<insert id="insertExtraPontData" parameterClass="hashMap">
+		INSERT INTO MEM_EXTRA_POINT (YEAR
+								   , EMP_NO
+								   , CREATE_DT
+								   
+                     			  )
+			 VALUES (              #year#
+								 , #empNo#
+								 , SYSDATE
+            		)
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공모직 대상자 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EXTRA_POINT
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		       A.EMP_NO
+		     , B.KOR_NM AS EMP_NM
+		  FROM MEM_EXTRA_POINT A
+		     , BSC_INSA B
+		 WHERE A.YEAR = #findYear#
+		   AND A.EMP_NO = #empNo#
+		   AND A.YEAR = B.YEAR
+		   AND A.EMP_NO = B.EMPN
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공모자 대상자 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_EXTRA_POINT
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE MEM_EXTRA_POINT 
+		   SET EMP_NO	= #empNo# 
+		 WHERE EMP_NO	= #empNoOld#
+		   AND YEAR     = #year#			 
+					
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 저장시에 동일한 공모직대상자 수
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EXTRA_POINT
+	==================================================================
+	-->	
+	<select id="getExtraPointCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(1) CNT 
+		  FROM MEM_EXTRA_POINT
+		 WHERE YEAR = #year#
+		   AND EMP_NO =  #empNo#
+	</select>
+		
+	<!--
+	==================================================================   
+	  # 설명	: 업데이트시에 동일한 공모직대상자 수
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EXTRA_POINT
+	==================================================================
+	-->	
+	<select id="getUpExtraPointCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(1) CNT 
+		  FROM MEM_EXTRA_POINT
+		 WHERE YEAR = #year#
+		   AND EMP_NO =  #empNo#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 사용자정보 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.EMPN AS USER_ID
+  			 , A.KOR_NM AS USER_NM
+  			 , A.DEPT_CD AS DEPT_ID
+  			 , F_DEPT_LEV2_NM(A.YEAR, A.DEPT_CD) AS DEPT_NM
+  			 , C.CODE_NM AS POS_NM
+    	  FROM BSC_INSA A
+	LEFT OUTER JOIN BSC_INSA_DEPT B
+            ON A.YEAR = B.YEAR
+           AND A.DEPT_CD = B.DEPT_CD
+	LEFT OUTER JOIN BSC_CODE C
+            ON B.YEAR = C.YEAR
+           AND C.CODE_GRP_ID ='171'
+           AND A.POS_TC = C.CODE_ID    
+   		 WHERE 1 = 1
+		   AND A.YEAR = #findYear#
+		<isEmpty prepend="AND" property="findUserNm">
+			A.DEPT_CD = SUBSTR(#deptId#, 2)
+		</isEmpty>
+		  
+		<isNotEmpty prepend="AND" property="findUserNm">
+            UPPER(A.KOR_NM) LIKE  '%' || TRIM(UPPER(#findUserNm#)) ||'%'
+	   	</isNotEmpty>
+	   	
+		ORDER BY A.EMPN, A.KOR_NM 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직 트리 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT CODE_ID
+		 	   ,CODE_NM
+		 	   ,UP_CODE_ID
+		 	   ,DISP_ORDER
+		 	   ,YEAR
+		 	   ,USE_YN
+		 	   ,LEVEL_ID
+		 	   FROM ( SELECT 'A' || A.DEPT_CD AS CODE_ID,
+                  A.DEPT_KOR_NM AS CODE_NM,
+                  'A' || A.UP_DEPT_CD AS UP_CODE_ID,
+                  DISP_ORDER,
+                  YEAR, USE_YN,
+                  DEPT_LEVL AS LEVEL_ID
+             FROM BSC_INSA_DEPT A
+             WHERE USE_YN = 'T'
+             AND YEAR = #findYear#
+             UNION ALL
+             SELECT 'A' || DEPT_CD AS CODE_ID,
+                  DEPT_KOR_NM AS CODE_NM,
+                  UP_DEPT_CD AS UP_CODE_ID,
+                  DISP_ORDER,
+                  YEAR,
+                  USE_YN,
+                  DEPT_LEVL AS LEVEL_ID FROM BSC_INSA_DEPT WHERE DEPT_CD = '0000' AND YEAR = #findYear# )
+            WHERE YEAR = #findYear# 
+       START WITH UP_CODE_ID IS NULL
+        CONNECT BY PRIOR CODE_ID = UP_CODE_ID
+               AND PRIOR YEAR = #findYear#
+        ORDER SIBLINGS BY DISP_ORDER
+	</select>	
+	  		
+</sqlMap>
+
+

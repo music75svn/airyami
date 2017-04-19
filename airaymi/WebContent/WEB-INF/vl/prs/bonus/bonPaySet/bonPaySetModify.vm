@@ -1,0 +1,415 @@
+#*************************************************************************
+* CLASS 명      : bonPaySetModify
+* 작 업 자      : 안요한 
+* 작 업 일      : 2013년 6월 17일 
+* 기    능      : 직원지급기준설정    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용          비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    안요한      2013년 6월 17일           최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript">
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){ 
+	
+		/******************************************
+		 * 초기집계 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnInit").click(function() {
+			getInit();
+			return false;
+		});	
+		
+		/******************************************
+		 * 검증집계 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnVeri").click(function() {
+			getVeri();
+			return false;
+		});
+		
+		/******************************************
+		 * 확정집계 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnConf").click(function() {
+			getConf();
+			return false;
+		});
+		
+		/******************************************
+		 * 확정집계 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnConfCancel").click(function() {
+			getConfCancel();
+			return false;
+		});
+	
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnCount").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnCount").unbind();
+		});
+		
+		/******************************************
+		 * 기준월봉 숫자만 입력
+		 ******************************************/
+		J("#standardPay").numeric();
+		J("#standardPay").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 기관등급 지급율 숫자만 입력
+		 ******************************************/
+		J("#organGradeRate").numeric({allow:"."});
+		J("#organGradeRate").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 지급총가능액-자체성과금 숫자만 입력
+		 ******************************************/
+		J("#standInsidePay").numeric({allow:"."});
+		J("#standInsidePay").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 정부평가성과금-직원 숫자만 입력
+		 ******************************************/
+		J("#govEmpPay").numeric({allow:"."});
+		J("#govEmpPay").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 정부평가성과금-간부 숫자만 입력
+		 ******************************************/
+		J("#govDirPay").numeric({allow:"."});
+		J("#govDirPay").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 자체성과금-지급율 숫자만 입력받기
+		 ******************************************/
+		J("#auditorRate").numeric({allow:"."});
+		J("#auditorRate").css("ime-mode", "disabled");
+		 
+		/******************************************
+		 * 자체성과금-지급율 숫자만 입력받기
+		 ******************************************/
+		J("input[name=insideRealRate]").numeric({allow:".-"});
+		J("input[name=insideRealRate]").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 자체성과금-현재계산액 숫자만 입력받기
+		 ******************************************/
+		J("input[name=insideCalPay]").numeric({allow:".-"});
+		J("input[name=insideCalPay]").css("ime-mode", "disabled");
+		 
+		/******************************************
+		 *자체성과금-검증 숫자만 입력받기
+		 ******************************************/
+		J("input[name=insideVerPay]").numeric({allow:".-"});
+		J("input[name=insideVerPay]").css("ime-mode", "disabled");
+		 
+		/******************************************
+		 * 정평-총지금가능액 숫자만 입력받기
+		 ******************************************/
+		J("input[name=govEmpRealPay]").numeric({allow:".-"});
+		J("input[name=govEmpRealPay]").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 정평-지급률 숫자만 입력받기
+		 ******************************************/
+		J("input[name=govEmpRealRate]").numeric({allow:".-"});
+		J("input[name=govEmpRealRate]").css("ime-mode", "disabled");
+		 
+		/******************************************
+		 * 정평-현재계산액 숫자만 입력받기
+		 ******************************************/
+		J("input[name=govEmpCalPay]").numeric({allow:".-"});
+		J("input[name=govEmpCalPay]").css("ime-mode", "disabled");
+		 
+		/******************************************
+		 * 정평-검증 숫자만 입력받기
+		 ******************************************/
+		J("input[name=govEmpVerPay]").numeric({allow:".-"});
+		J("input[name=govEmpVerPay]").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 집계
+		 ******************************************/
+		J("#btnCount").click(function(e) {
+			e.preventDefault();
+			saveChk()
+		});  
+
+	});	
+	
+	/******************************************
+	 * 초기집계실행
+	 ******************************************/
+	function getInit() {
+		J.showConfirmBox("초기집계를 하시면 기존 데이터가 초기화 됩니다. 진행하시겠습니까?", "getInitDo"); //getInitDo() 콜백함수 호출
+	}
+	
+	function getInitDo() {
+		J("#mode").val("INIT");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/prs/bonus/bonPaySet/bonPaySetProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 검증집계실행
+	 ******************************************/
+	function getVeri() {
+		J.showConfirmBox("검증집계를 하시면 지급율에 의해 재집계 됩니다. 진행하시겠습니까?", "getVeriDo"); //getVeriDo() 콜백함수 호출
+	}
+	
+	function getVeriDo() {
+		J("#mode").val("VERI");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/prs/bonus/bonPaySet/bonPaySetProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 확정실행
+	 ******************************************/
+	function getConf() {
+		J.showConfirmBox("성과급 지급을 확정 하시겠습니까?", "getConfDo"); //getConfDo() 콜백함수 호출
+	}
+	
+	function getConfDo() {
+		J("#mode").val("CONF");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/prs/bonus/bonPaySet/bonPaySetProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 확정취소
+	 ******************************************/
+	function getConfCancel() {
+		J.showConfirmBox("성과급 지급 확정을 취소 하시면 기존 집계는 삭제 됩니다. 진행하시겠습니까?", "getConfCancelDo"); //getConfCancelDo() 콜백함수 호출
+	}
+	
+	function getConfCancelDo() {
+		J("#mode").val("CANCEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/prs/bonus/bonPaySet/bonPaySetProcess.vw?type=template").submit();
+	}
+	
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+	
+		if(!J.checkLength("standardPay", "기준월봉", 1, 15)) {
+			return;
+		}
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		
+		J("#mode").val("ADD");
+		J("#year").val(J("#findYear").val());
+		J("#standardPay").val((J("#standardPay").val().replace(/[,]/g, "")));
+		J("#formList").attr("action", "$!{context_path}/prs/bonus/bonPaySet/bonPaySetProcess.vw?type=template").submit();
+	}
+	
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+			<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/bonus/bonPaySet/bonPaySetModify.vw?type=template">
+			    <input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+    			
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="직원지급 기준설정 검색조건">        
+                        <caption class="none">직원지급 기준설정 검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w180">
+                                    <span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+							</tr>
+                        </tbody>
+                    </table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                </div></div></div>
+                </div>
+			</form>
+			<!-- search E -->
+            <div class="clear"></div>
+		</div>
+		
+			<form id="formList" name="formList" method="post" action="$!{context_path}/prs/bonus/bonPaySet/bonPaySetProcess.vw?type=template">
+				<input type="hidden" id="mode"			name="mode"					value="$!{searchMap.txt2html("mode")}" />
+            	<input type="hidden" id="year"			name="year"							 />
+				$!{searchMap.makeHiddenFind()}
+				
+    			<div class="blockDetail2">
+	    			<table summary="지급기준 기초설정">
+						<caption class="none">직원지급기준 설정 등록</caption>
+	    				<colgroup>
+	    					<col width="20%" />
+	    					<col width="30%" />
+	    					<col width="20%" />
+	    					<col width="30%" />
+	    				</colgroup>
+	    				<tbody>	    					
+	    					<tr>
+								<th scope="row">기준월봉</th>
+								<td style="text-align:left;">
+									$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.STAND_PAY)})} 원
+								</td>
+								<th scope="row">기관등급 지급율</th>
+								<td  style="text-align:left;">
+									$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.ORG_GRA_RATE)})} %
+								</td>
+							</tr>
+							<tr>							
+								<th scope="row">자세성과급 지급가능액</th>
+								<td style="text-align:left;">
+									$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.INSIDE_REAL_PAY)})} 원
+								</td>
+								<th scope="row">정부평가성과급 지급가능액</th>
+								<td style="text-align:left;">
+									$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.GOV_EST)})} 원
+								</td>
+							</tr>
+	    					<tr>							
+								<th scope="row">기본급 총액</th>
+								<td style="text-align:left;">
+									$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.SUM_PAY)})} 원
+								</td>
+								<th scope="row">파견직 격려금 총액</th>
+								<td style="text-align:left;">
+									$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.SUM_SEP_PAY)})} 원
+								</td>
+							</tr>
+	    					
+						</tbody>
+					</table>
+				</div>
+				#if($!{CS_HTML.txt2html($detail.CONFIRM_DT)} =="")	
+	    		<div class="blockButton"> 
+	    			<ul>
+	    				<li><input type="button" id="btnInit" value="초기집계" style="margin-bottom:10px"/></li>
+	    			</ul>
+	    		</div>
+	    		#end
+	    		<div class="clear"></div>
+	    	#if($!{CS_HTML.txt2html($detail.INIT_AGG_DT)}!="")
+	    		<div class="blockDetail2">
+        			<table summary="성과급 실지급률">
+        				<caption class="none">직원지급기준 설정 등록</caption>
+	    				<colgroup>
+	    					<col width="20%" />
+	    					<col width="30%" />
+	    					<col width="20%" />
+	    					<col width="30%" />
+	    				</colgroup>
+	    				<tbody>
+	    					<tr>
+								<th scope="row"><label for="govRealRate">정부평가성과금 실지급률</label></th>
+								<td colspan="3">
+									<table>
+										<tr>
+											<th ><label for="DirPay">정부평가성과급-임원 지급액</label></th>
+											<th ><label for="EmpPay">정부평가성과급-직원 지급액</label></th>
+											<th ><label for="TotGov">정부평가성과급-전체 지급액</label></th>
+											<th ><labrel for="rate">지급률</label></th>
+											<th ><label for="confirm2">검증액</label></th>
+										</tr>
+										<tr>
+											<td style="width:20%;">
+												$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.GOV_DIR_PAY)})} 원
+												<input type="hidden" id="govDirRealPay"	name="govDirRealPay" value="$!{CS_HTML.txt2html($detail.GOV_DIR_REAL_PAY)}" />
+											</td>
+											<td style="width:20%;">
+												$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.GOV_EMP_PAY)})} 원
+											</td>
+											<td style="width:20%;">
+												$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.GOV_SUM_PAY)})} 원
+											</td>
+											<td style="width:20%;">
+												<input type="text" id="govEmpRealRate" name="govEmpRealRate" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.GOV_EMP_REAL_RATE)}' maxlength="15" style="text-align:right;padding-right:1px"/> %
+											</td>											
+											<td style="width:20%;">
+												$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.GOV_EMP_VER_PAY)})} 원
+											</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+	    					<tr>
+								<th scope="row" style="width:10px"><label for="insideRealPay">자체성과금 실지급률</label></th>
+								<td colspan="3">
+									<table>
+										<tr>
+											<th ><label for="empTotPay">직원 총 지급액</label></th>
+											<th ><label for="insideRate">자체성과금 지급률</label></th>
+											<th ><label for="confirm1">검증액</label></th>
+										</tr>
+										<tr>
+											<td style="width:25%;">$!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.INSIDE_STAND_PAY)})} 원</td>
+											<td style="width:25%;">
+												<input type="text" id="insideRealRate" name="insideRealRate" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.INSIDE_REAL_RATE)}' maxlength="15" style="text-align:right;padding-right:1px"/> %
+											</td>
+											<td style="width:25%;"> $!{CS_FORMAT.numberFormat($!{CS_HTML.txt2html($detail.INSIDE_VER_PAY)})} 원 </td>
+										</tr>
+									</table>
+								</td>
+							</tr>							
+	    				</tbody>
+	    			</table>
+	    		</div>
+	    		#if($!{CS_HTML.txt2html($detail.CONFIRM_DT)} == "")		    	
+	    		<div class="blockButton"> 
+	    			<ul>
+	    				<li><input type="button" id="btnVeri" value="검증집계" /></li>
+	    				#if($!{CS_HTML.txt2html($detail.VERI_AGG_DT)} != "")
+	    				<li><input type="button" id="btnConf" value="확정" /></li>
+	    				#end
+	    			</ul>
+	    		</div>
+	    		#else
+	    		<div class="blockButton"> 
+	    			<ul>
+	    				<li><span id="closeAlert" class="txt_red2">$!{searchMap.txt2html("findYear")}년도 성과급 확정을 $!{CS_HTML.txt2html($detail.CONFIRM_DT)}에 진행하셨습니다.</span></li>&nbsp;&nbsp;
+	    				<li><input type="button" id="btnConfCancel" value="확정취소" /></li>	    				
+	    			</ul>
+	    		</div>
+	    		#end	
+	    	#end	
+	    	<div class="clear"></div>
+			</form>
+		</div>
+	</div>	
+</div>

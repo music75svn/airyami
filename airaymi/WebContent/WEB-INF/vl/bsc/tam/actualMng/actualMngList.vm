@@ -1,0 +1,598 @@
+#*************************************************************************
+* CLASS 명      : actualMngList
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 7월 24일
+* 기    능      : 실적관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     하윤식      2012년 7월 24일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/tam/actualMng/actualMngList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 삭제버튼 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function(e) {
+			e.preventDefault();
+			deleteChk();
+		});
+
+		/******************************************
+		 * 디폴트 입력 지표 조회
+		 ******************************************/
+		goAction("$!{searchMap.txt2html("metricId")}", "direct");
+
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchor").fancybox();
+
+		/******************************************
+		 * 반려 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnReturn").click(function() {
+			returnPop();
+			return false;
+		});
+
+		/******************************************
+		 * 반려조회 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnReturnView").click(function() {
+			returnPopView();
+			return false;
+		});
+
+		/******************************************
+    	 * 조직선택 팝업호출
+    	 ******************************************/
+    	J("#icSearch").fancybox();
+	});
+
+	/******************************************
+	 * 조회
+	 ******************************************/
+    function goAction(metricId, metricNm) {
+		var type = "";
+
+		if(metricNm != "direct") {
+			type = J(metricNm).attr("class").split("^")[0]; // 1:조직, 2:지표
+		}
+
+		if(type == '1') return; //조직을 선택했을 경우
+
+		var year = J("#findYear").val();
+		var mon  = J("#findMon").val();
+		var findActualType = "$!{searchMap.txt2html("findActualType")}";
+
+		J("#metricId").val(metricId);
+		J("#findMetricId").val(metricId);
+
+		J.ajax({
+        	url      : "$!{context_path}/bsc/tam/actualMng/actualMngDetailList.vw",
+        	cache    : false,
+        	type     : "POST",
+			data     : "year=" + year + "&amp;mon=" + mon + "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;metricId=" + metricId + "&amp;findActualType=" + findActualType,
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+        		J("#detailData").empty();  //body부분 div를 empty 시켜줌(empty를 시키지 않을 경우 메모리릭 발생)
+        		J("#detailData").append(data);
+        	}
+    	});
+	}
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+
+		var fileChk = true;
+
+		//첨부파일 확장자 체크
+		J(":file", "#formList").each(function(index, item) {
+			var fileFullName = J("input[name=" + item.name + "]").val();
+			var src = getFileExtension(fileFullName);
+
+			if (!((src.toLowerCase() == "xls") || (src.toLowerCase() == "xlsx") || (src.toLowerCase() == "ppt") || (src.toLowerCase() == "pptx")||
+				  (src.toLowerCase() == "doc") || (src.toLowerCase() == "docx") || (src.toLowerCase() == "hwp") || (src.toLowerCase() == "pdf") ||
+				  (src.toLowerCase() == "zip") || (src.toLowerCase() == "txt")  || (src.toLowerCase() == "gif") || (src.toLowerCase() == "jpg") ||
+			      (src.toLowerCase() == "png") || (src.toLowerCase() == "png")
+			    )) {
+
+				fileChk = false;
+    		}
+		});
+
+		if(fileChk == false) {
+			J.showMsgBox("허용되지 않는 파일형식입니다<br/>허용되는 파일형식 : <br/>xls, xlsx, ppt, pptx, doc, docx, hwp <br/> pdf, zip, txt, gif, jpg, png, jpeg", null, null);
+    		return;
+		}
+
+		var actualType = J("#findActualType").val();
+		var actStatusId = J("#actStatusId").val();
+
+		if(actualType == "input") {  //실적입력 화면
+			if(actStatusId == "03") {
+				J.showMsgBox("확인완료된 지표는 수정이 불가능합니다", null, null);
+				return;
+			} else if(actStatusId == "04") {
+				J.showMsgBox("확인완료된 지표는 수정이 불가능합니다", null, null);
+				return;
+			} else if(actStatusId == "06") {
+				J.showMsgBox("확인요청인 지표는 수정이 불가능합니다", null, null);
+				return;
+			} else {
+				J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+			}
+		} else {
+			if(actStatusId == "01") {
+				J.showMsgBox("확인요청되지 않은 지표는 수정이 불가능합니다", null, null);
+				return;
+			}else if(actStatusId == "02") {
+				J.showMsgBox("확인요청되지 않은 지표는 수정이 불가능합니다", null, null);
+				return;
+			}else if(actStatusId == "03") {
+				J.showMsgBox("확인완료된 지표는 수정이 불가능합니다", null, null);
+				return;
+			}else if(actStatusId == "04") {
+				J.showMsgBox("확인완료된 지표는 수정이 불가능합니다", null, null);
+				return;
+			}else if(actStatusId == "05") {
+				J.showMsgBox("반려하신 지표는 수정이 불가능합니다", null, null);
+				return;
+			} else {
+				J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+			}
+		}
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		var actualType = J("#findActualType").val();
+
+		J("#year").val(J("#findYear").val());
+		J("#mon").val(J("#findMon").val());
+		J("#mode").val("ADD");
+
+		if(actualType == "input") {  //실적입력 화면
+			J("#actStatusId").val("02");
+		}
+
+		document.charset='utf-8';
+
+		J("#formList").attr("action", "$!{context_path}/bsc/tam/actualMng/actualMngProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 삭제 체크
+	 ******************************************/
+	function deleteChk() {
+        J.showConfirmBox("실적을 삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		J("#year").val(J("#findYear").val());
+		J("#mon").val(J("#findMon").val());
+		J("#actStatusId").val("01");
+        J("#mode").val("DEL");
+        J("#formList").attr("action", "$!{context_path}/bsc/tam/actualMng/actualMngProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 승인 및 반려 체크
+	 ******************************************/
+	function saveStatusChk() {
+		var tree = $("#tree").dynatree("getTree");
+		var selectNode = tree.serializeMetricString();
+
+		#if($!{monCloseYn} == 'Y' || $!{yearCloseYn} == 'Y')
+			J.showMsgBox("실적입력이 마감되었습니다.", null, null);
+			return false;
+		#end
+
+		#if($!{actInputTermYn} == 'N')
+			J.showMsgBox("실적입력 기한이 아닙니다.", null, null);
+			return false;
+		#end
+
+		if("" == selectNode) {
+			J.showMsgBox("선택된 지표가 없습니다.", null, null);
+			return false;
+		}
+
+		return true;
+	}
+
+	/******************************************
+	 * 반려 입력 팝업호출
+	 ******************************************/
+	function returnPop() {
+		if(!saveStatusChk()) return;
+
+		J("#anchor").attr("href","$!{context_path}/bsc/tam/actualMng/popReturnActual.vw?findYear=$!{searchMap.txt2html("year")}");
+		J("#anchor").click();
+	}
+
+	/******************************************
+	 * 반려조회 팝업호출
+	 ******************************************/
+	function returnPopView() {
+		var year = J("#findYear").val();
+		var mon = J("#findMon").val();
+		var metricId = J("#metricId").val();
+
+		J("#anchor").attr("href","$!{context_path}/bsc/tam/actualMng/popReturnView.vw?year="+ year + "&amp;mon=" + mon + "&amp;metricId=" + metricId);
+		J("#anchor").click();
+		return false;
+	}
+
+	/******************************************
+	 * 승인상태 저장
+	 ******************************************/
+	function statusDo(actStatusId) {
+		J("#year").val(J("#findYear").val());
+		J("#mon").val(J("#findMon").val());
+		J("#actStatusId").val(actStatusId);
+		J("#mode").val("STATUS");
+
+		if(!saveStatusChk()) return;
+
+		var tree = $("#tree").dynatree("getTree");
+		var selectNode = tree.serializeMetricString();
+
+		J("#metricIds").val(selectNode);
+		J("#formList").attr("action", "$!{context_path}/bsc/tam/actualMng/actualMngProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 전체 선택, 해제 
+	 ******************************************/
+	function fncSelectAll(checkStatus) {
+		if(checkStatus){
+			fncSelecter(checkStatus);
+		}else{
+			fncSelecter(checkStatus);
+		}
+	}
+
+	/******************************************
+	 * 반려조회 버튼
+	 ******************************************/
+	function showReturnView() {
+		var actStatusId = J("#actStatusId").val();
+
+		if(actStatusId == "05") {
+			J("#btnReturnView").show();
+		} else {
+			J("#btnReturnView").hide();
+		}
+	}
+
+	/*****************************************************
+	 * 조직선택 설정
+	 *****************************************************/
+	function setDeptInfoPop(scDeptId, scDeptNm) {
+		scDeptNm = J(scDeptNm).text();
+		J("#findScDeptId").val(scDeptId);
+		J("#findScDeptNm").val(scDeptNm);
+		J.fancybox.close();
+	}
+
+	/*****************************************************
+	 * 조직선택 설정 취소
+	 *****************************************************/
+	function cancleDept() {
+		J("#findScDeptId").val("");
+		J("#findScDeptNm").val("");
+	}
+
+	/******************************************
+	 * 목표입력자 선택시 검색
+	 ******************************************/
+	function goSearch() {
+		if( J("#findActualType").val() == "input" ) {
+			if( J("#findInsertUserId").val() == '' ) {
+				J("#flag").val("1");
+				J("#findActStatusId").val("01");
+			}else {
+				J("#flag").val("0");
+				J("#findActStatusId").append("<option value='ALLSTATUS'>전체</option>");
+				J("#findActStatusId").val("ALLSTATUS");
+			}
+		}else {
+			if( J("#findApproveUserId").val() == '' ) {
+				J("#flag").val("1");
+				//J("#findActStatusId").val("01");
+			}else if( J("#findApproveUserId").val() == "ALL" ) {
+				J("#flag").val("2");
+				J("#findActStatusId").append("<option value='ALLSTATUS'>전체</option>");
+				J("#findActStatusId").val("ALLSTATUS");
+			}else {
+				J("#flag").val("0");
+				J("#findActStatusId").append("<option value='ALLSTATUS'>전체</option>");
+				J("#findActStatusId").val("ALLSTATUS");
+			}
+		}
+	
+		J("#formFind").attr("action", "$!{context_path}/bsc/tam/actualMng/actualMngList.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 처리상태 선택시 검색   flag ->  0:담당자존재     1:없음      2:전체  
+	 ******************************************/
+	function goSearchStatus() {
+		if( J("#findActualType").val() == "input" ) {
+			if( J("#findInsertUserId").val() == '' ) {
+				J("#flag").val("1");
+			}else {
+				J("#flag").val("0");
+			}
+		}else {
+			if( J("#findApproveUserId").val() == '' ) {
+				J("#flag").val("1");
+			}else if( J("#findApproveUserId").val() == "ALL" ) {
+				J("#flag").val("2");
+			}else {
+				J("#flag").val("0");
+			}
+		}
+		
+		J("#formFind").attr("action", "$!{context_path}/bsc/tam/actualMng/actualMngList.vw?type=template").submit();
+
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">실적관리</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/tam/actualMng/actualMngList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"    id="findActualType"	name="findActualType"	value="$!{searchMap.txt2html("findActualType")}" />
+				<input type="hidden"	id="findMetricId"	name="findMetricId"		value="$!{searchMap.txt2html("metricId")}" />
+				<input type="hidden"	id="flag"			name="flag"				value="$!{searchMap.txt2html("flag")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="실적관리검색 조건">
+						<caption class="none">실적관리 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span>$!{YEARMON}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+										<select id="findMon" name="findMon" class="select w70" onchange = "goSearch()">
+            								$!CS_CODE.getCodeOption("024", $!{searchMap.txt2html("findMon")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w200">
+								#if($!{searchMap.txt2html("findActualType")} == "input")
+            						<span>실적입력자</span>
+            						<span class="searchBar">
+										#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+                							<select id="findInsertUserId" name="findInsertUserId" class="select w80" onchange = "goSearch()">
+                								<option value = "" >미지정</option>  
+                								#foreach($insertUserList in $insertUserList)
+    												<option value="$!{CS_HTML.txt2html($insertUserList.INSERT_USER_ID)}" $searchMap.getSelected("findInsertUserId", "$!{CS_HTML.txt2html($insertUserList.INSERT_USER_ID)}")>$!{CS_HTML.txt2html($insertUserList.INSERT_USER_NM)}</option>
+    											#end
+                							</select>
+										#else
+											$!{CS_LOGIN.getUser_nm()}
+											<input type="hidden" id="findInsertUserId" name="findInsertUserId" value="$!{CS_LOGIN.getUser_id()}" />
+										#end
+            						</span>
+								#elseif($!{searchMap.txt2html("findActualType")} == "check")
+									<span>실적확인자</span>
+            						<span class="searchBar">
+										#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+                							<select id="findApproveUserId" name="findApproveUserId" class="select w80" onchange = "goSearch()">
+                								<option value = "" >미지정</option>  
+                								#foreach($approveUserList in $approveUserList)
+    												<option value="$!{CS_HTML.txt2html($approveUserList.APPROVE_USER_ID)}" $searchMap.getSelected("findApproveUserId", "$!{CS_HTML.txt2html($approveUserList.APPROVE_USER_ID)}")>$!{CS_HTML.txt2html($approveUserList.APPROVE_USER_NM)}</option>
+    											#end
+                							</select>
+										#else
+											$!{CS_LOGIN.getUser_nm()}
+											<input type="hidden" id="findApproveUserId" name="findApproveUserId" value="$!{CS_LOGIN.getUser_id()}" />
+										#end
+            						</span>
+            					#else
+									<span>실적확인자</span>
+            						<span class="searchBar">
+										#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+                							<select id="findApproveUserId" name="findApproveUserId" class="select w80" onchange = "goSearch()">
+                									<option value = "" >미지정</option>  
+                									<option value = "ALL" $searchMap.getSelected("findApproveUserId", "ALL") >전체</option>
+                								#foreach($approveUserList in $approveUserList)
+    												<option value="$!{CS_HTML.txt2html($approveUserList.APPROVE_USER_ID)}" $searchMap.getSelected("findApproveUserId", "$!{CS_HTML.txt2html($approveUserList.APPROVE_USER_ID)}")>$!{CS_HTML.txt2html($approveUserList.APPROVE_USER_NM)}</option>
+    											#end
+                							</select>
+										#else
+											$!{CS_LOGIN.getUser_nm()}
+											<input type="hidden" id="findApproveUserId" name="findApproveUserId" value="$!{CS_LOGIN.getUser_id()}" />
+										#end
+            						</span>
+								#end
+            					</td>
+            					<td class="searchBox_tit w250">
+            						<span>처리상태</span>
+            						<span class="searchBar">
+            							<select id="findActStatusId" name="findActStatusId" class="select w110" onchange = "goSearchStatus()">
+											#if( $!{searchMap.txt2html("flag")} != "1" )
+											<option value="ALLSTATUS">전체</option>
+											#end
+            								#if($!{searchMap.txt2html("findActualType")} == "input")
+            									$!CS_CODE.getCodeOption("195", $!{searchMap.txt2html("findActStatusId")})
+            								#elseif($!{searchMap.txt2html("findActualType")} == "check")
+            									$!CS_CODE.getCodeOption("195", $!{searchMap.txt2html("findActStatusId")})
+            								#else
+            									$!CS_CODE.getCodeOption("015", $!{searchMap.txt2html("findActStatusId")})
+            								#end
+            							</select>
+            						</span>
+            					</td>
+								#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+								<td class="searchBox_tit w270">
+            						<span><label for="findScDeptId">$!{SC_DEPT_NM}</label></span>
+            						<span class="searchBar">
+        								<input type="hidden" id="findScDeptId" name="findScDeptId" value="$!{searchMap.txt2html("findScDeptId")}" />
+        								<input type="text" id="findScDeptNm" name="findScDeptNm" class="inputbox w150" value="$!{searchMap.txt2html("findScDeptNm")}" maxlength="20" title="findScDeptNm"  readonly="readonly" />
+        								<a id="icSearch" href="$!{context_path}/bsc/module/commModule/popScDeptTree.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;findSearchCodeId=$!{searchMap.txt2html("findScDeptId")}"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="조직검색"/></a>
+        								<a href="javascript:cancleDept();"><img src="$!{img_path}/common/board/ic_cancel.gif" id="icCancel" class="valign_middle" alt="검색 초기화"/></a>
+            						</span>
+            					</td>
+								#end
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" enctype="multipart/form-data" action="$!{context_path}/bsc/tam/actualMng/actualMngProcess.vw?type=template">
+			<input type="hidden"	id="mode"			name="mode"			value="" />
+			<input type="hidden"	id="seq"			name="seq"			value="1" />
+			<input type="hidden"	id="year"			name="year" />
+			<input type="hidden"	id="mon"			name="mon" />
+			<input type="hidden"	id="analCycle"		name="analCycle"	value="M" />
+			<input type="hidden"	id="metricId"		name="metricId"		value="$!{searchMap.txt2html("metricId")}" />
+			<input type="hidden"	id="metricIds"		name="metricIds" />
+			<input type="hidden"	id="actStatusId"	name="actStatusId" />
+			<input type="hidden"	id="returnReason"	name="returnReason" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<table width="100%" border="0" cellspacing="0" cellpadding="0" summary="실적입력">
+						<tr>
+							<td class="valign_top blockSearch textRight">
+								#if($!{searchMap.txt2html("findActualType")} == "input")
+									<a href="javascript:statusDo('06');"><img src="$!{img_path}/common/bt_01_3.gif" alt="확인요청" class="btn02" /></a>
+								#elseif($!{searchMap.txt2html("findActualType")} == "check")
+									<a href="javascript:statusDo('03');"><img src="$!{img_path}/common/bt_02_3.gif" alt="확인" class="btn02" /></a>
+									<input id="btnReturn" type="image" src="$!{img_path}/common/bt_03.gif"  alt="반려" class="btn02" />
+								#else
+									<div style="padding-left:6px">
+    									<a href="javascript:fncSelectAll(true);"><img src="$!{img_path}/common/bt_14.gif" alt="전체선택" class="btn02" align="left"/></a>
+    									<a href="javascript:fncSelectAll(false);"><img src="$!{img_path}/common/bt_15.gif" alt="전체해제" class="btn02" align="left"/></a>
+    									<a href="javascript:statusDo('04');"><img src="$!{img_path}/common/bt_02.gif" alt="승인" class="btn02" /></a>
+    									<input id="btnReturn" type="image" src="$!{img_path}/common/bt_03.gif"  alt="반려" class="btn02" />
+									</div>
+								#end
+
+								<!-- 조직트리 Start -->
+                				<div class="blockGridTreeTable floatLeft" style="margin-top:10px;">
+                					#parse("/WEB-INF/vl/bsc/tam/actualMng/actualTree.vm")
+                				</div>
+
+								<!-- 범례 Start -->
+                				<div class="blockLegendTable floatLeft" style="margin-top:10px;">
+									<ul>
+										<li class="strong">[실적승인상태 범례]</li>
+										#if($!{searchMap.txt2html("findActualType")} != "approve")
+										<li>&nbsp;(미) : 미입력</li>
+										<li>&nbsp;(입) : 입력완료</li>
+    									<li>&nbsp;(요) : 확인요청</li>
+    									<li>&nbsp;(확) : 확인</li>
+    									<li>&nbsp;(승) : 승인</li>
+    									<li>&nbsp;(반) : 반려</li>
+    									#else
+    									<li>&nbsp;(미) : 미입력</li>
+										<li>&nbsp;(입) : 입력완료</li>
+    									<li>&nbsp;(요) : 확인요청</li>
+    									<li>&nbsp;(확) : 확인/승인요청</li>
+    									<li>&nbsp;(승) : 승인</li>
+    									<li>&nbsp;(반) : 반려</li>
+									    #end
+									</ul>
+                				</div>
+            				</td>
+							<td>&nbsp;&nbsp;</td>
+							<td class="textRight" valign="top">
+            					<!-- 실적입력 Start -->
+            					<div id="detailData" class="blockDetailForTree"></div>
+							</td>
+						</tr>
+					</table>
+					<div class="blockButton_all floatLeft">
+						<div class="blockButton_l">
+							#if($!{searchMap.txt2html("findActualType")} == "input")
+								#if($!{monCloseYn} == 'Y' || $!{yearCloseYn} == 'Y')
+									<span id="closeAlert" class="txt_red2">※실적입력이 마감되었습니다.</span><br/>
+								#end
+
+								#if($!{actInputTermYn} == 'N')
+									<span id="closeAlert" class="txt_red2">※실적입력 기한이 아닙니다.</span><br/>
+								#end
+							#end
+						</div>
+				#if($!{searchMap.txt2html("findActualType")} == "input")
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnReturnView" value="반려조회" class="none" /></li>
+								##if($CS_LOGIN.chkAuthGrp("01"))
+								##	<li><input type="button" id="btnDelete" value="삭제" /></li>
+								##end
+								<li><input type="submit" id="btnInsert" value="저장" /></li>
+							</ul>
+						</div>
+				#elseif($!{searchMap.txt2html("findActualType")} == "check")
+						<div class="blockButton">
+							<ul>
+								##if($CS_LOGIN.chkAuthGrp("01"))
+								##	<li><input type="button" id="btnDelete" value="삭제" /></li>
+								##end
+								<li><input type="submit" id="btnInsert" value="저장" /></li>
+							</ul>
+						</div>
+				#end
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+	<a id="anchor"></a>
+	<div class="clear"></div>
+</div>

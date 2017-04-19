@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.notice">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 공지사항관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_NOTICE
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT ID
+		     , SUBJECT
+		     , POPUP_GBN
+		     , FROM_DT
+		     , TO_DT
+		     , WIDTH
+		     , HEIGHT
+		     , TO_CHAR(CREATE_DT,'YYYY.MM.DD') CREATE_DT    
+	   FROM BSC_NOTICE
+	   WHERE 1=1
+	   	<isNotEmpty property="searchBar">
+	   		<isEqual  prepend="AND" property="filt" compareValue="content"> 
+	   			UPPER(CONTENT) LIKE  '%' || TRIM(UPPER(#searchBar#)) ||'%'
+	   		
+	   		</isEqual>
+	   		<isEqual  prepend="AND" property="filt" compareValue="subject"> 
+			    UPPER(SUBJECT) LIKE  '%' || TRIM(UPPER(#searchBar#)) ||'%'
+	   		</isEqual>
+	   	</isNotEmpty>
+	   ORDER BY CREATE_DT DESC 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공지사항관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_NOTICE
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT ID, SUBJECT, CONTENT, POPUP_GBN,            
+	        FROM_DT, TO_DT, WIDTH, HEIGHT,            
+	        TO_CHAR(CREATE_DT,'YYYY.MM.DD') CREATE_DT    
+	   FROM BSC_NOTICE
+	   WHERE 1=1
+	   <dynamic prepend="AND">
+		   <isNotNull property="id">
+		   		ID = #id#   	
+		   </isNotNull>
+		   <isNotNull property="popUpId">
+		   		ID = #popUpId#
+		   </isNotNull>
+	   </dynamic>
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 공지사항 ID 획득 
+	  #	기능	: SELECT
+	  #	TABLE	: F_PGM_SERI
+	==================================================================
+	-->
+	<select id="getId" resultClass="java.lang.String">
+		SELECT F_PGM_SERI('BSC_NOTICE','','','','','') ID FROM DUAL
+	</select>
+	<!--
+	==================================================================   
+	  # 설명	: 공지사항관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_NOTICE
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">		
+		INSERT INTO BSC_NOTICE (ID,
+		                        SUBJECT,
+		                        CONTENT,
+		                        POPUP_GBN,
+		                        FROM_DT,
+		                        TO_DT,
+		                        WIDTH,
+		                        HEIGHT,
+		                        CREATE_DT)
+		     VALUES (#id#,
+		             #subject#,
+		             #content#,
+		             #popupGbn#,
+		             #fromDt#,
+		             #toDt#,
+		             #width#,
+		             #height#,
+		             SYSDATE)
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공지사항관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_NOTICE
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_NOTICE
+		SET    
+		       SUBJECT       = #subject#,
+		       CONTENT       = #content#,
+		       POPUP_GBN 	 = #popupGbn#,
+		       FROM_DT   	 = #fromDt#,
+		       TO_DT         = #toDt#,
+		       WIDTH         = #width#,
+		       HEIGHT        = #height#,
+		       CREATE_DT 	 = SYSDATE
+		WHERE  ID            = #id#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 공지사항관리 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_NOTICE
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_NOTICE WHERE ID = #noticeId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공지사항관리 첨부파일 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_NOTICE_ATTACH
+	==================================================================
+	-->	
+	<insert id="insertFileInfo" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('BSC_NOTICE_ATTACH', #id#, '', '','','') SEQ FROM DUAL
+		</selectKey> 
+		INSERT INTO BSC_NOTICE_ATTACH (
+		       ID,
+		       SEQ,
+		       ATTACH_FILE_NM,
+		       ATTACH_FILE_FNM,
+		       ATTACH_FILE_SUFFIX,
+		       ATTACH_FILE_PATH,
+		       CREATE_DT
+           ) VALUES (
+               #id#
+             , #SEQ#
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSufix#
+             , #attachFilePath#
+             , SYSDATE
+    	   )       
+	</insert>
+
+	<!--
+	==================================================================   
+	  # 설명	: 공지사항관리 첨부파일 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_NOTICE_ATTACH
+	==================================================================
+	-->	
+	<delete id="deleteFileInfo" parameterClass="hashMap">
+		DELETE FROM BSC_NOTICE_ATTACH
+		 WHERE ID = #id#
+		 AND SEQ = #seq#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공지사항관리 상세 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_NOTICE_ATTACH
+	==================================================================
+	-->
+	<select id="getFileList" parameterClass="hashMap" resultClass="hashMap">
+ 		SELECT A.ID
+	         , A.SEQ
+	         , A.ATTACH_FILE_NM
+	         , A.ATTACH_FILE_SUFFIX
+    	     , F_ENCRYPT(A.ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+         FROM BSC_NOTICE_ATTACH A
+        WHERE 1=1
+	   <dynamic prepend="AND">
+		   <isNotNull property="id">
+		   		A.ID = #id#   	
+		   </isNotNull>
+		   <isNotNull property="popUpId">
+		   		A.ID = #popUpId#
+		   </isNotNull>
+	   </dynamic>
+        ORDER BY A.SEQ                                            			                       
+	</select>
+		
+</sqlMap>
+
+

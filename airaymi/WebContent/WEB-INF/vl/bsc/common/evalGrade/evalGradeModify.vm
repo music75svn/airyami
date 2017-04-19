@@ -1,0 +1,172 @@
+#*************************************************************************
+* CLASS 명      : evalGradeModify
+* 작 업 자      : 박경태 
+* 작 업 일      : 2012년 11월 22일 
+* 기    능      : 평가등급및환산표    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    박경태      2012년 11월 22일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/bsc/common/evalGrade/evalGradeList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#contentIndicator"),
+			limit:2000
+		});
+		J("#content").trigger("keyup");
+
+
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(!J.checkLength("evalMethodNm", "평가방법", 1, 100)) {
+			return;
+		}
+		
+		if(J("#evalMethodGbnId").val() == "") {
+			J.showMsgBox("평가방법 구분을 선택해 주십시요", null, "evalMethodGbnId");
+			return;
+		}
+	
+		if(!J.checkLength("content", "설명", 0, 2000)) {
+			return;
+		}
+        
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/bsc/common/evalGrade/evalGradeProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/common/evalGrade/evalGradeProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	$!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="평가등급및환산표 등록">
+					<caption class="none">평가등급및환산표 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row"><label for="evalMethodId">평가방법코드</label></th>
+    						<td>
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.EVAL_METHOD_ID)}
+									<input type="hidden" id="evalMethodId" name="evalMethodId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.EVAL_METHOD_ID)}" maxlength="7" readonly="readonly"/>
+								#else
+									<input type="hidden" id="evalMethodId" name="evalMethodId" class="inputbox w100" maxlength="7" />
+                                    ※ 저장시 자동으로 부여됩니다.
+								#end
+							</td>
+    					</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="evalMethodNm">평가방법</label></th>
+							<td><input type="text" id="evalMethodNm" name="evalMethodNm" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.EVAL_METHOD_NM)}' maxlength="50"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="evalMethodGbnId">평가방법 구분</label></th>
+							<td>
+								<select id="evalMethodGbnId" name="evalMethodGbnId" class="select w210" >
+									<option value="">==선택==</option>
+									$!CS_CODE.getCodeOption("148", $detail.EVAL_METHOD_GBN_ID, $!{searchMap.txt2html("year")})
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="weight">사용여부</label></th>
+							<td>
+								<select id="useYn" name="useYn" class="select w210" >
+    								$!CS_CODE.getCodeOption("011", $detail.USE_YN, $!{searchMap.txt2html("year")})	
+    							</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="content">설명</label></th>
+							<td>
+								<textarea id="content" name="content" class="tabletext" title="설명" cols="" rows="5">$!{CS_HTML.txt2html($detail.CONTENT)}</textarea>
+								<span id="contentIndicator">0</span>/2000byte
+							</td>
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

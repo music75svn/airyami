@@ -1,0 +1,35 @@
+#*************************************************************************
+* CLASS 명      : popStrategyList_xml.vm
+* 작 업 자      : 한봉준
+* 작 업 일      : 2012년 8월 27일 
+* 기    능      : 전략과제 목록 팝업 리스트 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     한 봉 준     2012년 8월 27일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"SC_DEPT_ID"   : "$!{CS_HTML.txt2html($list.SC_DEPT_ID)}", 
+		"SC_DEPT_NM"   : "$!{CS_HTML.txt2html($!CS_SC_DEPT.getName($!{searchMap.txt2html("findYear")}, $list.SC_DEPT_ID))}", 
+		"STRATEGY_ID"  : "$!{CS_HTML.txt2html($list.STRATEGY_ID)}",
+		"STRATEGY_NM"  : "$!{CS_HTML.txt2html($list.STRATEGY_NM)}",
+		"STRATEGY_NM_ORIGINAL"  : "$!{CS_HTML.txt2html($list.STRATEGY_NM)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

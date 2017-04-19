@@ -1,0 +1,201 @@
+#*************************************************************************
+* CLASS 명      : deptListData
+* 작 업 자      : 김상용
+* 작 업 일      : 2013년 5월 9일 
+* 기    능      : 인사조직
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1      김상용      2013년 5월 9일          최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/bsc/system/menu/menuList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		$("input", ".blockButton" ).button(); //버튼 ui 적용
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#indicator"),
+			limit:500
+		});
+		J("#content").trigger("keyup");
+		
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			insertChk();
+		});
+		
+		/******************************************
+		 * 수정버튼 이벤트
+		 ******************************************/
+		J("#btnUpdate").click(function(e) {
+			e.preventDefault();
+			updateChk();
+		});
+		
+		/******************************************
+		 * 삭제버튼 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function(e) {
+			e.preventDefault();
+			deleteChk();
+		});
+		
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("input[name=dispOrder]").numeric(); //숫자만 입력받기
+		J("input[name=dispOrder]").css("ime-mode", "disabled"); //한글사용 비활성화
+		
+	});
+    
+//]]>
+</script>
+ 
+<!-- 인사조직 테이블 -->
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+	<tbody>
+	#if ($!{CS_HTML.txt2html($detail.DEPT_LEVL)} != "2")
+		<tr>
+			<td>
+				<form id="formDept" name="formDept" method="post" action="$!{context_path}/bsc/system/menu/menuProcess.vw?type=template">
+					<input type="hidden" id="modeI"		name="mode" 	value="ADD"/>
+					<input type="hidden" id="year"		name="year" 	value="$!{searchMap.txt2html("findYear")}"/>
+					<input type="hidden" id="deptLevl"	name="deptLevl"	value="$!{CS_HTML.txt2html($detail.DEPT_LEVL)}" />
+					
+					$!{searchMap.makeHiddenFind()}
+					<div class="">
+    					<span class="txt_red">$!{CS_HTML.txt2html($detail.DEPT_NAME)}</span> 하위에 조직 추가
+    				</div>
+    				<div class="blockDetail">
+    					<table summary="인사조직">
+        				<caption class="none">인사조직</caption>
+    						<colgroup>
+            					<col width="20%" />
+            					<col width="80%" />
+    						</colgroup>
+            				<tbody>
+            					<tr>
+            						<th scope="row"><label for="deptCd">조직코드</label></th>
+            						<td><input type="text" id="deptCd" name="deptCd" class="inputbox w200" value="" maxlength="4"/></td>
+            					</tr>
+            					<tr>
+            						<th scope="row"><label for="deptNm">조직명</label></th>
+            						<td><input type="text" id="deptNm" name="deptNm" class="inputbox w200" value="" maxlength="50"/></td>
+            					</tr>
+            					<tr>
+            						<th scope="row">상위조직</th>
+            						<td>
+										$!{CS_HTML.txt2html($detail.DEPT_NAME)}
+										<input type="hidden" id="upDeptCd" name="upDeptCd" value="$!{CS_HTML.txt2html($detail.DEPT_CD)}"/>
+									</td>
+            					</tr>
+    							<tr>
+            						<th scope="row"><label for="useYn">사용여부</label></th>
+            						<td>$!CS_CODE.getCodeRadio("useYn", "011", 'Y', $!{searchMap.txt2html("year")})</td>
+            					</tr>
+								<tr>
+            						<th scope="row"><label for="dispOrder">정렬순서</label></th>
+            						<td><input type="text" name="dispOrder" id="dispOrder" maxlength="4" value="" /></td>
+            					</tr>
+    							<tr>
+            						<th scope="row"><label for="content">비고</label></th>
+            						<td>
+    									<textarea id="content" name="content" class="tabletext" title="비고" cols="10" rows="2"></textarea>
+    									<span id="indicator">0</span>/500byte
+    								</td>
+            					</tr>
+            				</tbody>
+            			</table>
+    					<div class="blockButton_all">			
+    						<div class="blockButton_l"></div>
+    						<div class="blockButton">			
+    							<ul>
+    								<li><input type="button" id="btnInsert" value="저장" /></li>
+    							</ul>
+    						</div>
+    					</div>
+    				</div>
+				</form>
+			</td>
+		</tr>
+	#end
+		<tr>
+			<td>
+				<form id="formMod" name="formMod" method="post" action="$!{context_path}/bsc/system/menu/menuProcess.vw?type=template">
+					<input type="hidden" id="modeU"		name="mode" 	value="MOD"/>
+					<input type="hidden" id="deptLevl"	name="deptLevl"	value="$!{CS_HTML.txt2html($detail.DEPT_LEVL)}" />
+					<input type="hidden" id="cnt"		name="cnt"		value="$!{CS_HTML.txt2html($detail.CNT)}" />
+					
+					$!{searchMap.makeHiddenFind()}
+    				<div class="">
+    					<span class="txt_red">$!{CS_HTML.txt2html($detail.DEPT_NAME)}</span> 조직정보 수정
+    				</div>
+    				<div class="blockDetail">
+    					<table summary="인사조직">
+        				<caption class="none">인사조직</caption>
+    						<colgroup>
+            					<col width="20%" />
+            					<col width="80%" />
+    						</colgroup>
+            				<tbody>
+            					<tr>
+            						<th scope="row">조직코드</label></th>
+            						<td>
+										$!{CS_HTML.txt2html($detail.DEPT_CD)}
+										<input type="hidden" id="deptCdU" name="deptCdU" class="inputbox w200" value="$!{CS_HTML.txt2html($detail.DEPT_CD)}"/>
+									</td>
+            					</tr>
+            					<tr>
+            						<th scope="row"><label for="deptNmU">조직명</label></th>
+            						<td><input type="text" id="deptNmU" name="deptNmU" class="inputbox w200" value="$!{CS_HTML.txt2html($detail.DEPT_NAME)}" maxlength="50"/></td>
+            					</tr>
+            					<tr>
+            						<th scope="row">상위조직</label></th>
+            						<td>
+										$!{CS_HTML.txt2html($detail.UP_DEPT_NAME)}
+									</td>
+            					</tr>
+    							<tr>
+            						<th scope="row"><label for="useYnU">사용여부</label></th>
+            						<td>$!CS_CODE.getCodeRadio("useYnU", "011", $!{CS_HTML.txt2html($detail.USE_YN, 'Y')}, $!{searchMap.txt2html("year")})</td>
+            					</tr>
+								<tr>
+            						<th scope="row"><label for="dispOrderU">정렬순서</label></th>
+            						<td><input type="text" name="dispOrderU" id="dispOrderU" maxlength="4" value="$!{CS_HTML.txt2html($detail.DISP_ORDER)}" /></td>
+            					</tr>
+    							<tr>
+            						<th scope="row"><label for="contentU">비고</label></th>
+            						<td>
+    									<textarea id="contentU" name="contentU" class="tabletext" title="비고" cols="10"  value="$!{CS_HTML.txt2html($detail.content)}" rows="2"></textarea>
+    									<span id="indicator">0</span>/500byte
+    								</td>
+            					</tr>
+            				</tbody>
+            			</table>
+						<div class="blockButton_all">			
+    						<div class="blockButton_l"></div>
+    						<div class="blockButton">			
+    							<ul>
+    								<li><input type="button" id="btnUpdate" value="수정" /></li>
+									<li><input type="button" id="btnDelete" value="삭제" /></li>
+    							</ul>
+    						</div>
+    					</div>
+    				</div>
+				</form>
+			</td>
+		</tr>
+	</tbody>
+</table>
+								 

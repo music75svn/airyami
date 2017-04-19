@@ -1,0 +1,372 @@
+#*************************************************************************
+* CLASS 명      : govActualStatusList
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 11월 13일
+* 기    능      : 정평 계량지표 실적입력현황
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     하윤식      2012년 11월 13일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/gov/measure/govActualStatus/govActualStatusList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/gov/measure/govActualStatus/govActualStatusList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['입력담당자', '사번', '입력담당자', '소속조직', '전체', '미입력', '입력', 'EMAIL'],
+			colModel     :[
+                            {name:'INSERT_USER_NM1'      ,index:'INSERT_USER_NM1'      ,width:150   ,align:'center', sortable:true },
+							{name:'INSERT_USER_ID'       ,index:'INSERT_USER_ID'       ,width:150   ,align:'center', sortable:true },
+                            {name:'INSERT_USER_NM'       ,index:'INSERT_USER_NM'       ,width:150   ,align:'center', sortable:true  ,formatter:linkActualInput },
+                            {name:'DEPT_NM'              ,index:'DEPT_NM'              ,width:150   ,align:'center', sortable:true },
+                            {name:'TOT_CNT'              ,index:'TOT_CNT'              ,width:150   ,align:'center', sortable:true },
+                            {name:'CNT_01'               ,index:'CNT_01'               ,width:150   ,align:'center', sortable:true },
+                            {name:'CNT_02'               ,index:'CNT_02'               ,width:150   ,align:'center', sortable:true },
+							{name:'EMAIL'                ,index:'EMAIL'                ,width:150   ,align:'center', sortable:true }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			footerrow	 : true,
+			##cmTemplate	 : {sortable:false},
+			userDataOnFooter : true,
+			caption:"정평 계량지표 실적입력현황",
+			loadComplete : function() {
+                				var grid = J("#list");
+
+                				grid.jqGrid('footerData', 'set', {DEPT_NM:"합계"});
+
+                				calculateSumGridColumn(grid, "TOT_CNT");
+                				calculateSumGridColumn(grid, "CNT_01");
+                				calculateSumGridColumn(grid, "CNT_02");
+            }
+		}).jqGrid('hideCol',"INSERT_USER_NM1").jqGrid('hideCol',"EMAIL").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list2").jqGrid({
+			url          :"$!{context_path}/gov/measure/govActualStatus/govActualStatus2List_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['사번', '입력담당자', '입력담당자', '소속조직', '전체', '미입력', '입력', 'EMAIL'],
+			colModel     :[
+                            {name:'INSERT_USER_ID'       ,index:'INSERT_USER_ID'       ,width:150   ,align:'center' },
+                            {name:'INSERT_USER_NM'       ,index:'INSERT_USER_NM'       ,width:150   ,align:'center' ,formatter:linkActualSubInput },
+                            {name:'INSERT_USER_NM1'      ,index:'INSERT_USER_NM1'      ,width:150   ,align:'center' },
+							{name:'DEPT_NM'              ,index:'DEPT_NM'              ,width:150   ,align:'center' },
+                            {name:'TOT_CNT'              ,index:'TOT_CNT'              ,width:150   ,align:'center' },
+                            {name:'CNT_01'               ,index:'CNT_01'               ,width:150   ,align:'center' },
+                            {name:'CNT_02'               ,index:'CNT_02'               ,width:150   ,align:'center' },
+							{name:'EMAIL'                ,index:'EMAIL'                ,width:150   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			cmTemplate	 : {sortable:false},
+			footerrow	 : true,
+			userDataOnFooter : true,
+			caption:"정평 계량지표 실적입력현황",
+			loadComplete : function() {
+                				var grid = J("#list2");
+
+                				grid.jqGrid('footerData', 'set', {DEPT_NM:"합계"});
+
+                				calculateSumGridColumn(grid, "TOT_CNT");
+                				calculateSumGridColumn(grid, "CNT_01");
+                				calculateSumGridColumn(grid, "CNT_02");
+            }
+		}).jqGrid('hideCol',"INSERT_USER_NM1").jqGrid('hideCol',"EMAIL").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+    	 * 실적상세
+    	 ******************************************/
+    	function linkActualInput(cellvalue, options, rowObject) {
+    		return "<a href=javascript:goGovMetricActual(" + options.rowId + ")>" + cellvalue+ "</a>";
+    	}
+
+		/******************************************
+    	 * 세부요소
+    	 ******************************************/
+    	function linkActualSubInput(cellvalue, options, rowObject) {
+    		return "<a href=javascript:goGovMetricSubActual(" + options.rowId + ")>" + cellvalue+ "</a>";
+    	}
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 메일 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnMail").click(function() {
+			mailWrite();
+			return false;
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+	});
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#year").val(J("#findYear").val());
+		J("#mon").val(J("#findMon").val());
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#monNm").val(J("#findMon > option:selected").text());
+		J("#statusNm").val(J("#findStatus > option:selected").text());
+
+	 	#if($!{searchMap.txt2html("gubun")} == "01")
+			J("#formList").attr("action", "$!{context_path}/gov/measure/govActualStatus/govActualStatusListExcel.vw?type=excel").submit();
+		#else
+			J("#formList").attr("action", "$!{context_path}/gov/measure/govActualStatus/govActualStatusList2Excel.vw?type=excel").submit();
+		#end
+		return false;
+	}
+
+	/******************************************
+	 * 메일발송 팝업
+	 ******************************************/
+	function mailWrite(){
+		var list = "";
+		var id = "";
+		var ids = "";
+		var rowdata = "";
+		var toMail = "";
+		var toName = "";
+		var toNameList = "";
+
+		#if($!{searchMap.txt2html("gubun")} == "01")
+			list = "list";
+			id = J("#list").getGridParam('selarrrow');
+			ids = J("#list").jqGrid('getDataIDs');
+		#else
+			list = "list2";
+			id = J("#list2").getGridParam('selarrrow');
+			ids = J("#list2").jqGrid('getDataIDs');
+		#end
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#"+ list).getRowData(ids[i]);
+					if(rowdata.EMAIL != '' && rowdata.EMAIL != null) {
+    					toMail += rowdata.EMAIL + "|";
+
+    					#if($!{searchMap.txt2html("gubun")} == "01")
+							toName += rowdata.INSERT_USER_NM1 + "|";
+    						toNameList += rowdata.INSERT_USER_NM1 + "<" + rowdata.EMAIL + ">;";
+    					#else
+							toName += rowdata.INSERT_USER_NM1 + "|";
+    						toNameList += rowdata.INSERT_USER_NM1 + "<" + rowdata.EMAIL + ">;";
+    					#end
+					}
+				}
+			});
+		}
+
+		if(!J.gridSelectChk(list)){
+			J.showMsgBox("메일을 전송할 대상자를 선택하십시요", null, null);
+		} else {
+			openWinByName('','pop','900','430','no');
+
+			J("#toMail").val(toMail);
+    		J("#toName").val(toName);
+			J("#toNameList").val(toNameList);
+    		J("#mailForm").attr("target", "pop");
+    		J("#mailForm").attr("action", "$!{context_path}/bsc/module/commModule/popSendMail.vw?type=popup").submit();
+    	}
+	}
+
+	/******************************************
+	 * 실적입력 링크
+	 ******************************************/
+	function goGovMetricActual(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#year").val(J("#findYear").val());
+		J("#findInsertUserId").val(ret.INSERT_USER_ID);
+
+		J("#formFind").attr("action", "$!{context_path}/gov/measure/govActualMng/govActualMngList.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 세부요소 입력 링크
+	 ******************************************/
+	function goGovMetricSubActual(rowId) {
+		var ret = J("#list2").jqGrid('getRowData',rowId);
+		J("#year").val(J("#findYear").val());
+		J("#findInsertUserId").val(ret.INSERT_USER_ID);
+
+		J("#formFind").attr("action", "$!{context_path}/gov/measure/subCalActualMng/subCalActualMngList.vw?type=template").submit();
+	}
+
+
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">정평 계량지표 실적입력현황</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/gov/measure/govActualStatus/govActualStatusList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId" 		name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"  	 	name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      	name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden" 	id="findInsertUserId" 	name="findInsertUserId" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="정평 계량지표 실적입력현황검색 조건">
+						<caption class="none">정평 계량지표 실적입력현황 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+										<select id="findMon" name="findMon" class="select w70">
+        								$!CS_CODE.getCodeOption("024", $!{searchMap.txt2html("findMon")})
+        							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w170">
+									<span>처리상태</span>
+            						<span class="searchBar">
+            							<select id="findStatus" name="findStatus" class="select w70">
+											<option value=""  #if($!{searchMap.txt2html("findStatus")} == "")  selected="selected" #end >전체</option>
+            								<option value="N" #if($!{searchMap.txt2html("findStatus")} == "N") selected="selected" #end >미완료</option>
+											<option value="Y" #if($!{searchMap.txt2html("findStatus")} == "Y") selected="selected" #end >완료</option>
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+									<span>구분</span>
+            						<span class="searchBar">
+            							<input type="radio" id="gubun1" name="gubun" value="01" $!{CS_HTML.getChecked($!{searchMap.txt2html("gubun")}, '01')} /> 계량지표 &nbsp;
+            							<input type="radio" id="gubun2" name="gubun" value="02" $!{CS_HTML.getChecked($!{searchMap.txt2html("gubun")}, '02')} /> 세부요소
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/gov/measure/govActualStatus/govActualStatusProcess.vw?type=template">
+			<input type="hidden" id="mode"       	name="mode" />
+			<input type="hidden" id="year"		 	name="year" />
+			<input type="hidden" id="mon"		 	name="mon" />
+			<input type="hidden" id="yearNm" 	 	name="yearNm" />
+			<input type="hidden" id="monNm" 	 	name="monNm" />
+			<input type="hidden" id="statusNm" 	 	name="statusNm" />
+
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable #if($!{searchMap.txt2html("gubun")} == "02") none #end">
+						<table id="list" summary="정평 계량지표 실적입력현황 조회결과">
+							<caption class="none">정평 계량지표 실적입력현황 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<div class="blockGridListTable #if($!{searchMap.txt2html("gubun")} == "01") none #end">
+						<table id="list2" summary="정평 계량지표 실적입력현황 조회결과">
+							<caption class="none">정평 계량지표 실적입력현황 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager2"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+
+					<div class="blockButton_all">
+						<div class="blockButton" style="float:left; text-align:left; width:145px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+								##<li><input type="submit" id="btnMail" value="메일발송" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>
+
+<form id="mailForm" name="mailForm" method="post" action="$!{context_path}/bsc/module/commModule/popSendMail.vw">
+    <input type="hidden" id="toMail" 		name="toMail" />
+	<input type="hidden" id="toName" 	    name="toName" />
+    <input type="hidden" id="toNameList"    name="toNameList" />
+    <input type="hidden" id="mailSendGbn"	name="mailSendGbn" /> <!-- 메일발송 디폴트문구(공통코드:140) -->
+</form>

@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.level.levelEval">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_LEVEL_EVAL_RESULT
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가실시 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_EVAL_RESULT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		   SELECT TOT.YEAR, 
+                  TOT.EVAL_USER_GRP_ID,
+                  TOT.EVAL_USER_GRP_NM,
+                  TOT.EVAL_USER_ID,
+                  TOT.SC_DEPT_ID,
+                  TOT.SC_DEPT_NM,
+                  TOT.METRIC_ID,
+                  TOT.METRIC_NM,
+                  TOT.WEIGHT,
+                  TOT.INSERT_USER_ID,
+                  TOT.INSERT_USER_NM,
+                  CASE WHEN SUM(EVAL_FLAG) = 0 THEN 'Y' ELSE 'N' END EVAL_YN  
+             FROM
+                  (   SELECT X.YEAR,
+			                 X.EVAL_USER_GRP_ID,
+			                 X.EVAL_USER_GRP_NM,
+			                 X.EVAL_USER_ID,
+			                 X.METRIC_ID,
+			                 X.METRIC_NM,
+			                 X.WEIGHT,
+			                 X.INSERT_USER_ID,
+			                 Z.USER_NM AS INSERT_USER_NM,
+			                 X.SC_DEPT_ID,
+			                 X.SC_DEPT_NM,
+			                 X.ITEM_GRP_ID,
+			                 X.ITEM_GRP_NM,
+			                 X.ITEM_ID,
+			                 X.ITEM_NM,
+			                 NVL(Y.SCORE,0) SCORE,
+			                 CASE WHEN NVL(Y.SCORE,0)>0 THEN 0 ELSE 1 END EVAL_FLAG,
+			                 X.GRP_ORDER,
+			                 X.DEPT_ORDER,
+			                 X.MET_ORDER
+				        FROM
+						     (SELECT A.YEAR,
+					                 A.EVAL_USER_GRP_ID,
+					                 A.EVAL_USER_GRP_NM,
+					                 B.EVAL_USER_ID,
+					                 C.METRIC_ID,
+					                 MET.METRIC_NM,
+					                 MET.WEIGHT,
+					                 MET.INSERT_USER_ID,
+					                 SCD.SC_DEPT_ID,
+					                 SCD.SC_DEPT_NM,
+					                 D.ITEM_GRP_ID,
+					                 D.ITEM_GRP_NM,
+					                 E.ITEM_ID,
+					                 E.ITEM_NM,
+					                 A.SORT_ORDER GRP_ORDER,
+					                 SCD.SORT_ORDER DEPT_ORDER,
+					                 MET.SORT_ORDER MET_ORDER
+					            FROM BSC_LEVEL_EVAL_USER_GRP A
+					                 INNER JOIN BSC_LEVEL_EVAL_USER B
+					                 ON A.YEAR = B.YEAR
+					                 AND A.EVAL_USER_GRP_ID = B.EVAL_USER_GRP_ID
+					                 AND B.EVAL_USER_ID = #findEvalUserId#
+					                 INNER JOIN BSC_LEVEL_EVAL_MAPPING C
+					                 ON A.YEAR = C.YEAR
+					                 AND A.EVAL_USER_GRP_ID = C.EVAL_USER_GRP_ID
+					                 INNER JOIN BSC_METRIC MET
+					                 ON C.YEAR = MET.YEAR
+					                 AND C.METRIC_ID = MET.METRIC_ID
+					                 AND MET.DELETE_DT IS NULL
+					                 INNER JOIN BSC_SC_DEPT SCD
+					                 ON MET.YEAR = SCD.YEAR
+					                 AND MET.SC_DEPT_ID = SCD.SC_DEPT_ID
+					                 AND SCD.DELETE_DT IS NULL
+					                 LEFT OUTER JOIN BSC_LEVEL_ITEM_GRP D
+					                 ON A.YEAR = D.YEAR
+					                 AND D.DELETE_DT IS NULL
+					                 LEFT OUTER JOIN BSC_LEVEL_ITEM E
+					                 ON D.YEAR = E.YEAR
+					                 AND D.ITEM_GRP_ID = E.ITEM_GRP_ID
+						       WHERE A.YEAR = #findYear#
+	                             AND A.EVAL_USER_GRP_ID = #findEvalUserGrpId#
+	                          ) X
+						      LEFT OUTER JOIN BSC_LEVEL_EVAL_RESULT Y
+						      ON X.YEAR = Y.YEAR
+						      AND X.EVAL_USER_GRP_ID = Y.EVAL_USER_GRP_ID
+						      AND X.EVAL_USER_ID = Y.EVAL_USER_ID
+						      AND X.METRIC_ID = Y.METRIC_ID
+						      AND X.ITEM_ID = Y.ITEM_ID
+						      LEFT OUTER JOIN V_ROLE_USER Z
+						      ON X.INSERT_USER_ID = Z.USER_ID
+      			) TOT
+          GROUP BY TOT.YEAR, 
+                   TOT.EVAL_USER_GRP_ID,
+                   TOT.EVAL_USER_GRP_NM,
+                   TOT.EVAL_USER_ID,
+                   TOT.SC_DEPT_ID,
+                   TOT.SC_DEPT_NM,
+                   TOT.METRIC_ID,
+                   TOT.METRIC_NM,
+                   TOT.WEIGHT,
+                   TOT.INSERT_USER_ID,
+                   TOT.INSERT_USER_NM
+          ORDER BY SUM(EVAL_FLAG) DESC, 
+                   MAX(DEPT_ORDER) ASC,
+                   MAX(MET_ORDER) ASC
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가세부내역(팝업) 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_EVAL_RESULT
+	==================================================================
+	-->
+	<select id="getPopList" parameterClass="hashMap" resultClass="hashMap" remapResults="true">
+		   SELECT TOT.EVAL_USER_GRP_ID,
+                  TOT.EVAL_USER_GRP_NM,
+                  TOT.EVAL_USER_ID,
+                  TOT.EVAL_USER_NM,
+                  TOT.METRIC_ID,
+                  TOT.METRIC_NM,
+                  TOT.WEIGHT,
+                  TOT.INSERT_USER_ID,
+                  TOT.INSERT_USER_NM,
+                  TOT.SC_DEPT_ID,
+                  TOT.SC_DEPT_NM,                  
+                  <iterate property="itemIdList" conjunction=",">
+                  MAX(CASE WHEN ITEM_ID='$itemIdList[]$' THEN TOT.SCORE END) $itemIdList[]$
+                  </iterate>
+             FROM (SELECT X.YEAR,
+				          X.EVAL_USER_GRP_ID,
+				          X.EVAL_USER_GRP_NM,
+				          X.EVAL_USER_ID,
+				          X.EVAL_USER_NM,
+				          X.METRIC_ID,
+				          X.METRIC_NM,
+				          X.WEIGHT,
+				          X.INSERT_USER_ID,
+				          Z.USER_NM AS INSERT_USER_NM,
+				          X.SC_DEPT_ID,
+				          X.SC_DEPT_NM,
+				          X.ITEM_GRP_ID,
+				          X.ITEM_GRP_NM,
+				          X.ITEM_ID,
+				          X.ITEM_NM,
+				          Y.SCORE,
+				          X.GRP_ORDER,
+				          X.DEPT_ORDER,
+				          X.MET_ORDER             
+                     FROM (SELECT A.YEAR,
+					              A.EVAL_USER_GRP_ID,
+					              A.EVAL_USER_GRP_NM,
+					              B.EVAL_USER_ID,
+					              U.USER_NM AS EVAL_USER_NM,
+					              C.METRIC_ID,
+					              MET.METRIC_NM,
+					              MET.WEIGHT,
+					              MET.INSERT_USER_ID,
+					              SCD.SC_DEPT_ID,
+					              SCD.SC_DEPT_NM,
+					              D.ITEM_GRP_ID,
+					              D.ITEM_GRP_NM,
+					              E.ITEM_ID,
+					              E.ITEM_NM,
+					              A.SORT_ORDER GRP_ORDER,
+					              SCD.SORT_ORDER DEPT_ORDER,
+					              MET.SORT_ORDER MET_ORDER                  
+                             FROM BSC_LEVEL_EVAL_USER_GRP A                       
+                                  INNER JOIN BSC_LEVEL_EVAL_USER B                       
+				                  ON A.YEAR = B.YEAR                       
+				                  AND A.EVAL_USER_GRP_ID = B.EVAL_USER_GRP_ID                       
+				                  AND B.EVAL_USER_ID =  #findEvalUserId# 
+				                  INNER JOIN V_ROLE_USER U                       
+				                  ON B.EVAL_USER_ID =  U.USER_ID                      
+                       			  INNER JOIN BSC_LEVEL_EVAL_MAPPING C                       
+				                  ON A.YEAR = C.YEAR                       
+				                  AND A.EVAL_USER_GRP_ID = C.EVAL_USER_GRP_ID                       
+                       			  INNER JOIN BSC_METRIC MET                       
+				                  ON C.YEAR = MET.YEAR                       
+				                  AND C.METRIC_ID = MET.METRIC_ID                       
+				                  AND MET.DELETE_DT IS NULL                       
+                                  INNER JOIN BSC_SC_DEPT SCD                       
+				                  ON MET.YEAR = SCD.YEAR                       
+				                  AND MET.SC_DEPT_ID = SCD.SC_DEPT_ID                       
+				                  AND SCD.DELETE_DT IS NULL                       
+						          LEFT OUTER JOIN BSC_LEVEL_ITEM_GRP D                       
+						          ON A.YEAR = D.YEAR     
+						          AND D.DELETE_DT IS NULL                  
+						          LEFT OUTER JOIN BSC_LEVEL_ITEM E                       
+						          ON D.YEAR = E.YEAR                       
+						          AND D.ITEM_GRP_ID = E.ITEM_GRP_ID              
+						          WHERE A.YEAR =  #findYear#                              
+						          AND A.EVAL_USER_GRP_ID =  #findEvalUserGrpId#                           
+						  ) X             
+                          LEFT OUTER JOIN BSC_LEVEL_EVAL_RESULT Y             
+			              ON X.YEAR = Y.YEAR             
+			              AND X.EVAL_USER_GRP_ID = Y.EVAL_USER_GRP_ID             
+			              AND X.EVAL_USER_ID = Y.EVAL_USER_ID             
+			              AND X.METRIC_ID = Y.METRIC_ID             
+			              AND X.ITEM_ID = Y.ITEM_ID             
+                          LEFT OUTER JOIN V_ROLE_USER Z             
+                		  ON X.INSERT_USER_ID = Z.USER_ID 
+                    ORDER BY X.GRP_ORDER,
+                             X.DEPT_ORDER,
+                             X.MET_ORDER  
+                  )  TOT
+           GROUP BY TOT.EVAL_USER_GRP_ID,
+                    TOT.EVAL_USER_GRP_NM,
+                    TOT.EVAL_USER_ID,
+                    TOT.EVAL_USER_NM,
+                    TOT.METRIC_ID,
+                    TOT.METRIC_NM,
+                    TOT.WEIGHT,
+                    TOT.INSERT_USER_ID,
+                    TOT.INSERT_USER_NM,
+                    TOT.SC_DEPT_ID,
+                    TOT.SC_DEPT_NM
+           ORDER BY MAX(TOT.GRP_ORDER),
+                    MAX(TOT.DEPT_ORDER),
+                    MAX(TOT.MET_ORDER)
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가실시 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_EVAL_RESULT
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		      SELECT A.ITEM_GRP_ID,
+                     A.ITEM_GRP_NM,
+                     B.ITEM_ID,
+                     B.ITEM_NM, 
+                     C.SCORE,
+                     COUNT(1) OVER(PARTITION BY A.YEAR,A.ITEM_GRP_ID)  ROW_NUM
+                FROM BSC_LEVEL_ITEM_GRP A
+                     LEFT OUTER JOIN BSC_LEVEL_ITEM B
+                     ON A.YEAR = B.YEAR
+                     AND A.ITEM_GRP_ID = B.ITEM_GRP_ID
+                     LEFT OUTER JOIN BSC_LEVEL_EVAL_RESULT C
+                     ON B.YEAR = C.YEAR
+                     AND B.ITEM_ID = C.ITEM_ID
+                     AND C.EVAL_USER_GRP_ID = #evalUserGrpId#
+                     AND C.EVAL_USER_ID = #evalUserId#
+                     AND C.METRIC_ID = #metricId#     
+               WHERE A.YEAR = #findYear#
+                 AND A.DELETE_DT IS NULL
+               ORDER BY A.SORT_ORDER ASC,
+                        B.SORT_ORDER ASC   
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가일정 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MET_EVAL_TERM
+	==================================================================
+	-->
+	<select id="getEvalTerm" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , TO_CHAR(TO_DATE(START_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS START_DT         
+			 , TO_CHAR(TO_DATE(END_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS END_DT
+			 , CASE WHEN TO_CHAR( SYSDATE , 'YYYYMMDD') BETWEEN  START_DT AND END_DT THEN 'Y' ELSE 'N' END AS EVAL_TERM_YN   
+		  FROM BSC_LEVEL_IN_TERM 
+		 WHERE YEAR = #findYear#	      
+	</select>
+	
+	
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가자 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getEvalUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		       EU.EVAL_USER_ID  
+		     , U.USER_NM AS EVAL_USER_NM
+		  FROM BSC_LEVEL_EVAL_USER EU
+		       LEFT OUTER JOIN 
+		       V_ROLE_USER U
+		       ON EU.EVAL_USER_ID = U.USER_ID
+		 WHERE 1=1       
+		   AND EU.YEAR = #findYear#
+		   <isNotEmpty prepend="AND" property="authUserId">
+		   EU.EVAL_USER_ID = #authUserId#
+		   </isNotEmpty>
+		 GROUP BY EU.EVAL_USER_ID, U.USER_NM
+		 ORDER BY U.USER_NM
+	</select>
+	
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가단 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getEvalUserGrpList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+			   EU.EVAL_USER_GRP_ID
+			 , EG.EVAL_USER_GRP_NM  
+		  FROM BSC_LEVEL_EVAL_USER EU
+		       LEFT OUTER JOIN 
+		       BSC_LEVEL_EVAL_USER_GRP EG
+		       ON EU.YEAR = EG.YEAR
+		      AND EU.EVAL_USER_GRP_ID = EG.EVAL_USER_GRP_ID
+		 WHERE 1=1
+		   AND EU.YEAR = #findYear#
+		   AND EU.EVAL_USER_ID = #findEvalUserId#   
+		 GROUP BY EU.EVAL_USER_GRP_ID, EG.EVAL_USER_GRP_NM, EG.SORT_ORDER 
+		 ORDER BY EG.SORT_ORDER   
+ 
+	</select>
+	
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가실시 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_LEVEL_EVAL_RESULT
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			<!-- SELECT F_PGM_SERI('BSC_LEVEL_EVAL_RESULT','','','','','') SEQ FROM DUAL -->
+			SELECT 'K'||LPAD(NVL(MAX(SUBSTR(EVAL_USER_GRP_ID,2,6)),0)+1,6,'0') SEQ FROM BSC_LEVEL_EVAL_RESULT
+		</selectKey>
+		INSERT INTO BSC_LEVEL_EVAL_RESULT ( 
+			   YEAR
+			 , EVAL_USER_GRP_ID
+			 , EVAL_USER_ID
+			 , METRIC_ID
+			 , ITEM_ID
+			 , SCORE
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #evalUserId#
+			 , #metricId#
+			 , #itemId#
+			 , #score#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가실시 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_LEVEL_EVAL_RESULT
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_LEVEL_EVAL_RESULT 
+		   SET SCORE                  = #score# 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#
+		   AND EVAL_USER_ID = #evalUserId#
+		   AND METRIC_ID = #metricId#
+		   AND ITEM_ID = #itemId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가실시 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_LEVEL_EVAL_RESULT
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_LEVEL_EVAL_RESULT 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#
+		   AND EVAL_USER_ID = #evalUserId#
+		   AND METRIC_ID = #metricId#
+		   AND ITEM_ID = #itemId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가실시 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_LEVEL_EVAL_RESULT
+	==================================================================
+	-->	
+	<insert id="insertItemScore" parameterClass="hashMap">
+		
+		INSERT INTO BSC_LEVEL_EVAL_RESULT ( 
+			   YEAR
+			 , EVAL_USER_GRP_ID
+			 , EVAL_USER_ID
+			 , METRIC_ID
+			 , ITEM_ID
+			 , SCORE
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #findYear#
+			 , #evalUserGrpId#
+			 , #evalUserId#
+			 , #metricId#
+			 , #itemId#
+			 , #score#
+			 , SYSDATE
+			 )
+	</insert>		
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가실시 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_LEVEL_EVAL_RESULT
+	==================================================================
+	-->	
+	<update id="deleteItemScore" parameterClass="hashMap">
+		DELETE FROM BSC_LEVEL_EVAL_RESULT 
+		 WHERE 1 = 1 
+		   AND YEAR = #findYear#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#
+		   AND EVAL_USER_ID = #evalUserId#
+		   AND METRIC_ID = #metricId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가실시 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_LEVEL_EVAL_RESULT
+	==================================================================
+	-->	
+	<update id="submitData" parameterClass="hashMap">
+		UPDATE BSC_LEVEL_EVAL_USER
+		   SET EVAL_SUBMIT_YN = 'Y'
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#
+		   AND EVAL_USER_ID = #evalUserId#
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가실시 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_LEVEL_EVAL_RESULT
+	==================================================================
+	-->	
+	<update id="rejectSubmitData" parameterClass="hashMap">
+		UPDATE BSC_LEVEL_EVAL_USER
+		   SET EVAL_SUBMIT_YN = 'N'
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#
+		   AND EVAL_USER_ID = #evalUserId#	
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가마감확인
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_EVAL_USER_GRP
+	==================================================================
+	-->	
+	<select id="getEvalCloseYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT CASE WHEN CNT=0 THEN 'N'
+               ELSE 'Y' END EVAL_CLOSING_YN
+          FROM (SELECT NVL((SELECT COUNT(1)
+                              FROM BSC_LEVEL_EVAL_USER_GRP
+                             WHERE YEAR = #findYear#
+                               AND EVAL_CLOSING_YN = 'Y'
+                               <isNotEmpty prepend="AND" property="findEvalUserGrpId">
+							   EVAL_USER_GRP_ID = #findEvalUserGrpId#
+							   </isNotEmpty>
+                           ),0) CNT
+                  FROM DUAL
+                )         
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가제출확인
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_EVAL_USER
+	==================================================================
+	-->	
+	<select id="getEvalSubmitYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT CASE WHEN CNT=0 THEN 'N'
+               ELSE 'Y' END EVAL_SUBMIT_YN
+          FROM (SELECT NVL((SELECT COUNT(1)
+                              FROM BSC_LEVEL_EVAL_USER
+                             WHERE YEAR = #findYear#
+                               AND EVAL_SUBMIT_YN = 'Y'
+                               <isNotEmpty prepend="AND" property="findEvalUserGrpId">
+							   EVAL_USER_GRP_ID = #findEvalUserGrpId#
+							   </isNotEmpty>
+							   <isNotEmpty prepend="AND" property="findEvalUserId">
+							   EVAL_USER_ID = #findEvalUserId#
+							   </isNotEmpty>
+                           ),0) CNT
+                  FROM DUAL
+                ) 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목세부 (팝업)
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_ITEM_GRP,BSC_LEVEL_ITEM
+	==================================================================
+	-->	
+	<select id="getEvalItemDetailList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.ITEM_GRP_ID,
+               A.ITEM_GRP_NM,
+               B.ITEM_ID,
+               B.ITEM_NM,
+               B.CONTENT,
+               B.GRADE_BASIS,
+               COUNT(1) OVER(PARTITION BY A.YEAR,A.ITEM_GRP_ID) ROW_CNT,
+               ROW_NUMBER() OVER(PARTITION BY A.YEAR,A.ITEM_GRP_ID ORDER BY A.SORT_ORDER,B.SORT_ORDER) AS ROW_INDEX,
+               DENSE_RANK() OVER(PARTITION BY A.YEAR ORDER BY  A.SORT_ORDER) AS GRP_ROW_INDEX      
+          FROM BSC_LEVEL_ITEM_GRP A
+               INNER JOIN BSC_LEVEL_ITEM B
+               ON A.YEAR = B.YEAR
+               AND A.ITEM_GRP_ID = B.ITEM_GRP_ID
+         WHERE A.YEAR = #findYear#
+           AND A.DELETE_DT IS NULL
+         ORDER BY A.SORT_ORDER ASC, 
+                  B.SORT_ORDER ASC
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표명
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->	
+	<select id="getMetricNm" parameterClass="hashMap" resultClass="java.lang.String">
+	
+		SELECT A.METRIC_NM    
+          FROM BSC_METRIC A
+         WHERE A.YEAR = #findYear#
+           AND A.METRIC_ID = #metricId#
+           AND A.DELETE_DT IS NULL
+
+	</select>
+	
+</sqlMap>
+
+

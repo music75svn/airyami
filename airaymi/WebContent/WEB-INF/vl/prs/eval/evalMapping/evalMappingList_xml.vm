@@ -1,0 +1,45 @@
+#*************************************************************************
+* CLASS 명      : evalMappingList_xml
+* 작 업 자      : 박경태
+* 작 업 일      : 2012년 11월 26일 
+* 기    능      : 평가자매핑 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      박경태     2012년 11월 26일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"EVAL_DEGREE_ID"       : "$!{CS_HTML.txt2html($list.EVAL_DEGREE_ID)}", 
+		"EVAL_GRP_ID"          : "$!{CS_HTML.txt2html($list.EVAL_GRP_ID)}", 
+		"EVAL_GRP_NM"          : "$!{CS_HTML.txt2html($list.EVAL_GRP_NM)}", 
+		"EVAL_USER_ID1"        : "$!{CS_HTML.txt2html($list.EVAL_USER_ID1)}", 
+		"EVAL_USER_NM1"        : "$!{CS_HTML.txt2html($list.EVAL_USER_NM1)}", 
+		"WEIGHT1"              : "$!{CS_HTML.txt2html($list.WEIGHT1)}", 
+		"EVAL_USER_ID2"        : "$!{CS_HTML.txt2html($list.EVAL_USER_ID2)}", 
+		"EVAL_USER_NM2"        : "$!{CS_HTML.txt2html($list.EVAL_USER_NM2)}", 
+		"WEHIGHT2"             : "$!{CS_HTML.txt2html($list.WEHIGHT2)}", 
+		"EVAL_USER_ID3"        : "$!{CS_HTML.txt2html($list.EVAL_USER_ID3)}", 
+		"EVAL_USER_NM3"        : "$!{CS_HTML.txt2html($list.EVAL_USER_NM3)}", 
+		"WEIGHT3"              : "$!{CS_HTML.txt2html($list.WEIGHT3)}", 
+		"TOT_WEIGHT"           : "$!{CS_HTML.txt2html($list.TOT_WEIGHT)}",
+		"EVAL_SUBMIT_CNT"      : "$!{CS_HTML.txt2html($list.EVAL_SUBMIT_CNT)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

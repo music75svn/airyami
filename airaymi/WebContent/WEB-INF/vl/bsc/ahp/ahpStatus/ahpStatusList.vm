@@ -1,0 +1,258 @@
+#*************************************************************************
+* CLASS 명      : ahpStatusList
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 11월 29일
+* 기    능      : AHP 평가현황
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     하윤식      2012년 11월 29일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/ahp/ahpStatus/ahpStatusList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/ahp/ahpStatus/ahpStatusList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가자 사번', '사용자명', 'EMAIL', '부서코드', '부서', '평가단 코드', '평가단', '평가대상 그룹 코드', '평가대상그룹','평가문항/전체문항', '평가제출 여부'],
+			colModel     :[
+                            {name:'EVAL_USER_ID'         ,index:'EVAL_USER_ID'         ,width:150   ,align:'center' },
+                            {name:'USER_NM'              ,index:'USER_NM'              ,width:120   ,align:'center' },
+							{name:'EMAIL'                ,index:'EMAIL'                ,width:150   ,align:'center' },
+                            {name:'DEPT_ID'              ,index:'DEPT_ID'              ,width:150   ,align:'center' },
+                            {name:'DEPT_NM'              ,index:'DEPT_NM'              ,width:120   ,align:'center' },
+							{name:'EVAL_USER_GRP_ID'     ,index:'EVAL_USER_GRP_ID'     ,width:150   ,align:'center' },
+                            {name:'EVAL_USER_GRP_NM'     ,index:'EVAL_USER_GRP_NM'     ,width:150   ,align:'center' },
+                            {name:'ITEM_GRP_ID'          ,index:'ITEM_GRP_ID'          ,width:150   ,align:'center' },
+                            {name:'ITEM_GRP_NM'          ,index:'ITEM_GRP_NM'          ,width:160   ,align:'left'   },
+							{name:'CNT'                  ,index:'CNT'                  ,width:110   ,align:'center' },
+                            {name:'EVAL_SUBMIT_YN_NM'    ,index:'EVAL_SUBMIT_YN_NM'    ,width:100   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			##cmTemplate	 : {sortable:false},
+			caption:"AHP 평가현황"
+        }).jqGrid('hideCol',"EVAL_USER_GRP_ID").jqGrid('hideCol',"EVAL_USER_ID").jqGrid('hideCol',"DEPT_ID").jqGrid('hideCol',"ITEM_GRP_ID").jqGrid('hideCol',"EMAIL").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#year").val(J("#findYear").val());
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/bsc/ahp/ahpStatus/ahpStatusModify.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 메일 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnMail").click(function() {
+			mailWrite();
+			return false;
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+	});
+
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#year").val(J("#findYear").val());
+		J("#mode").val("MOD");
+		J("#formList").attr("action", "$!{context_path}/bsc/ahp/ahpStatus/ahpStatusModify.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#evalUserGrpId").val(J("#findEvalUserGrpId").val());
+
+		J("#formList").attr("action", "$!{context_path}/bsc/ahp/ahpStatus/ahpStatusListExcel.vw?type=excel").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 메일발송 팝업
+	 ******************************************/
+	function mailWrite(){
+		var id = "";
+		var ids = "";
+		var rowdata = "";
+		var mailTo = "";
+		var names = "";
+
+		id = J("#list").getGridParam('selarrrow');
+		ids = J("#list").jqGrid('getDataIDs');
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					if(rowdata.EMAIL != '' && rowdata.EMAIL != null) {
+    					//mailTo += rowdata.EMAIL + ";";
+    					names += rowdata.USER_NM + "<" + rowdata.EMAIL + ">;";
+					}
+				}
+			});
+		}
+
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("메일을 전송할 대상자를 선택하십시요", null, null);
+		} else {
+			window.open('', 'pop', 'width=900, height=380, top=50, left=100, scrollbars=yes, resizble=no');
+
+			J("#user").val(names);
+    		J("#mail").val(mailTo);
+    		J("#mailForm").attr("target", "pop");
+    		J("#mailForm").attr("action", "$!{context_path}/bsc/module/commModule/popSendMail.vw?type=popup").submit();
+    	}
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">AHP 평가현황</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/ahp/ahpStatus/ahpStatusList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="AHP 평가현황검색 조건">
+						<caption class="none">AHP 평가현황 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w300">
+                					<span><label for="findEvalUserGrpId">평가단</label></span>
+									<span class="searchBar">
+										<select id="findEvalUserGrpId" name="findEvalUserGrpId" class="select w200">
+											#foreach($list in $evalUserGrpList)
+												<option value="$!{CS_HTML.txt2html($list.EVAL_USER_GRP_ID)}" $searchMap.getSelected("findEvalUserGrpId", "$!{CS_HTML.txt2html($list.EVAL_USER_GRP_ID)}")>$!{CS_HTML.txt2html($list.EVAL_USER_GRP_NM)}</option>
+											#end
+            							</select>
+									</span>
+                                </td>
+								<td class="searchBox_tit w250">
+                					<span><label for="findEvalSubmitYn">평가상태</label></span>
+									<span class="searchBar">
+										<select id="findEvalSubmitYn" name="findEvalSubmitYn" class="select w120">
+											<option value="">전체</option>
+            								$!CS_CODE.getCodeOption("143", $!{searchMap.txt2html("findEvalSubmitYn")})
+            							</select>
+									</span>
+                                </td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/ahp/ahpStatus/ahpStatusProcess.vw?type=template">
+			<input type="hidden" id="mode"      		name="mode" />
+			<input type="hidden" id="year"       		name="year" />
+			<input type="hidden" id="yearNm"    		name="yearNm" />
+			<input type="hidden" id="evalUserGrpId"     name="evalUserGrpId" />
+
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="AHP 평가현황 조회결과">
+							<caption class="none">AHP 평가현황 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton" style="float:left; text-align:left; width:145px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+						</div>
+#*
+						<div class="blockButton">
+							<ul>
+								<li><input type="submit" id="btnMail" value="메일발송" /></li>
+							</ul>
+*#
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>
+
+<form id="mailForm" name="mailForm" method="post" action="$!{context_path}/bsc/module/commModule/popSendMail.vw">
+    <input type="hidden" id="mailType"		name="mailType" value="default" />
+    <input type="hidden" id="mail" 			name="mail" />
+    <input type="hidden" id="user" 			name="user" />
+    <input type="hidden" id="mailSendGbn" 	name="mailSendGbn" value="$!{searchMap.txt2html("gubun")}" />
+</form>

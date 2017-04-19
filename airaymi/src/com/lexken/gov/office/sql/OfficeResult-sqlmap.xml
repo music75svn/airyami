@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.office.officeResult">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: GOV_OFFICE
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_OFFICE
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT O.YEAR, O.OFFICE_EVAL_GRP_ID, OG.OFFICE_EVAL_GRP_NM
+		     , O.OFFICE_ID, O.OFFICE_NM
+		     , O.FINAL_GRADE, O.SCORE, O.RANK, O.MEAS_SCORE, O.MEAS_RANK, O.UNMEAS_SCORE, O.UNMEAS_RANK
+		     , ORF.FILE_CNT 
+		     , COUNT(*) OVER( PARTITION BY O.OFFICE_EVAL_GRP_ID) AS OG_CNT
+             , ROW_NUMBER() OVER(PARTITION BY O.OFFICE_EVAL_GRP_ID
+                             ORDER BY OG.SORT_ORDER NULLS LAST, O.OFFICE_EVAL_GRP_ID
+                                    , O.SORT_ORDER NULLS LAST, O.OFFICE_ID ) AS OG_ROWNUM
+		  FROM GOV_OFFICE O
+		       LEFT OUTER JOIN 
+		       GOV_OFFICE_GRP OG
+		       ON O.YEAR = OG.YEAR
+		      AND O.OFFICE_EVAL_GRP_ID = OG.OFFICE_EVAL_GRP_ID
+		       LEFT OUTER JOIN 
+		       (SELECT YEAR, OFFICE_ID, COUNT(SEQ) AS FILE_CNT
+		          FROM GOV_OFFICE_REFERENCE_ATTACH
+		         WHERE 1=1
+		           AND YEAR = #findYear#
+		         GROUP BY YEAR, OFFICE_ID
+		       ) ORF
+		       ON O.YEAR = ORF.YEAR
+		      AND O.OFFICE_ID = ORF.OFFICE_ID
+		 WHERE 1=1
+		   AND O.YEAR = #findYear#
+		   <isNotEmpty property="findOfficeEvalGrpId">
+           AND O.OFFICE_EVAL_GRP_ID = #findOfficeEvalGrpId#
+           </isNotEmpty>		   
+		 ORDER BY OG.SORT_ORDER NULLS LAST, O.OFFICE_EVAL_GRP_ID
+		        , O.SORT_ORDER NULLS LAST, O.OFFICE_ID
+        
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_OFFICE
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT O.YEAR                  
+             , O.OFFICE_ID             
+             , O.OFFICE_NM             
+             , O.OFFICE_EVAL_GRP_ID
+             , OG.OFFICE_EVAL_GRP_NM
+             , O.FINAL_GRADE           
+             , O.SCORE                 
+             , O.RANK                  
+             , O.MEAS_SCORE            
+             , O.MEAS_RANK             
+             , O.UNMEAS_SCORE          
+             , O.UNMEAS_RANK           
+             , O.CONTENT               
+             , O.SORT_ORDER                
+		  FROM GOV_OFFICE O 
+		  	   LEFT OUTER JOIN 
+               GOV_OFFICE_GRP OG
+               ON O.YEAR = OG.YEAR
+              AND O.OFFICE_EVAL_GRP_ID = OG.OFFICE_EVAL_GRP_ID
+		 WHERE 1 = 1 
+		   AND O.YEAR = #year#
+		   AND O.OFFICE_ID = #officeId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_OFFICE
+	==================================================================
+	-->
+	<select id="getOfficeNm" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT OFFICE_NM                
+		  FROM GOV_OFFICE
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND OFFICE_ID = #officeId#	      
+	</select>
+	
+	
+		<!--
+	==================================================================   
+	  # 설명	: 공공기관 첨부파일 목록
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_OFFICE_REFERENCE_ATTACH
+	==================================================================
+	-->
+	<select id="getAttachFileList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR, OFFICE_ID, SEQ, ATTACH_FILE_NM
+		     , ATTACH_FILE_FNM, ATTACH_FILE_SUFFIX
+		     , F_ENCRYPT(ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+		  FROM GOV_OFFICE_REFERENCE_ATTACH
+		 WHERE 1=1
+		   AND YEAR = #year#
+		   <isNotEmpty property="officeId">
+		   AND OFFICE_ID = #officeId#
+		   </isNotEmpty>
+		 ORDER BY SEQ
+		  
+	</select>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE GOV_OFFICE 
+		   SET FINAL_GRADE            = #finalGrade# 
+			 , SCORE                  = #score# 
+			 , MEAS_SCORE             = #measScore# 
+			 , UNMEAS_SCORE           = #unmeasScore# 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND OFFICE_ID = #officeId#		
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 순위 수정1
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE
+	==================================================================
+	-->	
+	<update id="updateRankData1" parameterClass="hashMap">
+		UPDATE GOV_OFFICE A
+		   SET RANK = (SELECT B.RANK 
+			             FROM (SELECT YEAR
+			                        , OFFICE_ID   
+			                        , RANK() OVER(PARTITION BY YEAR ORDER BY SCORE DESC NULLS LAST) AS RANK
+			                     FROM GOV_OFFICE WHERE YEAR = #year#) B
+			            WHERE A.YEAR = B.YEAR
+			              AND A.OFFICE_ID = B.OFFICE_ID)
+		 WHERE A.YEAR = #year#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 순위 수정2
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE
+	==================================================================
+	-->	
+	<update id="updateRankData2" parameterClass="hashMap">
+		UPDATE GOV_OFFICE A
+		   SET MEAS_RANK = (SELECT B.MEAS_RANK 
+			             FROM (SELECT YEAR
+			                        , OFFICE_ID   
+			                        , RANK() OVER(PARTITION BY YEAR ORDER BY MEAS_SCORE DESC NULLS LAST) AS MEAS_RANK
+			                     FROM GOV_OFFICE WHERE YEAR = #year#) B
+			            WHERE A.YEAR = B.YEAR
+			              AND A.OFFICE_ID = B.OFFICE_ID)
+		 WHERE A.YEAR = #year#			               		
+	</update>
+
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 순위 수정3
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE
+	==================================================================
+	-->	
+	<update id="updateRankData3" parameterClass="hashMap">
+		UPDATE GOV_OFFICE A
+		   SET UNMEAS_RANK = (SELECT B.UNMEAS_RANK 
+			             FROM (SELECT YEAR
+			                        , OFFICE_ID   
+			                        , RANK() OVER(PARTITION BY YEAR ORDER BY UNMEAS_SCORE DESC NULLS LAST) AS UNMEAS_RANK
+			                     FROM GOV_OFFICE WHERE YEAR = #year#) B
+			            WHERE A.YEAR = B.YEAR
+			              AND A.OFFICE_ID = B.OFFICE_ID)
+		 WHERE A.YEAR = #year#
+	</update>				
+
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 순위 수정1
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE
+	==================================================================
+	-->	
+	<update id="updateRankNullData1" parameterClass="hashMap">
+ 		UPDATE GOV_OFFICE 
+		   SET RANK = ''
+		 WHERE YEAR = #year#
+		   AND SCORE IS NULL 	
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 순위 수정2
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE
+	==================================================================
+	-->	
+	<update id="updateRankNullData2" parameterClass="hashMap">
+ 		UPDATE GOV_OFFICE 
+		   SET MEAS_RANK = ''
+		 WHERE YEAR = #year#
+		   AND MEAS_SCORE IS NULL 		
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 순위 수정3
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE
+	==================================================================
+	-->	
+	<update id="updateRankNullData3" parameterClass="hashMap">
+ 		UPDATE GOV_OFFICE 
+		   SET UNMEAS_RANK = ''
+		 WHERE YEAR = #year#
+		   AND UNMEAS_SCORE IS NULL 		
+	</update>			
+
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 첨부파일 등록
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_OFFICE_REFERENCE_ATTACH
+	==================================================================
+	-->	
+	<insert id="insertFileInfo" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('GOV_OFFICE_REFERENCE_ATTACH', #year#, #officeId#,'','','') SEQ FROM DUAL
+		</selectKey> 
+		INSERT INTO GOV_OFFICE_REFERENCE_ATTACH (
+               YEAR
+             , OFFICE_ID
+             , SEQ
+             , ATTACH_FILE_NM
+             , ATTACH_FILE_FNM
+             , ATTACH_FILE_SUFFIX
+             , ATTACH_FILE_PATH
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #officeId#
+             , #SEQ#
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSufix#
+             , #attachFilePath#
+             , SYSDATE
+    	   )       
+	</insert>
+
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 전체 첨부파일 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE_REFERENCE_ATTACH
+	==================================================================
+	-->
+	<update id="deleteAllAttachFile" parameterClass="hashMap">
+		DELETE FROM GOV_OFFICE_REFERENCE_ATTACH
+		 WHERE 1=1 
+		   AND YEAR = #year#
+		   AND OFFICE_ID = #officeId#
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관결과 첨부파일 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE_REFERENCE_ATTACH
+	==================================================================
+	-->
+	<update id="deleteFileInfo" parameterClass="hashMap">
+		DELETE FROM GOV_OFFICE_REFERENCE_ATTACH
+		 WHERE 1=1 
+		   AND YEAR = #year#
+		   AND OFFICE_ID = #officeId#
+		   AND SEQ = #seq#
+	</update>	
+	
+	
+</sqlMap>
+
+

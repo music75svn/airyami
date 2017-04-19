@@ -1,0 +1,42 @@
+#*************************************************************************
+* CLASS 명      : actualStatusInsertList_xml
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 10월 31일 
+* 기    능      : 실적입력승인현황 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      정철수     2012년 10월 31일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"CHARGE_USER_ID"       : "$!{CS_HTML.txt2html($list.CHARGE_USER_ID)}", 
+		"CHARGE_USER_NM"       : "$!{CS_HTML.txt2html($list.CHARGE_USER_NM)}", 
+		"EMAIL"                : "$!{CS_HTML.txt2html($list.EMAIL)}", 
+		"CHARGE_DEPT_ID"       : "$!{CS_HTML.txt2html($list.CHARGE_DEPT_ID)}", 
+		"CHARGE_DEPT_NM"       : "$!{CS_HTML.txt2html($list.CHARGE_DEPT_NM)}", 
+		"TOT_CNT"              : "$!{CS_HTML.txt2html($list.TOT_CNT)}", 
+		"CNT01"                : "$!{CS_HTML.txt2html($list.CNT01)}", 
+		"CNT02"                : "$!{CS_HTML.txt2html($list.CNT02)}", 
+		"CNT03"                : "$!{CS_HTML.txt2html($list.CNT03)}", 
+		"CNT04"                : "$!{CS_HTML.txt2html($list.CNT04)}", 
+		"CNT05"                : "$!{CS_HTML.txt2html($list.CNT05)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

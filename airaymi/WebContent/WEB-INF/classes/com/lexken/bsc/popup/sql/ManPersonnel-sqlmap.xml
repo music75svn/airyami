@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.manPersonnel">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 인력 POOL 활용 인원 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_I_MAN_POOL
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+		       A.EMPN,
+		       B.USER_NM,
+		       A.DEPT_NM,
+		       A.DIV
+		  FROM BSC_I_MAN_POOL A LEFT OUTER JOIN V_ROLE_USER B ON A.EMPN = B.USER_ID
+		 WHERE YEAR = #findYear#
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 심사 총 투입 인원 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: SAORA01.GBA0101D
+	==================================================================
+	-->
+	<select id="getTotalList" parameterClass="hashMap" resultClass="hashMap">
+	    SELECT A.YY AS YEAR,
+	         SUBSTR (A.RCPT_DATE, 5, 2) MON,
+	         A.RCPT_DATE,
+	         A.INSP_KIND_TC_NM,
+	         A.EQUI_NM,
+	         A.LOCT_ADDR,
+	         A.ASGN_INSP_MN_EMPN,
+	         C.USER_NM AS ASGN_NM,
+	         A.ASGN_INSP_MN_DEPT,
+	         E.DEPT_NM,
+	         A.LAST_INSP_EMPN,
+	         D.USER_NM AS LAST_NM,
+	         A.LAST_INSP_DATE,
+	         A.LAW_TC_NM,
+	         COUNT (B.EMPN) COUNT
+	    FROM V_GAA0101M_002 A
+	         INNER JOIN SAORA01.GBA0101D B
+	            ON A.RCPT_NO = B.RCPT_NO AND A.YY = B.YY
+	         LEFT OUTER JOIN V_ROLE_USER C
+	            ON A.ASGN_INSP_MN_EMPN = C.USER_ID
+	         LEFT OUTER JOIN V_ROLE_USER D
+	            ON A.ASGN_INSP_MN_EMPN = D.USER_ID
+	         LEFT OUTER JOIN BSC_DEPTINFO E
+	            ON A.ASGN_INSP_MN_DEPT = E.DEPT_ID
+	   WHERE SUBSTR (A.RCPT_DATE, 5, 2) = #findMon#                              
+		 AND A.YY = #findYear#             
+	GROUP BY A.YY,
+	         A.RCPT_DATE,
+	         A.INSP_KIND_TC_NM,
+	         A.EQUI_NM,
+	         A.LOCT_ADDR,
+	         A.ASGN_INSP_MN_EMPN,
+	         A.ASGN_INSP_MN_DEPT,
+	         A.LAST_INSP_EMPN,
+	         A.LAST_INSP_DATE,
+	         A.LAW_TC_NM,
+	         C.USER_NM,
+	         E.DEPT_NM,
+	         D.USER_NM
+		 
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+             AND B.INSERT_GUBUN = '01'
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getScDeptMapping" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DEPT_ID
+		  FROM ( SELECT DEPT_ID 
+				   FROM BSC_SC_DEPT_MAPPING
+				  WHERE YEAR = #findYear# 
+				    AND SC_DEPT_ID = #findScDeptCd# ORDER BY DEPT_ID 
+				    )
+		 WHERE ROWNUM = 1
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDeptInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DEPT_ID, B.DEPT_NM
+		  FROM BSC_SC_DEPT_MAPPING A
+	LEFT OUTER JOIN BSC_DEPTINFO B
+			ON A.DEPT_ID = B.DEPT_ID
+		 WHERE (YEAR, SC_DEPT_ID) IN
+		          (SELECT YEAR, SC_DEPT_ID
+		             FROM BSC_METRIC
+		            WHERE (METRIC_GRP_ID, YEAR) IN
+		                     (SELECT METRIC_GRP_ID, YEAR
+		                        FROM BSC_METRIC
+		                       WHERE YEAR = #findYear# AND METRIC_ID = #findMetricId#)
+				AND DELETE_DT IS NULL)
+
+	</select>
+	
+
+</sqlMap>
+
+

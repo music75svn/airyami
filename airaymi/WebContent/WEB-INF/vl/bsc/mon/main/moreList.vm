@@ -1,0 +1,74 @@
+#*************************************************************************
+* CLASS 명      : moreList
+* 작 업 자      : 김윤기 
+* 작 업 일      : 2012년 9월 5일 
+* 기    능      : 대시보드 팝업    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    김윤기      2012년 9월 5일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	var moreTarget = '$!{searchMap.get("findYear")}';
+	
+	J(document).ready(function(){
+		
+	});
+	
+//]]>
+</script>
+
+<div class="blockListTable" style="width:500px;height:600px;overflow:auto;overflow-x:hidden">					
+	<table summary="" >
+		<caption></caption>
+		<colgroup>
+			<col width="70%" />
+			<col width="30%" />
+		</colgroup>		
+		<thead>	
+			<tr >
+				<th scope="col">제목</th>
+				<th scope="col">작성일</th>
+			</tr>
+		</thead>
+		<tbody >
+			#if($!{searchMap.txt2html("mode")}=="NOTICE")
+    			#foreach($list in $moreList)
+    				<tr  style="cursor:pointer;">
+                        <td class="textLeft"><a onclick="popLink('noticeLink','$!{CS_HTML.txt2html($list.ID)}')">$!{CS_HTML.txt2html($list.SUBJECT)}</a></td>
+                        <td class="textRight">$!{CS_HTML.txt2htmlbr($list.CREATE_DT)}</td>
+    				</tr>
+    			#end<br/>			
+			#elseif($!{searchMap.txt2html("mode")}=="QNA")
+    			#foreach($list in $bbsList)
+    				<tr  style="cursor:pointer;">
+                        <td class="textLeft">
+							#if($!{vcMath.toNumber($!{CS_HTML.txt2html($list.BBS_DEPT)})} >0)
+								<img src="$!{searchMap.txt2html("contextPath")}/images/list_arrow.gif" />
+							#end
+							
+							<a onclick="popLink('qnaLink','$!{CS_HTML.txt2html($list.BBS_SEQ)}')">
+								$!{CS_UTIL.reduceString($!{CS_HTML.txt2html($list.BBS_TITLE)},20)} ($!{CS_UTIL.reduceString($!{CS_HTML.txt2html($list.DEPT_NM)},5)} $!{CS_UTIL.reduceString($!{CS_HTML.txt2html($list.BBS_REGISTER_NAME)},5)})
+							</a></td>
+                        <td class="textRight">$!{CS_HTML.txt2htmlbr($list.CREATE_DT)}</td>
+    				</tr>
+    			#end<br/>			
+			#elseif($!{searchMap.txt2html("mode")}=="BOARD")
+    			#foreach($list in $bbsList)
+    				<tr  style="cursor:pointer;">
+                        <td class="textLeft">
+							<a onclick="popLink('boardLink','$!{CS_HTML.txt2html($list.BBS_SEQ)}')">
+								$!{CS_UTIL.reduceString($!{CS_HTML.txt2html($list.BBS_TITLE)},20)} ($!{CS_UTIL.reduceString($!{CS_HTML.txt2html($list.DEPT_NM)},5)} $!{CS_UTIL.reduceString($!{CS_HTML.txt2html($list.BBS_REGISTER_NAME)},5)})
+							</a>
+						</td>
+                        <td class="textRight">$!{CS_HTML.txt2htmlbr($list.CREATE_DT)}</td>
+    				</tr>
+    			#end<br/>			
+			#end
+        </tbody>
+	</table>
+</div>

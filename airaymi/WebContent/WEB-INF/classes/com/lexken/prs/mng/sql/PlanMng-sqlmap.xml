@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.mng.planMng">
+
+    <!--
+    ==================================================================   
+      # 설명    : typeAlias 선언
+      #    기능    : SETTING
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <typeAlias alias="hashMap"             type="java.util.HashMap" />
+     
+
+    <!--
+    ==================================================================   
+      # 설명    : 성과계획서 관리 목록 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.YEAR
+			 , A.EVAL_MEMB_EMPN
+			 , A.EVAL_MEMB_EMPN_SEQ
+			 , A.KOR_NM
+			 , A.DEPT_CD
+			 , D.DEPT_KOR_NM
+			 , F_DEPT_FULL_NM(A.YEAR,A.DEPT_CD,'BSC_INSA_DEPT') DEPT_FULL_NM
+			 , A.CAST_TC
+			 , A.POS_TC
+			 , F_CODE_NM('170', A.CAST_TC , A.YEAR) CAST_TC_NM 
+             , F_CODE_NM('171', A.POS_TC , A.YEAR) POS_TC_NM 
+			 , A.PRS_YN
+			 , A.EVAL_GRP_ID
+			 , A.FROM_DT
+			 , A.TO_DT
+			 , A.PLAN_STATUS_ID
+			 , CASE WHEN A.PLAN_STATUS_ID IS NULL THEN '미입력' ELSE  F_CODE_NM('217', A.PLAN_STATUS_ID , A.YEAR)  END PLAN_STATUS_NM
+			 , A.PLAN_YN
+		FROM V_PRS_MNG_MEMBER A
+		 LEFT OUTER JOIN BSC_INSA_DEPT D ON A.YEAR = D.YEAR AND A.DEPT_CD = D.DEPT_CD
+		WHERE A.YEAR= #findYear#
+		  AND A.PRS_YN ='Y'
+		  AND A.PLAN_YN ='Y'
+		 <isNotEmpty prepend="AND" property="findEvalMembEmpn" >
+			  A.EVAL_MEMB_EMPN      = #findEvalMembEmpn#
+		</isNotEmpty>
+		   ORDER BY A.KOR_NM, A.EVAL_MEMB_EMPN, A.EVAL_MEMB_EMPN_SEQ
+    </select>
+    
+     <!--
+    ==================================================================   
+      # 설명    : 성과계획서 제출일정여부
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getClosingPlan" parameterClass="hashMap" resultClass="hashMap">
+        SELECT MNG_PLAN_START_DT, MNG_PLAN_END_DT
+             , CASE WHEN TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN MNG_PLAN_START_DT AND MNG_PLAN_END_DT THEN 'Y' ELSE 'N' END MNG_PLAN_YN
+          FROM PRS_EVAL_SCHEDULE
+          WHERE YEAR = #findYear#    
+    </select>
+    
+     <!--
+    ==================================================================   
+      # 설명    : 성과계획서 평가대상자 사번 조회
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getMemb" parameterClass="hashMap" resultClass="hashMap">
+       SELECT  A.EVAL_MEMB_EMPN
+             , TO_CHAR(A.EVAL_MEMB_EMPN_SEQ)AS EVAL_MEMB_EMPN_SEQ
+        FROM V_PRS_MNG_MEMBER A
+        WHERE A.YEAR                = #findYear#    
+          AND A.EVAL_MEMB_EMPN      = #findLoginId#
+          AND A.DEPT_CD 			= #findDeptCd#
+          <!-- AND A.PRS_YN              ='Y'  -->
+          AND A.PLAN_YN             ='Y'
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 성과계획서 대상자 정보 조회
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getFindList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.YEAR
+			 , A.EVAL_MEMB_EMPN
+			 , A.EVAL_MEMB_EMPN_SEQ
+			 , A.KOR_NM
+			 , A.DEPT_CD
+			 , C.DEPT_KOR_NM
+			 , A.CAST_TC
+			 , A.POS_TC
+			 , F_CODE_NM('170', A.CAST_TC , A.YEAR) CAST_TC_NM 
+             , F_CODE_NM('171', A.POS_TC , A.YEAR) POS_TC_NM 
+			 , A.PRS_YN
+			 , A.EVAL_GRP_ID
+			 , A.FROM_DT
+			 , A.TO_DT
+			 , A.PLAN_STATUS_ID
+			 , CASE WHEN A.PLAN_STATUS_ID IS NULL THEN '미입력' ELSE  F_CODE_NM('217', A.PLAN_STATUS_ID , A.YEAR)  END PLAN_STATUS_NM
+			 , A.PLAN_YN
+			 , TO_CHAR(A.FINAL_APPROVE_DT, 'YYYY.MM.DD')AS FINAL_APPROVE_DT
+			 , A.APPROVE_USER_ID
+			 , A.APPROVE_USER_NM
+             , (
+                SELECT MAX(S2.ACT_STATUS_ID) 
+                FROM PRS_MNG_TARGET S1 
+                LEFT OUTER JOIN PRS_MNG_ACTUAL S2
+                    ON S1.YEAR = S2.YEAR
+                    AND S2.MON = #findMon#    
+                    AND S1.EVAL_MEMB_EMPN = S2.EVAL_MEMB_EMPN
+                    AND S1.EVAL_MEMB_EMPN_SEQ = S2.EVAL_MEMB_EMPN_SEQ
+                    AND S1.TARGET_ID = S2.TARGET_ID
+                WHERE A.YEAR = S1.YEAR
+                AND A.EVAL_MEMB_EMPN = S1.EVAL_MEMB_EMPN
+                AND A.EVAL_MEMB_EMPN_SEQ = S1.EVAL_MEMB_EMPN_SEQ
+             ) AS ACT_STATUS_ID
+		FROM V_PRS_MNG_MEMBER A
+		 LEFT OUTER JOIN BSC_INSA_DEPT C ON A.YEAR = C.YEAR AND A.DEPT_CD = C.DEPT_CD
+		WHERE A.YEAR				= #findYear#
+		  AND A.EVAL_MEMB_EMPN      = #evalMembEmpn#
+		  AND A.EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#
+		  <!-- AND A.PRS_YN 				='Y'  -->
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 성과계획서 관리 성과목표목록 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getPlanList" parameterClass="hashMap" resultClass="hashMap">
+         SELECT   A.YEAR
+				, A.DIRECTION_CD
+				, F_CODE_NM('218', A.DIRECTION_CD , A.YEAR) DIRECTION_NM 
+				, A.TARGET_ID
+				, A.TARGET_NM
+				, A.METRIC_NM
+				, A.TARGET_VALUE
+                , A.TARGET_BASIS
+				, A.UNIT
+				, F_CODE_NM('013', A.UNIT , A.YEAR) UNIT_NM 
+				, A.Q1_TARGET_VALUE
+				, A.Q2_TARGET_VALUE
+				, A.Q3_TARGET_VALUE
+				, A.Q4_TARGET_VALUE
+				, A.WEIGHT
+				, A.DFFLY
+				, B.CODE_NM AS DFFLY_NM
+				, A.CONTENT
+		 FROM  PRS_MNG_TARGET A
+		 	LEFT OUTER JOIN BSC_CODE B
+            	ON A.DFFLY = B.CODE_ID
+            	AND B.CODE_GRP_ID = '231'
+            	AND B.YEAR	  = #findYear#
+		 WHERE A.YEAR				= #findYear#
+		   AND A.EVAL_MEMB_EMPN      = #evalMembEmpn#
+		   AND A.EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#
+		ORDER BY A.DIRECTION_CD, A.TARGET_ID
+    </select>
+    
+    <select id="getDfflyList" parameterClass="hashMap" resultClass="hashMap">
+         SELECT 
+		      CODE_ID AS DFFLY
+		    , CODE_NM AS DFFLY_NM
+		FROM BSC_CODE
+		WHERE YEAR = #findYear# 
+		  AND CODE_GRP_ID = '231'
+		  AND DELETE_DT IS NULL
+		  
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 성과계획서 관리 성과목표목록 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getPlanFullList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT * 
+		  FROM (SELECT A.YEAR     
+				     , A.DIRECTION_CD     
+				     , F_CODE_NM('218', A.DIRECTION_CD, A.YEAR) DIRECTION_NM      
+				     , A.TARGET_ID     
+				     , A.TARGET_NM     
+				     , A.METRIC_NM     
+				     , A.TARGET_VALUE                 
+				     , A.TARGET_BASIS     
+				     , A.UNIT     
+				     , F_CODE_NM('013', A.UNIT ,A.YEAR) UNIT_NM      
+				     , A.Q1_TARGET_VALUE     
+				     , A.Q2_TARGET_VALUE     
+				     , A.Q3_TARGET_VALUE     
+				     , A.Q4_TARGET_VALUE     
+				     , A.CONTENT
+				     , A.EVAL_MEMB_EMPN
+				     , (SELECT USER_NM FROM V_ROLE_USER WHERE USER_ID = A.EVAL_MEMB_EMPN) AS KOR_NM
+				     , A.EVAL_MEMB_EMPN_SEQ
+				     , B.DEPT_CD     
+				     , D.DEPT_KOR_NM     
+				     , F_DEPT_FULL_NM(A.YEAR, B.DEPT_CD, 'BSC_INSA_DEPT') DEPT_FULL_NM    
+				     , A.WEIGHT 
+				  FROM PRS_MNG_TARGET A
+				  LEFT OUTER JOIN   V_PRS_MNG_MEMBER B    
+				    ON A.YEAR = B.YEAR
+				   AND A.EVAL_MEMB_EMPN = B.EVAL_MEMB_EMPN
+				   AND A.EVAL_MEMB_EMPN_SEQ = B.EVAL_MEMB_EMPN_SEQ
+				  LEFT OUTER JOIN BSC_INSA_DEPT D 
+				    ON B.YEAR = D.YEAR 
+				   AND B.DEPT_CD = D.DEPT_CD     
+				 WHERE A.YEAR    =  #findYear# 
+				   AND B.PRS_YN = 'Y'
+			    ) 
+		  ORDER BY KOR_NM
+			  , EVAL_MEMB_EMPN
+			  , EVAL_MEMB_EMPN_SEQ
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 성과계획서 관리 성가목표상세 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+       SELECT     A.YEAR
+				, A.DIRECTION_CD
+				, A.METRIC_GUBUN
+				, A.TARGET_ID
+				, A.TARGET_NM
+				, A.METRIC_NM
+				, A.TARGET_VALUE
+                , A.TARGET_BASIS
+				, A.UNIT
+				, A.Q1_TARGET_VALUE
+				, A.Q2_TARGET_VALUE
+				, A.Q3_TARGET_VALUE
+				, A.Q4_TARGET_VALUE
+				, A.WEIGHT
+                , A.CONTENT
+		 FROM  PRS_MNG_TARGET A
+		 WHERE A.YEAR	 = #findYear# 
+		 AND A.TARGET_ID = #targetId#     
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 성과계획서 관리 목표 여부에 따른 입력상태 조회
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getTargetYn" parameterClass="hashMap" resultClass="java.lang.Integer">
+      SELECT COUNT(TARGET_ID) FROM PRS_MNG_TARGET
+		 WHERE YEAR				   = #findYear#
+		   AND EVAL_MEMB_EMPN      = #evalMembEmpn#
+		   AND EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#     
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 성과계획서  성과목표  등록
+      #    기능    : INSERT
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <insert id="insertData" parameterClass="hashMap">
+        <selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT 'PT'||LPAD(NVL(MAX(SUBSTR(TARGET_ID,3,5)),0)+1,5,'0') FROM PRS_MNG_TARGET WHERE YEAR=#year#
+		</selectKey>
+        INSERT INTO PRS_MNG_TARGET( 
+        		  YEAR
+				, EVAL_MEMB_EMPN
+				, EVAL_MEMB_EMPN_SEQ
+				, TARGET_ID
+				, TARGET_NM
+				, DIRECTION_CD
+				, METRIC_GUBUN
+				, METRIC_NM
+				, UNIT
+		        , TARGET_BASIS
+				, TARGET_VALUE
+				, Q1_TARGET_VALUE
+				, Q2_TARGET_VALUE
+				, Q3_TARGET_VALUE
+				, Q4_TARGET_VALUE
+				, WEIGHT
+				, CONTENT
+				, CREATE_ID
+				, CREATE_DT
+				, DFFLY
+             ) VALUES ( 
+                  #year#
+             	, #evalMembEmpn#
+             	, #evalMembEmpnSeq#
+             	, #SEQ#
+             	, #targetNm#
+             	, #directionCd#
+             	, #metricGubun#
+             	, #metricNm#
+             	, #unit#
+		        , #targetBasis#
+             	, #targetValue#
+             	, #q1Target_value#
+             	, #q2Target_value#
+             	, #q3Target_value#
+             	, #q4Target_value#
+             	, NVL(#weight#, 0)
+             	, #content#
+             	, #userId#
+             	, SYSDATE
+             	, '01'
+             )
+    </insert>    
+    
+    <!--
+    ==================================================================   
+      # 설명    : 성과계획서 성과목표 수정
+      #    기능    : UPDATE
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <update id="updateData" parameterClass="hashMap">
+        UPDATE PRS_MNG_TARGET 
+           SET    YEAR			  	= #year#
+				, TARGET_NM			= #targetNm#	
+				, DIRECTION_CD		= #directionCd#
+				, METRIC_GUBUN      = #metricGubun#
+				, METRIC_NM			= #metricNm#
+				, UNIT				= #unit#
+                , TARGET_BASIS      = #targetBasis#
+				, TARGET_VALUE		= #targetValue#
+				, Q1_TARGET_VALUE 	= #q1Target_value#
+				, Q2_TARGET_VALUE	= #q2Target_value#
+				, Q3_TARGET_VALUE	= #q3Target_value#
+				, Q4_TARGET_VALUE	= #q4Target_value#
+				, WEIGHT            = NVL(#weight#, 0)
+				, CONTENT			= #content#
+				, MODIFY_ID			= #userId#
+				, MODIFY_DT			= SYSDATE
+           WHERE  YEAR				= #year# 
+        	  AND TARGET_ID			= #targetId#
+        	  AND EVAL_MEMB_EMPN 	= #evalMembEmpn#
+        	  AND EVAL_MEMB_EMPN_SEQ = #evalMembEmpnSeq#
+    </update>   
+     
+      <!--
+    ==================================================================   
+      # 설명    : 성과계획서 여부 확인
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getPlanYn" parameterClass="hashMap" resultClass="java.lang.Integer">
+      SELECT COUNT(EVAL_MEMB_EMPN) FROM PRS_MNG_PLAN
+		 WHERE YEAR				= #findYear#
+		   AND EVAL_MEMB_EMPN      = #evalMembEmpn#
+		   AND EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#     
+    </select>
+    
+     <!--
+    ==================================================================   
+      # 설명    : 성과계획서 관리 등록
+      #    기능    : INSERT
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <insert id="insertPlanData" parameterClass="hashMap">
+    INSERT INTO PRS_MNG_PLAN(YEAR,EVAL_MEMB_EMPN,EVAL_MEMB_EMPN_SEQ,PLAN_STATUS_ID,CREATE_DT)
+	 SELECT A.YEAR, A.EVAL_MEMB_EMPN, A.EVAL_MEMB_EMPN_SEQ , '01', SYSDATE FROM PRS_MNG_MEMBER A
+         LEFT OUTER JOIN PRS_MNG_PLAN B ON A.YEAR = B.YEAR AND A.EVAL_MEMB_EMPN = B.EVAL_MEMB_EMPN AND A.EVAL_MEMB_EMPN_SEQ = B.EVAL_MEMB_EMPN_SEQ
+         LEFT OUTER JOIN PRS_EVAL_GRP C ON A.YEAR = C.YEAR AND A.EVAL_GRP_ID = C.EVAL_GRP_ID
+         LEFT OUTER JOIN BSC_INSA_DEPT D ON A.YEAR = D.YEAR AND A.DEPT_CD = D.DEPT_CD
+        WHERE A.YEAR= #year# 
+          AND A.PRS_YN ='Y'
+          AND C.PLAN_YN ='Y'
+           AND A.EVAL_MEMB_EMPN    = #evalMembEmpn#
+          AND A.EVAL_MEMB_EMPN_SEQ = #evalMembEmpnSeq#
+    
+    </insert>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 성과계획서 관리 수정
+      #    기능    : UPDATE
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <update id="updatePlanData" parameterClass="hashMap">
+         UPDATE  PRS_MNG_PLAN
+          SET  PLAN_STATUS_ID = #planStatusId#  
+             , RETURN_REASON  = '' 
+           WHERE  YEAR				= #year# 
+        	  AND EVAL_MEMB_EMPN 	= #evalMembEmpn#
+        	  AND EVAL_MEMB_EMPN_SEQ = #evalMembEmpnSeq#
+    </update>    
+    
+
+    <!--
+    ==================================================================   
+      # 설명    : 성과계획서 목표관리 삭제
+      #    기능    : UPDATE
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <delete id="deleteData" parameterClass="hashMap">
+        DELETE FROM  PRS_MNG_TARGET
+          WHERE YEAR			 = #year# 
+       	  AND TARGET_ID			 = #target#
+       	  AND EVAL_MEMB_EMPN 	 = #evalMembEmpn#
+       	  AND EVAL_MEMB_EMPN_SEQ = #evalMembEmpnSeq#
+
+    </delete>
+    
+    
+</sqlMap>
+
+

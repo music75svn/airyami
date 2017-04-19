@@ -1,0 +1,44 @@
+#*************************************************************************
+* CLASS 명      : empMemberList_xml
+* 작 업 자      : 방승현
+* 작 업 일      : 2013년 06월 22일 
+* 기    능      : 직원개인 평가 대상자 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      방승현     2013년 06월 22일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"			: "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"EMPNS"			: "$!{CS_HTML.txt2html($list.EMPN)}", 
+		"EMPN"			: "$!{CS_HTML.txt2html($list.EMPN)}", 
+		"KOR_NM"		: "$!{CS_HTML.txt2html($list.KOR_NM)}", 
+		"DEPT_CD"		: "$!{CS_HTML.txt2html($list.DEPT_CD)}",
+		"DEPT_KOR_NM"	: "$!{CS_HTML.txt2html($list.DEPT_KOR_NM)}",
+		"DEPT_FULL_NM"	: "$!{CS_HTML.txt2html($list.DEPT_FULL_NM)}",
+		"WORK_TREM"     : "$!{CS_HTML.txt2html($list.START_PCMT_DATE,100)}~$!{CS_HTML.txt2html($list.END_PCMT_DATE,100)}",
+		"CAST_TC"		: "$!{CS_HTML.txt2html($list.CAST_TC)}", 
+		"CAST_TC_NM"	: "$!{CS_HTML.txt2html($list.CAST_TC_NM)}", 
+		"POS_TC"		: "$!{CS_HTML.txt2html($list.POS_TC)}",
+		"POS_TC_NM"		: "$!{CS_HTML.txt2html($list.POS_TC_NM)}",
+		"MANAGER_USER_NM": "$!{CS_HTML.txt2html($list.MANAGER_USER_NM)}",
+		"EVAL_YN"		: "$!{CS_HTML.txt2html($list.EVAL_YN)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

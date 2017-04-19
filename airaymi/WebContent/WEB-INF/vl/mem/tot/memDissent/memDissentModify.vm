@@ -1,0 +1,279 @@
+#*************************************************************************
+* CLASS 명      : memDissentModify
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년04월11일 
+* 기    능      : 이의신청  
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    유연주     2017년04월11일              최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+		/******************************************
+		 * 이의내용 byte 체크
+		 ******************************************/
+		J("#dissentContent").checkbyte({
+			indicator:J("#contentIndicator"),
+			limit:4000
+		});
+		J("#dissentContent").trigger("keyup");
+    
+		/******************************************
+		 * 검토및심의내용 byte 체크
+		 ******************************************/
+		J("#checkContent").checkbyte({
+			indicator:J("#contentIndicator2"),
+			limit:4000
+		});
+		J("#checkContent").trigger("keyup");
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/mem/tot/memDissent/memDissentList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+	});
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		var fileChk = true;
+		
+		if(!J.checkLength("dissentTitle", "이의제목", 1, 200)) {
+			return;
+		}
+		if(!J.checkLength("dissentContent", "이의내용", 1, 4000)) {
+			return;
+		}
+	#if($authGrp == "ADMIN")
+		if(!J.checkLength("checkContent", "검토및심의내용", 1, 4000)) {
+			return;
+		}
+	#end
+		
+        //첨부파일 확장자 체크
+        J(":file", "#form1").each(function(index, item) {
+            var fileFullName = J("input[name=" + item.name + "]").val();
+            var src = getFileExtension(fileFullName);
+            
+            if (!((src.toLowerCase() == "xls") || (src.toLowerCase() == "xlsx") || (src.toLowerCase() == "ppt") || (src.toLowerCase() == "pptx")||
+                  (src.toLowerCase() == "doc") || (src.toLowerCase() == "docx") || (src.toLowerCase() == "hwp") || (src.toLowerCase() == "pdf") ||
+                  (src.toLowerCase() == "zip") || (src.toLowerCase() == "txt")  || (src.toLowerCase() == "gif") || (src.toLowerCase() == "jpg") ||
+                  (src.toLowerCase() == "png") || (src.toLowerCase() == "png")
+                )) {
+            
+                fileChk = false;
+            }
+        });
+        
+        if(fileChk == false) {
+            J.showMsgBox("허용되지 않는 파일형식입니다<br/>허용되는 파일형식 : <br/>xls, xlsx, ppt, pptx, doc, docx, hwp <br/> pdf, zip, txt, gif, jpg, png, jpeg", null, null);
+            return;
+        }
+        
+		document.charset='utf-8';
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/mem/tot/memDissent/memDissentProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 파일추가
+	 ******************************************/
+	var fileIndex = 0;
+	
+	function fileAttachAdd() {
+		J("#fileAttach").append("<li id=\"fileRow" + fileIndex + "\"><input type=\"file\" name=\"file" + fileIndex + "\" class=\"input\" size=\"70\" /> <input type=\"button\" value=\"삭제\" onclick=\"deleteRow(" + fileIndex + ")\" class=\"input\" size=\"70\"></li>");
+		fileIndex++;
+	}
+	
+	function deleteRow(fileIndex)	{
+    	J("#fileRow" + fileIndex).remove();
+    }
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" enctype="multipart/form-data" action="$!{context_path}/mem/tot/memDissent/memDissentProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="dissentSeq"     name="dissentSeq"     value="$!{searchMap.txt2html("dissentSeq")}" />
+	
+	
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">기준년도 <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="업무수행평가항목 등록">
+					<caption class="none">업무수행평가항목 등록</caption>
+    				<colgroup>
+    					<col width="10%" />
+    					<col width="40%" />
+    					<col width="10%" />
+    					<col width="40%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row"><label for="evalGunId">성과조직</label></th>
+    						<td>
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.DEPT_NM)}
+								#else
+									$!{CS_HTML.txt2html($empInfo.DEPT_NM)}
+								#end
+							</td>
+    						<th scope="row"><label for="evalGunId">이의신청자</label></th>
+    						<td>
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.EMP_NM)}
+								#else
+									$!{CS_HTML.txt2html($empInfo.EMP_NM)}
+								#end
+							</td>
+    					</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="dissentTitle">이의제목</label></th>
+							<td colspan="3">
+								<input type="text" id="dissentTitle" name="dissentTitle" class="inputbox w1000" #if($authGrp == "ADMIN") readOnly #end value='$!{CS_HTML.txt2html($detail.DISSENT_TITLE)}' maxlength="200"/>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="dissentContent">이의내용</label></th>
+							<td colspan="3">
+								<textarea id="dissentContent" name="dissentContent" class="tabletext" title="비고" #if($authGrp == "ADMIN") readOnly #end cols="" rows="5">$!{CS_HTML.txt2html($detail.DISSENT_CONTENT)}</textarea>
+								<span id="contentIndicator">0</span>/4000byte
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="evalGunNm">첨부파일양식</label></th>
+							<td colspan="3">
+							#foreach($formFileList in $formFileList)
+								#if($formFileList.get("FORM_CD") == '02')
+									$!{CS_HTML.makeFileIconFileName($formFileList.get("ATTACH_FILE_SUFFIX"), "이의신청서 양식다운", $formFileList.get("ATTACH_FILE_PATH"))} 
+								#else
+									$!{CS_HTML.makeFileIconFileName($formFileList.get("ATTACH_FILE_SUFFIX"), "재심의신청서 양식다운", $formFileList.get("ATTACH_FILE_PATH"))} 
+								#end
+							#end
+							</td>
+						</tr>
+    					<tr>
+    						<th scope="row"><label for="bbs_file">첨부파일</label></th>
+    						<td colspan="3">
+							#foreach($fileList in $fileList)
+									$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))}
+								#if($authGrp == "TARGET")
+									&nbsp;&nbsp;<input type="checkbox" name="delAttachFiles" id="delAttachFile$!{fileList.get("SEQ")}" value="$!{fileList.get("SEQ")}" />&nbsp;<label for="delAttachFile$!{fileList.get("SEQ")}">첨부파일 삭제</label> <br/>
+								#end
+							#end
+								#if($authGrp == "TARGET")
+								<a href="javascript:fileAttachAdd();"><img src="$!{img_path}/common/btn_file.gif" class="valign_middle" alt="파일추가" /></a>&nbsp;(첨부파일 용량제한은 100M입니다)<br/>
+								<div>
+									<ul id="fileAttach">
+									</ul>
+								</div>
+								#end
+							</td>
+    					</tr>
+    			#if($authGrp == "ADMIN")
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="checkContent">검토및심의내용</label></th>
+							<td colspan="3">
+								<textarea id="checkContent" name="checkContent" class="tabletext" title="비고" cols="" rows="5">$!{CS_HTML.txt2html($detail.CHECK_CONTENT)}</textarea>
+								<span id="contentIndicator2">0</span>/4000byte
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="procStatusId">처리여부</label></th>
+							<td colspan="3">
+    							<select id="procStatusId" name="procStatusId" class="select w120">
+    								$!CS_CODE.getCodeOption("249", "$!{CS_HTML.txt2html($detail.PROC_STATUS_ID)}")
+    							</select>
+							</td>
+						</tr>
+				#else
+					#if($authGrp == "ADMIN" || $!{searchMap.txt2html("mode")} == "MOD")
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="procStatusId">처리여부</label></th>
+							<td colspan="3">
+    							$!{CS_HTML.txt2html($detail.PROC_STATUS_NM)}
+							</td>
+						</tr>
+					#end
+				#end
+    				</tbody>
+    			</table>
+    		</div>
+    	</div>
+		<div id="Table_blockContainer">
+			<div id="splitterBox">
+				<div>
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							##<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+			    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+			    			#if($!{CS_HTML.txt2html($detail.PROC_STATUS_ID)} == '01' || $authGrp == "ADMIN" || $!{searchMap.txt2html("mode")} == "ADD")
+			    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+			    			#end
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="clear"></div>
+</form>

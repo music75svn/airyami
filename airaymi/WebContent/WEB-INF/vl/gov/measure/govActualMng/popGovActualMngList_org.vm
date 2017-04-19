@@ -1,0 +1,797 @@
+#*************************************************************************
+* CLASS 명      : govActualMngList
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 11월 8일
+* 기    능      : 계량실적입력
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     정철수      2012년 11월 8일             최 초 작 업
+**************************************************************************#
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/gov/measure/govActualMng/popGovActualMngList.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/gov/measure/govActualMng/popGovActualMngList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['정평지표', '산식항목', '단위', '아이템코드', '내평지표', '경로', '조회가능여부'
+						  , '1월', '2월', '3월', '4월'
+						  , '5월', '6월', '7월', '8월'
+						  , '9월', '10월', '11월', '12월'
+						  , '담당자'
+
+						  , '평가년도', '정평지표코드', '산식항목코드', 'CAL_TYPE_UNIT_ID', '평가조직ID', '입력자 사번'
+						  , 'GM_CNT', 'GM_INDEX', 'IS_INPUT_YN'
+						  ],
+			colModel     :[
+                            {name:'GOV_METRIC_NM'        	,index:'GOV_METRIC_NM'        	 ,width:150   ,align:'left' 		,sortable:false ,cellattr:attrSettinGovMetric},
+                            {name:'ACT_CAL_TYPE_COL_NM'  	,index:'ACT_CAL_TYPE_COL_NM'  	 ,width:100   ,align:'left' 		,sortable:false ,formatter:linkActualConvert},
+                            {name:'CAL_TYPE_UNIT_NM'     	,index:'CAL_TYPE_UNIT_NM'     	 ,width:80    ,align:'center' 	,sortable:false },
+                            {name:'ITEM_CD'     			,index:'ITEM_CD'     	 		 ,width:10    ,align:'center' 	,sortable:false },
+                            {name:'METRIC_ID'     			,index:'METRIC_ID'     	 		 ,width:50    ,align:'center' 	,sortable:false },
+                            {name:'URL'     				,index:'URL'     	 			 ,width:80    ,align:'center' 	,sortable:false },
+                            {name:'RESTRICTED'     			,index:'RESTRICTED'	 			 ,width:80    ,align:'center' 	,sortable:false },
+							{name:'ACT_CAL_TYPE_COL_VAL_01' ,index:'ACT_CAL_TYPE_COL_VAL_01' ,width:100   ,align:'right' ,sortable:false , formatter:actualDetail01},
+                            {name:'ACT_CAL_TYPE_COL_VAL_02' ,index:'ACT_CAL_TYPE_COL_VAL_02' ,width:100   ,align:'right' ,sortable:false , formatter:actualDetail02},
+                            {name:'ACT_CAL_TYPE_COL_VAL_03' ,index:'ACT_CAL_TYPE_COL_VAL_03' ,width:100   ,align:'right' ,sortable:false , formatter:actualDetail03},
+                            {name:'ACT_CAL_TYPE_COL_VAL_04' ,index:'ACT_CAL_TYPE_COL_VAL_04' ,width:100   ,align:'right' ,sortable:false , formatter:actualDetail04},
+                            {name:'ACT_CAL_TYPE_COL_VAL_05' ,index:'ACT_CAL_TYPE_COL_VAL_05' ,width:100   ,align:'right' ,sortable:false , formatter:actualDetail05},
+                            {name:'ACT_CAL_TYPE_COL_VAL_06' ,index:'ACT_CAL_TYPE_COL_VAL_06' ,width:100   ,align:'right' ,sortable:false , formatter:actualDetail06},
+                            {name:'ACT_CAL_TYPE_COL_VAL_07' ,index:'ACT_CAL_TYPE_COL_VAL_07' ,width:100   ,align:'right' ,sortable:false , formatter:actualDetail07},
+                            {name:'ACT_CAL_TYPE_COL_VAL_08' ,index:'ACT_CAL_TYPE_COL_VAL_08' ,width:100   ,align:'right' ,sortable:false , formatter:actualDetail08},
+                            {name:'ACT_CAL_TYPE_COL_VAL_09' ,index:'ACT_CAL_TYPE_COL_VAL_09' ,width:100   ,align:'right' ,sortable:false , formatter:actualDetail09},
+                            {name:'ACT_CAL_TYPE_COL_VAL_10' ,index:'ACT_CAL_TYPE_COL_VAL_10' ,width:100   ,align:'right' ,sortable:false , formatter:actualDetail10},
+                            {name:'ACT_CAL_TYPE_COL_VAL_11' ,index:'ACT_CAL_TYPE_COL_VAL_11' ,width:100   ,align:'right' ,sortable:false , formatter:actualDetail11},
+                            {name:'ACT_CAL_TYPE_COL_VAL_12' ,index:'ACT_CAL_TYPE_COL_VAL_12' ,width:100   ,align:'right' ,sortable:false , formatter:actualDetail12},
+                            {name:'INSERT_USER_NM'       	,index:'INSERT_USER_NM'       	 ,width:80    ,align:'center' 	,sortable:false ,cellattr:attrSettinGovMetric },
+							{name:'YEAR'                	,index:'YEAR'                 	 ,width:150   ,align:'center' },
+                            {name:'GOV_METRIC_ID'        	,index:'GOV_METRIC_ID'        	 ,width:150   ,align:'center' },
+							{name:'ACT_CAL_TYPE_COL_ID'  	,index:'ACT_CAL_TYPE_COL_ID'  	 ,width:150   ,align:'center' },
+							{name:'CAL_TYPE_UNIT_ID'     	,index:'CAL_TYPE_UNIT_ID'     	 ,width:150   ,align:'center' },
+							{name:'INSERT_USER_ID'       	,index:'INSERT_USER_ID'       	 ,width:150   ,align:'center' , formatter:linkUserId},
+							{name:'SC_DEPT_ID'           	,index:'SC_DEPT_ID'           	 ,width:150   ,align:'center' },
+							{name:'GM_CNT'           	 	,index:'GM_CNT'           	   	 ,width:150   ,align:'center' },
+							{name:'GM_INDEX'           	 	,index:'GM_INDEX'             	 ,width:150   ,align:'center' },
+							{name:'IS_INPUT_YN'          	,index:'IS_INPUT_YN'          	 ,width:150   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : true,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			cmTemplate	 : {sortable:false},
+			caption 	 :"계량실적입력",
+			loadComplete : function() {
+
+								var ids = J("#list").jqGrid('getDataIDs');
+								var rowdata = J("#list").getRowData(ids[0]);
+
+								J("#govMetricNmText").append('<nobr>'+rowdata.GOV_METRIC_NM+'</nobr>');
+
+
+                           }
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"GOV_METRIC_ID").jqGrid('hideCol',"ITEM_CD").jqGrid('hideCol',"METRIC_ID").jqGrid('hideCol',"URL").jqGrid('hideCol',"ACT_CAL_TYPE_COL_ID").jqGrid('hideCol',"CAL_TYPE_UNIT_ID")
+		.setGridWidth($!{jqGrid_width})
+		.jqGrid('hideCol',"INSERT_USER_ID").jqGrid('hideCol',"SC_DEPT_ID").jqGrid('hideCol',"GM_CNT").jqGrid('hideCol',"GM_INDEX").jqGrid('hideCol',"IS_INPUT_YN")
+		.setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnClose").click(function(e) {
+			self.close();
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * jqGrid 팝업 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) {
+		return '<a href=javascript:goGovMetricPop(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	/******************************************
+	 * jqGrid 팝업 링크(실적팝업)
+	 ******************************************/
+	function actualDetail01(cellvalue, options, rowObject) {
+		return '<a href=javascript:goPopMetricActualDetail01(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	/******************************************
+	 * jqGrid 팝업 링크(실적팝업)
+	 ******************************************/
+	function actualDetail02(cellvalue, options, rowObject) {
+		return '<a href=javascript:goPopMetricActualDetail02(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	/******************************************
+	 * jqGrid 팝업 링크(실적팝업)
+	 ******************************************/
+	function actualDetail03(cellvalue, options, rowObject) {
+		return '<a href=javascript:goPopMetricActualDetail03(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	/******************************************
+	 * jqGrid 팝업 링크(실적팝업)
+	 ******************************************/
+	function actualDetail04(cellvalue, options, rowObject) {
+		return '<a href=javascript:goPopMetricActualDetail04(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	/******************************************
+	 * jqGrid 팝업 링크(실적팝업)
+	 ******************************************/
+	function actualDetail05(cellvalue, options, rowObject) {
+		return '<a href=javascript:goPopMetricActualDetail05(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	/******************************************
+	 * jqGrid 팝업 링크(실적팝업)
+	 ******************************************/
+	function actualDetail06(cellvalue, options, rowObject) {
+		return '<a href=javascript:goPopMetricActualDetail06(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	/******************************************
+	 * jqGrid 팝업 링크(실적팝업)
+	 ******************************************/
+	function actualDetail07(cellvalue, options, rowObject) {
+		return '<a href=javascript:goPopMetricActualDetail07(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	/******************************************
+	 * jqGrid 팝업 링크(실적팝업)
+	 ******************************************/
+	function actualDetail08(cellvalue, options, rowObject) {
+		return '<a href=javascript:goPopMetricActualDetail08(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	/******************************************
+	 * jqGrid 팝업 링크(실적팝업)
+	 ******************************************/
+	function actualDetail09(cellvalue, options, rowObject) {
+		return '<a href=javascript:goPopMetricActualDetail09(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	/******************************************
+	 * jqGrid 팝업 링크(실적팝업)
+	 ******************************************/
+	function actualDetail10(cellvalue, options, rowObject) {
+		return '<a href=javascript:goPopMetricActualDetail10(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	/******************************************
+	 * jqGrid 팝업 링크(실적팝업)
+	 ******************************************/
+	function actualDetail11(cellvalue, options, rowObject) {
+		return '<a href=javascript:goPopMetricActualDetail11(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	/******************************************
+	 * jqGrid 팝업 링크(실적팝업)
+	 ******************************************/
+	function actualDetail12(cellvalue, options, rowObject) {
+		return '<a href=javascript:goPopMetricActualDetail12(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+
+	/******************************************
+	 * jqGrid 담당자 ID
+	 ******************************************/
+	function linkUserId(cellvalue, options, rowObject) {
+		return '<input type="hidden" id="insertUserId" name="insertUserId" value="' + cellvalue + '" class="inputbox wp70;" />';
+	}
+
+	/******************************************
+	 * jqGrid 실적 단어변경
+	 ******************************************/
+	function linkActualConvert(cellvalue, options, rowObject) {
+
+
+		var retVal = cellvalue;
+		var isInput = rowObject.IS_INPUT_YN;
+
+		if( "ACTUAL" == cellvalue ){
+			retVal = "실적";
+		}else if( "ACTUAL" != cellvalue && "NONE" == isInput ){
+			retVal = '<a href=javascript:goGovMetricCalTypeColPop(' + options.rowId + ')>' + cellvalue + '<//a>';
+		}
+		return retVal;
+	}
+
+	/*****************************************
+	 * 지표별  Rowspan 설정
+	 ******************************************/
+	function attrSettinGovMetric(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.GM_INDEX;
+		var rowSpan = rowObject.GM_CNT;
+
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+		return result;
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = J("#list").getRowData(ids[0]);
+
+    	J("#yearNm").val(J("#findYear").val()+"년");
+    	J("#findGovMetricId").val(J("#findGovMetricId").val());
+    	J("#govMetricNmSub").val(rowdata.GOV_METRIC_NM);
+
+		J("#formList").attr("action", "$!{context_path}/gov/measure/govActualMng/govActualMngListExcel.vw?type=excel").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 경영평가 지표정의서  팝업
+	 ******************************************/
+	function goGovMetricPop(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var findYear = ret.YEAR;
+		var findGovMetricId = ret.GOV_METRIC_ID;
+
+		var param = "&amp;year=" + findYear + "&amp;govMetricId=" + findGovMetricId ;
+
+		var url = "$!{context_path}/gov/system/govMetric/popArchiveMonList.vw?type=popup" + param;
+		openWinByName(url,'popGovMetricDefine','880','650','yes');
+	}
+
+
+	/******************************************
+	 * 경영평가 지표정의서  팝업
+	 ******************************************/
+	function goGovMetricCalTypeColPop(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var findYear = ret.YEAR;
+		var findGovMetricId = ret.GOV_METRIC_ID;
+		var findGovMetricCalTypeColId = ret.ACT_CAL_TYPE_COL_ID;
+		var findGovMetricNm = J(ret.GOV_METRIC_NM).text();
+		var findGovMetricCalTypeColNm = J(ret.ACT_CAL_TYPE_COL_NM).text();
+
+
+		var param = "&amp;year=" + findYear + "&amp;govMetricId=" + findGovMetricId + "&amp;govMetricCalTypeColId=" + findGovMetricCalTypeColId + "&amp;govMetricNm=" + findGovMetricNm + "&amp;govMetricCalTypeColNm=" + findGovMetricCalTypeColNm;
+		var url = "$!{context_path}/gov/measure/subCalMapping/popSubCalTypeColMappingList.vw?type=popup" + param;
+		openWinByName(url,'popGovMetricCalTypeCol','1200','520','yes');
+	}
+
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail01(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var url = ret.URL;
+		var restricted = ret.RESTRICTED;
+		if (url == "" ) {
+			alert("데이터 제공지표가 아닙니다");
+			return;
+		}
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var mon = '01';
+		var year = ret.YEAR;
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var itemCd = ret.ITEM_CD;
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail02(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var url = ret.URL;
+		var restricted = ret.RESTRICTED;
+		if (url == "" ) {
+			alert("데이터 제공지표가 아닙니다");
+			return;
+		}
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var mon = '02';
+		var year = ret.YEAR;
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var itemCd = ret.ITEM_CD;
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail03(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var url = ret.URL;
+		var restricted = ret.RESTRICTED;
+		if (url == "" ) {
+			alert("데이터 제공지표가 아닙니다");
+			return;
+		}
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var mon = '03';
+		var year = ret.YEAR;
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var itemCd = ret.ITEM_CD;
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail04(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var url = ret.URL;
+		var restricted = ret.RESTRICTED;
+		if (url == "" ) {
+			alert("데이터 제공지표가 아닙니다");
+			return;
+		}
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var mon = '04';
+		var year = ret.YEAR;
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var itemCd = ret.ITEM_CD;
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail05(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var url = ret.URL;
+		var restricted = ret.RESTRICTED;
+		if (url == "" ) {
+			alert("데이터 제공지표가 아닙니다");
+			return;
+		}
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var mon = '05';
+		var year = ret.YEAR;
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var itemCd = ret.ITEM_CD;
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail06(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var url = ret.URL;
+		var restricted = ret.RESTRICTED;
+		if (url == "" ) {
+			alert("데이터 제공지표가 아닙니다");
+			return;
+		}
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var mon = '06';
+		var year = ret.YEAR;
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var itemCd = ret.ITEM_CD;
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail07(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var url = ret.URL;
+		var restricted = ret.RESTRICTED;
+		if (url == "" ) {
+			alert("데이터 제공지표가 아닙니다");
+			return;
+		}
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var mon = '07';
+		var year = ret.YEAR;
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var itemCd = ret.ITEM_CD;
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail08(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var url = ret.URL;
+		var restricted = ret.RESTRICTED;
+		if (url == "" ) {
+			alert("데이터 제공지표가 아닙니다");
+			return;
+		}
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var mon = '08';
+		var year = ret.YEAR;
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var itemCd = ret.ITEM_CD;
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail09(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var url = ret.URL;
+		var restricted = ret.RESTRICTED;
+		if (url == "" ) {
+			alert("데이터 제공지표가 아닙니다");
+			return;
+		}
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var mon = '09';
+		var year = ret.YEAR;
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var itemCd = ret.ITEM_CD;
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail10(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var url = ret.URL;
+		var restricted = ret.RESTRICTED;
+		if (url == "" ) {
+			alert("데이터 제공지표가 아닙니다");
+			return;
+		}
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var mon = '10';
+		var year = ret.YEAR;
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var itemCd = ret.ITEM_CD;
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail11(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var url = ret.URL;
+		var restricted = ret.RESTRICTED;
+		if (url == "" ) {
+			alert("데이터 제공지표가 아닙니다");
+			return;
+		}
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var mon = '11';
+		var year = ret.YEAR;
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var itemCd = ret.ITEM_CD;
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+	/*****************************************************
+	 * 연계 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail12(rowId){
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var url = ret.URL;
+		var restricted = ret.RESTRICTED;
+		if (url == "" ) {
+			alert("데이터 제공지표가 아닙니다");
+			return;
+		}
+		if (url == "X") {
+			alert('선택하신 지표의 상세데이터는 가스피아의 \n[재무관리/예산관리/일반회계예산/예산통제관리/가용예산조회] 화면에서 확인해 주십시요.');
+			return;
+		}
+
+		if (restricted == "Y") {
+			if (!$!{CS_LOGIN.chkAuthGrp("01")} && '$!{CS_LOGIN.getSabun()}' != J("#userId").val() && '$!{CS_LOGIN.getSabun()}' != J("#approveUserId").val()) {
+				alert('해당지표의 실적입력자 또는 실적승인자만 조회할 수 있습니다.');
+				return;
+			}
+		}
+
+		var mon = '12';
+		var year = ret.YEAR;
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var itemCd = ret.ITEM_CD;
+		var param = "&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;findMetricId=" + metricId + "&amp;findItemCd=" + itemCd + "&amp;findScDeptCd=" + scDeptId;
+
+		var url = "$!{context_path}/" + url + "?type=popup" + param;
+		openWinByName(url,'popDetail','1250','650','yes');
+	}
+
+
+
+//]]>
+</script>
+<body>
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">계량실적입력</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/gov/measure/govActualMng/govActualMngList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"    id="findYear"      name="findYear"        value="$!{searchMap.txt2html("findYear")}" />
+				<input type="hidden"    id="findMon"      name="findMon"        value="$!{searchMap.txt2html("findMon")}" />
+				<input type="hidden"    id="findItemCd"   name="findItemCd"     value="$!{searchMap.txt2html("findItemCd")}" />
+				<input type="hidden"    id="findGovMetricId"      name="findGovMetricId"        value="$!{searchMap.txt2html("findGovMetricId")}" />
+				<input type="hidden"	name="userId"			id="userId"			value="$!{searchMap.txt2html("userId")}"/>
+				<input type="hidden"	name="approveUserId"	id="approveUserId"	value="$!{searchMap.txt2html("approveUserId")}"/>
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="계량실적입력검색 조건">
+						<caption class="none">계량실적입력 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w200">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            								$!{searchMap.txt2html("findYear")}년
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+            						<span><label for="govMetricNmText">정평지표</label></span>
+            						<span id="govMetricNmText" class="searchBar">
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/gov/measure/govActualMng/govActualMngProcess.vw?type=template">
+			<input type="hidden" id="mode"       					name="mode" />
+			<input type="hidden" id="months"		 				name="months" />
+			<input type="hidden" id="govMetricIds"		 			name="govMetricIds" />
+			<input type="hidden" id="govMetricCalTypeColIds"		name="govMetricCalTypeColIds" />
+			<input type="hidden" id="govMetricCalTypeColActuals"	name="govMetricCalTypeColActuals" />
+
+			<input type="hidden" id="yearNm"		 				name="yearNm" />
+			<input type="hidden" id="findInsertUserNm"				name="findInsertUserNm" />
+			<input type="hidden" id="findEvalCatGrpNm"				name="findEvalCatGrpNm" />
+			<input type="hidden" id="govMetricNmSub"      			name="govMetricNmSub" />
+
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="계량실적입력 조회결과">
+							<caption class="none">계량실적입력 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton" style="float:left; text-align:left; width:145px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnClose" value="닫기" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+	<div id="newjcs"></div>
+</div>
+</body>
+</html>

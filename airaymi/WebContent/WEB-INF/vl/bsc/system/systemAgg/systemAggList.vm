@@ -1,0 +1,179 @@
+#*************************************************************************
+* CLASS 명      : systemAggList
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 7월 17일
+* 기    능      : 데이터집계관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김윤기      2012년 7월 17일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/system/systemAgg/systemAggList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/system/systemAgg/systemAggList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['작업코드', '작업', '최종실행일', '상태', '재실행'],
+			colModel     :[
+							{name:'PROC_ID'              ,index:'PROC_ID'              ,width:150   ,align:'center' },
+                            {name:'PROC_NM'              ,index:'PROC_NM'              ,width:150   ,align:'center' },
+                            {name:'EXEC_DATE'            ,index:'EXEC_DATE'            ,width:150   ,align:'center' },
+                            {name:'EXEC_YN'              ,index:'EXEC_YN'              ,width:150   ,align:'center' },
+                            {name:'EXEC'                 ,index:'EXEC'                 ,width:150   ,align:'center',formatter:linkUpdate }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			cmTemplate   : {sortable:true},
+			caption:"데이터집계관리"
+		}).jqGrid('hideCol',"PROC_ID").setGridWidth($!{jqGrid_width});
+
+
+
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/bsc/system/systemAgg/systemAggModify.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+	});
+
+	/******************************************
+	 * jqGrid 집계 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) {
+		var ret = J("#list").jqGrid('getRowData',options.rowId);
+		//return "<input  type=\'image\' src=\'$!{img_path}/btn_evEnd2.gif\' align=\'middle\' alt=\'집계처리\' name=\'exec\'  value='"+cellvalue+"'  onclick=\"goExecute("+options.rowId+")\")\">";
+		return "<img src=\'$!{img_path}/btn_evEnd2.gif\' align=\'middle\' alt=\'집계처리\' name=\'exec\'  value='"+cellvalue+"'  onclick=\"goExecute("+options.rowId+")\")\">";
+	}
+
+
+	/******************************************
+	 * 집계
+	 ******************************************/
+	function goExecute(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#year").val(J("#findYear").val());
+		//J("#mon").val(J("#findMon").val());
+		J("#procId").val(ret.PROC_ID);
+		J("#mode").val("CALL");
+		//J.showMsgBox("집계를 실행합니다.<br/> 완료될 때까지 잠시만 기다려 주십시요.", null, null);
+		J.showMsgBoxModal("집계를 실행합니다.<br/> 완료될 때까지 잠시만 기다려 주십시요.");
+		J("#formList").attr("action", "$!{context_path}/bsc/system/systemAgg/systemAggProcess.vw?type=template").submit();
+
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">데이터집계관리</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/system/systemAgg/systemAggList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="데이터집계관리검색 조건">
+						<caption class="none">데이터집계관리 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+									<!--
+									<span class="searchBar">
+										<select id="findMon" name="findMon" class="select w55" title="findMon">
+											$!CS_CODE.getCodeOption("024", $!{searchMap.txt2html("findMon")})
+										</select>
+            						</span>
+									-->
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/system/systemAgg/systemAggProcess.vw?type=template">
+			<input type="hidden" id="mode"       name="mode" />
+			<input type="hidden" id="year"		 name="year" />
+			<input type="hidden" id="mon"		 name="mon" />
+			<input type="hidden" id="procId"	 name="procId" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="데이터집계관리 조회결과">
+							<caption class="none">데이터집계관리 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

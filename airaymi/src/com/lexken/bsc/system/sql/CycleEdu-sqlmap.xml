@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.cycleEdu">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================   
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDeptInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.EDU_YY
+	         , A.DEPT_CD
+	         , B.DEPT_NM
+		  FROM V_GGL0101M_001 A
+	      LEFT OUTER JOIN BSC_DEPTINFO B
+	        ON A.DEPT_CD = B.DEPT_ID
+		 WHERE EDU_YY = #findYear#  
+	       AND EDU_TARG_TC = '30'
+	       AND DEPT_CD <![CDATA[ <> ]]> '5100'
+	 	 ORDER BY DEPT_CD
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 시스템 연계데이터 조회 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+    	SELECT A.EDU_YY
+	         , A.DEPT_CD
+	         , B.DEPT_NM
+	         , C.EDU_SITE
+	         , C.RMK
+	         , C.EDU_MON
+	         , C.EDU_NM
+	         , A.EDU_TARG_TC
+	         , C.EDU_PESN
+	         , (SELECT NVL(SUM(D.EDU_PESN),0) 
+	              FROM V_GGL0102D_001 D
+	             WHERE D.EDU_YY = A.EDU_YY  
+                   AND D.DEPT_CD         = A.DEPT_CD 
+                   AND D.EDU_TARG_TC     = A.EDU_TARG_TC
+                   AND D.EDU_MON BETWEEN '01' AND '03' ) AS EDU_QUAT1
+             , (SELECT NVL(SUM(D.EDU_PESN),0) 
+                  FROM V_GGL0102D_001 D
+                 WHERE D.EDU_YY          = A.EDU_YY  
+                   AND D.DEPT_CD         = A.DEPT_CD 
+                   AND D.EDU_TARG_TC     = A.EDU_TARG_TC
+                   AND D.EDU_MON BETWEEN '04' AND '06' ) AS EDU_QUAT2
+             , (SELECT NVL(SUM(D.EDU_PESN),0) 
+                  FROM V_GGL0102D_001 D
+                 WHERE D.EDU_YY          = A.EDU_YY  
+                   AND D.DEPT_CD         = A.DEPT_CD 
+                   AND D.EDU_TARG_TC     = A.EDU_TARG_TC
+                   AND D.EDU_MON BETWEEN '07' AND '09' ) AS EDU_QUAT3
+	         , (SELECT NVL(SUM(D.EDU_PESN),0) 
+	              FROM V_GGL0102D_001 D
+	             WHERE D.EDU_YY          = A.EDU_YY  
+                   AND D.DEPT_CD         = A.DEPT_CD 
+                   AND D.EDU_TARG_TC     = A.EDU_TARG_TC
+                   AND D.EDU_MON BETWEEN '10' AND '12' ) AS EDU_QUAT4         
+             , (SELECT NVL(SUM(D.EDU_PESN),0) 
+                  FROM V_GGL0102D_001 D
+                 WHERE D.EDU_YY          = A.EDU_YY  
+                   AND D.DEPT_CD         = A.DEPT_CD 
+                   AND D.EDU_TARG_TC     = A.EDU_TARG_TC  ) AS EDU_SUM
+             , TO_CHAR(TO_DATE(C.EDU_DATE), 'YYYY-MM-DD') EDU_DATE
+	      FROM V_GGL0101M_001 A
+	      LEFT OUTER JOIN BSC_DEPTINFO B
+	        ON A.DEPT_CD = B.DEPT_ID
+	      LEFT OUTER JOIN V_GGL0102D_001 C
+            ON A.EDU_YY = C.EDU_YY
+	       AND A.DEPT_CD = C.DEPT_CD
+           AND A.EDU_TARG_TC = C.EDU_TARG_TC  
+	  	 WHERE A.EDU_YY = #findYear#
+	       AND A.EDU_TARG_TC = '30'
+	       AND A.DEPT_CD <![CDATA[ <> ]]> '5100'
+	       AND A.DEPT_CD = #findDeptId#
+	       <isNotEmpty prepend="AND" property="findMon">
+				C.EDU_MON = #findMon#      
+	       </isNotEmpty>
+	     ORDER BY A.EDU_YY, C.EDU_DATE
+	</select>
+	
+</sqlMap>
+
+

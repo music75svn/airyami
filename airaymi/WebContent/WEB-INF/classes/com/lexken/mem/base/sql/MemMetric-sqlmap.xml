@@ -1,0 +1,1757 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.base.memMetric">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+     SELECT *
+       FROM(
+		SELECT /*+ ordered */
+	            A.YEAR
+	          , A.EMP_NO
+	          , A.EVAL_GBN_ID
+	          , F_CODE_NM('240', A.EVAL_GBN_ID, A.YEAR) AS EVAL_GBN_NM
+	          , A.METRIC_ID
+	          , A.METRIC_NM
+	          , A.DEPT_METRIC_ID
+	          , T.METRIC_NM AS DEPT_METRIC_NM
+	          , A.METRIC_GRP_ID
+	          , B.METRIC_GRP_NM
+	          , A.TYPE_ID
+	          , F_CODE_NM('007', A.TYPE_ID, A.YEAR) AS TYPE_NM
+	          , A.EVAL_CYCLE_ID
+	          , F_CODE_NM('008', A.EVAL_CYCLE_ID, A.YEAR) AS EVAL_CYCLE_NM
+	          , A.UNIT
+	          , F_CODE_NM('013', A.UNIT, A.YEAR) AS UNIT_NM
+	          , A.WEIGHT
+	          , NVL(E.PLAN_CNT, 0) AS PLAN_CNT
+	          , TO_CHAR(D.TGT_VALUE) AS TARGETY
+	          , A.SCORE_CAL_TYPE_GUBUN
+	          , A.SORT_ORDER
+	          , TT.TAKE_OVER_EMP_NO
+              , TT.METRIC_ID AS TAKE_OVER_METRIC_ID
+              , BI.KOR_NM AS TAKE_OVER_EMP_NM
+	    FROM MEM_METRIC A
+	         LEFT OUTER JOIN MEM_METRIC_GRP B ON A.YEAR = B.YEAR AND A.METRIC_GRP_ID = B.METRIC_GRP_ID AND B.DELETE_DT IS NULL
+	         LEFT OUTER JOIN MEM_METRIC_TARGET D ON A.YEAR = D.YEAR AND A.METRIC_ID = D.METRIC_ID AND D.MON = '12'
+	         LEFT OUTER JOIN (SELECT YEAR, METRIC_ID
+	                               , COUNT(CASE WHEN PLAN_START_DT IS NOT NULL THEN 1 ELSE NULL END) AS PLAN_CNT
+	                            FROM MEM_METRIC_ACTIONPLAN
+	                           WHERE YEAR = #findYear#
+	                           GROUP BY YEAR, METRIC_ID
+	                          ) E ON A.YEAR = E.YEAR AND A.METRIC_ID = E.METRIC_ID
+             LEFT OUTER JOIN BSC_METRIC T ON A.YEAR = T.YEAR AND A.DEPT_METRIC_ID = T.METRIC_ID 
+             LEFT OUTER JOIN MEM_METRIC_TRANS TT
+	         ON A.YEAR = TT.YEAR
+	         AND A.METRIC_ID = TT.METRIC_ID
+	         LEFT OUTER JOIN BSC_INSA BI
+	         ON TT.YEAR = BI.YEAR
+	         AND TT.TAKE_OVER_EMP_NO = BI.EMPN
+	    WHERE A.YEAR = #findYear#
+	      AND A.EMP_NO = #findEmpNo#
+
+	    <isNotEmpty prepend="AND" property="findScDeptId">
+	    	A.SC_DEPT_ID = #findScDeptId#
+	    </isNotEmpty>
+
+	    <isEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NOT NULL
+	    </isEqual>
+
+	    <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NULL
+	    </isNotEqual>
+	    ) Z
+        ORDER BY Z.SORT_ORDER
+	</select>
+	
+	
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getTransList" parameterClass="hashMap" resultClass="hashMap">
+     SELECT *
+       FROM(
+		SELECT /*+ ordered */
+	            A.YEAR
+	          , A.EMP_NO
+	          , A.EVAL_GBN_ID
+	          , F_CODE_NM('240', A.EVAL_GBN_ID, A.YEAR) AS EVAL_GBN_NM
+	          , A.METRIC_ID
+	          , A.METRIC_NM
+	          , A.DEPT_METRIC_ID
+	          , T.METRIC_NM AS DEPT_METRIC_NM
+	          , A.METRIC_GRP_ID
+	          , B.METRIC_GRP_NM
+	          , A.TYPE_ID
+	          , F_CODE_NM('007', A.TYPE_ID, A.YEAR) AS TYPE_NM
+	          , A.EVAL_CYCLE_ID
+	          , F_CODE_NM('008', A.EVAL_CYCLE_ID, A.YEAR) AS EVAL_CYCLE_NM
+	          , A.UNIT
+	          , F_CODE_NM('013', A.UNIT, A.YEAR) AS UNIT_NM
+	          , A.WEIGHT
+	          , NVL(E.PLAN_CNT, 0) AS PLAN_CNT
+	          , TO_CHAR(D.TGT_VALUE) AS TARGETY
+	          , A.SCORE_CAL_TYPE_GUBUN
+	          , A.SORT_ORDER
+	    FROM MEM_METRIC_TRANS A
+	         LEFT OUTER JOIN MEM_METRIC_GRP B ON A.YEAR = B.YEAR AND A.METRIC_GRP_ID = B.METRIC_GRP_ID AND B.DELETE_DT IS NULL
+	         LEFT OUTER JOIN MEM_METRIC_TARGET D ON A.YEAR = D.YEAR AND A.METRIC_ID = D.METRIC_ID AND D.MON = '12'
+	         LEFT OUTER JOIN (SELECT YEAR, METRIC_ID
+	                               , COUNT(CASE WHEN PLAN_START_DT IS NOT NULL THEN 1 ELSE NULL END) AS PLAN_CNT
+	                            FROM MEM_METRIC_ACTIONPLAN_TRANS
+	                           WHERE YEAR = #findYear#
+	                           GROUP BY YEAR, METRIC_ID
+	                          ) E ON A.YEAR = E.YEAR AND A.METRIC_ID = E.METRIC_ID
+             LEFT OUTER JOIN BSC_METRIC T ON A.YEAR = T.YEAR AND A.DEPT_METRIC_ID = T.METRIC_ID 
+	    WHERE A.YEAR = #year#
+          AND A.METRIC_ID = #metricId#
+        ) Z  
+        ORDER BY Z.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getHisList" parameterClass="hashMap" resultClass="hashMap">
+     	SELECT A.YEAR,
+		       A.EMP_NO,
+		       C.EMP_NM,
+		       A.EVAL_1_EMP_NO,
+		       D.KOR_NM AS EVAL_1_EMP_NM,
+		       A.METRIC_STATUS_ID,
+		       F_CODE_NM('244',A.METRIC_STATUS_ID, A.YEAR) AS METRIC_STATUS_NM,
+		       TO_CHAR(A.CREATE_DT, 'YYYY/MM/DD HH24:MI') AS CREATE_DT,
+		       A.ACTION_DESC,
+		       B.ATTACH_FILE_NM,
+		       B.ATTACH_FILE_FNM,
+		       B.ATTACH_FILE_SUFFIX,
+		       B.ATTACH_FILE_PATH
+		  FROM MEM_METRIC_STATUS_HISTORY A
+		       LEFT OUTER JOIN MEM_METRIC_STATUS_HIS_ATTACH B
+		       ON A.YEAR = B.YEAR
+		       AND A.EMP_NO = B.EMP_NO
+		       AND A.STATUS_SEQ = B.STATUS_SEQ
+		       LEFT OUTER JOIN MEM_USER C
+		       ON A.YEAR = C.YEAR
+		       AND A.EMP_NO = C.EMP_NO
+		       LEFT OUTER JOIN BSC_INSA D
+		       ON A.YEAR = D.YEAR
+		       AND A.EVAL_1_EMP_NO = D.EMPN
+		 WHERE A.YEAR = #findYear#
+		   AND A.EMP_NO = #findEmpNo#
+		 ORDER BY A.CREATE_DT DESC
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI 가중치 합계 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getUserWeight" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT NVL(SUM(WEIGHT), 0) AS WEIGHT_SUM
+	      FROM MEM_METRIC A
+	     WHERE A.YEAR = #findYear#
+
+	    <isNotEmpty prepend="AND" property="findEmpNo">
+	    	A.EMP_NO = #findEmpNo#
+	    </isNotEmpty>
+
+	    <isEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NOT NULL
+	    </isEqual>
+
+	    <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NULL
+	    </isNotEqual>
+
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI 가중치 합계 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getEmpInfo" parameterClass="hashMap" resultClass="hashMap">
+	
+	 SELECT EMP_NO,
+            EMP_NM
+       FROM (
+        SELECT EMP_NO,
+               EMP_NM
+          FROM MEM_USER
+         WHERE YEAR = #findYear#
+           AND EVAL_TGT_YN = 'Y'
+         ORDER BY EMP_NM
+        )    
+       WHERE ROWNUM = 1
+
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI 가중치 합계 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getEmpNmInfo" parameterClass="hashMap" resultClass="java.lang.String">
+	
+        SELECT EMP_NM
+          FROM MEM_USER
+         WHERE YEAR = #findYear#
+           AND EMP_NO = #findEmpNo#
+
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별 담당자 및 KPI 승인상태 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SC_DEPT, BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<select id="getEmpNoList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT EMP_NO,
+	           EMP_NM
+	      FROM MEM_USER
+	     WHERE YEAR = #findYear#
+	       AND (EVAL_1_EMP_NO = #evalEmpNo# OR EVAL_2_EMP_NO = #evalEmpNo#)
+	     ORDER BY DEPT_CD, CAST_TC, POS_TC
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 조직별 담당자 및 KPI 승인상태 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SC_DEPT, BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<select id="getEvalYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT NVL(    
+				    (SELECT CASE WHEN COUNT(1) > 0 THEN 'Y' ELSE 'N' END
+				      FROM MEM_USER
+				     WHERE YEAR = #findYear#
+				       AND EMP_NO = #findEmpNo#
+				       AND EVAL_1_EMP_NO = #evalEmpNo#),'N') 
+	      FROM DUAL
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 조직별 담당자 및 KPI 승인상태 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SC_DEPT, BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<select id="getApproveInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.EMP_NO
+		     , A.EMP_NM
+		     , A.EVAL_1_EMP_NO 
+		     , B.KOR_NM AS EVAL_1_EMP_NM
+		     , A.METRIC_STATUS_ID
+		     , F_CODE_NM('244', NVL(A.METRIC_STATUS_ID , '01'), A.YEAR)  AS METRIC_STATUS_NM
+		FROM MEM_USER A
+		     LEFT OUTER JOIN BSC_INSA B ON A.YEAR = B.YEAR AND A.EMP_NO = B.EMPN
+		WHERE A.YEAR = #findYear#
+		  AND A.emp_no = #findEmpNo#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		
+		SELECT /*+ ORDERED */
+		       A.YEAR
+             , A.METRIC_ID
+             , A.METRIC_NM
+             , A.METRIC_GRP_ID
+             , D.METRIC_GRP_NM
+             , A.EVAL_GBN_ID
+             , F_CODE_NM('240',A.EVAL_GBN_ID,A.YEAR) AS EVAL_GBN_NM
+             , A.DETAIL_EVAL_GBN_ID
+             , DE.JOB_EVAL_ITEM_NM AS DETAIL_EVAL_GBN_NM
+             , A.DEPT_METRIC_ID
+             , B.METRIC_NM AS DEPT_METRIC_NM
+             , A.EMP_NO
+             , A.TYPE_ID
+             , A.PERFORMANCE_GOAL
+             , A.KPI_PURPOSE
+             , A.WEIGHT
+             , A.EVAL_CYCLE_ID
+             , A.ACT_CAL_TYPE
+             , A.SCORE_CAL_TYPE_GUBUN
+             , F_CODE_NM('240',A.EVAL_GBN_ID,A.YEAR) AS EVAL_GBN_NM
+             , A.SCORE_CAL_TYPE_ID
+             , A.UNIT
+             , A.SORT_ORDER
+             , CASE WHEN A.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USE_YN
+         FROM MEM_METRIC A
+              LEFT OUTER JOIN BSC_METRIC B ON A.YEAR = B.YEAR AND A.DEPT_METRIC_ID = B.METRIC_ID AND B.DELETE_DT IS NULL
+              LEFT OUTER JOIN MEM_METRIC_GRP D ON A.YEAR = D.YEAR AND A.METRIC_GRP_ID = D.METRIC_GRP_ID AND D.DELETE_DT IS NULL
+              LEFT OUTER JOIN MEM_JOB_EVAL_ITEM DE ON A.YEAR = DE.YEAR AND A.DETAIL_EVAL_GBN_ID = DE.JOB_EVAL_ITEM_ID AND DE.DELETE_DT IS NULL
+        WHERE A.YEAR = #year#
+          AND A.METRIC_ID = #metricId#
+		
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getTransDetail" parameterClass="hashMap" resultClass="hashMap">
+		
+		SELECT /*+ ORDERED */
+		       A.YEAR
+             , A.METRIC_ID
+             , A.METRIC_NM
+             , A.METRIC_GRP_ID
+             , D.METRIC_GRP_NM
+             , A.EVAL_GBN_ID
+             , F_CODE_NM('240',A.EVAL_GBN_ID,A.YEAR) AS EVAL_GBN_NM
+             , A.DETAIL_EVAL_GBN_ID
+             , DE.JOB_EVAL_ITEM_NM AS DETAIL_EVAL_GBN_NM
+             , A.DEPT_METRIC_ID
+             , B.METRIC_NM AS DEPT_METRIC_NM
+             , A.EMP_NO
+             , A.TYPE_ID
+             , F_CODE_NM('007', A.TYPE_ID, A.YEAR) AS TYPE_NM
+             , A.PERFORMANCE_GOAL
+             , A.KPI_PURPOSE
+             , A.WEIGHT
+             , A.EVAL_CYCLE_ID
+             , F_CODE_NM('008', A.EVAL_CYCLE_ID, A.YEAR) AS EVAL_CYCLE_NM
+             , A.ACT_CAL_TYPE
+             , A.SCORE_CAL_TYPE_GUBUN
+             , F_CODE_NM('230', A.SCORE_CAL_TYPE_GUBUN, A.YEAR) AS UNIT_NM
+             , A.SCORE_CAL_TYPE_ID
+             , A.UNIT
+             , F_CODE_NM('013', A.UNIT, A.YEAR) AS UNIT_NM
+             , A.SORT_ORDER
+             , CASE WHEN A.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USE_YN
+         FROM MEM_METRIC_TRANS A
+              LEFT OUTER JOIN BSC_METRIC B ON A.YEAR = B.YEAR AND A.DEPT_METRIC_ID = B.METRIC_ID AND B.DELETE_DT IS NULL
+              LEFT OUTER JOIN MEM_METRIC_GRP D ON A.YEAR = D.YEAR AND A.METRIC_GRP_ID = D.METRIC_GRP_ID AND D.DELETE_DT IS NULL
+              LEFT OUTER JOIN MEM_JOB_EVAL_ITEM DE ON A.YEAR = DE.YEAR AND A.DETAIL_EVAL_GBN_ID = DE.JOB_EVAL_ITEM_ID AND DE.DELETE_DT IS NULL
+        WHERE A.YEAR = #year#
+          AND A.METRIC_ID = #metricId#
+		
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 조직별 담당자 및 KPI 승인상태 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SC_DEPT, BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<select id="getActionplanList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+		       A.METRIC_ID,
+		       A.ACTIONPLAN_ID,
+		       SUBSTR(A.PLAN_START_DT,1,4) AS PLAN_START_YEAR,
+		       SUBSTR(A.PLAN_START_DT,5,2) AS PLAN_START_MON,
+		       SUBSTR(A.PLAN_END_DT,1,4) AS PLAN_END_YEAR,
+		       SUBSTR(A.PLAN_END_DT,5,2) AS PLAN_END_MON,
+		       A.PLAN_DESC
+		  FROM MEM_METRIC_ACTIONPLAN A
+		 WHERE A.YEAR = #year#
+		   AND A.METRIC_ID = #metricId#
+		 ORDER BY A.PLAN_START_DT
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 조직별 담당자 및 KPI 승인상태 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SC_DEPT, BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<select id="getTransActionplanList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+		       A.METRIC_ID,
+		       A.ACTIONPLAN_ID,
+		       SUBSTR(A.PLAN_START_DT,1,4) AS PLAN_START_YEAR,
+		       SUBSTR(A.PLAN_START_DT,5,2) AS PLAN_START_MON,
+		       SUBSTR(A.PLAN_END_DT,1,4) AS PLAN_END_YEAR,
+		       SUBSTR(A.PLAN_END_DT,5,2) AS PLAN_END_MON,
+		       A.PLAN_DESC
+		  FROM MEM_METRIC_ACTIONPLAN_TRANS A
+		 WHERE A.YEAR = #year#
+		   AND A.METRIC_ID = #metricId#
+		 ORDER BY A.PLAN_START_DT
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 지표Pool관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC_GRP
+	==================================================================
+	-->
+	<select id="getDetailTarget" parameterClass="hashMap" resultClass="hashMap">
+		
+		SELECT MAX(CASE WHEN MON = '01' THEN TGT_VALUE END) AS MON01,
+		       MAX(CASE WHEN MON = '02' THEN TGT_VALUE END) AS MON02,
+		       MAX(CASE WHEN MON = '03' THEN TGT_VALUE END) AS MON03,
+		       MAX(CASE WHEN MON = '04' THEN TGT_VALUE END) AS MON04,
+		       MAX(CASE WHEN MON = '05' THEN TGT_VALUE END) AS MON05,
+		       MAX(CASE WHEN MON = '06' THEN TGT_VALUE END) AS MON06,
+		       MAX(CASE WHEN MON = '07' THEN TGT_VALUE END) AS MON07,
+		       MAX(CASE WHEN MON = '08' THEN TGT_VALUE END) AS MON08,
+		       MAX(CASE WHEN MON = '09' THEN TGT_VALUE END) AS MON09,
+		       MAX(CASE WHEN MON = '10' THEN TGT_VALUE END) AS MON10,
+		       MAX(CASE WHEN MON = '11' THEN TGT_VALUE END) AS MON11,
+		       MAX(CASE WHEN MON = '12' THEN TGT_VALUE END) AS MON12
+		  FROM MEM_METRIC_TARGET
+		 WHERE YEAR = #year#
+		   AND METRIC_ID = #metricId#
+		
+	</select>
+	
+
+	<select id="getTransDetailTarget" parameterClass="hashMap" resultClass="hashMap">
+		
+		SELECT MAX(CASE WHEN MON = '01' THEN TGT_VALUE END) AS MON01,
+		       MAX(CASE WHEN MON = '02' THEN TGT_VALUE END) AS MON02,
+		       MAX(CASE WHEN MON = '03' THEN TGT_VALUE END) AS MON03,
+		       MAX(CASE WHEN MON = '04' THEN TGT_VALUE END) AS MON04,
+		       MAX(CASE WHEN MON = '05' THEN TGT_VALUE END) AS MON05,
+		       MAX(CASE WHEN MON = '06' THEN TGT_VALUE END) AS MON06,
+		       MAX(CASE WHEN MON = '07' THEN TGT_VALUE END) AS MON07,
+		       MAX(CASE WHEN MON = '08' THEN TGT_VALUE END) AS MON08,
+		       MAX(CASE WHEN MON = '09' THEN TGT_VALUE END) AS MON09,
+		       MAX(CASE WHEN MON = '10' THEN TGT_VALUE END) AS MON10,
+		       MAX(CASE WHEN MON = '11' THEN TGT_VALUE END) AS MON11,
+		       MAX(CASE WHEN MON = '12' THEN TGT_VALUE END) AS MON12
+		  FROM MEM_METRIC_TARGET_TRANS
+		 WHERE YEAR = #year#
+		   AND METRIC_ID = #metricId#
+		
+	</select>
+	
+		<!--
+	==================================================================
+	  # 설명	: 득점산식 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAL_TYPE
+	==================================================================
+	-->
+	<select id="getMemDetailEvalGbnData" parameterClass="hashMap" resultClass="hashMap">
+		
+		  SELECT A.JOB_EVAL_ITEM_ID AS DETAIL_EVAL_GBN_ID,
+		         A.JOB_EVAL_ITEM_NM AS DETAIL_EVAL_GBN_NM
+		    FROM MEM_JOB_EVAL_ITEM A
+		   WHERE A.YEAR = #year#
+		     AND A.DELETE_DT IS NULL
+		  ORDER BY A.SORT_ORDER
+		
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표산식 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAL_TYPE_COL
+	==================================================================
+	-->
+	<select id="calTypeColList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.METRIC_ID
+             , A.CAL_TYPE_COL
+             , A.CAL_TYPE_COL_NM
+             , A.UNIT
+        FROM MEM_CAL_TYPE_COL A
+        WHERE A.YEAR = #year#
+          AND A.METRIC_ID = #metricId#
+          AND A.DELETE_DT IS NULL
+        ORDER BY A.CAL_TYPE_COL ASC
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 지표산식 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAL_TYPE_COL
+	==================================================================
+	-->
+	<select id="transCalTypeColList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.METRIC_ID
+             , A.CAL_TYPE_COL
+             , A.CAL_TYPE_COL_NM
+             , A.UNIT
+        FROM MEM_CAL_TYPE_COL_TRANS A
+        WHERE A.YEAR = #year#
+          AND A.METRIC_ID = #metricId#
+          AND A.DELETE_DT IS NULL
+        ORDER BY A.CAL_TYPE_COL ASC
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 득점산식 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAL_TYPE
+	==================================================================
+	-->
+	<select id="scoreCalTypeList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CAL_TYPE_ID
+		     , A.CAL_TYPE_NM
+		  FROM BSC_CAL_TYPE A
+	 	 WHERE A.CAL_TYPE_GUBUN = '01'
+	 	   AND A.DELETE_DT IS NULL
+	 	 ORDER BY A.CAL_TYPE_ID
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 구간대 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_EVAL_SECTION_GRP
+	==================================================================
+	-->
+	<select id="evalSectionList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT  A.CODE_ID AS EVAL_SECTION_ID
+		       , A.CODE_NM AS EVAL_SECTION_NM
+		       , B.METRIC_ID
+		       , CASE WHEN B.METRIC_ID IS NULL THEN TEMP.FROM_VALUE ELSE B.FROM_VALUE END AS FROM_VALUE
+		       , CASE WHEN B.METRIC_ID IS NULL THEN TEMP.TO_VALUE ELSE B.TO_VALUE END AS TO_VALUE
+			   , CASE WHEN B.METRIC_ID IS NULL THEN TEMP.CONVERSION_SCORE ELSE B.CONVERSION_SCORE END AS CONVERSION_SCORE
+			   , CASE WHEN #scoreCalTypeGubun# = '02' THEN  CASE WHEN B.METRIC_ID IS NULL THEN TEMP.TO_VALUE ELSE B.TO_VALUE END
+		         ELSE CASE WHEN B.METRIC_ID IS NULL THEN TEMP.FROM_VALUE ELSE B.FROM_VALUE END
+				 END VIEW_VAL
+		   FROM BSC_CODE A
+				LEFT OUTER JOIN MEM_EVAL_SECTION B
+				ON B.YEAR = #year#
+				AND B.METRIC_ID = #metricId#
+				AND A.CODE_ID = B.EVAL_SECTION_ID
+				AND B.DELETE_DT IS NULL
+		        LEFT OUTER JOIN MEM_EVAL_SECTION_POOL TEMP
+		        ON TEMP.YEAR = #year#
+				AND A.CODE_ID = TEMP.EVAL_SECTION_ID
+				AND TEMP.DELETE_DT IS NULL
+		        AND TEMP.GUBUN_ID = #scoreCalTypeGubun#
+		  WHERE A.CODE_GRP_ID = '235'
+			AND A.YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #year# ELSE '9999' END FROM BSC_CODE_GRP WHERE CODE_GRP_ID = '235')
+			AND A.DELETE_DT IS NULL
+		  ORDER BY A.SORT_ORDER 
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 구간대 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_EVAL_SECTION_GRP
+	==================================================================
+	-->
+	<select id="transEvalSectionList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT  A.CODE_ID AS EVAL_SECTION_ID
+		       , A.CODE_NM AS EVAL_SECTION_NM
+		       , B.METRIC_ID
+		       , CASE WHEN B.METRIC_ID IS NULL THEN TEMP.FROM_VALUE ELSE B.FROM_VALUE END AS FROM_VALUE
+		       , CASE WHEN B.METRIC_ID IS NULL THEN TEMP.TO_VALUE ELSE B.TO_VALUE END AS TO_VALUE
+			   , CASE WHEN B.METRIC_ID IS NULL THEN TEMP.CONVERSION_SCORE ELSE B.CONVERSION_SCORE END AS CONVERSION_SCORE
+			   , CASE WHEN #scoreCalTypeGubun# = '02' THEN  CASE WHEN B.METRIC_ID IS NULL THEN TEMP.TO_VALUE ELSE B.TO_VALUE END
+		         ELSE CASE WHEN B.METRIC_ID IS NULL THEN TEMP.FROM_VALUE ELSE B.FROM_VALUE END
+				 END VIEW_VAL
+		   FROM BSC_CODE A
+				LEFT OUTER JOIN MEM_EVAL_SECTION_TRANS B
+				ON B.YEAR = #year#
+				AND B.METRIC_ID = #metricId#
+				AND A.CODE_ID = B.EVAL_SECTION_ID
+				AND B.DELETE_DT IS NULL
+		        LEFT OUTER JOIN MEM_EVAL_SECTION_POOL TEMP
+		        ON TEMP.YEAR = #year#
+				AND A.CODE_ID = TEMP.EVAL_SECTION_ID
+				AND TEMP.DELETE_DT IS NULL
+		        AND TEMP.GUBUN_ID = #scoreCalTypeGubun#
+		  WHERE A.CODE_GRP_ID = '235'
+			AND A.YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #year# ELSE '9999' END FROM BSC_CODE_GRP WHERE CODE_GRP_ID = '235')
+			AND A.DELETE_DT IS NULL
+		  ORDER BY A.SORT_ORDER 
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 득점산식 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->
+	<select id="gradeList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CODE_ID
+		     , A.CODE_NM
+		  FROM BSC_CODE A
+		 WHERE A.YEAR = #year#
+		   AND A.CODE_GRP_ID = '235'
+		 ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력첨부파일 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_ACT_IN_ATTACH
+	==================================================================
+	-->
+	<select id="getAttachFileList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.METRIC_ID
+		     , A.ATTACH_SEQ
+             , A.ATTACH_FILE_NM
+             , A.ATTACH_FILE_FNM
+             , A.ATTACH_FILE_SUFFIX
+             , A.ATTACH_FILE_PATH
+          FROM MEM_METRIC_ATTACH A
+         WHERE A.YEAR = #year#
+           AND A.METRIC_ID = #metricId#
+          ORDER BY A.ATTACH_SEQ
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 첨부파일 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_ACT_IN_ATTACH
+	==================================================================
+	-->	
+	<insert id="insertFileInfo" parameterClass="hashMap">
+		INSERT INTO MEM_METRIC_ATTACH (
+			   YEAR	
+             , METRIC_ID
+             , ATTACH_SEQ
+             , ATTACH_FILE_NM
+             , ATTACH_FILE_FNM
+             , ATTACH_FILE_SUFFIX
+             , ATTACH_FILE_PATH
+             , CREATE_DT
+           ) VALUES (
+           	   #year#	
+             , #metricId#
+             , (SELECT NVL(MAX(ATTACH_SEQ)+1,1) FROM MEM_METRIC_ATTACH WHERE YEAR = #year# AND METRIC_ID = #metricId#)
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSuffix#
+             , #attachFilePath#
+             , SYSDATE
+    	   )       
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 첨부파일 삭제
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_ACT_IN_ATTACH
+	==================================================================
+	-->	
+	<delete id="deleteFileInfo" parameterClass="hashMap">
+		DELETE FROM MEM_METRIC_ATTACH
+		 WHERE YEAR = #findYear# 
+		   AND METRIC_ID = #metricId#
+		   AND ATTACH_SEQ = #seq#
+	</delete>
+	
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 첨부파일 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_ACT_IN_ATTACH
+	==================================================================
+	-->	
+	<insert id="insertHisFileInfo" parameterClass="hashMap">
+		INSERT INTO MEM_METRIC_STATUS_HIS_ATTACH (
+			   YEAR	
+             , EMP_NO
+             , STATUS_SEQ
+             , ATTACH_SEQ
+             , ATTACH_FILE_NM
+             , ATTACH_FILE_FNM
+             , ATTACH_FILE_SUFFIX
+             , ATTACH_FILE_PATH
+             , CREATE_DT
+           ) VALUES (
+           	   #year#	
+             , #empNo#
+             , #statusSeq#
+             , (SELECT NVL(MAX(ATTACH_SEQ)+1,1) FROM MEM_METRIC_ATTACH WHERE YEAR = #year# AND METRIC_ID = #metricId#)
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSuffix#
+             , #attachFilePath#
+             , SYSDATE
+    	   )       
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 첨부파일 삭제
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_ACT_IN_ATTACH
+	==================================================================
+	-->	
+	<delete id="deleteHisFileInfo" parameterClass="hashMap">
+		DELETE FROM MEM_METRIC_STATUS_HIS_ATTACH
+		 WHERE YEAR = #findYear# 
+		   AND EMP_NO = #empNo#
+		   AND STATUS_SEQ = #statusSeq#
+		   AND ATTACH_SEQ = #seq#
+	</delete>
+	
+	
+
+	<!--
+	==================================================================
+	  # 설명	: 지표코드 채번
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getMetricId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT F_PGM_SERI('MEM_METRIC','','','','','') SEQ FROM DUAL
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 지표코드 채번
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getActionplanId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT F_PGM_SERI('MEM_METRIC_ACTIONPLAN','','','','','') SEQ FROM DUAL
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO MEM_METRIC (
+		       YEAR
+		     , METRIC_ID
+		     , METRIC_NM
+		     , METRIC_GRP_ID
+		     , EMP_NO
+		     , EVAL_GBN_ID
+		     , DETAIL_EVAL_GBN_ID
+		     , DEPT_METRIC_ID
+		     , PERFORMANCE_GOAL
+		     , WEIGHT
+		     , TYPE_ID
+		     , UNIT
+		     , EVAL_CYCLE_ID
+		     , KPI_PURPOSE
+		     , ACT_CAL_TYPE
+		     , SCORE_CAL_TYPE_GUBUN
+		     , SCORE_CAL_TYPE_ID
+		     , SORT_ORDER
+		     , CREATE_DT
+		     , DELETE_DT
+		   ) VALUES (
+               #year#
+             , #metricId#
+             , #metricNm#
+             , #metricGrpId#
+             , #empNo#
+             , #evalGbnId#
+             , #detailEvalGbnId#
+             , #deptMetricId#
+             , #performanceGoal#
+             , #weight#
+             , #typeId#
+             , #unit#
+             , #evalCycleId#
+             , #kpiPurpose#
+             , #actCalType#
+             , #scoreCalTypeGubun#
+             , #scoreCalTypeId#
+             , #sortOrder#
+             , SYSDATE
+             , CASE WHEN #useYn# = 'Y' THEN NULL ELSE SYSDATE END
+		   )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	:
+	==================================================================
+	-->
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE MEM_METRIC
+		   SET METRIC_NM            = #metricNm#
+		     , METRIC_GRP_ID        = #metricGrpId#
+		     , EVAL_GBN_ID          = #evalGbnId#
+		     , DETAIL_EVAL_GBN_ID	= #detailEvalGbnId#
+		     , DEPT_METRIC_ID       = #deptMetricId#
+		     , PERFORMANCE_GOAL     = #performanceGoal#
+		     , WEIGHT       		= #weight#
+		     , TYPE_ID              = #typeId#
+		     , UNIT                 = #unit#
+		     , EVAL_CYCLE_ID        = #evalCycleId#
+		     , KPI_PURPOSE          = #kpiPurpose#
+		     , ACT_CAL_TYPE         = #actCalType#
+		     , SCORE_CAL_TYPE_GUBUN = #scoreCalTypeGubun#
+		     , SCORE_CAL_TYPE_ID    = #scoreCalTypeId#
+		     , SORT_ORDER           = #sortOrder#
+		     , MODIFY_DT            = SYSDATE
+		    <isEqual property="useYn" compareValue="N">
+            	, DELETE_DT         = SYSDATE
+		    </isEqual>
+		    <isNotEqual property="useYn" compareValue="N">
+            	, DELETE_DT         = NULL
+		    </isNotEqual>
+		WHERE YEAR = #year#
+		  AND METRIC_ID = #metricId#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 산식항목 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_CAL_TYPE_COL
+	==================================================================
+	-->
+	<delete id="deleteCalTypeCol" parameterClass="hashMap">
+		DELETE FROM MEM_CAL_TYPE_COL
+		WHERE YEAR = #year#
+		  AND METRIC_ID = #metricId#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표산식 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_METRIC_GRP
+	==================================================================
+	-->
+	<insert id="insertCalTypeCol" parameterClass="hashMap">
+		INSERT INTO MEM_CAL_TYPE_COL (
+               YEAR
+             , METRIC_ID
+             , CAL_TYPE_COL
+             , CAL_TYPE_COL_NM
+             , UNIT
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #metricId#
+             , #calTypeCol#
+             , #calTypeColNm#
+             , #unit#
+             , SYSDATE
+             )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 구간대항목 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_EVAL_SECTION
+	==================================================================
+	-->
+	<delete id="deleteEvalSection" parameterClass="hashMap">
+		DELETE FROM MEM_EVAL_SECTION
+		WHERE YEAR = #year#
+		  AND METRIC_ID = #metricId#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 구간대항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_EVAL_SECTION
+	==================================================================
+	-->
+	<insert id="insertEvalSection" parameterClass="hashMap">
+		INSERT INTO MEM_EVAL_SECTION (
+               YEAR
+             , METRIC_ID
+             , EVAL_SECTION_ID
+             , FROM_VALUE
+             , TO_VALUE
+             , CONVERSION_SCORE
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #metricId#
+             , #evalSectionId#
+             , #fromValue#
+             , #toValue#
+             , #conversionScore#
+             , SYSDATE
+               )
+	</insert>
+	
+	<!--
+	==================================================================
+	  # 설명	: 지표 구간대항목 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_EVAL_SECTION
+	==================================================================
+	-->
+	<delete id="deleteActionplan" parameterClass="hashMap">
+		DELETE FROM MEM_METRIC_ACTIONPLAN
+		WHERE YEAR = #year#
+		  AND METRIC_ID = #metricId#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 구간대항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_EVAL_SECTION
+	==================================================================
+	-->
+	<insert id="insertActionplan" parameterClass="hashMap">
+		INSERT INTO MEM_METRIC_ACTIONPLAN (
+               YEAR
+             , METRIC_ID
+             , ACTIONPLAN_ID
+             , PLAN_START_DT
+             , PLAN_END_DT
+             , PLAN_DESC
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #metricId#
+             , #actionplanId#
+             , #planStartDt#
+             , #planEndDt#
+             , #planDesc#
+             , SYSDATE
+               )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE MEM_METRIC
+		   SET DELETE_DT = SYSDATE
+		 WHERE YEAR = #year#
+		   AND METRIC_ID = #metricId#
+	</update>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 지표POOL 데이터 조회후 셋팅(AJAX)
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC_GRP
+	==================================================================
+	-->
+	<select id="getMetricGrpDataAjax" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.METRIC_GRP_ID
+		     , A.METRIC_GRP_NM
+		     , A.EVAL_GBN_ID
+		     , A.DETAIL_EVAL_GBN_ID
+		     , A.DEPT_METRIC_ID
+		     , B.METRIC_NM AS DEPT_METRIC_NM
+		     , A.PERFORMANCE_GOAL
+		     , A.WEIGHT
+		     , A.TYPE_ID
+		     , A.UNIT
+		     , A.EVAL_CYCLE_ID
+		     , A.KPI_PURPOSE
+		     , A.ACT_CAL_TYPE
+		     , A.SCORE_CAL_TYPE_GUBUN
+		     , A.SCORE_CAL_TYPE_ID
+		FROM MEM_METRIC_GRP A
+		     LEFT OUTER JOIN BSC_METRIC B ON A.YEAR = B.YEAR AND A.DEPT_METRIC_ID = B.METRIC_ID AND B.DELETE_DT IS NULL
+		WHERE A.YEAR = #findYear#
+		  AND A.METRIC_GRP_ID =  #findMetricGrpId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 측정주기 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ACT_REG_DEF_MON_GRP
+	==================================================================
+	-->
+	<select id="regGrpMonList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+		     , METRIC_GRP_ID
+		     , MON
+		FROM MEM_METRIC_GRP_MON
+		WHERE YEAR = #findYear#
+		  AND METRIC_GRP_ID = #findMetricGrpId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표POOL 산식항목 데이터 조회후 셋팅(AJAX)
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAL_TYPE_COL_GRP
+	==================================================================
+	-->
+	<select id="getMetricGrpCalTypeColAjax" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.METRIC_GRP_ID
+		     , A.CAL_TYPE_COL
+		     , A.CAL_TYPE_COL_NM
+		     , A.UNIT
+		FROM MEM_CAL_TYPE_COL_GRP A
+		WHERE A.YEAR = #findYear#
+		  AND A.METRIC_GRP_ID =  #findMetricGrpId#
+		  AND A.DELETE_DT IS NULL
+		ORDER BY A.CAL_TYPE_COL
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 지표POOL 산식항목 데이터 조회후 셋팅(AJAX)
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_EVAL_SECTION_GRP
+	==================================================================
+	-->
+	<select id="getMetricGrpEvalSectionAjax" parameterClass="hashMap" resultClass="hashMap">
+		SELECT  A.CODE_ID AS EVAL_SECTION_ID
+		      , A.CODE_NM AS EVAL_SECTION_NM
+		      , TEMP.FROM_VALUE
+		      , TEMP.TO_VALUE
+			  , TEMP.CONVERSION_SCORE
+			  , CASE WHEN #scoreCalTypeGubun# = '02' THEN TEMP.TO_VALUE
+		        ELSE TEMP.FROM_VALUE
+				END VIEW_VAL
+		   FROM BSC_CODE A
+		        LEFT OUTER JOIN MEM_EVAL_SECTION_POOL TEMP
+		        ON TEMP.YEAR = #year#
+				AND A.CODE_ID = TEMP.EVAL_SECTION_ID
+				AND TEMP.DELETE_DT IS NULL
+		        AND TEMP.GUBUN_ID = #scoreCalTypeGubun#
+		  WHERE A.CODE_GRP_ID = '235'
+			AND A.YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #year# ELSE '9999' END FROM BSC_CODE_GRP WHERE CODE_GRP_ID = '235')
+			AND A.DELETE_DT IS NULL
+		  ORDER BY A.SORT_ORDER 
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표POOL 산식항목 데이터 조회후 셋팅(AJAX)
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_EVAL_SECTION_GRP
+	==================================================================
+	-->
+	<select id="getMetricGrpEvalSectionGrpAjax" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.METRIC_GRP_ID
+		     , A.EVAL_SECTION_ID
+		     , A.FROM_VALUE
+		     , A.TO_VALUE
+		     , A.CONVERSION_SCORE
+		     , CASE WHEN B.SCORE_CAL_TYPE_GUBUN = '02' THEN A.TO_VALUE
+                    ELSE A.FROM_VALUE
+                    END VIEW_VAL
+		FROM MEM_EVAL_SECTION_GRP A
+			 LEFT OUTER JOIN MEM_METRIC_GRP B ON A.YEAR = B.YEAR AND A.METRIC_GRP_ID = B.METRIC_GRP_ID
+		WHERE A.YEAR = #findYear#
+		  AND A.METRIC_GRP_ID =  #findMetricGrpId#
+		  AND A.DELETE_DT IS NULL
+		ORDER BY  A.EVAL_SECTION_ID
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표목표 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_TARGET, BSC_METRIC
+	==================================================================
+	-->
+	<select id="getTargetList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+	         , A.METRIC_ID
+	         , A.MON
+	         , TO_CHAR(A.TGT_VALUE) AS TGT_VALUE
+	         , B.UNIT
+		  FROM MEM_METRIC_TARGET A
+		       LEFT OUTER JOIN MEM_METRIC B ON A.YEAR = B.YEAR  AND A.METRIC_ID = B.METRIC_ID
+		 WHERE A.YEAR = #findYear#
+		   AND A.METRIC_ID = #metricId#
+		 ORDER BY YEAR, MON
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 지표목표 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_TARGET, BSC_METRIC
+	==================================================================
+	-->
+	<select id="getMetricGrpTargetGrpAjax" parameterClass="hashMap" resultClass="hashMap">
+
+	    SELECT A.YEAR,
+	           A.METRIC_GRP_ID,
+	           MAX(CASE WHEN A.MON = '01' THEN TGT_VALUE END) AS MON01,
+	           MAX(CASE WHEN A.MON = '02' THEN TGT_VALUE END) AS MON02,
+	           MAX(CASE WHEN A.MON = '03' THEN TGT_VALUE END) AS MON03,
+	           MAX(CASE WHEN A.MON = '04' THEN TGT_VALUE END) AS MON04,
+	           MAX(CASE WHEN A.MON = '05' THEN TGT_VALUE END) AS MON05,
+	           MAX(CASE WHEN A.MON = '06' THEN TGT_VALUE END) AS MON06,
+	           MAX(CASE WHEN A.MON = '07' THEN TGT_VALUE END) AS MON07,
+	           MAX(CASE WHEN A.MON = '08' THEN TGT_VALUE END) AS MON08,
+	           MAX(CASE WHEN A.MON = '09' THEN TGT_VALUE END) AS MON09,
+	           MAX(CASE WHEN A.MON = '10' THEN TGT_VALUE END) AS MON10,
+	           MAX(CASE WHEN A.MON = '11' THEN TGT_VALUE END) AS MON11,
+	           MAX(CASE WHEN A.MON = '12' THEN TGT_VALUE END) AS MON12
+	      FROM MEM_METRIC_GRP_TARGET A
+	     WHERE A.YEAR = #year#
+	       AND A.METRIC_GRP_ID = #metricGrpId#
+	     GROUP BY A.YEAR,
+	              A.METRIC_GRP_ID
+
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 목표 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_TARGET
+	==================================================================
+	-->
+	<delete id="deleteTarget" parameterClass="hashMap">
+		DELETE FROM MEM_METRIC_TARGET
+		WHERE YEAR = #year#
+		  AND METRIC_ID = #metricId#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 목표 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_TARGET
+	==================================================================
+	-->
+	<insert id="insertTarget" parameterClass="hashMap">
+		INSERT INTO MEM_METRIC_TARGET (
+               YEAR
+             , MON
+             , METRIC_ID
+             , TGT_VALUE
+             , CREATE_DT
+		) VALUES (
+               #year#
+             , #mon#
+             , #metricId#
+             , #tgtValue#
+             , SYSDATE
+		)
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 기준월 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ACT_REG_DEF_MON
+	==================================================================
+	-->
+	<delete id="deleteActRegDefMon" parameterClass="hashMap">
+		DELETE FROM MEM_METRIC_MON
+		WHERE YEAR = #year#
+		  AND METRIC_ID = #metricId#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 기준월 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ACT_REG_DEF_MON
+	==================================================================
+	-->
+	<insert id="insertActRegDefMon" parameterClass="hashMap">
+		INSERT INTO MEM_METRIC_MON (
+               YEAR
+             , METRIC_ID
+             , MON
+             , CREATE_DT
+          ) VALUES (
+               #year#
+             , #metricId#
+             , #mon#
+             , SYSDATE
+          )
+	</insert>
+	
+	<!--
+	==================================================================
+	  # 설명	: 지표 목표 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_TARGET
+	==================================================================
+	-->
+	<insert id="insertAllTarget" parameterClass="hashMap">
+		MERGE INTO MEM_METRIC_TARGET A
+             USING (SELECT #year# YEAR, #metricId# METRIC_ID, #mon# MON FROM DUAL) B
+                ON (A.YEAR = B.YEAR AND A.METRIC_ID = B.METRIC_ID AND A.MON = B.MON)       
+        WHEN NOT MATCHED
+        THEN
+          INSERT (
+               YEAR
+             , MON
+             , METRIC_ID
+             , TGT_VALUE
+             , CREATE_DT
+        ) VALUES (
+               #year#
+             , #mon#
+             , #metricId#
+             , ''
+             , SYSDATE
+        )
+	</insert>
+	
+	<!--
+	==================================================================
+	  # 설명	: 목표 롤업 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<parameterMap id="targetRollupParamMap" class="java.util.HashMap">
+		<parameter property="year" 		jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="metricId" 	jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 승인데이터 건수
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<select id="getStatusCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+        SELECT COUNT(1)
+		  FROM MEM_USER
+         WHERE YEAR = #year#
+           AND EMP_NO = #empNo#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 승인데이터 입력
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<insert id="insertStatusData" parameterClass="hashMap">
+		INSERT INTO  BSC_KPI_APPROVE (
+               YEAR
+             , SC_DEPT_ID
+             , APPROVE_STATUS_ID
+
+            <isEqual property="status" compareValue="04">
+            	, REQUEST_DATE
+		    </isEqual>
+
+		    <isEqual property="status" compareValue="06">
+            	, RETURN_DATE
+		    </isEqual>
+
+		    <isEqual property="status" compareValue="05">
+            	, APPROVE_DATE
+		    </isEqual>
+
+             , CREATE_DT
+          ) VALUES (
+               #year#
+             , #scDeptId#
+             , #status#
+             , SYSDATE
+          )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 승인데이터 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<update id="updateStatusData" parameterClass="hashMap">
+		UPDATE MEM_USER
+		   SET METRIC_STATUS_ID = #status#
+		WHERE YEAR = #year#
+		  AND EMP_NO = #empNo#
+	</update>
+	
+	<!--
+	==================================================================
+	  # 설명	: 지표코드 채번
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getStatusSeq" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT NVL(MAX(STATUS_SEQ), 0) + 1 AS STATUS_SEQ
+		  FROM MEM_METRIC_STATUS_HISTORY
+         WHERE YEAR = #year#
+           AND EMP_NO = #empNo#
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 지표 반려사유 입력
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<insert id="insertStatusDescData" parameterClass="hashMap">
+		INSERT INTO MEM_METRIC_STATUS_HISTORY (
+               YEAR
+             , EMP_NO
+             , STATUS_SEQ
+             , EVAL_1_EMP_NO
+             , METRIC_STATUS_ID
+             , ACTION_DESC
+             , CREATE_DT
+             ) VALUES (
+       	       #year#
+             , #empNo#
+             , #statusSeq#
+             , #loginUserId#
+             , #status#
+             , #actionDesc#
+             , SYSDATE
+             )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 반려사유 입력
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<insert id="insertReturnCauseStatusData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="returnSeq" >
+			SELECT NVL(MAX(RETURN_SEQ), 0) + 1 AS returnSeq
+		      FROM BSC_KPI_APPROVE_RETURN
+             WHERE YEAR = #year#
+               AND SC_DEPT_ID = #scDeptId#
+		</selectKey>
+		INSERT INTO BSC_KPI_APPROVE_RETURN (
+               YEAR
+             , SC_DEPT_ID
+             , RETURN_SEQ
+             , RETURN_DATE
+             , RETURN_USER_ID
+             , RETURN_CAUSE
+             , CREATE_DT
+             ) VALUES (
+       	       #year#
+             , #scDeptId#
+             , #returnSeq#
+             , TO_CHAR(SYSDATE, 'YYYYMMDD')
+             , #loginUserId#
+             , #returnCause#
+             , SYSDATE
+             )
+	</insert>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 반려사유 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_KPI_APPROVE_RETURN
+	==================================================================
+	-->
+	<select id="getReturnCause" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.SC_DEPT_ID
+		     , A.RETURN_SEQ
+		     , A.RETURN_DATE
+		     , A.RETURN_CAUSE
+		     , A.RETURN_USER_ID
+		     , B.USER_NM
+		     , TO_CHAR(A.CREATE_DT, 'YYYY-MM-DD HH24:MI:SS') CREATE_DT
+		 FROM BSC_KPI_APPROVE_RETURN A
+		      LEFT OUTER JOIN V_ROLE_USER B ON A.RETURN_USER_ID  = B.USER_ID
+		WHERE A.YEAR = #year#
+		  AND A.SC_DEPT_ID = #scDeptId#
+		  AND A.DELETE_DT IS NULL
+	    ORDER BY A.RETURN_SEQ DESC
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표복사 대상 조직조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SC_DEPT
+	==================================================================
+	-->
+	<select id="getMetricCopyDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT  A.YEAR
+		      , A.SC_DEPT_ID
+		      , A.SC_DEPT_NM
+		      , A.UP_SC_DEPT_ID
+		      , A.LEVEL_ID
+		      , A.SC_DEPT_NM AS SC_DEPT_F_NM
+		      , B.METRIC_CNT
+		      , A.SC_DEPT_GRP_ID
+		      , F_CODE_NM('003', A.SC_DEPT_GRP_ID, A.YEAR) AS SC_DEPT_GRP_NM
+		FROM BSC_SC_DEPT A
+		     LEFT OUTER JOIN ( SELECT YEAR, SC_DEPT_ID, COUNT(*) METRIC_CNT
+		                         FROM BSC_METRIC
+		                        WHERE YEAR = #findYear#
+		                          AND DELETE_DT IS NULL
+		                        GROUP BY YEAR, SC_DEPT_ID
+		                     ) B ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID
+		WHERE A.YEAR = #findYear#
+          <!-- AND A.SC_DEPT_GRP_ID = '02' -->
+          AND A.SC_DEPT_ID != #scDeptId#
+          AND A.DELETE_DT IS NULL
+
+          <isNotEmpty prepend="AND" property="findScDeptNm">
+	            UPPER(A.SC_DEPT_NM) LIKE  '%' || TRIM(UPPER(#findScDeptNm#)) ||'%'
+		  </isNotEmpty>
+
+		ORDER BY A.SORT_ORDER
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 복사
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<parameterMap id="execMetricCopyParamMap" class="java.util.HashMap">
+		<parameter property="year" 				jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="metricId" 			jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="targetEmpNo" 	    jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 복사 프로시져 실행
+	  #	기능	: PROCEDURES
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<procedure id="execMetricCopy" parameterMap="execMetricCopyParamMap">
+		{CALL SP_MEM_METRIC_COPY(?, ?, ?)}
+	</procedure>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 승인데이터 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<update id="moveMetric" parameterClass="hashMap">
+		UPDATE MEM_METRIC
+           SET EMP_NO = #targetEmpNo#
+             , WEIGHT     = NULL
+             , SORT_ORDER = NULL
+         WHERE YEAR       = #year#
+           AND METRIC_ID  = #metricId#
+	</update>
+	
+	<!--
+	==================================================================
+	  # 설명	: 지표 승인데이터 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_KPI_APPROVE
+	==================================================================
+	-->
+	<update id="updateAllData" parameterClass="hashMap">
+		UPDATE MEM_METRIC
+           SET WEIGHT     = #weight#
+             , SORT_ORDER = #sortOrder#
+         WHERE YEAR       = #year#
+           AND METRIC_ID  = #metricId#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI 입력 마감상태 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CLOSING_MANAGE
+	==================================================================
+	-->
+	<select id="getKpiClosingYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT NVL(MAX(KPI_CLOSING_YN), 'N') AS KPI_CLOSING_YN
+		  FROM BSC_CLOSING_MANAGE
+		 WHERE YEAR = #findYear#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별KPI 입력기한 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC_IN_TERM
+	==================================================================
+	-->
+	<select id="getKpiInputTermYn" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT CASE WHEN COUNT(1) > 0 THEN 'Y'
+               ELSE 'N'
+               END KPI_INPUT_TERM_YN
+		  FROM MEM_EVAL_SCHEDULE
+		 WHERE YEAR = #findYear#
+		   AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN IND_START_DT AND IND_END_DT
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별 지표관리 목록 엑셀다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getExcelList" parameterClass="hashMap" resultClass="hashMap">
+     SELECT *
+       FROM(
+		SELECT /*+ ordered */
+	            A.YEAR
+	          , A.PERSPECTIVE_ID
+              , J.PERSPECTIVE_NM
+	          , A.STRATEGY_ID
+	          , H.STRATEGY_NM
+	          , A.METRIC_ID
+	          , A.METRIC_NM
+	          , I.METRIC_ID AS UP_METRIC_ID
+	          , A.METRIC_GRP_ID
+	          , B.METRIC_GRP_NM
+	          , A.TYPE_ID
+	          , A.METRIC_PROPERTY_ID
+	          , A.EVAL_CYCLE
+	          , A.UNIT
+	          , A.WEIGHT
+	          , A.SORT_ORDER
+	          , A.ACTUAL_Y
+	          , NVL(E.ACTION_CNT, 0) ||'/'|| NVL(E.PLAN_CNT, 0) AS PLAN_CNT
+	          , CASE WHEN A.TYPE_ID =  '01' THEN TO_CHAR(D.TGT_VALUE) ELSE TARGETY_TXT END TARGETY
+	          , F_CODE_NM('007', A.TYPE_ID, A.YEAR) AS TYPE_NM
+	          , F_CODE_NM('010', A.METRIC_PROPERTY_ID, A.YEAR) AS METRIC_PROPERTY_NM
+	          , F_CODE_NM('008', A.EVAL_CYCLE, A.YEAR) AS EVAL_CYCLE_NM
+	          , F_CODE_NM('013', A.UNIT, A.YEAR) AS UNIT_NM
+	          , ADJUST_RATE
+	          , A.DESCRIPTION
+	          , K.SC_DEPT_NM
+	          , A.TIME_ROLLUP
+              , F_CODE_NM('009', A.TIME_ROLLUP, A.YEAR) AS TIME_ROLLUP_NM
+              , A.SCORE_CAL_TYPE_GUBUN
+              , F_CODE_NM('012', A.SCORE_CAL_TYPE_GUBUN, A.YEAR) AS SCORE_CAL_TYPE_GUBUN_NM
+              , A.ACT_CAL_TYPE
+              , L.CAL_TYPE_NM
+	          , J.SORT_ORDER AS SORT_ORDER1  
+              , C.SORT_ORDER AS SORT_ORDER2
+              , A.SORT_ORDER AS SORT_ORDER3
+              , CASE WHEN M.CNT > 0 THEN '수기있음'
+                     ELSE '수기없음' 
+                 END CNT_YN 
+	    FROM BSC_METRIC A
+	         LEFT OUTER JOIN BSC_METRIC_GRP B ON A.YEAR = B.YEAR AND A.METRIC_GRP_ID = B.METRIC_GRP_ID
+	         LEFT OUTER JOIN BSC_DEPT_STRATEGY C ON A.YEAR = C.YEAR AND A.STRATEGY_ID = C.STRATEGY_ID AND A.SC_DEPT_ID = C.SC_DEPT_ID
+	         LEFT OUTER JOIN BSC_TARGET D ON A.YEAR = D.YEAR AND A.METRIC_ID = D.METRIC_ID AND D.MON = '12' AND D.ANAL_CYCLE = 'Y'
+	         LEFT OUTER JOIN (SELECT YEAR, METRIC_ID
+	                               , COUNT(CASE WHEN PLAN_START_DT IS NOT NULL THEN 1 ELSE NULL END) AS PLAN_CNT
+	                               , COUNT(CASE WHEN ACT_START_DT IS NOT NULL THEN 1 ELSE NULL END) AS ACTION_CNT
+	                            FROM BSC_INITIATIVE
+	                           WHERE YEAR = #findYear#
+	                           GROUP BY YEAR, METRIC_ID) E ON A.YEAR = E.YEAR AND A.METRIC_ID = E.METRIC_ID
+             LEFT OUTER JOIN(SELECT
+                                  A.YEAR,
+                                  A.METRIC_ID,
+                                  B.SUB_METRIC_ID
+                             FROM BSC_METRIC A
+                            INNER JOIN BSC_CAL_METRIC B ON A.YEAR = B.YEAR AND A.METRIC_ID = B.METRIC_ID AND B.DELETE_DT IS NULL
+                            WHERE A.YEAR =   #findYear#
+                              AND A.DELETE_DT IS NULL) I ON A.YEAR=I.YEAR AND A.METRIC_ID=I.SUB_METRIC_ID
+             LEFT OUTER JOIN BSC_PERSPECTIVE J ON A.YEAR = J.YEAR AND A.PERSPECTIVE_ID = J.PERSPECTIVE_ID AND J.DELETE_DT IS NULL
+             LEFT OUTER JOIN BSC_STRATEGY H
+                             ON A.YEAR = H.YEAR AND A.STRATEGY_ID = H.STRATEGY_ID
+             INNER JOIN BSC_SC_DEPT K ON A.YEAR = K.YEAR AND A.SC_DEPT_ID = K.SC_DEPT_ID AND K.DELETE_DT IS NULL
+             LEFT OUTER JOIN BSC_CAL_TYPE L ON A.SCORE_CAL_TYPE_ID = L.CAL_TYPE_ID
+             LEFT OUTER JOIN 
+            (SELECT YEAR
+            	  , METRIC_ID
+            	  , COUNT(1) AS CNT 
+               FROM BSC_CAL_TYPE_COL
+              WHERE INSERT_GUBUN = '02'
+                AND DELETE_DT IS NULL
+              GROUP BY YEAR
+                  , METRIC_ID
+                  ) M
+               ON A.YEAR = M.YEAR
+              AND A.METRIC_ID = M.METRIC_ID 
+	    WHERE A.YEAR = #findYear#
+	    <isEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NOT NULL
+	    </isEqual>
+
+	    <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NULL
+	    </isNotEqual>
+	    ) Z
+	    START WITH Z.UP_METRIC_ID IS NULL
+        CONNECT BY PRIOR Z.METRIC_ID = Z.UP_METRIC_ID
+        ORDER SIBLINGS BY SORT_ORDER1, SORT_ORDER2, SORT_ORDER3
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 동일한 지표Pool을 사용하는 지표 건수
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getMetricPoolCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(1) CNT
+		  FROM MEM_METRIC
+		 WHERE YEAR = #year#
+		   AND METRIC_GRP_ID = (SELECT METRIC_GRP_ID FROM BSC_METRIC WHERE YEAR = #year# AND METRIC_ID = #metricId#)
+		   AND DELETE_DT IS NULL
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 년 목표 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_TARGET
+	==================================================================
+	-->
+	<select id="getTargetY" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT TGT_VALUE
+		  FROM MEM_METRIC_TARGET
+		 WHERE YEAR = #year#
+		   AND MON = '12'
+		   AND METRIC_ID = #metricId#
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 년 목표 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_TARGET
+	==================================================================
+	-->
+	<select id="getTransTargetY" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT TGT_VALUE
+		  FROM MEM_METRIC_TARGET_TRANS
+		 WHERE YEAR = #year#
+		   AND MON = '12'
+		   AND METRIC_ID = #metricId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 측정주기 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ACT_REG_DEF_MON_GRP
+	==================================================================
+	-->
+	<select id="regMonList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+		     , METRIC_ID
+		     , MON
+		FROM MEM_METRIC_MON
+		WHERE YEAR = #year#
+		  AND METRIC_ID = #metricId#
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 측정주기 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ACT_REG_DEF_MON_GRP
+	==================================================================
+	-->
+	<select id="transRegMonList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+		     , METRIC_ID
+		     , MON
+		FROM MEM_METRIC_MON_TRANS
+		WHERE YEAR = #year#
+		  AND METRIC_ID = #metricId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 측정주기 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ACT_REG_DEF_MON
+	==================================================================
+	-->
+	<delete id="deleteRegMon" parameterClass="hashMap">
+		DELETE FROM MEM_METRIC_MON
+		WHERE YEAR = #year#
+		  AND METRIC_ID = #metricId#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 측정주기 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ACT_REG_DEF_MON
+	==================================================================
+	-->
+	<insert id="insertRegMon" parameterClass="hashMap">
+		INSERT INTO MEM_METRIC_MON (
+               YEAR
+             , METRIC_ID
+             , MON
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #metricId#
+             , #mon#
+             , SYSDATE
+             )
+	</insert>
+
+</sqlMap>
+
+

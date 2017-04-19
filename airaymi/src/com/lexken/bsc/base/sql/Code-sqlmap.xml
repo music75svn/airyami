@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.base.code">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공통코드 목록 카운터 수
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->	
+	<select id="getCodeListCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+        SELECT COUNT(1)
+		  FROM BSC_CODE_GRP T1
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 공통코드 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT CODE_GRP_ID
+		     , CODE_ID
+		     , CODE_NM
+		     , SORT_ORDER
+		FROM BSC_CODE
+		WHERE CODE_GRP_ID = #findCodeGrpId#
+			AND YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #findYear# ELSE '9999' END
+			              FROM BSC_CODE_GRP
+			             WHERE CODE_GRP_ID = #findCodeGrpId#)
+
+			<isEqual prepend="AND" property="findUseYn" compareValue="N">
+            	DELETE_DT IS NOT NULL
+		    </isEqual>
+		    
+		    <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+            	DELETE_DT IS NULL
+		    </isNotEqual>
+		    
+		ORDER BY SORT_ORDER, CODE_ID, CODE_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 코드 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+        SELECT CODE_GRP_ID    
+             , CODE_ID    
+             , YEAR    
+             , CODE_NM    
+             , SORT_ORDER    
+             , CONTENT    
+             , ETC1    
+             , ETC2    
+             , CREATE_DT    
+             , CASE WHEN DELETE_DT IS NULL THEN 'Y'                        
+            		ELSE 'N' 
+        			END DELETE_DT
+        FROM BSC_CODE
+        WHERE 1 = 1
+           AND CODE_GRP_ID = #codeGrpId# 
+           AND CODE_ID     = #codeId#
+           AND YEAR        = (SELECT CASE YEAR_YN WHEN 'Y' THEN #year# ELSE '9999' END
+			                    FROM BSC_CODE_GRP
+			                   WHERE CODE_GRP_ID = #codeGrpId#)
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 코드 등록 여부 확인
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->	
+	<select id="getCodeCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(1) CNT 
+          FROM BSC_CODE
+         WHERE CODE_GRP_ID  = #codeGrpId#
+           AND CODE_ID      = #codeId#
+           AND YEAR         = (SELECT CASE YEAR_YN WHEN 'Y' THEN #year# ELSE '9999' END
+                                 FROM BSC_CODE_GRP
+                                WHERE CODE_GRP_ID = #codeGrpId#)
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 코드ID 채번
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->
+	<select id="getCodeId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT F_PGM_SERI('BSC_CODE',#codeGrpId#, #year#,'','','') SEQ FROM DUAL
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 코드 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		 INSERT INTO BSC_CODE (
+		        CODE_GRP_ID    
+		      , CODE_ID    
+		      , YEAR    
+		      , CODE_NM    
+		      , SORT_ORDER    
+		      , CONTENT    
+		      , ETC1    
+		      , ETC2    
+		      , CREATE_DT       
+		      ) VALUES (
+                #codeGrpId#
+              , #codeId# 
+              , (SELECT CASE YEAR_YN WHEN 'Y' THEN #year# ELSE '9999' END FROM BSC_CODE_GRP WHERE CODE_GRP_ID = #codeGrpId#)
+              , #codeNm#
+              , #sortOrder#
+              , #content#
+              , #etc1#   
+              , #etc2#      
+              , SYSDATE
+		      )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 코드 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_CODE
+		   SET CODE_NM     = #codeNm#  
+		     , SORT_ORDER  = #sortOrder#  
+		     , CONTENT     = #content#
+		     , ETC1        = #etc1#
+		     , ETC2        = #etc2#
+		    <isEqual property="deleteDt" compareValue="Y">
+            	, CREATE_DT   = SYSDATE
+            	, DELETE_DT   = NULL
+			</isEqual>
+			<isNotEqual property="deleteDt" compareValue="Y">
+            	, DELETE_DT   = SYSDATE
+		    </isNotEqual>
+		WHERE CODE_GRP_ID  = #codeGrpId#
+		  AND CODE_ID      = #codeId#
+          AND YEAR         = (SELECT CASE YEAR_YN WHEN 'Y' THEN #year# ELSE '9999' END
+			                    FROM BSC_CODE_GRP
+			                   WHERE CODE_GRP_ID = #codeGrpId#)
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 코드 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE BSC_CODE
+		   SET DELETE_DT   = SYSDATE
+		 WHERE CODE_GRP_ID = #codeGrpId#
+		   AND CODE_ID     = #codeId#
+           AND YEAR        = (SELECT CASE YEAR_YN WHEN 'Y' THEN #year# ELSE '9999' END
+			                    FROM BSC_CODE_GRP
+			                   WHERE CODE_GRP_ID = #codeGrpId#)
+	</update>
+	
+	 
+</sqlMap>
+
+

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.bos.metricMapping">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BOSS_METRIC_MAPPING
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 기관장지표매핑 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BOSS_METRIC_MAPPING
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		     SELECT                                        
+               A.BOSS_METRIC_ID
+             , B.METRIC_ID                             
+             , B.METRIC_NM                             
+             , C.SC_DEPT_NM                  
+             , F_CODE_NM('007', B.TYPE_ID, A.YEAR) TYPE_NM      
+             , F_CODE_NM('010', B.METRIC_PROPERTY_ID, A.YEAR) METRIC_PROPERTY_NM      
+             , D.USER_NM AS INSERT_USER_NM             
+         FROM BOSS_METRIC_MAPPING A                     
+         INNER JOIN BSC_METRIC B ON A.YEAR = B.YEAR AND B.DELETE_DT IS NULL AND A.METRIC_ID = B.METRIC_ID         
+         INNER JOIN BSC_SC_DEPT C ON A.YEAR = C.YEAR AND B.SC_DEPT_ID = C.SC_DEPT_ID       
+          LEFT OUTER JOIN BSC_USERINFO D ON D.USER_ID = B.INSERT_USER_ID       
+      WHERE A.YEAR =#findYear#       
+           AND A.BOSS_METRIC_ID = #findBossMetric#   
+      ORDER BY B.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 년도별 기관장 지표조회
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getMetricList" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT                                                                
+               BOSS_METRIC_ID                                                   
+              ,BOSS_METRIC_NM    
+          FROM BOSS_METRIC                          
+         WHERE YEAR =#findYear#                        
+           AND DELETE_DT IS NULL
+           AND GOV_METRIC_ID IS NULL
+         ORDER BY SORT_ORDER 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 기관장지표매핑 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BOSS_METRIC_MAPPING
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , BOSS_METRIC_ID        
+			 , METRIC_ID             
+		  FROM BOSS_METRIC_MAPPING 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND BOSS_METRIC_ID = #bossMetricId#
+		   AND METRIC_ID = #metricId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 기관장지표매핑 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BOSS_METRIC_MAPPING
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BOSS_METRIC_MAPPING ( 
+			   YEAR
+			 , BOSS_METRIC_ID
+			 , METRIC_ID
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #bossMetricId#
+			 , #metricId#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 기관장지표매핑 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BOSS_METRIC_MAPPING
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BOSS_METRIC_MAPPING 
+		   SET 		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND BOSS_METRIC_ID = #bossMetricId#
+		   AND METRIC_ID = #metricId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 기관장지표매핑 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BOSS_METRIC_MAPPING
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BOSS_METRIC_MAPPING 
+		 WHERE YEAR = #year#
+		   AND BOSS_METRIC_ID = #bossMetricId#
+		   AND METRIC_ID = #metricId#
+	</update>
+	
+	
+</sqlMap>
+
+

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.evalCon.evalConAllo">
+
+    <!--
+    ==================================================================   
+      # 설명    : typeAlias 선언
+      #    기능    : SETTING
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <typeAlias alias="hashMap"             type="java.util.HashMap" />
+     
+     
+     <!--
+	==================================================================   
+	  # 설명	: 직원개인기여도평가 인원배분기준관리 공통코드 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->
+	<select id="getCodeList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT CODE_ID AS GRADE_ITEM_ID
+		     , CODE_NM AS GRADE_ITEM_NM
+          FROM BSC_CODE
+         WHERE YEAR=#findYear# 
+           AND CODE_GRP_ID = '225'
+           AND DELETE_DT IS NULL
+         ORDER BY SORT_ORDER ASC
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 직원개인기여도평가 인원배분기준관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CON_ECM_GRADE_DISTRI_TAB
+	==================================================================
+	-->
+	 <select id="getEvalConAlloList" parameterClass="hashMap" resultClass="hashMap" remapResults="true">
+		SELECT ITEM_CNT ,
+			<iterate property="itemArray" conjunction=",">
+		       $itemArray[]$
+		    </iterate>
+		    ,
+		    CASE WHEN ITEM_CNT = ( 0 +
+								    <iterate property="itemArray" conjunction="+">
+								       NVL( $itemArray[]$ , 0 ) 
+								    </iterate>
+								 )
+				 THEN 'Y' ELSE 'N' 
+		    END AS VALIDATE_SUM_YN
+		  FROM 
+			(SELECT ITEM_CNT,
+			    <iterate property="itemArray" conjunction=",">
+			       MAX( CASE WHEN GRADE_ITEM_ID = '$itemArray[]$' THEN ITEM_DISTRI_CNT ELSE NULL END ) AS $itemArray[]$
+			    </iterate>
+			  FROM CON_ECM_GRADE_DISTRI_TAB
+			 WHERE 1=1
+			   AND YEAR = #findYear#
+			   AND DISTRI_GUBUN ='02'
+			 GROUP BY ITEM_CNT
+			) 
+		 ORDER BY ITEM_CNT
+	</select>
+
+	 <!--
+	==================================================================   
+	  # 설명	: 직원개인기여도평가 평가등급배분표 등록
+	  #	기능	: INSERT
+	  #	TABLE	: CON_ECM_GRADE_DISTRI_TAB
+	==================================================================
+	-->	
+	<insert id="insertEvalConAllo" parameterClass="hashMap">
+		INSERT INTO CON_ECM_GRADE_DISTRI_TAB ( 
+			   YEAR
+			 , GRADE_ITEM_ID
+			 , ITEM_CNT
+			 , ITEM_DISTRI_CNT
+			 , DISTRI_GUBUN
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #gradeItemId#
+			 , #itemCnt#
+			 , #itemDistriCnt#
+			 , '02'
+			 , SYSDATE
+			 )
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 등급배분표 상세  삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_ECM_GRADE_DISTRI_TAB
+	==================================================================
+	-->	
+	<update id="deleteEvalConAllo" parameterClass="hashMap">
+		DELETE FROM CON_ECM_GRADE_DISTRI_TAB 
+		 WHERE YEAR = #year#
+		 AND DISTRI_GUBUN ='02'
+	</update>
+    
+</sqlMap>
+
+

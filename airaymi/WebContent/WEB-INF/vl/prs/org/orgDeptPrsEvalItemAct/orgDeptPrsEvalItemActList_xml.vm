@@ -1,0 +1,49 @@
+#*************************************************************************
+* CLASS 명		: orgDeptPrsEvalItemActList_xml
+* 작 업 자		: 박선혜
+* 작 업 일		: 2013년 06월 14일 
+* 기    능		: 개인별평가실적등록 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      박선혜     2013년 06월 14일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"DEPT_CD"              : "$!{CS_HTML.txt2html($list.DEPT_CD)}",
+		"DEPT_KOR_NM"          : "$!{CS_HTML.txt2html($list.DEPT_KOR_NM)}",
+		"EMPN"                 : "$!{CS_HTML.txt2html($list.EMPN)}",
+		"EMPN_NM"              : "$!{CS_HTML.txt2html($list.EMPN_NM)}",
+		"EVAL_TYPE_NM"         : "$!{CS_HTML.txt2html($list.EVAL_TYPE_NM)}",
+		"ORG_EVAL_ITEM_ID"     : "$!{CS_HTML.txt2html($list.ORG_EVAL_ITEM_ID)}",
+		"ORG_EVAL_ITEM_NM"     : "$!{CS_HTML.txt2html($list.ORG_EVAL_ITEM_NM)}",
+		"CAL_TYPE_COL"         : "$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}",
+		"CAL_TYPE_COL_NM"      : "$!{CS_HTML.txt2html($list.CAL_TYPE_COL_NM)}",
+		"ITEM_VALUE"           : "$!{CS_HTML.txt2html($list.ITEM_VALUE)}",
+		"VALUE"                : "$!{CS_HTML.txt2html($list.VALUE)}",
+		"CNT1_INDEX"           : "$!{CS_HTML.txt2html($list.CNT1_INDEX)}",
+		"CNT1"                 : "$!{CS_HTML.txt2html($list.CNT1)}",
+		"CNT2_INDEX"           : "$!{CS_HTML.txt2html($list.CNT2_INDEX)}",
+		"CNT2"                 : "$!{CS_HTML.txt2html($list.CNT2)}",
+		"CNT3_INDEX"           : "$!{CS_HTML.txt2html($list.CNT3_INDEX)}",
+		"CNT3"                 : "$!{CS_HTML.txt2html($list.CNT3)}",
+		"CNT4_INDEX"           : "$!{CS_HTML.txt2html($list.CNT4_INDEX)}",
+		"CNT4"                 : "$!{CS_HTML.txt2html($list.CNT4)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

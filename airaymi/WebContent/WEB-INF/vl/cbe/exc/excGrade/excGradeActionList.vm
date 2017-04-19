@@ -1,0 +1,291 @@
+#**************************************************************************
+* CLASS 명      : excGradeActionList
+* 작 업 자      : 안요한
+* 작 업 일      : 2013년 07월 17일 
+* 기    능      : 별도평가대상-평가등급실시
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     안요한      2013년 07월 17일             최 초 작 업
+**************************************************************************# 
+<script type="text/javascript" language="javascript">
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+		
+		/******************************************
+		 * 확정버튼 이벤트
+		 ******************************************/
+		J("#btnConfirm").click(function(e) {
+			e.preventDefault();
+			getConfirm();
+		});
+		
+		/******************************************
+		 * 확정취소버튼 이벤트
+		 ******************************************/
+		J("#btnCancle").click(function(e) {
+			e.preventDefault();
+			btnCancle();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * 화면 초기셋팅
+		 ******************************************/
+		init();
+		
+	});
+	
+	/*****************************************************
+	 * 화면초기셋팅
+	 *****************************************************/ 
+	function init() {
+		
+		#if($confirmYn.EVAL_YN == "Y") 
+		
+			J("input:radio", "#area").attr("disabled", true);
+			
+		#end
+	}		
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function getConfirm() {
+		var a = "";
+		var empn = ""; 
+		
+		#foreach($Userlist in $Userlist)
+			empn = "$Userlist.EMPN";
+			korNm = "$Userlist.DEPT_KOR_NM";
+			if(J("input:radio[name=excUserGrade" + empn + "]:checked").val() == undefined) {
+			J.showMsgBox(korNm + "장의 평가등급을 선택해 주십시요.", null, null);
+			return;
+		}
+		#end
+		
+		#foreach($Deptlist in $Deptlist)
+			scDeptId = "$Deptlist.SC_DEPT_ID";
+			scDeptNm = "$Deptlist.SC_DEPT_NM";
+			if(J("input:radio[name=excDeptGrade" + scDeptId + "]:checked").val() == undefined) {
+			J.showMsgBox(scDeptNm + "의 평가등급을 선택해 주십시요.", null, null);
+			return;
+		}
+		#end
+		
+		J.showConfirmBox("확정하시겠습니까?", "Confirm"); //Confirm() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 확정
+	 ******************************************/
+	function Confirm() {
+		
+		J("#mode").val("CONF");
+		J("#year").val(J("#findYear").val());
+		J("#evalYn").val('Y');
+		J("#formList").attr("action", "$!{context_path}/cbe/exc/excGrade/excGradeProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 확정취소처리
+	 ******************************************/
+	function btnCancle(){
+		
+		J.showConfirmBox("평가확정을 취소 하시겠습니까?", "CancelDo"); //CancelDo() 콜백함수 호출
+		
+	}
+	
+	/******************************************
+	 * 확정취소처리
+	 ******************************************/
+	function CancelDo() {
+		J("input:radio", "#area").attr("disabled", false);
+		J("#mode").val("CONF");
+		J("#year").val(J("#findYear").val());
+		J("#evalYn").val('N');
+		J("#formList").attr("action", "$!{context_path}/cbe/exc/excGrade/excGradeProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		
+		J("#mode").val("MOD");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/cbe/exc/excGrade/excGradeProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 사업추진실적 보고서 조회
+	 ******************************************/
+	function showRpt(year, evalDegreeId, empn) {
+		exc = empn;
+		exc = exc.substr(0,1);
+	
+		var popWidth = '1300';
+		var popHeight = '768';
+		var param = "&amp;year=" + year + "&amp;evalDegreeId=" + evalDegreeId + "&amp;excEvalTarget=" + empn +"&amp;excEvalTargetGubun=" + exc;
+		var url = "$!{context_path}/cbe/exc/excGrade/showRpt.vw?type=popup" + param;
+		openWinByName(url,'showRpt',popWidth,popHeight,'yes');
+	}
+	
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+			<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/cbe/exc/excGrade/excGradeActionList.vw?type=template">
+				<input type="hidden" 	id="oldYear"		name="oldYear"			value="$!{searchMap.txt2html("findYear")}" />
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="별도평가대상 검색 조건">
+						<caption class="none">별도평가대상 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w180">
+                                    <span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+			<form id="formList" name="formList" method="post" action="$!{context_path}/cbe/exc/excGrade/excGradeProcess.vw?type=template">
+				<input type="hidden" id="mode"			name="mode"					value="$!{searchMap.txt2html("mode")}" />
+            	<input type="hidden" id="year"			name="year"							 />
+            	<input type="hidden" id="evalYn"		name="evalYn"					 />
+            	
+				$!{searchMap.makeHiddenFind()}
+				
+    			<div class="blockDetail2" id="area">
+	    			<table summary="별도평가 최종 평가표">
+						<caption class="none">별도평가 최종 평가표</caption>
+	    				<colgroup>
+	    					<col width="20%" />
+	    					<col width="15%" />
+	    					<col width="25%" />
+	    					<col width="15%" />
+	    					<col width="25%" />
+	    				</colgroup>
+	    				<tbody>	    					
+							<tr>
+								<th scope="row" ><label for="gubun">구분</label></th>							
+								<th scope="row" colspan="2"><label for="target">대상</label></th>													
+								<th scope="row" ><label for="report">사업추진실적보고서</label></th>													
+								<th scope="row" ><label for="grade">평가등급</label></th>													
+							</tr>
+							#set ($Usercnt = 0)
+							#foreach($Userlist in $Userlist)
+								#set ($Usercnt = $Usercnt + 1)
+							<tr>	
+								#if ($Usercnt == 1)
+									<td rowspan="$Userlist.USER_CNT">별도평가자</td>
+								#end
+								<td style="text-align:left;">$!{CS_HTML.txt2html($Userlist.DEPT_KOR_NM)}장</td>
+								<td style="text-align:center;">$!{CS_HTML.txt2html($Userlist.KOR_NM)} $!{CS_HTML.txt2html($Userlist.POS_TC_NM)}
+								( $!{CS_FORMAT.dateFormat($Userlist.START_PCMT_DATE, '.')} - $!{CS_FORMAT.dateFormat($Userlist.END_PCMT_DATE, '.')} )
+								<input type="hidden" name="empn" class="inputbox w900" value='$!{CS_HTML.txt2html($Userlist.EMPN)}'/>
+								<input type="hidden" name="evalDegreeId" class="inputbox w900" value='$!{CS_HTML.txt2html($Userlist.EVAL_DEGREE_ID)}'/>
+								</td>
+								#if ($Userlist.SUBMIT_YN == "Y" && $Userlist.RPT_YN == "Y") 
+									<td><input type="button" id="btnShowRpt" value="조회" onclick="showRpt('$!{CS_HTML.txt2html($Userlist.YEAR)}','$!{CS_HTML.txt2html($Userlist.EVAL_DEGREE_ID)}','$!{CS_HTML.txt2html($Userlist.EMPN)}')"; ></td>
+								#elseif($Userlist.SUBMIT_YN == "N" && $Userlist.RPT_YN == "Y")
+									<td>미제출</td>
+								#else
+									<td>비대상</td>
+								#end
+								<td >
+									$!CS_CODE.getCodeRadio("excUserGrade$Userlist.EMPN", "198", $!{CS_HTML.txt2html($Userlist.GRADE_ITEM_ID)}, $!{searchMap.txt2html("findYear")})
+
+								</td>
+							</tr>
+							#end
+							#set ($deptCnt = 0)
+							#foreach($Deptlist in $Deptlist)
+								#set ($deptCnt = $deptCnt + 1)
+							<tr>	
+								#if ($deptCnt == 1)
+									<td rowspan="$Deptlist.DEPT_CNT">별도평가부서</td>
+								#end
+								<td colspan="2"style="text-align:left">$!{CS_HTML.txt2html($Deptlist.SC_DEPT_NM)}
+									<input type="hidden" name="scDeptId" class="inputbox w900" value='$!{CS_HTML.txt2html($Deptlist.SC_DEPT_ID)}'/>
+									<input type="hidden" name="evalDegreeIds" class="inputbox w900" value='$!{CS_HTML.txt2html($Deptlist.EVAL_DEGREE_ID)}'/>
+								</td>
+								#if ($Userlist.SUBMIT_YN == "Y" && $Userlist.RPT_YN == "Y")
+									<td><input type="button" id="btnDeptwRpt" value="조회" onclick="showRpt('$!{CS_HTML.txt2html($Deptlist.YEAR)}','$!{CS_HTML.txt2html($Deptlist.EVAL_DEGREE_ID)}','$!{CS_HTML.txt2html($Deptlist.SC_DEPT_ID)}')"; ></td>
+								#elseif($Deptlist.SUBMIT_YN == "N" && $Deptlist.RPT_YN == "Y")
+									<td>미제출</td>
+								#else
+									<td>비대상</td>
+								#end
+								<td >
+									$!CS_CODE.getCodeRadio("excDeptGrade$Deptlist.SC_DEPT_ID", "198", $!{CS_HTML.txt2html($Deptlist.GRADE_ITEM_ID)}, $!{searchMap.txt2html("findYear")})
+
+								</td>
+							</tr>
+							#end
+	    				</tbody>
+	    			</table>
+	    		</div>
+	    		<div class="blockButton">
+	    			<ul>
+	    				#if($!{CS_HTML.txt2html($confirmYn.EVAL_YN)} != "Y") 
+	    					<li><input type="button" id="btnInsert" value="저장" /></li>
+	    					<li><input type="button" id="btnConfirm" value="확정" /></li>
+	    				#else
+	    					<li><input type="button" id="btnCancle" value="확정취소" /></li>
+	    				#end
+	    			</ul>
+	    		</div>	
+	    	<div class="clear"></div>
+		</form>
+	</div>	
+</div>

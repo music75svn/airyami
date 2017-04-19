@@ -1,0 +1,170 @@
+#*************************************************************************
+* CLASS 명      : popSendMail
+* 작 업 자      : 형광민
+* 작 업 일      : 2012년 8월 27일
+* 기    능      : 메일발송
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     형광민      2012년 8월 27일             최 초 작 업
+**************************************************************************#
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/bsc/module/commModule/popSendMail.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+    <script type="text/javascript" language="javascript" >
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#indicator"),
+			limit:4000
+		});
+		J("#content").trigger("keyup");
+
+		/******************************************
+		 * 닫기버튼 (창닫기)
+		 ******************************************/
+		J("#btnClose").click(function() {
+			self.close();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(!J.checkLength("toMail", "메일주소", 1, 2000)) {
+			return;
+		}
+		if(!J.checkLength("toName", "메일주소", 1, 2000)) {
+			return;
+		}
+		if(!J.checkLength("subject", "메일제목", 1, 2000)) {
+			return;
+		}
+		if(!J.checkLength("content", "메일내용", 1, 4000)) {
+			return;
+		}
+
+		J.showConfirmBox("메일을 발송하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/bsc/module/commModule/popSendMailProcess.vw").submit();
+		//self.close();
+	}
+
+    </script>
+</head>
+<body>
+
+<div>
+	<div style="padding-top:0px; padding-left:40px; position:relative; width:820px;">
+	<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/module/commModule/popSendMailProcess.vw">
+		<input type="hidden" id="mailSendGbn"	name="mailSendGbn"	value="$!{searchMap.txt2html("mailSendGbn")}" />
+		<input type="hidden" id="fromMail"		name="fromMail"		value="$!{CS_LOGIN.getEmail()}$EMAIL" />
+		<input type="hidden" id="fromMailNm"	name="fromMailNm"	value="$!{CS_LOGIN.getUser_nm()}" />
+        $!{searchMap.makeHiddenFind()}
+
+		<!--페이지 타이틀 시작 -->
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td height="20">
+            </td>
+        </tr>
+		<tr>
+			<td>
+				<table width="100%" border="0" cellspacing="0" cellpadding="0" class="popup_tit_c">
+				<tr>
+					<td class="popup_tit_l"></td>
+					<td class="popup_tit_r">메일 전송</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		<tr><td height="7"></td></tr>
+		</table>
+		<!--페이지 타이틀 끝 -->
+
+		<div class="blockDetail">
+			<table summary="메일발송">
+				<caption class="none">메일발송</caption>
+				<colgroup>
+					<col width="30%" />
+					<col width="*" />
+				</colgroup>
+				<tbody>
+					<tr>
+						<th scope="row">보내는사람</th>
+						<td>$!{CS_LOGIN.getUser_nm()}&lt;$!{CS_LOGIN.getEmail()}&gt;</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="toNameList">받는사람</label></th>
+						<td>
+							<input type="hidden" id="toMail" 	 name="toMail"     class="inputbox w700" value="$!{searchMap.txt2html("toMail")}" />
+							<input type="hidden" id="toName" 	 name="toName" 	   class="inputbox w700" value="$!{searchMap.txt2html("toName")}" />
+							<input type="text"   id="toNameList" name="toNameList" class="inputbox w700" value="$!{searchMap.txt2html("toNameList")}" readonly="readonly"/>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="subject">메일제목</label></th>
+						<td>
+							<input type="text" id="subject" name="subject" class="inputbox w700" value="$!CS_CODE.getCodeEtc1("140", $!{searchMap.txt2html("mailSendGbn")})" maxlength="100"/>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="content">메일내용</label></th>
+						<td>
+							<textarea id="content" name="content" class="tabletext" title="메일내용" cols="" rows="12">$!CS_CODE.getCodeContent("140", $!{searchMap.txt2html("mailSendGbn")})</textarea>
+							<span id="indicator">0</span>/4000byte
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="blockButton_all">
+    		<div class="blockButton">
+				<ul>
+    				<li><input type="submit" id="btnInsert"  value="메일발송"/></li>
+    				<li><input type="button" id="btnClose"   value="닫기"/></li>
+    			</ul>
+			</div>
+		</div>
+
+	</form>
+	</div>
+	<div class="clear"></div>
+</div>
+
+<div id="dialog" title="확인"><p>&nbsp;</p></div>    <!-- 다이어로그 -->
+
+</body>
+</html>

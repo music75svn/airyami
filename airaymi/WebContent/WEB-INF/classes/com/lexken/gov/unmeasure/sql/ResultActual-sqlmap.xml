@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.unmeasure.resultActual">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: GOV_DETAIL_POINT_OUT
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량지적및조치사항 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_POINT_OUT
+	==================================================================
+	-->
+	<select id="getActList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.YEAR,
+                A.GOV_METRIC_ID,
+                A.POINT_OUT_ID,
+                A.POINT_OUT_CONTENT,
+                A.IMPROVEMENT,
+                A.COMMENTS,
+                A.INSERT_USER_ID,
+                B.USER_NM AS INSERT_USER_NM,
+                A.CREATE_ID,
+                A.SORT_ORDER
+           FROM GOV_DETAIL_POINT_OUT A
+                LEFT OUTER JOIN V_ROLE_USER B
+                ON A.INSERT_USER_ID = B.USER_ID
+          WHERE A.YEAR = #findYear#
+            AND A.GOV_METRIC_ID = #findGovMetricId#
+            <isNotEmpty prepend="AND" property="findInsertUserId">
+				A.INSERT_USER_ID = #findInsertUserId#
+			</isNotEmpty>
+            AND A.POINT_OUT_GBN_ID = '01'
+          ORDER BY A.SORT_ORDER
+               
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량지적및조치사항 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_POINT_OUT
+	==================================================================
+	-->
+	<select id="getGovList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.YEAR,
+                A.GOV_METRIC_ID,
+                A.POINT_OUT_ID,
+                A.POINT_OUT_CONTENT,
+                A.IMPROVEMENT,
+                A.COMMENTS,
+                A.INSERT_USER_ID,
+                B.USER_NM AS INSERT_USER_NM,
+                A.CREATE_ID,
+                A.SORT_ORDER
+           FROM GOV_DETAIL_POINT_OUT A
+                LEFT OUTER JOIN V_ROLE_USER B
+                ON A.INSERT_USER_ID = B.USER_ID
+          WHERE A.YEAR = #findYear#
+            AND A.GOV_METRIC_ID = #findGovMetricId#
+            <isNotEmpty prepend="AND" property="findInsertUserId">
+				A.INSERT_USER_ID = #findInsertUserId#
+			</isNotEmpty>
+            AND A.POINT_OUT_GBN_ID = '02'
+          ORDER BY A.SORT_ORDER
+               
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량지적및조치사항 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_POINT_OUT
+	==================================================================
+	-->
+	<select id="getMasList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.YEAR,
+                A.GOV_METRIC_ID,
+                A.POINT_OUT_ID,
+                A.POINT_OUT_CONTENT,
+                A.IMPROVEMENT,
+                A.COMMENTS,
+                A.INSERT_USER_ID,
+                B.USER_NM AS INSERT_USER_NM,
+                A.CREATE_ID,
+                A.SORT_ORDER
+           FROM GOV_DETAIL_POINT_OUT A
+                LEFT OUTER JOIN V_ROLE_USER B
+                ON A.INSERT_USER_ID = B.USER_ID
+          WHERE A.YEAR = #findYear#
+            AND A.GOV_METRIC_ID = #findGovMetricId#
+            <isNotEmpty prepend="AND" property="findInsertUserId">
+				A.INSERT_USER_ID = #findInsertUserId#
+			</isNotEmpty>
+            AND A.POINT_OUT_GBN_ID = '03'
+          ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 년도별 경평지표관리
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getMetricList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT                                                                
+               GOV_METRIC_ID                                                   
+              ,GOV_METRIC_NM    
+          FROM GOV_METRIC                          
+         WHERE YEAR =#findYear#                           
+           AND DELETE_DT IS NULL
+           AND GBN_ID='02'
+           AND GOV_METRIC_ID IN(SELECT GOV_METRIC_ID 
+            					  FROM GOV_DETAIL_EVAL_ITEM 
+            					 WHERE YEAR= #findYear# /**P*/ 
+					                   <isNotEmpty prepend="AND" property="authInsertUserId">
+								       INSERT_USER_ID = #authInsertUserId#
+								       </isNotEmpty>
+        	)
+         START WITH UP_METRIC_ID IS NULL
+         CONNECT BY PRIOR YEAR = YEAR
+             AND PRIOR GOV_METRIC_ID = UP_METRIC_ID           
+         ORDER SIBLINGS BY SORT_ORDER 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표별 세부평가 담당자 조회
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT A.INSERT_USER_ID,
+               B.USER_NM AS INSERT_USER_NM
+          FROM GOV_DETAIL_EVAL_ITEM A
+          LEFT OUTER JOIN BSC_USERINFO B ON B.USER_ID = A.INSERT_USER_ID   
+         WHERE A.YEAR = #findYear#   
+           AND A.GOV_METRIC_ID=#findGovMetricId#  
+           <isNotEmpty prepend="AND" property="authInsertUserId">
+		   A.INSERT_USER_ID = #authInsertUserId#
+		   </isNotEmpty>
+         ORDER BY B.USER_NM     
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량지적및조치사항 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_POINT_OUT
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.YEAR,
+                A.GOV_METRIC_ID,
+                A.POINT_OUT_ID,
+                A.POINT_OUT_CONTENT,
+                A.IMPROVEMENT,
+                A.COMMENTS,
+                A.INSERT_USER_ID,
+                B.USER_NM AS INSERT_USER_NM,
+                A.CREATE_ID,
+                A.SORT_ORDER
+           FROM GOV_DETAIL_POINT_OUT A
+                LEFT OUTER JOIN V_ROLE_USER B
+                ON A.INSERT_USER_ID = B.USER_ID
+          WHERE A.YEAR = #year#
+            AND A.GOV_METRIC_ID = #govMetricId#
+			AND	A.POINT_OUT_ID = #pointOutId#
+            AND A.POINT_OUT_GBN_ID = #pointOutGbnId#
+          ORDER BY A.SORT_ORDER      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량지적및조치사항 등록
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_DETAIL_POINT_OUT
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('GOV_DETAIL_POINT_OUT',#year#,'','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO GOV_DETAIL_POINT_OUT ( 
+			   YEAR
+			 , GOV_METRIC_ID
+			 , POINT_OUT_ID
+			 , POINT_OUT_GBN_ID
+			 , POINT_OUT_CONTENT
+			 , IMPROVEMENT
+			 , COMMENTS
+			 , SORT_ORDER
+			 , INSERT_USER_ID
+			 , CREATE_ID
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #govMetricId#
+			 , #SEQ#
+			 , #pointOutGbnId#
+			 , #pointOutContent#
+			 , #improvement#
+			 , #comments#
+			 , #sortOrder#
+			 , #insertUserId#
+			 , #insertUserId#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량지적및조치사항 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_DETAIL_POINT_OUT
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE GOV_DETAIL_POINT_OUT 
+		   SET POINT_OUT_GBN_ID       = #pointOutGbnId# 
+			 , POINT_OUT_CONTENT      = #pointOutContent# 
+			 , IMPROVEMENT            = #improvement# 
+			 , COMMENTS               = #comments# 
+			 , SORT_ORDER             = #sortOrder#
+			 , INSERT_USER_ID         = #insertUserId# 
+			 , CREATE_ID              = #insertUserId# 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND GOV_METRIC_ID = #govMetricId#
+		   AND POINT_OUT_ID = #pointOutId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량지적및조치사항 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_DETAIL_POINT_OUT
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM GOV_DETAIL_POINT_OUT 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND GOV_METRIC_ID = #govMetricId#
+		   AND POINT_OUT_ID = #pointOutId#
+	</update>
+	
+	
+</sqlMap>
+
+

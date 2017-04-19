@@ -1,0 +1,57 @@
+#*************************************************************************
+* CLASS 명      : popMemActionPlanProcess
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년 03월23일 
+* 기    능      : ActionPlan관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    유연주   2017년 03월23일              최 초 작 업 
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/mem/eval/memActIn/popMemActionPlanProcess.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+    <script type="text/javascript" language="javascript" >
+//<![CDATA[
+	var J = jQuery
+	J(document).ready(function(){
+		#if($vcMath.toInteger($returnMap.get("ErrorNumber")) != 1)
+			J.showMsgBox("$!{CS_STATIC.strReplaceLF("\n", $returnMap.get("ErrorMessage"))}", "goBack", null);
+		#else
+			J.showMsgBox("정상적으로 처리되었습니다", "goSubmit", null);
+		#end
+	});
+    
+	/******************************************
+	 * form submit
+	 ******************************************/
+	function goSubmit() {
+		opener.goActionPlanAction("$!{searchMap.txt2html("findMetricId")}", "$!{searchMap.txt2html("findMetricNm")}", "$!{searchMap.txt2html("findActInTerm")}");
+		J("#form1").submit();
+	}
+    
+	/******************************************
+	 * 돌아가기
+	 ******************************************/
+	function goBack() {
+		history.go(-1);
+	}
+//]]>
+</script>
+<noscript>
+	<div class="noScriptMsg">
+		<a href="$!{context_path}/mem/eval/memActIn/popMemActionPlanList.vw?type=template&amp;$!{searchMap.makeUrlParamFind()}">
+			$!{CS_STATIC.strReplaceLF("<br/>", $returnMap.get("ErrorMessage"))} <br/><br/> ActionPlan관리 페이지로 이동합니다.
+		</a>
+	</div>
+</noscript>
+<form name="form1" id="form1" method="post" action="$!{context_path}/mem/eval/memActIn/popMemActionPlanList.vw?type=popup">
+	$!{searchMap.makeHiddenFind()}
+</form>
+ <div id="dialog" title="확인" style="display:none;"><p>&nbsp;</p></div>    <!-- 다이어로그 -->
+

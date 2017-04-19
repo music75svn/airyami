@@ -1,0 +1,389 @@
+#*************************************************************************
+* CLASS 명      : matrixResultList
+* 작 업 자      : 박경태
+* 작 업 일      : 2012년 10월 26일
+* 기    능      : 평가결과
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     박경태      2012년 10월 26일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/matrix/matrixResult/matrixResultList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/matrix/matrixResult/matrixResultList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['$!{YEAR}', '평가단 ID', '지표POOLID', 'POOL 구분', '평가대상지표 POOL'
+							#foreach($list in $itemGrpList)
+    							#foreach($subList in $itemList)
+									#if($!{CS_HTML.txt2html($list.ITEM_GRP_ID)} == $!{CS_HTML.txt2html($subList.ITEM_GRP_ID)})
+										, '$!{CS_HTML.txt2html($subList.ITEM_NM)}'
+									#end
+    							#end
+								, '$!{CS_HTML.txt2html($list.ITEM_GRP_NM)} 평점'
+							#end
+
+							,'평점', '순위', '선정 여부'],
+			colModel     :[
+							{name:'YEAR'                 ,index:'YEAR'                 ,width:150   ,align:'center' },
+                            {name:'EVAL_USER_GRP_ID'     ,index:'EVAL_USER_GRP_ID'     ,width:150   ,align:'center' },
+                            {name:'METRIC_GRP_ID'        ,index:'METRIC_GRP_ID'        ,width:150   ,align:'center' },
+                            {name:'POOL_GUBUN_NM'        ,index:'POOL_GUBUN_NM'        ,width:170   ,align:'center' },
+                            {name:'METRIC_GRP_NM'        ,index:'METRIC_GRP_NM'        ,width:250   ,align:'left'   },
+                            #foreach($list in $itemGrpList)
+								#foreach($subList in $itemList)
+									#if($!{CS_HTML.txt2html($list.ITEM_GRP_ID)} == $!{CS_HTML.txt2html($subList.ITEM_GRP_ID)})
+										{name:'ITEM_$!{CS_HTML.txt2html($subList.ITEM_ID)}' ,index:'ITEM_$!{CS_HTML.txt2html($subList.ITEM_ID)}' ,width:150 ,align:'center' },
+									#end
+    							#end
+								{name:'ITEM_GRP_$!{CS_HTML.txt2html($list.ITEM_GRP_ID)}' ,index:'ITEM_$!{CS_HTML.txt2html($list.ITEM_GRP_ID)}' ,width:150   ,align:'center' },
+							#end
+							{name:'METRIC_GRP_SCORE'     ,index:'METRIC_GRP_SCORE'     ,width:150   ,align:'center' },
+                            {name:'KPI_RANK'             ,index:'KPI_RANK'             ,width:150   ,align:'center' },
+                            {name:'CHOICE_YN'            ,index:'CHOICE_YN'            ,width:150   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			cmTemplate   : {sortable:false},
+			caption:"평가결과"
+		}).jqGrid('hideCol',"METRIC_GRP_ID").jqGrid('hideCol',"YEAR").jqGrid('hideCol',"EVAL_USER_GRP_ID").setGridWidth($!{jqGrid_width});
+
+		J("#list").jqGrid('setGroupHeaders', {
+          useColSpanStyle: true,
+          groupHeaders:[
+			#foreach($list in $itemGrpInfoList)
+				{startColumnName: 'ITEM_$!{CS_HTML.txt2html($list.ITEM_ID)}', numberOfColumns: $!{CS_HTML.txt2html($list.ITEM_CNT)}, titleText: '<em>$!{CS_HTML.txt2html($list.ITEM_GRP_NM)}</em>'},
+			#end
+			{startColumnName: 'METRIC_GRP_ID', numberOfColumns: 1, titleText: '<em>타당성</em>'}
+		  ]
+        });
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//J("#formFind").attr("action", "$!{context_path}/bsc/matrix/matrixResult/matrixResultList.vw?type=template").submit();
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 지표선정 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			goChoice();
+			return false;
+		});
+
+		/******************************************
+		 * 지표선정 취소 이벤트
+		 ******************************************/
+		J("#btnCancel").click(function() {
+			goChoiceCancel();
+			return false;
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+		/******************************************
+		 * 년도별 평가단 change 이벤트
+		 ******************************************/
+		$('#findYear').change(function(){
+			chgEvalGrp();
+		});
+
+		J("#findMetricGrpScore").numeric({allow:"."});
+		J("#findMetricGrpScore").css("ime-mode", "disabled");
+
+	});
+
+	/******************************************
+	 * 년도별 평가단 조회
+	 ******************************************/
+	function chgEvalGrp(){
+
+		J.ajax({
+        	url      : "$!{context_path}/bsc/matrix/matrixKpi/getUserGroupList_ajax.vw",﻿
+        	cache    : false,
+        	type     : "POST",
+			data     : J("#formFind").serialize(),
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+				var xmlDoc = J.parseXML(data);
+        		J("#findEvalUserGrpId").empty();
+				J(xmlDoc).find("data").each(function() {
+					J('<option/>').attr('value', J(this).find("value").text()).text(J(this).find("text").text()).appendTo('#findEvalUserGrpId');
+				})
+			}
+    	});
+	}
+
+	/******************************************
+	 * 지표선정
+	 ******************************************/
+	function goChoice() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("선정할 지표를 선택하십시요", null, null);
+		} else {
+			J.showConfirmBox("선택한 지표를 선정하시겠습니까?", "choiceDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+
+	/******************************************
+	 * 지표선정처리
+	 ******************************************/
+	function choiceDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var metricGrpIds = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					metricGrpIds += rowdata.METRIC_GRP_ID + '|';
+				}
+			});
+		}
+
+		J("#metricGrpIds").val(metricGrpIds);
+		J("#mode").val("CHOICE");
+		J("#year").val(J("#findYear").val());
+		J("#evalUserGrpId").val(J("#findEvalUserGrpId").val());
+		J("#choiceYn").val("Y");
+		J("#formList").attr("action", "$!{context_path}/bsc/matrix/matrixResult/matrixResultProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 지표선정 취소
+	 ******************************************/
+	function goChoiceCancel() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("선정취소할 지표를 선택하십시요", null, null);
+		} else {
+			J.showConfirmBox("선택한 지표를 선정 취소하시겠습니까?", "choiceCancelDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+
+	/******************************************
+	 * 지표선정 취소
+	 ******************************************/
+	function choiceCancelDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var metricGrpIds = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					metricGrpIds += rowdata.METRIC_GRP_ID + '|';
+				}
+			});
+		}
+
+		J("#metricGrpIds").val(metricGrpIds);
+		J("#mode").val("CHOICE");
+		J("#year").val(J("#findYear").val());
+		J("#evalUserGrpId").val(J("#findEvalUserGrpId").val());
+		J("#choiceYn").val("N");
+		J("#formList").attr("action", "$!{context_path}/bsc/matrix/matrixResult/matrixResultProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var evalUserGrpIds = "";
+		var metricGrpIds = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					evalUserGrpIds += rowdata.EVAL_USER_GRP_ID + '|';metricGrpIds += rowdata.METRIC_GRP_ID + '|';
+				}
+			});
+		}
+
+		J("#evalUserGrpIds").val(evalUserGrpIds);J("#metricGrpIds").val(metricGrpIds);
+		J("#mode").val("DEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/bsc/matrix/matrixResult/matrixResultProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear :selected").text());
+		J("#evalUserGrpNm").val(J("#findEvalUserGrpId :selected").text());
+		J("#poolGubunNm").val(J("#findPoolGubun :selected").text());
+		J("#choiceNm").val(J("#findChoiceYn :selected").text());
+		J("#scoreNm").val(J("#findMetricGrpScore").val()+" 이상");
+
+		J("#formFind").attr("action", "$!{context_path}/bsc/matrix/matrixResult/matrixResultListExcel.vw?type=excel").submit();
+		J("#formFind").attr("action", "$!{context_path}/bsc/matrix/matrixResult/matrixResultList.vw?type=template");
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">평가결과</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/matrix/matrixResult/matrixResultList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden" 	id="yearNm"		 	name="yearNm" />
+				<input type="hidden" 	id="evalUserGrpNm"	name="evalUserGrpNm" />
+				<input type="hidden" 	id="poolGubunNm"	name="poolGubunNm" />
+				<input type="hidden" 	id="choiceNm"		name="choiceNm" />
+				<input type="hidden" 	id="scoreNm"		name="scoreNm" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="평가결과검색 조건">
+						<caption class="none">평가결과 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w180">
+            						<span><label for="findYear">평가년도</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w200">
+                					<span><label for="findEvalUserGrpId">평가단</label></span>
+									<span class="searchBar">
+										<select id="findEvalUserGrpId" name="findEvalUserGrpId" class="select w120">
+            								#foreach($evalGrpList in $evalGrpList)
+												<option value="$!{CS_HTML.txt2html($evalGrpList.EVAL_USER_GRP_ID)}" $searchMap.getSelected("findEvalUserGrpId", "$!{CS_HTML.txt2html($evalGrpList.EVAL_USER_GRP_ID)}")>$!{CS_HTML.txt2html($evalGrpList.EVAL_USER_GRP_NM)}</option>
+											#end
+            							</select>
+									</span>
+                                </td>
+								<td class="searchBox_tit w200">
+									<span><label for="findPoolGubun">POOL구분</label></span>
+            						<span class="searchBar">
+            							<select id="findPoolGubun" name="findPoolGubun" class="select w120">
+											<option value="">전체</option>
+            								$!CS_CODE.getCodeOption("142", $!{searchMap.txt2html("findPoolGubun")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w150">
+									<span><label for="findChoiceYn">선정여부</label></span>
+            						<span class="searchBar">
+            							<select id="findChoiceYn" name="findChoiceYn" class="select w80">
+											<option value="">전체</option>
+            								$!CS_CODE.getCodeOption("132", $!{searchMap.txt2html("findChoiceYn")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w200">
+                					<span><label for="findMetricGrpScore">평점</label></span>
+									<span class="searchBar">
+										<input type="text" id="findMetricGrpScore" name="findMetricGrpScore" class="text w100" value="$!{searchMap.txt2html("findMetricGrpScore")}"  maxlength="5" title="평점 "/> 이상
+									</span>
+                                </td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/matrix/matrixResult/matrixResultProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"		 		name="year" />
+			<input type="hidden" id="evalUserGrpIds" 	name="evalUserGrpIds" />
+			<input type="hidden" id="evalUserGrpId"  	name="evalUserGrpId" />
+			<input type="hidden" id="metricGrpIds" 		name="metricGrpIds" />
+			<input type="hidden" id="metricGrpId"  		name="metricGrpId" />
+			<input type="hidden" id="choiceYn"  		name="choiceYn" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="평가결과 조회결과">
+							<caption class="none">평가결과 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton" style="float:left; text-align:left; width:145px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnInsert" value="지표선정" /></li>
+								<li><input type="button" id="btnCancel" value="선정취소" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

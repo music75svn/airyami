@@ -1,0 +1,294 @@
+#*************************************************************************
+* CLASS 명      : imponEvalUserGrpList
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 11월 30일
+* 기    능      : 비계량평가단
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     정철수      2012년 11월 30일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/impon/imponEvalUserGrp/imponEvalUserGrpList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/impon/imponEvalUserGrp/imponEvalUserGrpList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '평가단 코드', '평가단', '가중치', '표준편차적용여부', '평가단 구분 코드', '평가단그룹', '대상인원', '정렬순서'],
+			colModel     :[
+							{name:'YEAR'                 ,index:'YEAR'                 ,width:150   ,align:'center' },
+                            {name:'EVAL_USER_GRP_ID'     ,index:'EVAL_USER_GRP_ID'     ,width:150   ,align:'center' },
+                            {name:'EVAL_USER_GRP_NM'     ,index:'EVAL_USER_GRP_NM'     ,width:250   ,align:'center' ,formatter:linkUpdate},
+                            {name:'WEIGHT'               ,index:'WEIGHT'               ,width:100   ,align:'center' },
+                            {name:'DEVIA_YN'             ,index:'DEVIA_YN'             ,width:100   ,align:'center' },
+                            {name:'EVAL_USER_GRP_GBN_ID' ,index:'EVAL_USER_GRP_GBN_ID' ,width:150   ,align:'center' },
+                            {name:'EVAL_USER_GRP_GBN_NM' ,index:'EVAL_USER_GRP_GBN_NM' ,width:150   ,align:'center' },
+                            {name:'EVAL_USER_CNT'        ,index:'EVAL_USER_CNT'        ,width:150   ,align:'center' ,formatter:linkUserUpdate},
+                            {name:'SORT_ORDER'           ,index:'SORT_ORDER'           ,width:100   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			##cmTemplate	 : {sortable:false},
+			caption		 : "비계량평가단",
+			loadComplete : function() {
+    							var ids = J("#list").jqGrid('getDataIDs');
+    							J("#list input:checkbox").each(function(index) {
+    								var rowdata = J("#list").getRowData(ids[index]);
+									if(J(rowdata.EVAL_USER_CNT).text() != 0) { //비교조건 대상 컬럼
+    									J("#list input:checkbox[name=jqg_list_" + (index+1) + "]").hide();
+    								}
+    							});
+                           }
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"EVAL_USER_GRP_ID").jqGrid('hideCol',"EVAL_USER_GRP_GBN_ID")
+		.setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#year").val(J("#findYear").val());
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/bsc/impon/imponEvalUserGrp/imponEvalUserGrpModify.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+	});
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) {
+		return '<a href=javascript:goModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#evalUserGrpId").val(ret.EVAL_USER_GRP_ID);
+		J("#year").val(J("#findYear").val());
+		J("#mode").val("MOD");
+		J("#formList").attr("action", "$!{context_path}/bsc/impon/imponEvalUserGrp/imponEvalUserGrpModify.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * jqGrid 평가자리스트 링크
+	 ******************************************/
+	function linkUserUpdate(cellvalue, options, rowObject) {
+		return '<a href=javascript:goUserList(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+
+	/******************************************
+	 * 평가자리스트 조회
+	 ******************************************/
+	function goUserList(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#evalUserGrpId").val(ret.EVAL_USER_GRP_ID);
+		J("#year").val(J("#findYear").val());
+
+		var id 	= J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata 	= "";
+		var insertChk 	= true;
+
+		for (var i = 0; i < ids.length; i++) {
+			if(rowId-1==i){
+    			rowdata = J("#list").getRowData(ids[i]);
+    			if(rowdata.SUBMIT_CNT > 0){
+    				J.showMsgBox("평가제출을 모두 취소 후 등록할 수 있습니다.", null, null);
+    				insertChk  = false;
+    			}
+			}
+		}
+		if(insertChk){
+    		J("#formList").attr("action", "$!{context_path}/bsc/impon/imponEvalUserGrp/imponEvalUserModify.vw?type=template").submit();
+    		return false;
+		}
+	}
+
+
+	/******************************************
+	 * 삭제
+	 ******************************************/
+	function goDelete() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("삭제할 데이터를 선택하십시요", null, null);
+		} else {
+			J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var evalUserGrpIds = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					evalUserGrpIds += rowdata.EVAL_USER_GRP_ID + '|';
+				}
+			});
+		}
+
+		J("#evalUserGrpIds").val(evalUserGrpIds);
+		J("#mode").val("DEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/bsc/impon/imponEvalUserGrp/imponEvalUserGrpProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#formList").attr("action", "$!{context_path}/bsc/impon/imponEvalUserGrp/imponEvalUserGrpListExcel.vw?type=excel").submit();
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">비계량평가단</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/impon/imponEvalUserGrp/imponEvalUserGrpList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="비계량평가단검색 조건">
+						<caption class="none">비계량평가단 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<!--
+            					<td class="searchBox_tit w250">
+                					<span><label for="findCodeGrpNm">코드명</label></span>
+									<span class="searchBar"><input type="text" id="findCodeGrpNm" name="findCodeGrpNm" class="text" value="$!{searchMap.txt2html("findCodeGrpNm")}"  maxlength="10" title="공통코드명 "/> </span>
+                                </td>
+            					<td class="searchBox_tit w250">
+									<span><label for="findUseYn">사용여부</label></span>
+            						<span class="searchBar">
+            							<select id="findUseYn" name="findUseYn" class="select w70">
+            								$!CS_CODE.getCodeOption("011", $!{searchMap.txt2html("findUseYn")})
+            							</select>
+            						</span>
+            					</td>
+								-->
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/impon/imponEvalUserGrp/imponEvalUserGrpProcess.vw?type=template">
+			<input type="hidden" id="mode"       name="mode" />
+			<input type="hidden" id="year"       name="year" />
+			<input type="hidden" id="yearNm"     name="yearNm" />
+			<input type="hidden" id="evalUserGrpIds" name="evalUserGrpIds" />
+			<input type="hidden" id="evalUserGrpId"  name="evalUserGrpId" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="비계량평가단 조회결과">
+							<caption class="none">비계량평가단 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton" style="float:left; text-align:left; width:145px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnInsert" value="신규" /></li>
+								<li><input type="submit" id="btnDelete" value="삭제" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

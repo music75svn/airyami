@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.base.deptStrategy">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPT_STRATEGY
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT   A.STRATEGY_ID
+		       , B.STRATEGY_NM STRATEGY_NM
+		       , NVL(A.PERSPECTIVE_ID, '-1') PERSPECTIVE_ID
+		       , A.SORT_ORDER
+		    FROM BSC_DEPT_STRATEGY A 
+		    LEFT OUTER JOIN BSC_STRATEGY B ON A.YEAR = B.YEAR AND A.STRATEGY_ID = B.STRATEGY_ID AND B.DELETE_DT IS NULL
+		   WHERE A.YEAR = #findYear#
+		     AND A.SC_DEPT_ID = #findScDeptId#
+<!-- 
+	     <isEqual prepend="AND" property="findUseYn" compareValue="N">
+		     	 A.DELETE_DT IS NOT NULL
+	     </isEqual>
+	     <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+		     	 A.DELETE_DT IS NULL
+	     </isNotEqual>
+-->
+		ORDER BY A.SORT_ORDER, A.PERSPECTIVE_ID, B.STRATEGY_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_STRATEGY
+	==================================================================
+	-->
+	<select id="getStrategyList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT STRATEGY_ID STRATEGY_ID, STRATEGY_NM STRATEGY_NM
+		  FROM BSC_STRATEGY
+		 WHERE YEAR = #findYear# AND DELETE_DT IS NULL
+		   AND STRATEGY_ID NOT IN (SELECT STRATEGY_ID FROM BSC_DEPT_STRATEGY WHERE YEAR = #findYear# AND DELETE_DT IS NULL AND SC_DEPT_ID = #findScDeptId#)
+		 ORDER BY STRATEGY_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_STRATEGY
+	==================================================================
+	-->
+	<select id="getDeptStrategyList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.STRATEGY_ID, B.STRATEGY_NM STRATEGY_NM 
+		   FROM BSC_DEPT_STRATEGY A 
+		   LEFT OUTER JOIN BSC_STRATEGY B
+		     ON A.YEAR = B.YEAR AND A.STRATEGY_ID = B.STRATEGY_ID AND B.DELETE_DT IS NULL
+		  WHERE A.YEAR = #findYear# AND A.DELETE_DT IS NULL AND A.SC_DEPT_ID = #findScDeptId#
+		  ORDER BY B.STRATEGY_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPT_STRATEGY
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+     		 , B.SC_DEPT_NM
+		     , A.UP_STRATEGY_ID
+		     , C.STRATEGY_NM AS UP_STRATEGY_NM
+		     , A.STRATEGY_ID
+		     , A.STRATEGY_NM
+		     , A.DB_INITIATIVE_ID
+		     , A.PERSPECTIVE_ID
+		     , A.SORT_ORDER
+		     , CASE
+		          WHEN A.DELETE_DT IS NULL
+		             THEN 'Y'
+		          ELSE 'N'
+		       END AS USE_YN
+		     , A.CONTENT
+		  FROM BSC_DEPT_STRATEGY A INNER JOIN BSC_SC_DEPT B ON A.YEAR = B.YEAR
+                                                  AND A.SC_DEPT_ID = B.SC_DEPT_ID
+                                   LEFT OUTER JOIN BSC_DEPT_STRATEGY C ON A.YEAR = C.YEAR
+                                                               			AND A.UP_STRATEGY_ID = C.STRATEGY_ID
+		 WHERE A.YEAR = #findYear#
+		   AND A.STRATEGY_ID = #strategyId#
+		   AND A.SC_DEPT_ID = #findScDeptId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_DEPT_STRATEGY
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		MERGE INTO BSC_DEPT_STRATEGY A
+		USING DUAL
+		   ON (A.YEAR = #findYear# AND A.SC_DEPT_ID = #findScDeptId# AND A.STRATEGY_ID = #strategyId#)
+		 WHEN NOT MATCHED THEN
+				INSERT (YEAR, STRATEGY_ID, SC_DEPT_ID, PERSPECTIVE_ID, SORT_ORDER, CREATE_DT)
+				VALUES (#findYear#, #strategyId#, #findScDeptId#, NULL, NULL, SYSDATE)
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_DEPT_STRATEGY
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_DEPT_STRATEGY
+		   SET STRATEGY_NM = #strategyNm#
+		     , UP_STRATEGY_ID = #upStrategyId#
+		     , PERSPECTIVE_ID = #perspectiveId#
+		     , DB_INITIATIVE_ID = #dbInitiativeId#
+		     , SORT_ORDER = #sortOrder#
+		     , CONTENT = #content#
+		     , MODIFY_DT = SYSDATE
+	     <isEqual property="useYn" compareValue="N">
+		     , DELETE_DT = SYSDATE
+	     </isEqual>
+	     <isNotEqual property="useYn" compareValue="N">
+		     , DELETE_DT = ''
+	     </isNotEqual>
+		 WHERE YEAR = #findYear#
+		   AND STRATEGY_ID = #strategyId#
+		   AND SC_DEPT_ID = #findScDeptId#
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제관리 일괄 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_DEPT_STRATEGY
+	==================================================================
+	-->	
+	<update id="updateBatchData" parameterClass="hashMap">
+		UPDATE BSC_DEPT_STRATEGY
+		   SET PERSPECTIVE_ID = #perspectiveId#
+		     , SORT_ORDER = #sortOrder#
+		     , MODIFY_DT = SYSDATE
+		 WHERE YEAR = #findYear#
+		   AND STRATEGY_ID = #strategyId#
+		   AND SC_DEPT_ID = #findScDeptId#
+	</update>	
+
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_DEPT_STRATEGY
+	==================================================================
+	-->	
+	<delete id="deleteData" parameterClass="hashMap">
+		DELETE BSC_DEPT_STRATEGY
+		 WHERE YEAR = #findYear#
+		   AND STRATEGY_ID = #strategyId#
+		   AND SC_DEPT_ID = #findScDeptId#
+	</delete>
+
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_DEPT_STRATEGY
+	==================================================================
+	-->	
+	<delete id="deleteScDeptStrategy" parameterClass="hashMap">
+		DELETE
+		  FROM BSC_DEPT_STRATEGY
+		 WHERE YEAR = #findYear#
+		   AND STRATEGY_ID = #strategyId#
+		   AND SC_DEPT_ID = #findScDeptId#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제관리 엑셀다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPT_STRATEGY
+	==================================================================
+	-->
+	<select id="getExcelList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT   A.STRATEGY_ID
+               , C.STRATEGY_NM STRATEGY_NM
+               , A.PERSPECTIVE_ID
+               , B.PERSPECTIVE_NM
+               , A.SORT_ORDER
+            FROM BSC_DEPT_STRATEGY A
+            LEFT OUTER JOIN BSC_PERSPECTIVE B
+              ON A.YEAR = B.YEAR AND A.PERSPECTIVE_ID = B.PERSPECTIVE_ID
+            LEFT OUTER JOIN BSC_STRATEGY C
+              ON A.YEAR = C.YEAR AND A.STRATEGY_ID = C.STRATEGY_ID          
+           WHERE A.YEAR = #findYear#
+             AND A.SC_DEPT_ID = #findScDeptId#
+             AND A.DELETE_DT IS NULL
+        ORDER BY A.SORT_ORDER, A.PERSPECTIVE_ID, C.STRATEGY_NM
+	</select>
+	
+</sqlMap>
+
+

@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.impon.imponReport">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_IPE_ACT_RPT
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 실적보고서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_ACT_RPT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+	           A.INSERT_USER_ID,
+	           C.USER_NM,
+	           C.EMAIL,
+	           A.METRIC_GRP_ID,
+	           B.METRIC_GRP_NM,
+	           A.METRIC_ID AS ITEM_ID,
+	           D.SC_DEPT_NM AS ITEM_NM,
+	           E.ACTUAL_BASE,
+	           F.ATTACH_FILE_NM ,
+	           F.ATTACH_FILE_FNM ,
+	           F.ATTACH_FILE_SUFFIX,
+	           CASE WHEN F.ATTACH_FILE_PATH IS NULL THEN F.ATTACH_FILE_PATH ELSE F_ENCRYPT(F.ATTACH_FILE_PATH,#encryptionCode#)  END ATTACH_FILE_PATH
+          FROM BSC_METRIC A
+          LEFT OUTER JOIN BSC_METRIC_GRP B ON A.YEAR=B.YEAR AND A.METRIC_GRP_ID=B.METRIC_GRP_ID
+          LEFT OUTER JOIN V_ROLE_USER C ON A.INSERT_USER_ID=C.USER_ID
+          LEFT OUTER JOIN BSC_SC_DEPT D ON A.YEAR=D.YEAR AND A.SC_DEPT_ID=D.SC_DEPT_ID
+          LEFT OUTER JOIN BSC_IPE_ACT_RPT E ON A.YEAR=E.YEAR AND A.METRIC_GRP_ID=E.METRIC_GRP_ID AND A.METRIC_ID=E.ITEM_ID AND E.EVAL_DEGREE_ID=#findEvalDegreeId#
+          LEFT OUTER JOIN BSC_IPE_ACT_RPT_ATTACH F ON A.YEAR=F.YEAR AND A.METRIC_GRP_ID=F.METRIC_GRP_ID AND A.METRIC_ID=F.ITEM_ID AND F.EVAL_DEGREE_ID=#findEvalDegreeId# AND F.SEQ=1
+         WHERE A.YEAR=#findYear#
+           AND A.TYPE_ID='02'
+           AND A.DELETE_DT IS NULL  
+           AND D.DELETE_DT IS NULL  
+           <isNotEmpty property="findInsertUserId" prepend="AND">
+       			A.INSERT_USER_ID = #findInsertUserId#
+       	   </isNotEmpty> 
+           AND A.METRIC_GRP_ID NOT IN(
+                                      SELECT DISTINCT METRIC_GRP_ID
+                                        FROM BSC_IPE_ITEM
+                                       WHERE YEAR=#findYear#
+                                         AND EVAL_DEGREE_ID=#findEvalDegreeId#)
+          UNION ALL                                        
+         SELECT A.YEAR,
+	            A.ACT_RPT_INSERT_USER_ID,
+	            C.USER_NM,
+	            C.EMAIL,
+	            A.METRIC_GRP_ID,
+	            B.METRIC_GRP_NM,
+	            A.ITEM_ID,
+	            A.ITEM_NM,
+	            D.ACTUAL_BASE,
+	            E.ATTACH_FILE_NM ,
+	            E.ATTACH_FILE_FNM ,
+	            E.ATTACH_FILE_SUFFIX,
+	           CASE WHEN E.ATTACH_FILE_PATH IS NULL THEN E.ATTACH_FILE_PATH ELSE F_ENCRYPT(E.ATTACH_FILE_PATH,#encryptionCode#)  END ATTACH_FILE_PATH
+		  FROM BSC_IPE_ITEM A
+		  LEFT OUTER JOIN BSC_METRIC_GRP B ON A.YEAR=B.YEAR AND A.METRIC_GRP_ID=B.METRIC_GRP_ID
+		  LEFT OUTER JOIN V_ROLE_USER C ON A.ACT_RPT_INSERT_USER_ID=C.USER_ID
+		  LEFT OUTER JOIN BSC_IPE_ACT_RPT D ON A.YEAR=D.YEAR AND A.METRIC_GRP_ID=D.METRIC_GRP_ID AND A.ITEM_ID=D.ITEM_ID AND A.EVAL_DEGREE_ID=D.EVAL_DEGREE_ID
+		  LEFT OUTER JOIN BSC_IPE_ACT_RPT_ATTACH E ON A.YEAR=E.YEAR AND A.METRIC_GRP_ID=E.METRIC_GRP_ID AND A.ITEM_ID=E.ITEM_ID AND A.EVAL_DEGREE_ID=E.EVAL_DEGREE_ID AND E.SEQ=1
+		 WHERE A.YEAR=#findYear#
+		   AND A.EVAL_DEGREE_ID=#findEvalDegreeId#
+		    <isNotEmpty property="findInsertUserId" prepend="AND">
+       			A.ACT_RPT_INSERT_USER_ID = #findInsertUserId#
+       	   </isNotEmpty> 
+		ORDER BY INSERT_USER_ID, METRIC_GRP_ID, ITEM_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적보고서 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_ACT_RPT
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_DEGREE_ID        
+			 , METRIC_GRP_ID         
+			 , ITEM_ID               
+			 , ITEM_GBN              
+			 , ACTUAL_BASE           
+			 , INSERT_USER_ID        
+		  FROM BSC_IPE_ACT_RPT 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND ITEM_ID = #itemId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가구분
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_DEGREE
+	==================================================================
+	-->
+	<select id="getDetailGubun" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_DEGREE_ID        
+			 , EVAL_DEGREE_NM         
+		  FROM BSC_ECM_EVAL_DEGREE 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적담당자
+	  #	기능	: SELECT
+	  #	TABLE	: V_ROLE_USER
+	==================================================================
+	-->
+	<select id="getDetailUser" parameterClass="hashMap" resultClass="hashMap">
+		SELECT USER_NM         
+		  FROM V_ROLE_USER 
+		 WHERE USER_ID=#insertUserId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표POOL
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC_GRP
+	==================================================================
+	-->
+	<select id="getDetailMetricGrp" parameterClass="hashMap" resultClass="hashMap">
+		SELECT METRIC_GRP_NM         
+		  FROM BSC_METRIC_GRP
+		 WHERE YEAR = #year#
+		   AND METRIC_GRP_ID = #metricGrpId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표POOL
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getDetailMetric" parameterClass="hashMap" resultClass="hashMap">
+		SELECT B.SC_DEPT_NM AS ITEM_NM
+		  FROM BSC_METRIC A
+		  LEFT OUTER JOIN BSC_SC_DEPT B ON A.YEAR=B.YEAR AND A.SC_DEPT_ID=B.SC_DEPT_ID
+		 WHERE A.YEAR=#year#
+		   AND A.METRIC_GRP_ID=#metricGrpId#
+		   AND A.METRIC_ID=#itemId#
+		UNION
+		SELECT ITEM_NM
+		  FROM BSC_IPE_ITEM
+		 WHERE YEAR=#year#
+		   AND METRIC_GRP_ID=#metricGrpId#
+		   AND ITEM_ID=#itemId#
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적담당자 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_DEGREE
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT
+               A.INSERT_USER_ID,
+               B.USER_NM AS INSERT_USER_NM
+		  FROM BSC_METRIC A
+		  LEFT OUTER JOIN V_ROLE_USER B ON A.INSERT_USER_ID=B.USER_ID
+		 WHERE A.YEAR=#findYear#
+		   AND A.TYPE_ID='02'
+		   AND A.DELETE_DT IS NULL  
+		   AND A.INSERT_USER_ID IS NOT NULL
+		   AND A.METRIC_GRP_ID NOT IN(
+                                      SELECT DISTINCT METRIC_GRP_ID
+                                        FROM BSC_IPE_ITEM
+                                       WHERE YEAR=#findYear#
+                                         AND EVAL_DEGREE_ID=#findEvalDegreeId#)
+			UNION              
+		   SELECT DISTINCT
+		          A.ACT_RPT_INSERT_USER_ID AS INSERT_USER_ID,
+		          B.USER_NM  AS INSERT_USER_NM
+			FROM BSC_IPE_ITEM A
+			LEFT OUTER JOIN V_ROLE_USER B ON A.ACT_RPT_INSERT_USER_ID=B.USER_ID
+		   WHERE A.YEAR=#findYear#
+			 AND A.EVAL_DEGREE_ID=#findEvalDegreeId#
+    </select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적보고서 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_IPE_ACT_RPT
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_IPE_ACT_RPT ( 
+			   YEAR
+			 , EVAL_DEGREE_ID
+			 , METRIC_GRP_ID
+			 , ITEM_ID
+			 , ITEM_GBN
+			 , ACTUAL_BASE
+			 , INSERT_USER_ID
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #evalDegreeId#
+			 , #metricGrpId#
+			 , #itemId#
+			 , #itemGbn#
+			 , #actualBase#
+			 , #insertUserId#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적보고서 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IPE_ACT_RPT
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_IPE_ACT_RPT 
+		   SET ITEM_GBN               = #itemGbn# 
+			 , ACTUAL_BASE            = #actualBase# 
+			 , ATTACH_FILE_NM         = #attachFileNm# 
+			 , ATTACH_FILE_FNM        = #attachFileFnm# 
+			 , ATTACH_FILE_SUFFIX     = #attachFileSuffix# 
+			 , ATTACH_FILE_PATH       = #attachFilePath# 
+			 , INSERT_USER_ID         = #insertUserId# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND ITEM_ID = #itemId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 실적보고서 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IPE_ACT_RPT
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_IPE_ACT_RPT 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND ITEM_ID = #itemId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 목표 파일 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_ACT_RPT_ATTACH
+	==================================================================
+	-->
+	<select id="getFileList" parameterClass="hashMap" resultClass="hashMap">
+ 		SELECT A.YEAR
+	         , A.EVAL_DEGREE_ID
+	         , A.METRIC_GRP_ID
+	         , A.ITEM_ID
+	         , A.SEQ
+	         , A.ATTACH_FILE_NM
+	         , A.ATTACH_FILE_FNM
+	         , A.ATTACH_FILE_SUFFIX
+	         , F_ENCRYPT(A.ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+         FROM BSC_IPE_ACT_RPT_ATTACH A
+        WHERE A.YEAR = #year#
+		   AND A.EVAL_DEGREE_ID = #evalDegreeId#
+		   AND A.METRIC_GRP_ID = #metricGrpId#
+		   AND A.ITEM_ID = #itemId#	 
+  	</select>
+  	
+  	<!--
+	==================================================================   
+	  # 설명	: 목표 첨부파일 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EVAL_BASE
+	==================================================================
+	-->	
+	<insert id="insertFileInfo" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT NVL(MAX(SEQ)+1,1)  FROM BSC_IPE_ACT_RPT_ATTACH WHERE YEAR = #year# AND EVAL_DEGREE_ID=#evalDegreeId# AND METRIC_GRP_ID=#metricGrpId# AND ITEM_ID=#itemId#  
+		</selectKey> 
+		INSERT INTO BSC_IPE_ACT_RPT_ATTACH (
+               YEAR
+             , EVAL_DEGREE_ID
+             , METRIC_GRP_ID
+             , ITEM_ID
+             , SEQ
+             , ATTACH_FILE_NM
+             , ATTACH_FILE_FNM
+             , ATTACH_FILE_SUFFIX
+             , ATTACH_FILE_PATH
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #evalDegreeId#
+             , #metricGrpId#
+             , #itemId#
+             , #SEQ#
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSuffix#
+             , #attachFilePath#
+             , SYSDATE
+    	   )       
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 목표 첨부파일 삭제
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EVAL_BASE
+	==================================================================
+	-->	
+	<delete id="deleteFileInfo" parameterClass="hashMap">
+		DELETE FROM BSC_IPE_ACT_RPT_ATTACH
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND ITEM_ID = #itemId#
+		   AND SEQ = #seq#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가 실적보고서 등록기한 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_DEGREE
+	==================================================================
+	-->
+	<select id="getEvalPeriodYn" parameterClass="hashMap" resultClass="java.lang.String">
+		  SELECT CASE WHEN TO_CHAR( SYSDATE , 'YYYYMMDD') BETWEEN  IMPON_RPT_REG_START_DT AND IMPON_RPT_REG_END_DT THEN 'Y' ELSE 'N' END AS EVAL_PERIOD_YN      
+            FROM BSC_ECM_EVAL_DEGREE 
+           WHERE YEAR = #findYear#
+             AND EVAL_DEGREE_ID = #findEvalDegreeId#
+	</select>
+	
+	
+</sqlMap>
+
+

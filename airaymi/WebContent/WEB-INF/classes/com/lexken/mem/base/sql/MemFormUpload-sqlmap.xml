@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.base.memFormUpload">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MEM_FORM_ATTACH
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 양식업로드 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_FORM_ATTACH
+	==================================================================
+	-->
+	<select id="getAttachFileList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.FORM_CD
+             , A.ATTACH_FILE_NM
+             , A.ATTACH_FILE_FNM
+             , A.ATTACH_FILE_SUFFIX
+             , A.ATTACH_FILE_PATH
+          FROM MEM_FORM_ATTACH A
+          ORDER BY A.FORM_CD
+	</select>
+    
+    <!--
+    ==================================================================
+      # 설명    : 양식업로드 등록
+      #    기능    : INSERT
+      #    TABLE    : MEM_FORM_ATTACH
+    ==================================================================
+    -->
+    <insert id="insertData" parameterClass="hashMap">
+
+	MERGE INTO MEM_FORM_ATTACH A
+		USING DUAL
+		ON (A.FORM_CD = #formCd#)
+	WHEN MATCHED THEN 
+    UPDATE SET 
+           ATTACH_FILE_NM = #attachFileNm#
+         , ATTACH_FILE_FNM = #attachFileFnm#
+         , ATTACH_FILE_SUFFIX =#attachFileSufix#
+         , ATTACH_FILE_PATH =#attachFilePath#
+         , CREATE_DT = SYSDATE
+	WHEN NOT MATCHED THEN
+	INSERT (
+               FORM_CD
+             , ATTACH_FILE_NM
+             , ATTACH_FILE_FNM
+             , ATTACH_FILE_SUFFIX
+             , ATTACH_FILE_PATH
+             , CREATE_DT
+           ) VALUES (
+               #formCd#
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSufix#
+             , #attachFilePath#
+             , SYSDATE
+    	   )
+       
+    </insert>
+</sqlMap>

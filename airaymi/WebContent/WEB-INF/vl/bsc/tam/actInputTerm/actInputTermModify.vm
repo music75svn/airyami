@@ -1,0 +1,69 @@
+#*************************************************************************
+* CLASS 명      : actInputTermModify
+* 작 업 자      : 신인수 
+* 작 업 일      : 2012년 7월 23일 
+* 기    능      : 실적일정관리    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    신인수      2012년 7월 23일             최 초 작 업 
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/bsc/tam/actInputTerm/actInputTermList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 시작종료일자 클릭시 달력팝업 이벤트
+		 ******************************************/
+		J("#startDt").datepicker({
+			dateFormat: 'yy.mm.dd'
+		});
+		
+		J("#endDt").datepicker({
+			dateFormat: 'yy.mm.dd'
+		});
+	});
+
+//]]>
+</script>    
+
+<div class="tableTop">
+	#parse("/WEB-INF/vl/common/template/tabs.vm")
+	<div class="clear"></div>
+</div>
+<div class="blockDetail">
+	<table summary="실적일정관리 등록">
+		<caption class="none">실적일정관리 등록</caption>
+		<colgroup>
+			<col width="130" />
+			<col width="200" />
+		</colgroup>
+		<tbody>
+			<tr>
+                <th scope="row">입력 월<label for="mon"></label></th>
+				<td>
+					<select id="mon" name="mon" class="select w55" disabled>
+						$!CS_CODE.getCodeOption("024", $!{searchMap.txt2html("mon")})
+					</select>
+				</td>
+			</tr>
+			<tr>
+                <th scope="row"><span class="txt_red">(*)</span>입력시작일<label for="startDt"></label></th>
+				<td>
+                	<input type="text" id="startDt" name="startDt" class="inputbox w100" value='$!{CS_FORMAT.dateFormat($!{detail.START_DT})}' maxlength="20" readonly />
+                </td>
+			</tr>
+			<tr>
+				<th scope="row"><span class="txt_red">(*)</span>입력종료일<label for="endDt"></label></th>
+                <td>
+                	<input type="text" id="endDt" name="endDt" class="inputbox w100" value="$!{CS_FORMAT.dateFormat($!{detail.END_DT})}" maxlength="20"  readonly />
+                </td>
+            </tr>
+		</tbody>
+	</table>
+</div>
+<div class="clear"></div>

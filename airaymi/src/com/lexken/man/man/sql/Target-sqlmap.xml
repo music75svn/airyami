@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="man.man.target">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MAN_TARGET
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 경영목표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_TARGET
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.YEAR
+        		, A.MAN_ID
+        		, A.MAN_NM
+        		, MAN_WEIGHT  
+        		, A.SORT_ORDER
+             	, (SELECT COUNT(1)
+                 FROM  MAN_STRATEGY B
+                WHERE A.YEAR=B.YEAR
+                  AND A.MAN_ID=B.MAN_ID
+                  AND B.DELETE_DT IS NULL) CNT
+          FROM MAN_TARGET A
+         WHERE A.YEAR = #findYear#
+         	<isNotEmpty prepend="AND" property="findManNm">
+	            UPPER(A.MAN_NM) LIKE  '%' || TRIM(UPPER(#findManNm#)) ||'%'
+		   	</isNotEmpty>
+           <isEqual prepend="AND" property="findUseYn" compareValue="Y">
+               A.DELETE_DT IS NULL
+           </isEqual>
+           <isNotEqual prepend="AND" property="findUseYn" compareValue="Y">
+               A.DELETE_DT IS NOT NULL
+           </isNotEqual>
+         ORDER BY A.SORT_ORDER  
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경영목표 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_TARGET
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , MAN_ID        
+			 , MAN_NM
+			 , MAN_WEIGHT        
+			 , SORT_ORDER
+			 , (SELECT COUNT(1)
+                 FROM  MAN_STRATEGY B
+                WHERE A.YEAR=B.YEAR
+                  AND A.MAN_ID=B.MAN_ID
+                  AND B.DELETE_DT IS NULL) CNT        
+			 , CASE WHEN DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USE_YN         
+		  FROM MAN_TARGET A
+		 WHERE YEAR = #year#
+		   AND MAN_ID = #manId#	  
+    </select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경영목표 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MAN_TARGET
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT 'M'||LPAD(NVL(MAX(SUBSTR(MAN_ID,2,6)),0)+1,6,'0') FROM MAN_TARGET WHERE YEAR=#year#
+		</selectKey>
+		INSERT INTO MAN_TARGET ( 
+			   YEAR
+			 , MAN_ID
+			 , MAN_NM
+			 , MAN_WEIGHT
+			 , SORT_ORDER
+			 , CREATE_DT
+			 , DELETE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #manNm#
+			 , #manWeight#
+			 , #sortOrder#
+			 , SYSDATE
+			 ,
+			 <isEqual property="useYn" compareValue="Y">
+		     NULL
+		     </isEqual>
+		     <isNotEqual property="useYn" compareValue="Y">
+		     SYSDATE
+		     </isNotEqual>
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경영목표 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MAN_TARGET
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE MAN_TARGET 
+		   SET MAN_NM         = #manNm#
+		   	 , MAN_WEIGHT   = #manWeight# 
+			 , SORT_ORDER             = #sortOrder# 
+			 , MODIFY_DT              = SYSDATE 
+			 <isEqual property="useYn" compareValue="Y">
+	         , DELETE_DT = NULL
+	         </isEqual>
+	         <isEqual property="useYn" compareValue="N">
+	         , DELETE_DT = SYSDATE
+	         </isEqual>
+		 WHERE YEAR = #year#
+		   AND MAN_ID = #manId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 경영목표 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: MAN_TARGET
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE MAN_TARGET 
+		   SET DELETE_DT       = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND MAN_ID = #manId#
+	</update>
+	
+	
+</sqlMap>
+
+

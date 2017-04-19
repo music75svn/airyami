@@ -1,0 +1,116 @@
+#**************************************************************************
+* CLASS 명      : excResultList
+* 작 업 자      : 안요한
+* 작 업 일      : 2013년 07월 18일 
+* 기    능      : 평가결과현황
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     안요한      2013년 07월 18일             최 초 작 업
+**************************************************************************# 
+<script type="text/javascript" language="javascript">
+//<![CDATA[
+
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+			<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/cbe/exc/excResult/excResultList.vw?type=template">
+				<input type="hidden" 	id="oldYear"		name="oldYear"			value="$!{searchMap.txt2html("findYear")}" />
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"	id="excSubmit"		name="excSubmit"		value="$!{searchMap.txt2html("excSubmit")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="평가결과 검색">
+						<caption class="none">평가결과 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w180">
+                                    <span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+			<div class="blockDetail2" id="a">
+    			<table summary="별도평가 최종 평가표">
+					<caption class="none">별도평가 최종 평가표</caption>
+    				<colgroup>
+    					<col width="25%" />
+    					<col width="25%" />
+    					<col width="25%" />
+    					<col width="25%" />
+    				</colgroup>
+    				<tbody>	    					
+						<tr>
+							<th scope="row" ><label for="gubun">구분</label></th>							
+							<th scope="row" colspan="2"><label for="target">대상</label></th>													
+							<th scope="row" ><label for="result">최종평가결과</label></th>													
+						</tr>
+						#set ($Usercnt = 0)
+						#foreach($Userlist in $Userlist)
+							#set ($Usercnt = $Usercnt + 1)
+						<tr>	
+							#if ($Usercnt == 1)
+								<td rowspan="$Userlist.USER_CNT">별도평가자</td>
+							#end
+							<td style="text-align:left;">$!{CS_HTML.txt2html($Userlist.DEPT_KOR_NM)}장</td>
+							<td style="text-align:center;">$!{CS_HTML.txt2html($Userlist.KOR_NM)} $!{CS_HTML.txt2html($Userlist.POS_TC_NM)}
+							( $!{CS_FORMAT.dateFormat($Userlist.START_PCMT_DATE, '.')} - $!{CS_FORMAT.dateFormat($Userlist.END_PCMT_DATE, '.')} )
+							<input type="hidden" name="empn" class="inputbox w900" value='$!{CS_HTML.txt2html($Userlist.EMPN)}'/>
+							<input type="hidden" name="evalDegreeId" class="inputbox w900" value='$!{CS_HTML.txt2html($Userlist.EVAL_DEGREE_ID)}'/>
+							<td >
+								#if($!{CS_HTML.txt2html($evalYn.EVAL_YN)} != "Y")
+									
+								#else	
+									$!{CS_HTML.txt2html($Userlist.FINAL_GRADE)}
+								#end 
+							</td>
+						</tr>
+						#end
+						#set ($deptCnt = 0)
+						#foreach($Deptlist in $Deptlist)
+							#set ($deptCnt = $deptCnt + 1)
+						<tr>	
+							#if ($deptCnt == 1)
+								<td rowspan="$Deptlist.DEPT_CNT">별도평가부서</td>
+							#end
+							<td colspan="2"style="text-align:left">$!{CS_HTML.txt2html($Deptlist.SC_DEPT_NM)}
+								<input type="hidden" name="scDeptId" class="inputbox w900" value='$!{CS_HTML.txt2html($Deptlist.SC_DEPT_ID)}'/>
+								<input type="hidden" name="evalDegreeIds" class="inputbox w900" value='$!{CS_HTML.txt2html($Deptlist.EVAL_DEGREE_ID)}'/>
+							<td >
+								#if($!{CS_HTML.txt2html($evalYn.EVAL_YN)} != "Y")
+																		
+								#else
+									$!{CS_HTML.txt2html($Deptlist.FINAL_GRADE)}
+								#end
+							</td>
+						</tr>
+						#end
+    				</tbody>
+    			</table>
+    		</div>
+	</div>	
+</div>

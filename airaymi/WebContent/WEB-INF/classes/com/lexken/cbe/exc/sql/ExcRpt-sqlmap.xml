@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="cbe.exc.excRpt">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+    <typeAlias alias="detailMap" 		type="java.util.HashMap"/>
+    <typeAlias alias="rptParam" 		type="java.util.HashMap"/>
+
+	<!--
+	==================================================================
+	  # 설명	: 별도평가자 사업추진실적 보고서 제출기간 조회
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_SCHEDULE
+	==================================================================
+	-->
+	<select id="getRptSchedule" parameterClass="hashMap" resultClass="hashMap">
+		SELECT SEPA_EVAL_BASE_REG_START_DT, SEPA_EVAL_BASE_REG_END_DT
+		     , CASE WHEN SYSDATE BETWEEN TO_DATE(SEPA_EVAL_BASE_REG_START_DT, 'rrrr-mm-dd') AND TO_DATE(SEPA_EVAL_BASE_REG_END_DT || '23:59:59', 'rrrr-mm-dd hh24:mi:ss') THEN 'T'
+		            ELSE 'N' END RPT_YN
+		  FROM BSC_ECM_EVAL_DEGREE
+		 WHERE 1 = 1
+		 <isNotEmpty prepend="AND" property="findYear">
+			YEAR = #findYear#
+		 </isNotEmpty>
+		 <isNotEmpty prepend="AND" property="year">
+			YEAR = #year#
+		 </isNotEmpty>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 별도평가 사업추진보고서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_EXC_EVAL_DEPT, BSC_EXC_EVAL_USER
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT C.YEAR,
+		       C.EVAL_DEGREE_ID,
+		       C.SC_DEPT_ID AS EXC_EVAL_TARGET,
+		       C.SC_DEPT_NM AS EXC_EVAL_TARGET_NM,
+		       ( SELECT CODE_NM
+		          FROM BSC_CODE
+		         WHERE YEAR = D.YEAR AND CODE_GRP_ID = '179'
+		               AND CODE_ID =
+		                      (CASE
+		                          WHEN D.SUBMIT_YN IS NULL THEN '03'
+		                          WHEN D.SUBMIT_YN = 'N' THEN '02'
+		                          WHEN D.SUBMIT_YN = 'Y' THEN '01'
+		                          ELSE ''
+		                       END))
+		          SUBMIT_YN_NM,
+		        D.SUBMIT_YN,
+		        D.BSC_EXC_RPT_ID,
+		        C.RPT_YN
+		  FROM ( SELECT YEAR,
+		               EVAL_DEGREE_ID,
+		               SC_DEPT_ID,
+		               F_DEPT_FULL_NM (#findYear#, SC_DEPT_ID, 'BSC_SC_DEPT') SC_DEPT_NM,
+		               EVAL_SUBMIT_YN,
+		               RPT_YN
+		          FROM BSC_EXC_EVAL_DEPT
+				 WHERE YEAR = #findYear#
+<!-- 				 AND SC_DEPT_ID  NOT IN (  'D006302', 'D006408' )  -->  
+		        UNION ALL
+		        SELECT A.YEAR,
+		               A.EVAL_DEGREE_ID,
+		               A.EMPN,
+		               B.KOR_NM,
+		               A.EVAL_SUBMIT_YN,
+		               RPT_YN
+				  FROM BSC_EXC_EVAL_USER A
+		          LEFT OUTER JOIN BSC_INSA B
+		          ON A.EMPN =  B.EMPN AND A.YEAR = B.YEAR
+		          WHERE A.YEAR = #findYear#
+		          AND POS_TC NOT IN ( '17', '25', '33', '43', '54', '64')
+		          AND A.EMPN NOT IN (SELECT EMPN FROM BSC_INSA_PCMT WHERE YEAR = A.YEAR AND PCMT_TC IN ( '81','82','83','84','85','86','89','8H','8I') )
+		          AND A.EMPN NOT IN (SELECT EMPN
+							           FROM (  SELECT YEAR, EMPN, SUM (WORK_MON) WORK_MON
+							                     FROM V_PRS_RE_MON
+							                    WHERE YEAR = '2013'
+							                 GROUP BY YEAR, EMPN
+							                 ORDER BY WORK_MON)
+							          WHERE WORK_MON <![CDATA[ < ]]> 3 ) 
+		          ) C
+		LEFT OUTER JOIN BSC_EXC_RPT D
+		ON C.YEAR = D.YEAR
+		AND C.EVAl_DEGREE_ID = D.EVAl_DEGREE_ID
+		AND ( C.SC_DEPT_ID = D.SC_DEPT_ID OR C.SC_DEPT_ID = D.EMPN )
+		WHERE 1 = 1
+           <isEqual prepend="AND" property="findSubmitYn" compareValue="01">
+				SUBMIT_YN = 'Y'
+           </isEqual>
+           <isEqual prepend="AND" property="findSubmitYn" compareValue="02">
+				SUBMIT_YN = 'N'
+           </isEqual>
+           <isEqual prepend="AND" property="findSubmitYn" compareValue="03">
+				SUBMIT_YN IS NULL
+           </isEqual>
+           <isNotEmpty prepend="AND" property="findSabun">
+				C.SC_DEPT_ID = #findSabun#
+	   	   </isNotEmpty>
+           <isNotEmpty prepend="OR" property="findScDeptId">
+				C.SC_DEPT_ID = #findScDeptId#
+	   	   </isNotEmpty>
+         ORDER BY EXC_EVAL_TARGET DESC
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 자기성과기술서 전년도 소속부서 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_RPT_LAST_YEAR_DEPT
+	==================================================================
+	-->
+	<select id="getLastYearDept" parameterClass="hashMap" resultClass="hashMap">
+		SELECT   A.YEAR,
+		         A.EMPN,
+		         A.START_PCMT_DATE,
+		         A.END_PCMT_DATE,
+		         A.DEPT_CD,
+		         (SELECT DEPT_KOR_NM
+		            FROM BSC_INSA_DEPT
+		           WHERE YEAR = A.YEAR
+		                 AND DEPT_CD = (SELECT UP_DEPT_CD
+		                                  FROM BSC_INSA_DEPT
+		                                 WHERE YEAR = A.YEAR AND DEPT_CD = A.DEPT_CD))
+		         || ' '
+		         || (SELECT DEPT_KOR_NM
+		               FROM BSC_INSA_DEPT
+		              WHERE YEAR = A.YEAR AND DEPT_CD = A.DEPT_CD)
+		            DEPT_FULL_NM
+		    FROM BSC_INSA_PCMT A
+		   WHERE A.YEAR = #year# AND A.EMPN = #excEvalTarget#
+		   AND END_PCMT_DATE = #year#||'1231'
+<!--		   AND DEPT_CD IN ('1100','1200','1300','1310','2100')  비서실,감사실,기획조정실,성과평가부,굴착공사정보지원센터만 -->
+    </select>
+
+    <!--
+	==================================================================
+	  # 설명	: 사업추진실적보고서 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_EXC_RPT
+	==================================================================
+	-->
+	<resultMap id="detailMap" class="java.util.HashMap">
+        <result property="YEAR"						column="YEAR" />
+		<result property="EVAL_DEGREE_ID"			column="EVAL_DEGREE_ID" />
+		<result property="EMPN"						column="EMPN" />
+		<result property="BSC_EXC_RPT_ID"			column="BSC_EXC_RPT_ID" />
+		<result property="SC_DEPT_ID"				column="SC_DEPT_ID" />
+		<result property="SC_DEPT_NM"				column="SC_DEPT_NM" />
+		<result property="KOR_NM"					column="KOR_NM" />
+		<result property="CONTENT"                  column="CONTENT"			jdbcType="CLOB"		javaType="String"	/>
+    </resultMap>
+
+	<select id="getMngRpt" parameterClass="java.util.HashMap" resultClass="detailMap">
+		SELECT A.YEAR, A.EVAL_DEGREE_ID, A.EMPN, A.BSC_EXC_RPT_ID, A.SC_DEPT_ID
+		     , F_DEPT_FULL_NM (A.YEAR, A.SC_DEPT_ID, 'BSC_SC_DEPT') SC_DEPT_NM
+		     , (SELECT CODE_NM FROM BSC_CODE WHERE YEAR = B.YEAR AND CODE_GRP_ID = '170' AND CODE_ID = B.CAST_TC) CAST_TC_NM
+		     , (SELECT KOR_NM FROM BSC_INSA WHERE YEAR = A.YEAR AND EMPN = A.EMPN) KOR_NM
+		     , A.CONTENT
+		     , A.SUBMIT_YN
+		  FROM BSC_EXC_RPT A
+		  LEFT OUTER JOIN BSC_INSA B
+		  	ON A.YEAR = B.YEAR
+		   AND A.EMPN = B.EMPN
+		 WHERE A.YEAR = #year#
+		   AND A.EVAL_DEGREE_ID = #evalDegreeId#
+		   AND (A.EMPN = #excEvalTarget# or A.SC_DEPT_ID = #excEvalTarget#)
+		   <!--  AND A.BSC_EXC_RPT_ID = #excRptId# -->
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 사업추진실적보고서 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA
+	==================================================================
+	-->
+	<select id="getMngRptFromInsa" parameterClass="hashMap" resultClass="detailMap">
+        SELECT A.EMPN, A.DEPT_CD CUR_DEPT_CD
+             , (SELECT DEPT_KOR_NM FROM BSC_INSA_DEPT WHERE YEAR = B.YEAR AND DEPT_CD = (SELECT UP_DEPT_CD FROM BSC_INSA_DEPT WHERE YEAR = B.YEAR AND DEPT_CD = B.DEPT_CD))
+                        || ' ' || (SELECT DEPT_KOR_NM FROM BSC_INSA_DEPT WHERE YEAR = B.YEAR AND DEPT_CD = B.DEPT_CD) DEPT_FULL_NM
+             , A.KOR_NM
+             , (SELECT CODE_NM FROM BSC_CODE WHERE YEAR = B.YEAR AND CODE_GRP_ID = '170' AND CODE_ID = B.CAST_TC) CAST_TC_NM
+             , '' CONTENT
+          FROM BSC_INSA A
+             , BSC_INSA_PCMT B
+         WHERE A.YEAR = #year#
+           AND A.EMPN = #excEvalTarget#
+           AND (B.YEAR, B.EMPN, B.END_PCMT_DATE) IN (
+                                                SELECT A.YEAR, A.EMPN, MAX(A.END_PCMT_DATE) END_PCMT_DATE
+                                                  FROM BSC_INSA_PCMT A
+                                                 WHERE A.YEAR = #year#
+                                                   AND A.EMPN = #excEvalTarget#
+                                                 GROUP BY A.YEAR, A.EMPN
+                                              )
+           AND A.YEAR = B.YEAR
+           AND A.EMPN = B.EMPN
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 사업추진실적보고서 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA
+	==================================================================
+	-->
+	<select id="getExcRptInfo" parameterClass="hashMap" resultClass="detailMap">
+        SELECT F_DEPT_FULL_NM (A.YEAR, A.SC_DEPT_ID, 'BSC_SC_DEPT') SC_DEPT_NM
+        	   , SC_DEPT_ID
+        	   , '' CONTENT
+		  FROM BSC_SC_DEPT A
+		 WHERE A.YEAR = #year#
+		   AND A.SC_DEPT_ID = #excEvalTarget#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 사업추진실적보고서 ID 채번
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_EXC_RPT
+	==================================================================
+	-->
+	<select id="getRptId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT 'RPT' || LPAD(NVL(SUBSTR(MAX(BSC_EXC_RPT_ID), 4), 0) + 1, 4, '0')
+		  FROM BSC_EXC_RPT
+		 WHERE YEAR = #year# AND EVAL_DEGREE_ID = #evalDegreeId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 자기성과기술서 저장
+	  #	기능	: MERGE INTO
+	  #	TABLE	: BSC_EXC_RPT
+	==================================================================
+	-->
+	<parameterMap id="rptParam" class="java.util.HashMap">
+        <parameter property="year" 				jdbcType="VARCHAR2" 		javaType="String"	mode="IN"/>
+        <parameter property="evalDegreeId"		jdbcType="VARCHAR2" 		javaType="String"	mode="IN"/>
+        <parameter property="excEvalTarget"		jdbcType="VARCHAR2" 		javaType="String"	mode="IN"/>
+        <parameter property="content"			jdbcType="CLOB" 			javaType="String"	mode="IN"/>
+    </parameterMap>
+
+	<insert id="insertDeptData" parameterClass="hashMap">
+            INSERT into BSC_EXC_RPT (YEAR, EVAL_DEGREE_ID, BSC_EXC_RPT_ID, SC_DEPT_ID, CONTENT, SUBMIT_YN, CREATE_DT)
+            VALUES (#year#, #evalDegreeId#, #rptId#, #excEvalTarget#, #content:CLOB#, #submitYn#, SYSDATE)
+	</insert>
+
+	<insert id="insertUserData" parameterClass="hashMap">
+            INSERT into BSC_EXC_RPT (YEAR, EVAL_DEGREE_ID, EMPN, BSC_EXC_RPT_ID,  CONTENT, SUBMIT_YN,CREATE_DT)
+            VALUES (#year#, #evalDegreeId#, #excEvalTarget#, #rptId#,#content:CLOB#, #submitYn#, SYSDATE)
+	</insert>
+
+	<update id="updateData" parameterClass="hashMap">
+            UPDATE BSC_EXC_RPT SET CONTENT = #content:CLOB#
+             WHERE YEAR = #year# AND EVAL_DEGREE_ID = #evalDegreeId# AND ( EMPN = #excEvalTarget# OR SC_DEPT_ID = #excEvalTarget#)
+	</update>
+
+	<delete id="deleteData" parameterClass="hashMap">
+	        DELETE FROM BSC_EXC_RPT
+	         WHERE YEAR = #year# AND EVAL_DEGREE_ID = #evalDegreeId# AND ( EMPN = #excEvalTarget# OR SC_DEPT_ID = #excEvalTarget#)
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 사업추진실적 보고서 제출취소
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_EXC_RPT
+	==================================================================
+	-->
+	<update id="cancelData" parameterClass="rptParam">
+		UPDATE BSC_EXC_RPT
+		   SET SUBMIT_YN = 'N'
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND BSC_EXC_RPT_ID = #excRptId#
+		   AND ( EMPN = #excEvalTarget# OR SC_DEPT_ID = #excEvalTarget#)
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 첨부파일 삭제
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_MNG_RPT_ATTACH
+	==================================================================
+	-->
+	<delete id="deleteFileInfo" parameterClass="hashMap">
+		DELETE FROM BSC_EXC_RPT_ATTACH
+		 WHERE YEAR = #year# AND EVAL_DEGREE_ID = #evalDegreeId# AND SEQ = #seq# AND BSC_EXC_RPT_ID = #excRptId#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 첨부파일 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_MNG_RPT_ATTACH
+	==================================================================
+	-->
+	<insert id="insertFileInfo" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+	        SELECT NVL(MAX(SEQ)+1,1) SEQ
+	          FROM BSC_EXC_RPT_ATTACH
+	         WHERE YEAR = #year# AND EVAL_DEGREE_ID = #evalDegreeId# AND BSC_EXC_RPT_ID = #rptId#
+		</selectKey>
+
+		INSERT INTO BSC_EXC_RPT_ATTACH (
+               YEAR
+			 , EVAL_DEGREE_ID
+			 , SEQ
+			 , BSC_EXC_RPT_ID
+			 , ATTACH_FILE_NM
+			 , ATTACH_FILE_FNM
+			 , ATTACH_FILE_SUFFIX
+			 , ATTACH_FILE_PATH
+            ) VALUES (
+               #year#
+             , #evalDegreeId#
+             , #SEQ#
+             , #rptId#
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSufix#
+             , #attachFilePath#
+    	   )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 첨부파일 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_EXC_RPT_ATTACH
+	==================================================================
+	-->
+	<select id="getFileList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR, EVAL_DEGREE_ID,SEQ, BSC_EXC_RPT_ID, ATTACH_FILE_NM
+		     , ATTACH_FILE_FNM, ATTACH_FILE_SUFFIX
+		     , ATTACH_FILE_PATH
+		  FROM BSC_EXC_RPT_ATTACH
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND BSC_EXC_RPT_ID = #excRptId#
+		 ORDER BY SEQ
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 첨부파일 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_EXC_RPT_ATTACH
+	==================================================================
+	-->
+	<select id="getExcRptId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT BSC_EXC_RPT_ID FROM BSC_EXC_RPT WHERE EVAL_DEGREE_ID = #evalDegreeId# AND (EMPN = #excEvalTarget# OR SC_DEPT_ID = #excEvalTarget#)
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 별도평가부서 확정 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_EXC_SUBMIT
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		MERGE INTO BSC_EXC_SUBMIT A
+        USING DUAL
+           ON (A.YEAR = #year# )
+         WHEN MATCHED THEN
+                UPDATE SET A.RPT_YN = #rptYn#, A.MODIFY_DT = SYSDATE
+         WHEN NOT MATCHED THEN
+                INSERT (YEAR, RPT_YN, CREATE_DT)
+                VALUES (#year#, #rptYn#, SYSDATE)
+	</insert>
+
+</sqlMap>
+
+

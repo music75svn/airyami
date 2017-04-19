@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.rightProRatioEdu">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+
+		<!-- 교육운영부 적기계약건수(S054D001) -->
+		<isEqual property="findItemCd" compareValue="S054D001">
+				SELECT SUBSTR (AGRE_DATE, 0, 4) AS YEAR
+				      ,SUBSTR (AGRE_DATE, 5, 2) AS MON
+				      ,BUY_DEPT_CD AS DEPT_CD
+				      ,BUY_KIND_TC_N_NM
+				      ,BULC_CD_N
+				      ,BUY_DEPT_CD_N
+				      ,BUY_RQST_DEPT_CD_NM
+				      ,AGRE_KIND_TC_NM
+				      ,BUY_METH_TC_NM
+				      ,BUY_RQST_DATE
+				      ,AGRE_DATE
+				      ,AGRE_ST_DATE
+				      ,AGRE_TITL
+				      ,TOT_AMT
+				      ,CUST_CD_NM
+				  FROM V_ADA0108M_001
+				 WHERE  BUY_RQST_DATE - AGRE_DATE <![CDATA[<]]>= 7
+		           AND TOT_AMT BETWEEN 1000000 AND 9999999
+		           AND SUBSTR(AGRE_DATE, 0, 4) = #findYear#
+				   AND SUBSTR(AGRE_DATE, 5, 2) = #findMon#
+				   AND BUY_DEPT_CD = #findDeptId#
+		            OR BUY_RQST_DATE - AGRE_DATE <![CDATA[<]]>= 10
+		           AND TOT_AMT <![CDATA[>]]>= 10000000
+		           AND SUBSTR(AGRE_DATE, 0, 4) = #findYear#
+				   AND SUBSTR(AGRE_DATE, 5, 2) = #findMon#
+				   AND BUY_DEPT_CD = #findDeptId#
+			  ORDER BY BUY_DEPT_CD, BUY_RQST_DEPT_CD_NM, AGRE_KIND_TC_NM, BUY_METH_TC_NM,AGRE_TITL, TOT_AMT
+		</isEqual>
+
+		<!-- 교육운영부 총계약건수(S054D002) -->
+		<isEqual property="findItemCd" compareValue="S054D002">
+				SELECT SUBSTR (AGRE_DATE, 0, 4) AS YEAR
+				      ,SUBSTR (AGRE_DATE, 5, 2) AS MON
+				      ,BUY_DEPT_CD AS DEPT_CD
+				      ,BUY_KIND_TC_N_NM
+				      ,BULC_CD_N
+				      ,BUY_DEPT_CD_N
+				      ,BUY_RQST_DEPT_CD_NM
+				      ,AGRE_KIND_TC_NM
+				      ,BUY_METH_TC_NM
+				      ,BUY_RQST_DATE
+				      ,AGRE_DATE
+				      ,AGRE_ST_DATE
+				      ,AGRE_TITL
+				      ,TOT_AMT
+				      ,CUST_CD_NM
+				  FROM V_ADA0108M_001
+				 WHERE TOT_AMT <![CDATA[>]]> 1000000
+				   AND BUY_RQST_DATE IS NOT NULL
+				   AND AGRE_DATE IS NOT NULL
+				   AND SUBSTR(AGRE_DATE, 0, 4) = #findYear#
+				   AND SUBSTR(AGRE_DATE, 5,2) = #findMon#
+				   AND BUY_DEPT_CD = #findDeptId#
+			  ORDER BY BUY_DEPT_CD, BUY_RQST_DEPT_CD_NM, AGRE_KIND_TC_NM, BUY_METH_TC_NM,AGRE_TITL, TOT_AMT
+		</isEqual>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 부서조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DEPT_ID, B.DEPT_NM
+		  FROM BSC_SC_DEPT_MAPPING A
+		LEFT OUTER JOIN BSC_DEPTINFO B
+			ON A.DEPT_ID = B.DEPT_ID
+		 WHERE (YEAR, SC_DEPT_ID) IN
+		          (SELECT YEAR, SC_DEPT_ID
+		             FROM BSC_METRIC
+		            WHERE (METRIC_GRP_ID, YEAR) IN
+		                     (SELECT METRIC_GRP_ID, YEAR
+		                        FROM BSC_METRIC
+		                       WHERE YEAR = #findYear# AND METRIC_ID = #findMetricId#)
+		            AND DELETE_DT IS NULL)
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+             AND B.INSERT_GUBUN = '01'
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getScDeptMapping" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DEPT_ID
+		FROM ( SELECT DEPT_ID
+				   FROM BSC_SC_DEPT_MAPPING
+				  WHERE YEAR = #findYear#
+				    AND SC_DEPT_ID = #findScDeptCd# ORDER BY DEPT_ID )
+		WHERE ROWNUM = 1
+	</select>
+
+</sqlMap>
+
+

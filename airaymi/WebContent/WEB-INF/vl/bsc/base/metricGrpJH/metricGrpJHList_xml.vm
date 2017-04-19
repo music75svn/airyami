@@ -1,0 +1,42 @@
+#*************************************************************************
+* CLASS 명      : metricGrpJHList_xml
+* 작 업 자      : 김준호
+* 작 업 일      : 2013년 3월 8일 
+* 기    능      : 임시지표POOL json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김준호     2013년 3월 8일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+    "page": "1",
+    "total": 1,
+    "records": "$listSize",
+    "rows":[
+
+#foreach($list in $list)
+    {
+        "YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+        "METRIC_GRP_ID"        : "$!{CS_HTML.txt2html($list.METRIC_GRP_ID)}", 
+        "METRIC_GRP_NM"        : "$!{CS_HTML.txt2html($list.METRIC_GRP_NM)}", 
+        "DESCRIPTION"          : "$!{CS_HTML.txt2html($list.DESCRIPTION)}", 
+        "TYPE_NM"              : "$!{CS_HTML.txt2html($list.TYPE_NM)}", 
+        "TYPE_ID"              : "$!{CS_HTML.txt2html($list.TYPE_ID)}", 
+        "UNIT_NM"              : "$!{CS_HTML.txt2html($list.UNIT_NM)}", 
+        "UNIT"                 : "$!{CS_HTML.txt2html($list.UNIT)}", 
+        "EVAL_CYCLE_NM"        : "$!{CS_HTML.txt2html($list.EVAL_CYCLE_NM)}", 
+        "EVAL_CYCLE"           : "$!{CS_HTML.txt2html($list.EVAL_CYCLE)}", 
+        "METRIC_CNT"           : "$!{CS_HTML.txt2html($list.METRIC_CNT)}",
+        "DEL_CNT"              : "$!{CS_HTML.txt2html($list.METRIC_CNT)}"
+    }
+    #set($idx = $idx + 1)
+    #if($idx != $listSize)
+     ,
+    #end
+#end
+
+    ]
+}

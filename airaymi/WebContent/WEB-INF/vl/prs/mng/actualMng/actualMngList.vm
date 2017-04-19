@@ -1,0 +1,389 @@
+#*************************************************************************
+* CLASS 명      : actualMngList
+* 작 업 자      : 남기영
+* 작 업 일      : 2013년 12월 9일 
+* 기    능      : 성과계획서 실적 관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     남기영      2013년 12월 9일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/prs/mng/actualMng/actualMngList.vw")
+#set($isActual = true)
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+    var J = jQuery;
+    
+    J(document).ready(function(){
+    
+        /******************************************
+         * 데이터 그리드 출력
+         ******************************************/
+        var str = J('#formFind').serialize();
+        
+        jQuery("#list").jqGrid({
+            url          :"$!{context_path}/prs/mng/actualMng/actualMngList_xml.vw" + "?" + str,
+            mtype        :"POST",
+            datatype     :"json",
+            jsonReader   : {   
+                            page   : "page",
+                            total  : "total",
+                            root   : "rows", 
+                            records: function(obj){return obj.length;},
+                            repeatitems: false, 
+                            id     : "id"
+                           },
+            height       : "320",
+            width        : $!{jqGrid_width},
+            colNames     :['평가년도', '설정방향', '설정방향', '지표구분', '지표구분명', '성과목표', '성과목표', '성과지표', '연간목표', '단위', '가중치', '난이도', '누계목표($!CS_CODE.getCodeName("221", $!{searchMap.txt2html("findMon")}, $!{searchMap.txt2html("findYear")}))','실적(누계)', '달성도(%)', '평가등급', '상태', '환산<br/>점수'],
+            colModel     :[
+                            {name:'YEAR'                ,index:'YEAR'               ,width:150   ,align:'center' ,sortable:false}, 
+                            {name:'DIRECTION_CD'        ,index:'DIRECTION_CD'       ,width:100   ,align:'left'   ,sortable:false}, 
+                            {name:'DIRECTION_NM'        ,index:'DIRECTION_NM'       ,width:120   ,align:'left'   ,sortable:false},
+                            {name:'METRIC_GUBUN'        ,index:'METRIC_GUBUN'       ,width:100   ,align:'left'   ,sortable:false}, 
+                            {name:'METRIC_GUBUN_NM'     ,index:'METRIC_GUBUN_NM'    ,width:110   ,align:'left'   ,sortable:false}, 
+                            {name:'TARGET_ID'           ,index:'TARGET_ID'          ,width:150   ,align:'center' ,sortable:false, formatter:linkTarget}, 
+                            {name:'TARGET_NM'           ,index:'TARGET_NM'          ,width:250   ,align:'left'   ,sortable:false}, 
+                            {name:'METRIC_NM'           ,index:'METRIC_NM'          ,width:150   ,align:'left'   ,sortable:false}, 
+                            {name:'TARGET_VALUE'        ,index:'TARGET_VALUE'       ,width:70    ,align:'center' ,sortable:false}, 
+                            {name:'UNIT_NM'             ,index:'UNIT_NM'            ,width:50    ,align:'center' ,sortable:false},
+                            {name:'WEIGHT'              ,index:'WEIGHT'             ,width:60    ,align:'center' ,sortable:false},
+                            {name:'DFFLY_NM'            ,index:'DFFLY_NM'           ,width:60    ,align:'center' ,sortable:false},
+                            {name:'Q_TARGET_VALUE'      ,index:'Q_TARGET_VALUE'     ,width:130   ,align:'center' ,sortable:false}, 
+                            {name:'VALUE'               ,index:'VALUE'              ,width:90    ,align:'center' ,sortable:false, formatter:linkValue}, 
+                            {name:'SCORE'               ,index:'SCORE'              ,width:90    ,align:'center' ,sortable:false}, 
+                            {name:'EVAL_GRADE'          ,index:'EVAL_GRADE'         ,width:70    ,align:'center' ,sortable:false}, 
+                            {name:'ACT_STATUS_ID'       ,index:'ACT_STATUS_ID'      ,width:50    ,align:'center' ,sortable:false},
+                            {name:'EVAL_SCORE'          ,index:'EVAL_SCORE'         ,width:50    ,align:'center' ,sortable:false}
+                            ],
+            rowNum       : $!{jqGrid_rownum},
+            autowidth    : false, 
+            viewrecords  : true,
+            loadonce     : true,
+            multiselect  : false,
+            cellEdit     : true,
+            gridview     : true,
+            footerrow	 : true,
+            userDataOnFooter : true,
+            loadComplete : function() {
+
+                var ids        = J("#list").jqGrid('getDataIDs');
+                
+                for (var i = 0; i < ids.length; i++) {
+                    
+                    /* 평가 select box 설정 */
+                    J("select[name='evalGrades']").eq(i).val(J("input[name='evalGradeTemp']").eq(i).val()).attr("selected", "selected");
+                    
+                }
+                
+                var grid = J("#list");
+				grid.jqGrid('footerData', 'set', {TARGET_VALUE:"총계"});
+				calculateSumGridColumn(grid,"WEIGHT");
+				calculateSumGridColumn(grid,"EVAL_SCORE");
+            },
+            caption:"성과계획서 관리",
+        });
+        jQuery("#list").jqGrid('hideCol',"YEAR").jqGrid('hideCol',"DIRECTION_CD").jqGrid('hideCol',"METRIC_GUBUN").jqGrid('hideCol',"TARGET_ID").jqGrid('hideCol',"ACT_STATUS_ID");
+        jQuery("#list").setGridWidth($!{jqGrid_width});
+        
+        J("#list").jqGrid('setGroupHeaders', {
+          useColSpanStyle: true,
+          groupHeaders:[
+        	{startColumnName: 'Q_TARGET_VALUE', numberOfColumns: 5, titleText: '<em>추진실적</em>'}
+          ]
+        });
+         
+        /******************************************
+         * 조회
+         ******************************************/
+        J("#formFind").submit(function(event) {
+            //submit 하기전 작업추가
+        });
+        
+        /******************************************
+         * 저장
+         ******************************************/
+        J("#btnSave").click(function(e) {
+            e.preventDefault();
+            goSave();
+        });
+        
+        /******************************************
+         * 저장버튼 이중 클릭 방지
+         ******************************************/
+        J("form").submit(function(){
+            J("#btnSave").unbind();
+        });
+        
+        /******************************************
+         * 취소버튼 (돌아가기)
+         ******************************************/
+        J("#btnBack").click(function() {
+            J("#formFind").attr("action", "$!{context_path}/prs/mng/actualMng/evalMngList.vw?type=template").submit();
+        });
+        
+        
+        /******************************************
+         * 확인요청 클릭 이벤트
+         ******************************************/
+        J("#btnApprove").click(function() {
+            goApprove();
+            return false;
+        });
+        
+        /******************************************
+		 * 숫자만 입력받기
+		 ******************************************/
+		J(":input[name=values]").numeric({allow:"."}); 			//숫자만 입력받기
+		J(":input[name=values]").css("ime-mode", "disabled"); 	//한글사용 비활성화
+        
+    });
+    
+    /******************************************
+     * jqGrid 성과목표
+     ******************************************/
+    function linkTarget(cellvalue, options, rowObject) {
+        return '<input type="hidden" name="targetIds" value="' + cellvalue + '" />';
+    }
+    
+    /******************************************
+     * jqGrid 실적
+     ******************************************/
+    function linkValue(cellvalue, options, rowObject) {
+        return '<input type="text" name="values" value="' + cellvalue + '" class="wp80 textRight" />';
+    }
+    
+    /******************************************
+     * jqGrid 점수
+     ******************************************/
+    function linkScore(cellvalue, options, rowObject) {
+        return '<input type="text" name="scores" value="' + cellvalue + '" class="wp80 textRight" readonly="readonly"/>';
+    }
+    
+    /******************************************
+     * jqGrid 평가
+     ******************************************/
+    function linkGrade(cellvalue, options, rowObject) {
+        var str = "";
+        
+        str += '<select name="evalGrades" class="select w60">';
+        str += '<option value=""/>';
+        #foreach($gradeDetail in $gradeList)
+            str += '<option value="$!{CS_HTML.txt2html($gradeDetail.GRADE_ITEM_NM)}">'+ "$!{CS_HTML.txt2html($gradeDetail.GRADE_ITEM_NM)}" +'</option>'
+        #end
+        str += '</select>';
+        str += '<input type="hidden" name="evalGradeTemp" value="' + cellvalue + '"/>';
+        
+        return str;
+        
+     }
+    /******************************************
+     * 상태 및 기간 확인
+     ******************************************/
+    function isSubmit() {
+        var isSubmit = true;    
+        if (!$!{CS_LOGIN.chkAuthGrp("01")}) {
+	        #if("$membersTable.PLAN_STATUS_ID" != "04")
+	            J.showMsgBox("성과계획서가 최종확인 되지 않았습니다.<br/>최종확인 후 진행하여 주시기 바랍니다.", null, null);
+	            isSubmit = false;
+	        #else
+	            #if("$membersTable.ACT_STATUS_ID" == "02")
+	                J.showMsgBox("이미 확인요청되었습니다.", null, null);
+	                isSubmit = false;
+	            #elseif("$membersTable.ACT_STATUS_ID" == "03")
+	                J.showMsgBox("이미 부서장 확인 되었습니다.", null, null);
+	                isSubmit = false;
+	            #elseif("$membersTable.ACT_STATUS_ID" == "04")
+	                J.showMsgBox("이미 최종승인 되었습니다.", null, null);
+	                isSubmit = false;
+	            #end
+	        #end
+        }
+        return isSubmit;
+    }
+     
+    /******************************************
+     * 확인요청 
+     ******************************************/
+    function goApprove() {
+        if(!isSubmit()) return false;
+    
+        var actStatusId = "$!{CS_HTML.txt2html($membersTable.ACT_STATUS_ID)}";
+
+        if(actStatusId ==''){
+            J.showMsgBox("실적을 저장하여 주시기 바랍니다.", null, null);
+        }else{
+            J.showConfirmBox("확인요청 하시겠습니까?", "approveDo"); //deleteDo() 콜백함수 호출            
+        }
+    }
+    
+    /******************************************
+     * 확인요청
+     ******************************************/
+    function approveDo() {
+        J("#year").val(J("#findYear").val());
+        J("#mon").val(J("#findMon").val());
+        J("#mode").val("APC");
+        J("#actStatusId").val("02");
+        J("#formList").attr("action", "$!{context_path}/prs/mng/actualMng/actualMngProcess.vw?type=template").submit();
+    }
+    
+    /******************************************
+     * 저장처리
+     ******************************************/
+    function goSave() {
+        var fileChk = true;
+		
+        if(!isSubmit()) return false;
+		
+		//첨부파일 확장자 체크
+        J(":file", "#form1").each(function(index, item) {
+            var fileFullName = J("input[name=" + item.name + "]").val();
+            var src = getFileExtension(fileFullName);
+            if (!((src.toLowerCase() == "xls") || (src.toLowerCase() == "xlsx") || (src.toLowerCase() == "ppt") || (src.toLowerCase() == "pptx")||
+                  (src.toLowerCase() == "doc") || (src.toLowerCase() == "docx") || (src.toLowerCase() == "hwp") || (src.toLowerCase() == "pdf") ||
+                  (src.toLowerCase() == "zip") || (src.toLowerCase() == "txt")  || (src.toLowerCase() == "gif") || (src.toLowerCase() == "jpg") ||
+                  (src.toLowerCase() == "png") || (src.toLowerCase() == "png")
+                )) {
+            
+                fileChk = false;
+            }
+        });
+
+        if (fileChk == false) {
+            J.showMsgBox("허용되지 않는 파일형식입니다<br/>허용되는 파일형식 : <br/>xls, xlsx, ppt, pptx, doc, docx, hwp <br/> pdf, zip, txt, gif, jpg, png, jpeg", null, null);
+            return;
+        }
+        J("#mode").val("SAVE");
+        J("#year").val(J("#findYear").val());
+        J("#mon").val(J("#findMon").val());
+        J("#evalMembEmpn").val(J("#evalMembEmpn").val());
+        J("#evalMembEmpnSeq").val(J("#evalMembEmpnSeq").val());
+        J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+    }
+    /******************************************
+     * 저장
+     ******************************************/
+    function saveDo() {
+        J("#formList").attr("action", "$!{context_path}/prs/mng/actualMng/actualMngProcess.vw?type=template").submit();
+    }
+	
+	/******************************************
+	 * 파일추가
+	 ******************************************/
+	var fileIndex = 0;
+	
+	function fileAttachAdd() {
+		J("#fileAttach").append("<li id=\"fileRow" + fileIndex + "\"><input type=\"file\" name=\"file" + fileIndex + "\" class=\"input\" size=\"70\" /> <input type=\"button\" value=\"삭제\" onclick=\"deleteRow(" + fileIndex + ")\" class=\"input\" size=\"70\"></li>");
+		fileIndex++;
+	}
+	
+	/******************************************
+	 * 파일삭제
+	 ******************************************/
+	function deleteRow(fileIndex)	{
+    	J("#fileRow" + fileIndex).remove();
+    }
+
+//]]>
+</script>
+
+<div id="Table">
+    <div id="Table_blockContainer">
+        <h1 class="none">성과계획서 관리</h1>
+        <div class="tableTop">
+            #parse("/WEB-INF/vl/common/template/tabs.vm")
+            
+            <!-- search S -->
+            <form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/mng/actualMng/actualMngList.vw?type=template">
+                <input type="hidden"    id="findHighPgmId"    name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+                <input type="hidden"    id="findSubPgmId"     name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+                <input type="hidden"    id="findPgmId"        name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+                <input type="hidden"    id="findYear"         name="findYear"         value="$!{searchMap.txt2html("findYear")}" />
+                <input type="hidden"    id="findMon"          name="findMon"          value="$!{searchMap.txt2html("findMon")}" />
+                <input type="hidden"    id="findEvalMethodId" name="findEvalMethodId" value="$!{searchMap.txt2html("findEvalMethodId")}" />
+                <input type="hidden"    id="evalMembEmpn"     name="evalMembEmpn"     value="$!{searchMap.txt2html("evalMembEmpn")}" />
+                <input type="hidden"    id="evalMembEmpnSeq"  name="evalMembEmpnSeq"  value="$!{searchMap.txt2html("evalMembEmpnSeq")}" />
+                <!--<div id="memberData"></div>-->
+				<div class="h20"></div>
+                #parse("/WEB-INF/vl/prs/mng/planMng/membersTable.vm")
+            </form>
+            <!-- search E -->
+            <div class="clear"></div>
+        </div>
+        
+        <form id="formList" name="formList" method="post" enctype="multipart/form-data"  action="$!{context_path}/prs/mng/actualMng/actualMngProcess.vw?type=template">
+            <input type="hidden" id="mode"              name="mode" />
+            <input type="hidden" id="year"              name="year" />
+            <input type="hidden" id="mon"               name="mon" />
+            <input type="hidden" id="actStatusId"       name="actStatusId"      value="01"/>
+            <input type="hidden" id="evalMembEmpn"      name="evalMembEmpn"     value="$!{searchMap.txt2html("evalMembEmpn")}" />
+            <input type="hidden" id="evalMembEmpnSeq"   name="evalMembEmpnSeq"  value="$!{searchMap.txt2html("evalMembEmpnSeq")}" />
+            
+            $!{searchMap.makeHiddenFind()}
+            <div id="splitterBox">
+                <div>
+                    <!-- 데이터그리드 Start -->
+                    <div class="blockGridListTable">
+                        <table id="list" summary="성과계획서 실적관리 조회결과">
+                            <caption class="none">성과계획서 실적관리 조회</caption>
+                            <thead><tr><th></th></tr></thead>
+                            <tbody><tr><td></td></tr></tbody>
+                        </table>
+                        <div id="pager"></div>
+                    </div>
+					<div class="blockDetail">
+        			<table summary="자기성과기술서 등록">
+    					<caption class="none">자기성과기술서 등록</caption>
+        				<colgroup>
+        					<col width="10%" />
+        					<col width="90%" />
+						</colgroup>
+    				<tbody>
+					<tr>
+						<th scope="row">증빙자료</th>
+						<td colspan="8">
+							#foreach($fileList in $fileList)
+								$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))} 
+								&nbsp;&nbsp;<input type="checkbox" name="delAttachFiles" id="delAttachFile$!{fileList.get("SEQ")}" value="$!{fileList.get("SEQ")}" />&nbsp;<label for="delAttachFile$!{fileList.get("SEQ")}">증빙자료 삭제</label> <br/>
+							#end
+							<a href="javascript:fileAttachAdd();"><img src="$!{img_path}/common/btn_file.gif" class="valign_middle" alt="파일추가" /></a>&nbsp;(증빙자료 용량제한은 100M입니다)<br/>
+							<div>
+								<ul id="fileAttach">
+								</ul>
+							</div>
+						</td>
+					</tr>
+					</tbody>
+					</table>
+					</div>
+					<div class="blockButton_all">
+                        <div class="blockButton" style="float:left; text-align:left; width:300px;">
+                            <ul>
+                                <span class="txt_red">※ 달성도 및 평가등급은 자동으로 계산됩니다.</span>
+                            </ul>
+                        </div>
+                    </div>
+                    <br/>
+                    <div class="blockButton_all">
+                    <!--
+                        <div class="blockButton" style="float:left; text-align:left; width:300px;">
+                            <input type="button" id="btnApprove" value="확인요청" />
+                        </div>
+                        -->
+                        <div class="blockButton">
+                            <ul>
+                                <li><input type="button" id="btnBack" value="돌아가기"/></li>
+                                <li><input type="submit" id="btnSave" value="저장" /></li>
+                                <li><input type="button" id="btnApprove" value="확인요청" /></li>
+                            </ul>
+                        </div>
+                    </div> 
+                </div>
+            </div>
+        </form>
+        
+    </div>
+    <div class="clear"></div>
+</div>

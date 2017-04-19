@@ -1,0 +1,37 @@
+#*************************************************************************
+* CLASS 명      : evalGradeList_xml
+* 작 업 자      : 박경태
+* 작 업 일      : 2012년 11월 22일 
+* 기    능      : 평가등급및환산표 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      박경태     2012년 11월 22일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"EVAL_METHOD_ID"       : "$!{CS_HTML.txt2html($list.EVAL_METHOD_ID)}", 
+		"EVAL_METHOD_NM"       : "$!{CS_HTML.txt2html($list.EVAL_METHOD_NM)}", 
+		"EVAL_METHOD_GBN_ID"   : "$!{CS_HTML.txt2html($list.EVAL_METHOD_GBN_ID)}", 
+		"EVAL_METHOD_GBN_NM"   : "$!{CS_HTML.txt2html($list.EVAL_METHOD_GBN_NM)}", 
+		"CONTENT"              : "$!{CS_HTML.txt2html($list.CONTENT)}", 
+		"GRADE_ITEM_CNT"       : "$!{CS_HTML.txt2html($list.GRADE_ITEM_CNT)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

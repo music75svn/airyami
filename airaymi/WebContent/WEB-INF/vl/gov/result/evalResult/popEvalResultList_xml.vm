@@ -1,0 +1,45 @@
+#*************************************************************************
+* CLASS 명      : popEvalResultList_xml
+* 작 업 자      : 지원길
+* 작 업 일      : 2013년 07월 03일
+* 기    능      : 공공기관비교대상 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      지원길     2013년 07월 03일            최 초 작 업
+**************************************************************************#
+#set($listSize = $!{CS_HTML.txt2html($compare.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $compare)
+	{
+		"YEAR"        		   : "$!{CS_HTML.txt2html($list.YEAR)}",
+		"GOV_METRIC_ID"        : "$!{CS_HTML.txt2html($list.GOV_METRIC_ID)}",
+	#if ($list.OFFICE_NM == 'KGS')
+		"OFFICE_NM"            : "<b><u>한국가스안전공사</u></b>",
+		"GOV_METRIC_NM"        : "<b><u>$!{CS_HTML.txt2html($list.GOV_METRIC_NM)}</u></b>",
+		"WEIGHT"               : "<b><u>$!{CS_HTML.txt2html($list.WEIGHT)}</u></b>",
+		"SCORE"                : "<b><u>$!{CS_HTML.txt2html($list.SCORE)}</u></b>",
+		"RANK"                 : "<b><u>$!{CS_HTML.txt2html($list.RANK)}</u></b>"
+	#else
+		"OFFICE_NM"            : "$!{CS_HTML.txt2html($list.OFFICE_NM)}",
+		"GOV_METRIC_NM"        : "$!{CS_HTML.txt2html($list.GOV_METRIC_NM)}",
+		"WEIGHT"               : "$!{CS_HTML.txt2html($list.WEIGHT)}",
+		"SCORE"                : "$!{CS_HTML.txt2html($list.SCORE)}",
+		"RANK"                 : "$!{CS_HTML.txt2html($list.RANK)}"
+	#end
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

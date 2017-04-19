@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="man.mon.Metric">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+		<!--
+	==================================================================
+	  # 설명	: KGS2020KPI 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		    , A.STRAT_ID
+		    , A.STRAT_NM
+		    , A.TGT_STATUS_ID
+		    , A.MAN_ID
+		    , A.MAN_NM
+		    , A.CSF_ID
+		    , A.CSF_NM
+		    , A.MAN_KPI_ID
+		    , A.MAN_KPI_NM
+		    , COUNT(A.STRAT_ID) OVER (PARTITION BY A.YEAR, A.STRAT_ID)AS STRAT_CNT
+		    , ROW_NUMBER() OVER(PARTITION BY A.YEAR, A.STRAT_ID ORDER BY A.CSF_ORDER, A.STRAT_ID, A.CSF_ID, A.KPI_ORDER, A.MAN_KPI_ID) AS STRAT_INDEX
+		    , COUNT(A.CSF_ID) OVER(PARTITION BY A.YEAR, A.CSF_ID) AS SUBJECT_CNT
+		    , ROW_NUMBER() OVER(PARTITION BY A.YEAR, A.CSF_ID ORDER BY A.CSF_ORDER, A.CSF_ID, A.KPI_ORDER, A.MAN_KPI_ID) AS SUBJECT_INDEX
+		    , E.MON01
+		    , E.MON02
+		    , E.MON03
+		    , E.MON04
+		    , E.MON05
+		    , E.MON06
+		    , E.MON07
+		    , E.MON08
+		    , E.MON09
+		    , E.MON10
+		    , E.MON11
+		    , E.MON12
+	        , (
+	            SELECT CUM_CONTRIBUTION FROM V_MAN_METRIC_CONTR
+	             WHERE (YEAR, ANAL_CYCLE, MAN_KPI_ID, MON) IN (
+	                                                            SELECT YEAR, ANAL_CYCLE, MAN_KPI_ID, MAX(MON) MON
+	                                                              FROM V_MAN_METRIC_CONTR
+	                                                             WHERE YEAR = #findYear# AND ANAL_CYCLE = 'Y' AND MAN_KPI_ID = A.MAN_KPI_ID
+	                                                             GROUP BY YEAR, ANAL_CYCLE, MAN_KPI_ID)
+	          ) CUM_CONTRIBUTION
+		FROM V_MAN_METRIC A
+		LEFT OUTER JOIN V_ROLE_USER B
+			ON  A.INSERT_USER_ID = B.SABUN
+		LEFT OUTER JOIN V_DEPTINFO C
+			ON  B.DEPT_ID = C.DEPT_ID
+		LEFT OUTER JOIN BSC_INSA_DEPT D
+			ON A.YEAR = D.YEAR
+			AND B.DEPT_ID = D.DEPT_CD
+		LEFT OUTER JOIN (SELECT YEAR
+							  , MAN_KPI_ID
+					          , MAX(VALUE01) MON01
+					          , MAX(VALUE02) MON02
+					          , MAX(VALUE03) MON03
+					          , MAX(VALUE04) MON04
+					          , MAX(VALUE05) MON05
+					          , MAX(VALUE06) MON06
+					          , MAX(VALUE07) MON07
+					          , MAX(VALUE08) MON08
+					          , MAX(VALUE09) MON09
+					          , MAX(VALUE10) MON10
+					          , MAX(VALUE11) MON11
+					          , MAX(VALUE12) MON12
+						   FROM (SELECT YEAR
+						   			  , MAN_KPI_ID
+							          , CASE MON WHEN '01' THEN YEAR_CONTRIBUTION ELSE 0 END VALUE01
+							          , CASE MON WHEN '02' THEN YEAR_CONTRIBUTION ELSE 0 END VALUE02
+							          , CASE MON WHEN '03' THEN YEAR_CONTRIBUTION ELSE 0 END VALUE03
+							          , CASE MON WHEN '04' THEN YEAR_CONTRIBUTION ELSE 0 END VALUE04
+							          , CASE MON WHEN '05' THEN YEAR_CONTRIBUTION ELSE 0 END VALUE05
+							          , CASE MON WHEN '06' THEN YEAR_CONTRIBUTION ELSE 0 END VALUE06
+							          , CASE MON WHEN '07' THEN YEAR_CONTRIBUTION ELSE 0 END VALUE07
+							          , CASE MON WHEN '08' THEN YEAR_CONTRIBUTION ELSE 0 END VALUE08
+							          , CASE MON WHEN '09' THEN YEAR_CONTRIBUTION ELSE 0 END VALUE09
+							          , CASE MON WHEN '10' THEN YEAR_CONTRIBUTION ELSE 0 END VALUE10
+							          , CASE MON WHEN '11' THEN YEAR_CONTRIBUTION ELSE 0 END VALUE11
+							          , CASE MON WHEN '12' THEN YEAR_CONTRIBUTION ELSE 0 END VALUE12
+								   FROM V_MAN_METRIC_CONTR
+								  WHERE YEAR = #findYear#
+					     			AND ANAL_CYCLE = 'Y')
+					 	  GROUP BY YEAR, MAN_KPI_ID) E
+		   ON A.YEAR = E.YEAR
+		  AND A.MAN_KPI_ID = E.MAN_KPI_ID
+		LEFT OUTER JOIN MAN_METRIC F
+			ON A.YEAR = F.YEAR
+			AND A.MAN_KPI_ID = F.MAN_KPI_ID
+			AND A.MAN_KPI_GRP_ID = F.MAN_KPI_GRP_ID
+		WHERE A.YEAR = #findYear#
+		AND F.MONITORING_YN  = 'Y'
+		<dynamic>
+			<isNotEmpty prepend="AND" property="findManagementId">
+	           	A.MAN_ID = #findManagementId#
+		   		</isNotEmpty>
+                <isNotEmpty prepend="AND" property="findStratSubjectId">
+                A.STRAT_ID = #findStratSubjectId#
+                </isNotEmpty>
+				<isNotEmpty prepend="AND" property="findCsfId">
+                A.CSF_ID = #findCsfId#
+                </isNotEmpty>
+                <isNotEmpty prepend="AND" property="findStrMetric">
+	            UPPER(A.MAN_KPI_NM) LIKE  '%' || TRIM(UPPER(#findStrMetric#)) ||'%'
+		   	</isNotEmpty>
+	    </dynamic>
+         ORDER BY A.STRAT_ORDER, A.STRAT_ID, A.CSF_ORDER, A.CSF_ID, A.KPI_ORDER, A.MAN_KPI_ID
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: KGS2020KPI 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: V_MAN_METRIC
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.YEAR
+				,A.MAN_KPI_ID
+				,A.MAN_KPI_NM
+				,A.CSF_ID
+				,A.CSF_NM
+				,A.STRAT_ID
+				,A.STRAT_NM
+				,A.EVAL_CYCLE AS CYCLE_ID
+				,F_CODE_NM('008', A.EVAL_CYCLE, A.YEAR) AS CYCLE_NM
+				,A.UNIT AS UNIT_ID
+				,F_CODE_NM('013', A.UNIT, A.YEAR) AS UNIT_NM
+				,A.SCORE_CAL_TYPE_ID
+				,F_CODE_NM('145', A.SCORE_CAL_TYPE_ID, A.YEAR) AS SCORE_CAL_TYPE_NM
+			    ,A.INSERT_USER_ID
+			    ,A.INSERT_USER_NM
+			    ,B.DEPT_ID AS INSERT_DEPT_ID
+			    ,D.DEPT_NM AS INSERT_DEPT_NM
+			    ,A.APPROVE_USER_ID
+			    ,A.APPROVE_USER_NM
+			    ,C.DEPT_ID AS APPROVE_DEPT_ID
+			    ,E.DEPT_NM  AS APPROVE_DEPT_NM
+			    ,A.SCORE_CAL_TYPE_ID
+                ,A.ACT_CAL_TYPE
+		FROM V_MAN_METRIC A
+		LEFT OUTER JOIN V_ROLE_USER B
+			ON A.INSERT_USER_ID = B.SABUN
+		LEFT OUTER JOIN V_ROLE_USER C
+			ON A.APPROVE_USER_ID = C.SABUN
+		LEFT OUTER JOIN V_DEPTINFO D
+			ON B.DEPT_ID = D.DEPT_ID
+		LEFT OUTER JOIN V_DEPTINFO E
+			ON C.DEPT_ID = E.DEPT_ID
+		WHERE A.YEAR = #findYear#
+		  AND A.MAN_KPI_ID = #findSubjectMetricId#
+	</select>
+
+		<!--
+	==================================================================
+	  # 설명	: 지표Pool 산식 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAL_TYPE_COL_GRP
+	==================================================================
+	-->
+	<select id="calTypeColList" parameterClass="hashMap" resultClass="hashMap">
+		   SELECT A.YEAR
+        ,A.MAN_KPI_ID
+        ,A.CAL_TYPE_COL
+        ,A.CAL_TYPE_COL_NM
+        ,A.INSERT_GUBUN
+        ,A.UNIT
+        ,A.SOURCE_SYSTEM
+        ,A.ITEM_CD
+        FROM MAN_CAL_TYPE_COL A
+        LEFT OUTER JOIN MAN_CAL_TYPE_COL_GRP B
+        ON A.CAL_TYPE_COL  =B.CAL_TYPE_COL
+        AND A.CAL_TYPE_COL_NM =B.CAL_TYPE_COL_NM
+         LEFT OUTER JOIN MAN_METRIC  C
+        ON A.YEAR= C.YEAR
+        AND A.MAN_KPI_ID = C.MAN_KPI_GRP_ID
+         WHERE A.YEAR = #findYear#
+          AND C.MAN_KPI_ID = #findSubjectMetricId#
+          AND A.DELETE_DT IS NULL
+        ORDER BY A.CAL_TYPE_COL ASC
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 경영목표 조회조건목록
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_TARGET
+	==================================================================
+	-->
+	<select id="getManagement" parameterClass="hashMap" resultClass="hashMap">
+	SELECT YEAR
+                ,MAN_ID
+                ,MAN_NM
+                ,SORT_ORDER
+      FROM MAN_TARGET
+      WHERE YEAR= #findYear#
+      AND DELETE_DT IS NULL
+      ORDER BY SORT_ORDER
+	</select>
+
+		<!--
+	==================================================================
+	  # 설명	: 전략과제 조회조건목록
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_STRATEGY
+	==================================================================
+	-->
+	<select id="getStratSubjectList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT STRAT_ID
+			 , STRAT_NM
+		  FROM MAN_STRATEGY
+		 WHERE YEAR =#findYear#
+		   AND DELETE_DT IS NULL
+		   AND MAN_ID = #findManagementId#
+		 ORDER BY SORT_ORDER
+	</select>
+
+		<!--
+	==================================================================
+	  # 설명	: CSF 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MAN_CSF
+	==================================================================
+	-->
+	<select id="getCsfList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+			 , CSF_ID
+			 , CSF_NM
+			 , SORT_ORDER
+		  FROM MAN_CSF
+		 WHERE YEAR = #findYear#
+		   AND DELETE_DT IS NULL
+		   AND STRAT_ID =#findStratSubjectId#
+		 ORDER BY CSF_NM, SORT_ORDER
+	</select>
+
+
+
+</sqlMap>
+
+

@@ -1,0 +1,256 @@
+#*************************************************************************
+* CLASS 명      : memEvalProcMonitor
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년04월12일 
+* 기    능      : 업무지행사항모니터링
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     유연주      2017년04월12일               최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/mem/monitor/memEvalProcMonitor/memEvalProcMonitor.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+	});
+	
+	/******************************************
+	 * 평가직원목록 조회 AJAX
+	 ******************************************/
+	function popEvalMemList(gubun) {
+		var param = "&amp;gubun=" + gubun;
+		param += "&amp;findYear=" + $!{searchMap.txt2html("findYear")};
+
+		var url = "$!{context_path}/mem/monitor/memEvalProcMonitor/popMemEvalEmpList.vw?type=popup" + param;
+		openWinByName(url,'popEmpList','800','400','yes');
+	}
+	
+	/******************************************
+	 * 이의신청목록 조회 AJAX
+	 ******************************************/
+	function popMemList(gubun) {
+		var param = "&amp;gubun=" + gubun;
+		param += "&amp;findYear=" + $!{searchMap.txt2html("findYear")};
+
+		var url = "$!{context_path}/mem/monitor/memProcMonitor/popMemEmpList.vw?type=popup" + param;
+		openWinByName(url,'popEmpList','800','400','yes');
+	}
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">평가진행사항모니터링</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/mem/monitor/memEvalProcMonitor/memEvalProcMonitor.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"      name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"       name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"          name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="평가진행사항모니터링검색 조건">
+						<caption class="none">평가진행사항모니터링 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">기준년월</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		<div id="splitterBox">
+			<div>
+				<!-- 데이터그리드 Start -->
+				<div floatLeft">
+                	<div id="chartContainer"   class="floatLeft w510">FusionCharts will load here!</div>
+					<script type="text/javascript" language="javascript" >
+					//<![CDATA[
+						FusionCharts.setCurrentRenderer(render);
+                		var myChart = new FusionCharts( "$!{chart_path}/Pie2D.swf", "myChartId", "510", "180", "0", "1" );      
+                		myChart.setXMLUrl("$!{context_path}/mem/monitor/memEvalProcMonitor/memEvalProcMonitorChart_1_xml.vw?findYear=$!{searchMap.txt2html("findYear")}");      
+                		myChart.render("chartContainer");
+					//]]>
+                	</script> 
+				</div>
+				<div class="blockListTable floatRight" style="width:600px;">
+			    	<table summary="1차평가자현황">
+			        	<caption class="none">1차평가자현황</caption>
+			        	<thead>
+			        		<tr>
+			        		    <th scope="col" width="25%" rowspan="2" class="textCenter">평가자수</th>
+			        			<th scope="col" width="75%" colspan="3" class="textCenter">진행사항</th>
+			        		</tr>
+			        		<tr>
+			        			<th scope="col" width="25%" class="textCenter">평가완료</th>
+			    				<th scope="col" width="25%" class="textCenter">평가중</th>
+			    				<th scope="col" width="25%" class="textCenter">미평가</th>
+			        		</tr>
+			        	</thead>
+			        	<tbody>
+		        			<tr class="row1" style="height:60px;">
+		        				<td class="textCenter">$!{CS_HTML.txt2html($evalMonitor1.TOT_COUNT)}</td>
+		        				<td class="textCenter"><a href="javascript:popEvalMemList('E1_COM');"><u>$!{CS_HTML.txt2html($evalMonitor1.COM_COUNT)}</u></a></td>
+		        				<td class="textCenter"><a href="javascript:popEvalMemList('E1_ING');"><u>$!{CS_HTML.txt2html($evalMonitor1.ING_COUNT)}</u></a></td>
+		        				<td class="textCenter"><a href="javascript:popEvalMemList('E1_NOT');"><u>$!{CS_HTML.txt2html($evalMonitor1.NOT_COUNT)}</u></a></td>
+		        			</tr>
+			        	</tbody>
+			        </table>
+				</div>
+			</div>
+		</div>
+		<br><br><br><br><br><br><br><br><br><br><br><br>
+		<div id="splitterBox">
+			<div>
+				<!-- 데이터그리드 Start -->
+				<div floatLeft">
+                	<div id="chartContainer2"   class="floatLeft w510">FusionCharts will load here!</div>
+					<script type="text/javascript" language="javascript" >
+					//<![CDATA[
+						FusionCharts.setCurrentRenderer(render);
+                		var myChart = new FusionCharts( "$!{chart_path}/Pie2D.swf", "myChartId", "510", "180", "0", "1" );      
+                		myChart.setXMLUrl("$!{context_path}/mem/monitor/memEvalProcMonitor/memEvalProcMonitorChart_2_xml.vw?findYear=$!{searchMap.txt2html("findYear")}");      
+                		myChart.render("chartContainer2");
+					//]]>
+                	</script> 
+				</div>
+				<div class="blockListTable floatRight" style="width:600px;">
+			    	<table summary="2차평가자현황">
+			        	<caption class="none">2차평가자현황</caption>
+			        	<thead>
+			        		<tr>
+			        		    <th scope="col" width="25%" rowspan="2" class="textCenter">평가자수</th>
+			        			<th scope="col" width="75%" colspan="3" class="textCenter">진행사항</th>
+			        		</tr>
+			        		<tr>
+			        			<th scope="col" width="25%" class="textCenter">평가완료</th>
+			    				<th scope="col" width="25%" class="textCenter">평가중</th>
+			    				<th scope="col" width="25%" class="textCenter">미평가</th>
+			        		</tr>
+			        	</thead>
+			        	<tbody>
+		        			<tr class="row1" style="height:60px;">
+		        				<td class="textCenter">$!{CS_HTML.txt2html($evalMonitor2.TOT_COUNT)}</td>
+		        				<td class="textCenter"><a href="javascript:popEvalMemList('E2_COM');"><u>$!{CS_HTML.txt2html($evalMonitor2.COM_COUNT)}</u></a></td>
+		        				<td class="textCenter"><a href="javascript:popEvalMemList('E2_ING');"><u>$!{CS_HTML.txt2html($evalMonitor2.ING_COUNT)}</u></a></td>
+		        				<td class="textCenter"><a href="javascript:popEvalMemList('E2_NOT');"><u>$!{CS_HTML.txt2html($evalMonitor2.NOT_COUNT)}</u></a></td>
+		        			</tr>
+			        	</tbody>
+			        </table>
+				</div>
+			</div>
+		</div>
+		<br><br><br><br><br><br><br><br><br><br><br><br>
+		<div id="splitterBox">
+			<div>
+				<!-- 데이터그리드 Start -->
+				<div floatLeft">
+                	<div id="chartContainer3"   class="floatLeft w510">FusionCharts will load here!</div>
+					<script type="text/javascript" language="javascript" >
+					//<![CDATA[
+						FusionCharts.setCurrentRenderer(render);
+                		var myChart = new FusionCharts( "$!{chart_path}/Pie2D.swf", "myChartId", "510", "180", "0", "1" );      
+                		myChart.setXMLUrl("$!{context_path}/mem/monitor/memEvalProcMonitor/memEvalProcMonitorChart_3_xml.vw?findYear=$!{searchMap.txt2html("findYear")}");      
+                		myChart.render("chartContainer3");
+					//]]>
+                	</script> 
+				</div>
+				<div class="blockListTable floatRight" style="width:600px;">
+			    	<table summary="동료평가자현황">
+			        	<caption class="none">동료평가자현황</caption>
+			        	<thead>
+			        		<tr>
+			        		    <th scope="col" width="25%" rowspan="2" class="textCenter">평가자수</th>
+			        			<th scope="col" width="75%" colspan="3" class="textCenter">진행사항</th>
+			        		</tr>
+			        		<tr>
+			        			<th scope="col" width="25%" class="textCenter">평가완료</th>
+			    				<th scope="col" width="25%" class="textCenter">평가중</th>
+			    				<th scope="col" width="25%" class="textCenter">미평가</th>
+			        		</tr>
+			        	</thead>
+			        	<tbody>
+		        			<tr class="row1" style="height:60px;">
+		        				<td class="textCenter">$!{CS_HTML.txt2html($evalMonitor3.TOT_COUNT)}</td>
+		        				<td class="textCenter"><a href="javascript:popEvalMemList('E3_COM');"><u>$!{CS_HTML.txt2html($evalMonitor3.COM_COUNT)}</u></a></td>
+		        				<td class="textCenter"><a href="javascript:popEvalMemList('E3_ING');"><u>$!{CS_HTML.txt2html($evalMonitor3.ING_COUNT)}</u></a></td>
+		        				<td class="textCenter"><a href="javascript:popEvalMemList('E3_NOT');"><u>$!{CS_HTML.txt2html($evalMonitor3.NOT_COUNT)}</u></a></td>
+		        			</tr>
+			        	</tbody>
+			        </table>
+				</div>
+			</div>
+		</div>
+		<br><br><br><br><br><br><br><br><br><br><br><br>
+		<div class="blockListTable">
+			<div class="blockButton_l txt_blue">
+				※ 이의신청현황
+			</div>
+	    	<table summary="지표관리현황">
+	        	<caption class="none">지표관리현황</caption>
+	        	<thead>
+	        		<tr>
+	        		    <th scope="col" width="20%" rowspan="2" class="textCenter">전체대상자수</th>
+	        		    <th scope="col" width="20%" rowspan="2" class="textCenter">이의신청건수</th>
+	        			<th scope="col" width="60%" colspan="4" class="textCenter">이의신청검토결과</th>
+	        		</tr>
+	        		<tr>
+	        			<th scope="col" width="15%" class="textCenter">수용</th>
+	    				<th scope="col" width="15%" class="textCenter">부분수용</th>
+	        			<th scope="col" width="15%" class="textCenter">수용불가</th>
+	    				<th scope="col" width="15%" class="textCenter">미검토</th>
+	        		</tr>
+	        	</thead>
+	        	<tbody>
+	        #if($!{CS_HTML.txt2html($dissentMonitor.TOT_COUNT)} == '')
+        			<tr class="row1">
+        				<td class="textCenter">0</td>
+        				<td class="textCenter">0</td>
+        				<td class="textCenter">0</td>
+        				<td class="textCenter">0</td>
+        				<td class="textCenter">0</td>
+        				<td class="textCenter">0</td>
+        			</tr>
+	        #else
+        			<tr class="row1">
+        				<td class="textCenter">$!{CS_HTML.txt2html($dissentMonitor.TOT_COUNT)}</td>
+        				<td class="textCenter"><a href="javascript:popMemList('DI_REQ');"><u>$!{CS_HTML.txt2html($dissentMonitor.REQ_COUNT)}</u></a></td>
+        				<td class="textCenter"><a href="javascript:popMemList('DI_ALO');"><u>$!{CS_HTML.txt2html($dissentMonitor.ALO_COUNT)}</u></a></td>
+        				<td class="textCenter"><a href="javascript:popMemList('DI_PRT');"><u>$!{CS_HTML.txt2html($dissentMonitor.PRT_COUNT)}</u></a></td>
+        				<td class="textCenter"><a href="javascript:popMemList('DI_NO');"><u>$!{CS_HTML.txt2html($dissentMonitor.NO_COUNT)}</u></a></td>
+        				<td class="textCenter"><a href="javascript:popMemList('DI_NOT');"><u>$!{CS_HTML.txt2html($dissentMonitor.NOT_COUNT)}</u></a></td>
+        			</tr>
+	        #end
+	        	</tbody>
+	        </table>
+		</div>
+	</div>
+	<div class="clear"></div>
+</div>

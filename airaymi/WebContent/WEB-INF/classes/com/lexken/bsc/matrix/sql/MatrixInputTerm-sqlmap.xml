@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.matrix.matrixInputTerm">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MET_EVAL_TERM
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가일정 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MET_EVAL_TERM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR,
+       		   START_DT,
+       		   END_DT
+          FROM
+               BSC_MAT_IN_TERM
+      ORDER BY
+        	   YEAR  
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가일정 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MET_EVAL_TERM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , START_DT         
+			 , END_DT           
+		  FROM BSC_MAT_IN_TERM 
+		 WHERE YEAR = #findYear#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가일정 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MET_EVAL_TERM
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_MAT_IN_TERM ( 
+			   YEAR
+			 , START_DT
+			 , END_DT
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #startDt#
+			 , #endDt#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가일정 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MET_EVAL_TERM
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_MAT_IN_TERM 
+		   SET START_DT          = #startDt# 
+			 , END_DT            = #endDt# 
+			 , MODIFY_DT         = SYSDATE 
+		 WHERE YEAR = #year#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가일정 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: MET_EVAL_TERM
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_MAT_IN_TERM
+		WHERE YEAR = #year# 
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 해당년 등록 여부 확인
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MAT_IN_TERM
+	==================================================================
+	-->	
+	<select id="getCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(*) CNT 
+		  FROM BSC_MAT_IN_TERM
+		 WHERE YEAR = #year#
+	</select>
+	
+	
+</sqlMap>
+
+

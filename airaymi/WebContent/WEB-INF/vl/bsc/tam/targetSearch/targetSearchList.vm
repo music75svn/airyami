@@ -1,0 +1,335 @@
+#*************************************************************************
+* CLASS 명      : targetSearchList
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 11월 20일
+* 기    능      : 지표목표조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     정철수      2012년 11월 20일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/tam/targetSearch/targetSearchList.vw")
+#set($centerWidth = 650)
+#set($rightWidth = 890 - $centerWidth)
+#set($rightGridWidth = $rightWidth - 10)
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/tam/targetSearch/targetSearchList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{centerWidth},
+			colNames     :['$!{METRIC_NM}ID', '$!{STRATEGY_NM}', 'CSF', '$!{METRIC_NM}', '주기', '단위', '담당자', '처리상태', '변경횟수'],
+			colModel     :[
+							{name:'METRIC_ID'            ,index:'METRIC_ID'            ,width:150  ,align:'center' },
+                            {name:'STRATEGY_NM'          ,index:'STRATEGY_NM'          ,width:135  ,align:'left'   },
+                            {name:'CSF_NM'          	 ,index:'CSF_NM'          	   ,width:135  ,align:'left'   },
+							{name:'METRIC_NM'            ,index:'METRIC_NM'            ,width:250  ,align:'left'   ,formatter:linkUpdate},
+                            {name:'EVAL_CYCLE_NM'        ,index:'EVAL_CYCLE_NM'        ,width:40   ,align:'center' },
+                            {name:'UNIT_NM'              ,index:'UNIT_NM'              ,width:50   ,align:'center' },
+                            {name:'INSERT_USER_NM'       ,index:'INSERT_USER_NM'       ,width:60   ,align:'center' },
+                            {name:'TGT_STATUS_NM'        ,index:'TGT_STATUS_NM'        ,width:70   ,align:'center' },
+							{name:'CNT'			         ,index:'CNT'			       ,width:70   ,align:'center' ,formatter:linkHistory }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			##cmTemplate   : {sortable:false},
+			caption		 :"목표조회",
+			loadComplete : function() {
+								scoreGridSet();
+                           }
+		}).jqGrid('hideCol',"METRIC_ID").jqGrid('hideCol',"CNT").setGridWidth( $!{centerWidth} );
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			var findYear = J("#findYear").val();
+			var oldYear = J("#oldYear").val();
+
+			if(findYear == oldYear) {
+    			goGridSearch();
+    			return false;
+			}
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchor").fancybox();
+	});
+
+
+
+
+	/******************************************
+	 * 목표월별상세 데이터 그리드 출력
+	 ******************************************/
+	 function scoreGridSet() {
+		var str = J('#formList').serialize();
+
+		jQuery("#detailScorelist").jqGrid({
+			url          :"$!{context_path}/bsc/tam/targetSearch/targetSearchDetailList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{rightGridWidth} ,
+			colNames     :['월', '목표'],
+			colModel     :[
+							{name:'MON'   			,index:'MON'    		  ,width:100     ,align:'center' },
+							{name:'TGT_VALUE'       ,index:'TGT_VALUE'        ,width:200    ,align:'right' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : false,
+			multiselect  : false,
+			cellEdit     : true,
+			cmTemplate   : {sortable:false},
+			caption		 :"목표월별상세 조회"
+		}).setGridWidth( $!{rightGridWidth} ).setGridHeight( $!{jqGrid_height}-60 );
+	}
+
+
+	/******************************************
+	 * 목표 월별상세 조회
+	 ******************************************/
+	function goDetail() {
+
+		J("#detailScorelist").setGridParam({url:"$!{context_path}/bsc/tam/targetSearch/targetSearchDetailList_xml.vw?"+J("#formList").serialize()});
+		J("#detailScorelist").trigger("reloadGrid");
+	}
+
+
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) {
+		return '<a href=javascript:goModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#metricId").val(ret.METRIC_ID);
+		J("#year").val(J("#findYear").val());
+		J("#selectMetricNm").text( J(ret.METRIC_NM).text() );
+		goDetail();
+	}
+
+	/******************************************
+	 * jqGrid 히스토리 페이지 링크
+	 ******************************************/
+	function linkHistory(cellvalue, options, rowObject) {
+		var retVal = cellvalue;
+		if( 0 < cellvalue ){
+			retVal = '<a href=javascript:goHistory(' + options.rowId + ')>' + cellvalue + '<//a>';
+		}
+		return retVal;
+	}
+
+	/******************************************
+	 * 목표 히스토리
+	 ******************************************/
+	function goHistory(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#metricId").val(ret.METRIC_ID);
+		J("#year").val(J("#findYear").val());
+		J("#scDeptId").val(J("#findScDeptId").val());
+		J("#scDeptNm").val(J("#findScDeptNm").val());
+		J("#mode").val("MOD");
+
+		J("#anchor").attr("href","$!{context_path}/bsc/tam/targetSearch/targetSearchHistoryList.vw?year=" + J("#findYear").val() + "&amp;metricId=" + ret.METRIC_ID);
+		J("#anchor").click();
+
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#formFind").attr("action", "$!{context_path}/bsc/tam/targetSearch/targetSearchListExcel.vw?type=excel").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 조직트리 선택
+	 ******************************************/
+	function goAction(code, name) {
+		var scDeptNm = J(name).text();
+		J("#findScDeptId").val(code);
+		J("#findScDeptNm").val(scDeptNm);
+		goGridSearch();
+	}
+
+	/******************************************
+	 * 그리드 ajax 조회
+	 ******************************************/
+	function goGridSearch() {
+		J("#list").setGridParam({url:"$!{context_path}/bsc/tam/targetSearch/targetSearchList_xml.vw?"+J("#formFind").serialize(), datatype:"json"});
+		J("#list").trigger("reloadGrid");
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">목표조회</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/tam/targetSearch/targetSearchList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden" 	id="oldYear"		name="oldYear"			value="$!{searchMap.txt2html("findYear")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="목표조회검색 조건">
+						<caption class="none">목표조회 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w200">
+            						<span>$!{YEARMON}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+            						<span>$!{SC_DEPT_NM}</span>
+            						<span class="searchBar">
+										<input type="hidden" id="findScDeptId" name="findScDeptId" value="$!{searchMap.txt2html("scDeptId")}"/>
+										<input type="text" id="findScDeptNm" name="findScDeptNm" value="$!{searchMap.txt2html("scDeptNm")}" class="disable" readonly="readonly"/>
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w250" style="display:none;">
+									<span>$METRIC_NM 유형</span>
+            						<span class="searchBar">
+            							<select id="findBscMetricGbn" name="findBscMetricGbn" class="select w70">
+											<option value="">전체</option>
+            								$!CS_CODE.getCodeOption("106", $!{searchMap.txt2html("findBscMetricGbn")}, $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/tam/targetSearch/targetSearchProcess.vw?type=template">
+			<input type="hidden" id="mode"       name="mode" />
+			<input type="hidden" id="year"		 name="year" />
+			<input type="hidden" id="mon"		 name="mon" />
+			<input type="hidden" id="metricId"	 name="metricId" />
+			<input type="hidden" id="scDeptId"   name="scDeptId" />
+			<input type="hidden" id="scDeptNm"   name="scDeptNm" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+
+					<!-- 조직트리 Start -->
+    				<div class="blockGridTreeTable">
+    					#parse("/WEB-INF/vl/bsc/module/commModule/commonTree.vm")
+    				</div>
+
+					<div id="mainListData">
+    					<!-- 데이터그리드 Start -->
+    					<div class="blockUnit floatLeft" style="margin-left:10px;width:$!{centerWidth}px;">
+    						<table id="list" summary="목표조회 조회결과">
+    							<caption class="none">목표조회 조회</caption>
+    							<thead><tr><th></th></tr></thead>
+    							<tbody><tr><td></td></tr></tbody>
+    						</table>
+    						<div id="pager"></div>
+    					</div>
+
+
+						<!--blockListTable Start-->
+                		<div class="blockUnit floatRight" style="width:$!{rightGridWidth}px;margin-bottom: 10px;padding-left: 0px;padding-left: 0px;">
+							<table summary="지표 목표상세" style="width:100%;">
+        						<caption class="none">지표 목표상세</caption>
+        						<thead>
+									<tr>
+        								<th ><span>$!{METRIC_NM} :</span></th>
+										<td style="width:85%;"><span id="selectMetricNm"></span></td>
+                    				</tr>
+								</thead>
+								<tbody><tr><td></td></tr></tbody>
+            				</table>
+                		</div>
+
+						<div class="blockUnit floatLeft" style="width:$!{rightGridWidth}px;">
+                        	<table id="detailScorelist" summary="목표 월별상세조회" >
+                        		<caption class="none">목표 월별상세조회</caption>
+                        		<thead><tr><th></th></tr></thead>
+                        		<tbody><tr><td></td></tr></tbody>
+                        	</table>
+                        	<div id="pager2"></div>
+                        </div>
+					</div>
+					<!--// 데이터그리드 End -->
+
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<a id="anchor"></a>
+	<div class="clear"></div>
+</div>

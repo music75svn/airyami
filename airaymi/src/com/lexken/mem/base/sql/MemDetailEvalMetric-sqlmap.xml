@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.base.memDetailEvalMetric">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MEM_JOB_EVAL_ITEM
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 업무수행평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EVAL_GRP
+	==================================================================
+	-->
+	<select id="evalGubunList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.JOB_EVAL_ITEM_ID
+             , A.JOB_EVAL_ITEM_NM
+          FROM MEM_JOB_EVAL_ITEM A
+         WHERE A.YEAR=#findYear#
+           AND DELETE_DT IS NULL
+          ORDER BY A.SORT_ORDER
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 상세평가지표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_DETAIL_EVAL_METRIC
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.JOB_EVAL_ITEM_ID
+             , B.JOB_EVAL_ITEM_NM
+             , A.DETAIL_EVAL_METRIC_ID
+             , A.DETAIL_EVAL_METRIC_NM
+             , A.EVAL_1_RATE
+             , A.EVAL_2_RATE
+             , A.EVAL_PEER_RATE
+             , A.SORT_ORDER
+          FROM MEM_DETAIL_EVAL_METRIC A
+             , MEM_JOB_EVAL_ITEM B 
+         WHERE A.JOB_EVAL_ITEM_ID = B.JOB_EVAL_ITEM_ID
+           AND A.YEAR = B.YEAR
+           AND A.YEAR = #findYear#
+           AND A.JOB_EVAL_ITEM_ID = #findJobEvalItemId#
+           AND A.DELETE_DT IS NULL
+          ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 상세평가지표 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_DETAIL_EVAL_METRIC
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR                  
+			 , A.JOB_EVAL_ITEM_ID
+			 , A.DETAIL_EVAL_METRIC_ID           
+			 , A.DETAIL_EVAL_METRIC_NM
+			 , A.EVAL_2_RATE
+			 , A.EVAL_1_RATE
+			 , A.EVAL_PEER_RATE
+			 , A.CONTENT
+			 , A.SORT_ORDER            
+			 , CASE WHEN A.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USE_YN     
+		  FROM MEM_DETAIL_EVAL_METRIC A
+		 WHERE A.YEAR = #findYear#
+		   AND A.JOB_EVAL_ITEM_ID = #findJobEvalItemId#
+		   AND A.DETAIL_EVAL_METRIC_ID = #detailEvalMetricId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 상세평가지표 그룹ID 조회
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_JOB_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getDetailEvalMetricItemId" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+			   'DEM'||NVL(LPAD(MAX(SUBSTR(DETAIL_EVAL_METRIC_ID,4,4))+1,4,'0'),'0001') AS DETAIL_EVAL_METRIC_ID
+		  FROM MEM_DETAIL_EVAL_METRIC
+		 WHERE YEAR = #findYear#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 상세평가지표 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_JOB_EVAL_ITEM
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">		
+		INSERT INTO MEM_DETAIL_EVAL_METRIC (
+		       YEAR
+		     , JOB_EVAL_ITEM_ID
+		     , DETAIL_EVAL_METRIC_ID
+		     , DETAIL_EVAL_METRIC_NM
+		     , EVAL_1_RATE
+		     , EVAL_2_RATE
+		     , EVAL_PEER_RATE
+		     , CONTENT
+		     , SORT_ORDER
+		     , CREATE_DT		     
+			 ) VALUES ( 
+			   #findYear#
+			 , #findJobEvalItemId#
+			 , #detailEvalMetricId#
+			 , #detailEvalMetricNm#
+			 , #eval1Rate#
+			 , #eval2Rate#
+			 , #evalPeerRate#
+			 , #content#
+			 , #sortOrder#
+			 , sysdate			
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 상세평가지표 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_DETAIL_EVAL_METRIC
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE MEM_DETAIL_EVAL_METRIC 
+		   SET DETAIL_EVAL_METRIC_NM = #detailEvalMetricNm#
+		     , EVAL_1_RATE = #eval1Rate#
+		     , EVAL_2_RATE = #eval2Rate#
+		     , EVAL_PEER_RATE = #evalPeerRate#
+		     , CONTENT = #content#
+		     , SORT_ORDER = #sortOrder#
+		     , MODIFY_DT      = SYSDATE 
+		 WHERE YEAR = #findYear#
+		   AND JOB_EVAL_ITEM_ID = #findJobEvalItemId#
+		   AND DETAIL_EVAL_METRIC_ID = #detailEvalMetricId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 상세평가지표 정렬순서 일괄 저장
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_DETAIL_EVAL_METRIC
+	==================================================================
+	-->	
+	<update id="allSaveData" parameterClass="hashMap">
+		UPDATE MEM_DETAIL_EVAL_METRIC 
+		   SET SORT_ORDER             = #sortOrder# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE YEAR = #findYear#
+		   AND JOB_EVAL_ITEM_ID = #findJobEvalItemId#
+		   AND DETAIL_EVAL_METRIC_ID = #detailEvalMetricId#
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 상세평가지표 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_DETAIL_EVAL_METRIC
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE MEM_DETAIL_EVAL_METRIC 
+		   SET DELETE_DT      = SYSDATE 
+		 WHERE YEAR = #findYear#
+		   AND JOB_EVAL_ITEM_ID = #findJobEvalItemId#
+		   AND DETAIL_EVAL_METRIC_ID = #detailEvalMetricId#
+	</update>
+	
+
+</sqlMap>
+
+

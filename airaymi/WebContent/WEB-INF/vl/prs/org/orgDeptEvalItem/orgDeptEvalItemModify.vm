@@ -1,0 +1,454 @@
+#*************************************************************************
+* CLASS 명      : orgDeptEvalItemModify
+* 작 업 자      : 박선혜
+* 작 업 일      : 2013년 6월 13일
+* 기    능      : 조직별세부평가항목관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용          비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    박선혜      2013년 6월 13일           최 초 작 업
+**************************************************************************#
+
+<script type="text/javascript" language="javascript">
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/prs/org/orgDeptEvalItem/orgDeptEvalItemList.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+
+		});
+
+		/******************************************
+		 * 배점 숫자만 입력받기
+		 ******************************************/
+		J("#allocScore").numeric({allow:"."});
+		J("#allocScore").css("ime-mode", "disabled"); //한글사용 비활성화
+
+		/******************************************
+		 * 화면 초기셋팅
+		 ******************************************/
+		init();
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(J("#allocScore").val() == "") {
+			J.showMsgBox("배점을 입력해 주십시요", null, "allocScore");
+			J("#allocScore").focus();
+			return;
+		}
+	    if( !LengthCheck(J("#allocScore").val(), "배점", 0, 10 ) ) {
+            J("#allocScore").focus();
+            return;
+        }
+
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+   		J("#unit").attr("disabled", false);
+		J("#form1 input").attr("disabled",false);
+		J("#form1 select").attr("disabled",false);
+		J("#form1 textarea").attr("disabled",false);
+		J("#actCalTypeTemplate").remove();
+		J("#form1").attr("action", "$!{context_path}/prs/org/orgDeptEvalItem/orgDeptEvalItemProcess.vw?type=template").submit();
+	}
+
+	/*****************************************************
+	 * 화면초기셋팅
+	 *****************************************************/
+	function init() {
+
+		J("#evalSectionArea").show();
+		J("#actCalTypeArea").show();
+		J("#unit").val(J("#orgUnit").val());
+		J("#unit").attr("disabled", false);
+		J("#unitValidation").show();
+		J("span.optionStr").text("이상");
+		J("span.optionStr:last").text("미만");
+
+		//input box
+
+		J("input[type=text]", "#actCalTypeArea").each(function(index, item) {
+			J(this).after(J(this).val());
+			J(this).remove();
+		});
+
+		J("input[type=text]", "#evalSectionArea").each(function(index, item) {
+			J(this).after(J(this).val());
+			J(this).remove();
+		});
+
+		//select box
+		J("select", "#mainContent").each(function(index, item) {
+			J(this).after(J("> option:selected", this).text());
+			J(this).remove();
+		});
+
+		//radio, textarea
+		J("input:radio, textarea").attr("disabled", true);
+
+		//image
+		J("input:image[src*=ic_search]").remove();
+		J("input:image[src*=ic_cancel]").remove();
+		J("img[src*=ic_search]").remove();
+		J("img[src*=ic_cancel]").remove();
+
+		J("#allocScore").attr("disabled", false);    //배점
+	}
+
+	/*****************************************************
+	 * 조직선택 설정
+	 *****************************************************/
+	function setDeptInfo(deptCd, deptNm) {
+
+		deptNm = J(deptNm).text();
+		J("#chargeDeptCd").val(deptCd);
+		J("#chargeDeptNm").val(deptNm);
+		J.fancybox.close();
+	}
+
+ 	/******************************************
+	 * 조직트리 선택
+	 ******************************************/
+	function goAction(code, name) {
+		var deptNm = J(name).text();
+		J("#formFind input[name=deptCd]").val(code);
+		J("#formFind input[name=deptNm]").val(deptNm);
+		J("#formFind").attr("action", "$!{context_path}/prs/org/orgDeptEvalItem/orgDeptEvalItemList.vw?type=template").submit();
+	}
+
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+			<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/org/orgDeptEvalItem/orgDeptEvalItemList.vw?type=template">
+				<input type="hidden" 	id="oldYear"		name="oldYear"			value="$!{searchMap.txt2html("findYear")}" />
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"  	id="deptCd"			name="deptCd"     		value="$!{searchMap.txt2html("deptCd")}" />
+				<input type="hidden"  	id="deptNm"			name="deptNm"     		value="$!{searchMap.txt2html("deptNm")}" />
+				<input type="hidden" 	id="findYear"		name="findYear"			value="$!{searchMap.txt2html("findYear")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="조직별$!{ORG_EVAL_ITEM_NM}관리검색 조건">
+						<caption class="none">조직별$!{ORG_EVAL_ITEM_NM}관리 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+        					<tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+#*
+            				<tr>
+								<td class="searchBox_tit w180">
+                                    <span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+                                    <span><label for="findDeptNm">$!{DEPT_NM}</label></span>
+            						<span class="searchBar">
+										<input type="hidden" id="findDeptCd" name="findDeptCd" value="$!{searchMap.txt2html("deptCd", $!{topCodeInfo.DEPT_CD})}"/>
+										<input type="text" id="findDeptNm" name="findDeptNm" value="$!{searchMap.txt2html("deptNm", $!{topCodeInfo.ORG_EVAL_ITEM_IDDEPT_NM})}" class="disable" readonly="readonly"/>
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w200">
+                                    <span><label for="findUseYn">사용여부</label></span>
+            						<span class="searchBar">
+            							<select id="findUseYn" name="findUseYn" class="select w70">
+            								$!CS_CODE.getCodeOption("011", $!{searchMap.txt2html("findUseYn")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+*#
+        				</tbody>
+    				</table>
+##                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<div class="blockGridTreeTable">
+			#parse("/WEB-INF/vl/bsc/module/commModule/commonTree.vm")
+		</div>
+
+		<div id="mainContent">
+    		<form id="form1" name="form1" method="post" action="$!{context_path}/prs/org/orgDeptEvalItem/orgDeptEvalItemProcess.vw?type=template">
+                <input type="hidden" id="mode"				name="mode"					value="$!{searchMap.txt2html("mode")}" />
+            	<input type="hidden" id="year"				name="year"					value="$!{searchMap.txt2html("year")}" />
+            	<input type="hidden" id="deptCd"   			name="deptCd"            	value="$!{searchMap.txt2html("deptCd")}" />
+            	<input type="hidden" id="deptNm"   			name="deptNm"          		value="$!{searchMap.txt2html("deptNm")}" />
+            	<input type="hidden" id="orgEvalItemId"   	name="orgEvalItemId"       	value="$!{searchMap.txt2html("orgEvalItemId")}" />
+				$!{searchMap.makeHiddenFind()}
+
+        		<div class="blockDetailForTree blockDetail">
+        			<table summary="조직별$!{ORG_EVAL_ITEM_NM}관리 등록">
+    					<caption class="none">조직별$!{ORG_EVAL_ITEM_NM}관리 등록</caption>
+        				<colgroup>
+        					<col width="15%" />
+        					<col width="35%" />
+    						<col width="15%" />
+    						<col width="35%" />
+        				</colgroup>
+        				<tbody>
+        					<tr>
+								<th scope="row">$!{ORG_EVAL_ITEM_NM}코드</th>
+        						<td colspan="3"><span id="orgEvalItemIdDesc">$!{CS_HTML.txt2html($detail.ORG_EVAL_ITEM_ID)}</span></td>
+							</tr>
+							<tr>
+    							<th scope="row"><label for="orgEvalItemNm">$!{ORG_EVAL_ITEM_NM}</label></th>
+        						<td><span id="orgEvalItemNm">$!{CS_HTML.txt2html($detail.ORG_EVAL_ITEM_NM)}</span></td>
+								<th scope="row"><label for="evalType">평가분야</label></th>
+        						<td>
+    								<select id="evalType" name="evalType" class="select w150">
+        								$!CS_CODE.getCodeOption("183", $!{CS_HTML.txt2html($detail.EVAL_TYPE, '01')}, $!{searchMap.txt2html("year")})
+        							</select>
+    							</td>
+							</tr>
+    						<tr>
+								<th scope="row"><span class="txt_red">(*)</span><label for="allocScore">배점</label></th>
+        						<td><input type="text" id="allocScore" name="allocScore" class="inputbox w140" value='$!{CS_HTML.txt2html($detail.ALLOC_SCORE)}' maxlength="10" /></td>
+        						<th scope="row"><label for="useYn">사용여부</label></th>
+        						<td>
+        							<select id="useYn" name="useYn" class="select w150">
+        								$!CS_CODE.getCodeOption("011", $!{CS_HTML.txt2html($detail.USE_YN, 'Y')}, $!{searchMap.txt2html("year")})
+        							</select>
+        						</td>
+        					</tr>
+    						<tr>
+        						<th scope="row"><label for="content">$!{ORG_EVAL_ITEM_NM}설명</label></th>
+        						<td colspan="3">
+        							<textarea id="content" name="content" class="tabletext" title="세부평가항목 설명" cols="10" rows="3">$!{CS_HTML.txt2html($detail.CONTENT)}</textarea>
+    								<span id="contentIndicator">0</span>/1500byte
+        						</td>
+        					</tr>
+        				</tbody>
+        			</table>
+        		</div>
+
+    			<!-- 실적산식 -->
+    			<div id="actCalTypeArea" class="blockDetailForTree blockDetail2 none">
+        			<table id="actCalTypeTB" summary="산식항목 등록">
+        				<caption class="none">산식항목 등록</caption>
+        				<colgroup>
+        					<col width="15%" />
+        					<col width="25%" />
+    						<col width="10%" />
+    						<col width="10%" />
+    						<col width="22%" />
+    						<col width="18%" />
+        				</colgroup>
+        				<tbody>
+        					<tr>
+        						<th scope="row"><label for="actCalType">$!{ORG_EVAL_ITEM_NM} 산식</label></th>
+        						<td class="textLeft" colspan="5">
+    								<input type="text" id="actCalType" name="actCalType" class="inputbox wp80" value='$!{CS_HTML.txt2html($detail.ACT_CAL_TYPE)}' maxlength="300" readonly="readonly"/>
+    							</td>
+        					</tr>
+        					<tr id="actCalTypeList">
+        						<th scope="row">산식항목</th>
+        						<th scope="row">산식항목명</th>
+    							<th scope="row">실적입력구분</th>
+    							<th scope="row">단위</th>
+    							<th scope="row">연계항목</th>
+    							<th scope="row">원천데이터</th>
+        					</tr>
+
+                            #foreach($list in $calTypeColList)
+        						<tr>
+            						<td>
+    									<span>$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}</span>
+    									<input type="hidden" name="calTypeCols" class="inputbox wp90" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}"/>
+    								</td>
+            						<td>
+	    									<input type="text" name="calTypeColNms" class="inputbox wp90" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL_NM)}" maxlength="80" title="산식항목"/>
+    								</td>
+        							<td>
+    									<select name="insertGubuns" class="select w90" title="입력구분">
+                                            <option value="">미지정</option>
+    										$!CS_CODE.getCodeOption("014", $list.INSERT_GUBUN, $!{searchMap.txt2html("year")})
+    									</select>
+    								</td>
+        							<td>
+    									<select name="units" class="select w90" title="단위">
+                                            <option value="">미지정</option>
+    										$!CS_CODE.getCodeOption("013", $list.UNIT, $!{searchMap.txt2html("year")})
+    									</select>
+    								</td>
+        							<td>
+    									<input type="hidden" name="itemCds" class="inputbox wp60" value="$!{CS_HTML.txt2html($list.ITEM_CD)}" />
+    									<input type="text" name="itemNms" class="inputbox wp60" value="$!{CS_HTML.txt2html($list.ITEM_NM)}" readonly="readonly" maxlength="30"  title="연계항목"/>
+    									<input type="image" onclick="javascript:systemItemPop(this.parentNode.parentNode.rowIndex);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_search.gif" alt="연계항목선택"/>
+    									<input type="image" onclick="javascript:setInitItem(this.parentNode.parentNode.rowIndex);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_cancel.gif" alt="연계항목취소"/>
+    								</td>
+        							<td>
+    									<input type="text" name="sourceSystems" class="inputbox wp90" value="$!{CS_HTML.txt2html($list.SOURCE_SYSTEM)}" maxlength="30" title="연계시스템"/>
+    								</td>
+            					</tr>
+                            #end
+
+    						<tr id="kpiActCalTypeNm">
+        						<th scope="row">$!{ORG_EVAL_ITEM_NM} 산식명</th>
+    							<td class="textLeft" colspan="5"><span>$!{calTypeColDesc}</span></td>
+        					</tr>
+        				</tbody>
+        			</table>
+        		</div>
+
+    			<!-- 평가등급 구간대 -->
+    			<div id="evalSectionArea" class="blockDetailForTree blockDetail2 none">
+        			<table summary="평가등급구간대 등록">
+        				<caption class="none">평가등급구간대 등록</caption>
+        				<colgroup>
+        					<col width="15%" />
+        					<col width="15%" />
+
+    						#foreach($list in $evalSectionList)
+    							<col width="14%" />
+    						#end
+
+        				</colgroup>
+        				<tbody>
+        					<tr>
+        						<th scope="row" rowspan="3"> 평가등급구간대</th>
+        						<th scope="row">구간분류</th>
+
+    							#foreach($list in $evalSectionList)
+        							<th scope="row">$!{CS_HTML.txt2html($list.EVAL_SECTION_NM)}</th>
+    							#end
+
+        					</tr>
+    						<tr>
+    							<th scope="row">점수구간</th>
+
+    							#set($curValue = "")
+    							#set($lastValue = "")
+    							#set($idx = 1)
+    							#set($evalSectionListSize = $!{CS_HTML.txt2html($evalSectionList.size())})
+    							#foreach($list in $evalSectionList)
+    								#if($idx == $evalSectionListSize)
+    									#set($curValue = $!{lastValue})
+    								#else
+    									#set($curValue = $!{CS_HTML.txt2html($list.VIEW_VAL)})
+    								#end
+        							<td>
+    									<input type="hidden" name="evalSectionIds" class="inputbox w50" value="$!{CS_HTML.txt2html($list.EVAL_SECTION_ID)}" />
+        								<input type="text" name="viewValues" class="inputbox w50" value="$!{curValue}" maxlength="15" title="환산점수"/>
+    									<input type="hidden" name="fromValues" class="inputbox w50" value="$!{CS_HTML.txt2html($list.FROM_VALUE)}" />
+    									<input type="hidden" name="toValues" class="inputbox w50" value="$!{CS_HTML.txt2html($list.TO_VALUE)}" />
+    									<span class="optionStr">이상</span>
+        							</td>
+    								#set($idx = $idx + 1)
+    								#set($lastValue = $curValue)
+    							#end
+
+        					</tr>
+    						<tr>
+        						<th scope="row">환산점수</th>
+    							#foreach($list in $evalSectionList)
+    								<td>
+        								<input type="text" name="conversionScores" class="inputbox w80" value="$!{CS_HTML.txt2html($list.CONVERSION_SCORE)}" maxlength="3" title="환산점수"/>
+        							</td>
+    							#end
+        					</tr>
+        				</tbody>
+        			</table>
+        		</div>
+
+				<div class="blockButton_all floatLeft">
+            		<div class="blockButton">
+            			<ul>
+            				<li><input type="button" id="btnBack"   value="돌아가기"/></li>
+            				<li><input type="submit" id="btnInsert" value="저장"/></li>
+            			</ul>
+            		</div>
+				</div>
+    		</form>
+		</div>
+	</div>
+	<a id="anchor"></a>
+	<div class="clear"></div>
+</div>
+
+<table id="actCalTypeTemplate" class="none">
+	<tr>
+        <td>
+			<span></span>
+			<input type="hidden" name="calTypeCols" class="inputbox wp90" value=""/>
+		</td>
+        <td>
+			<input type="text" name="calTypeColNms" class="inputbox wp90" value="" maxlength="80" title="산식항목"/>
+        </td>
+        <td>
+            <select name="insertGubuns" class="select w90" title="입력구분">
+                <option value="">미지정</option>
+            	$!CS_CODE.getCodeOption("014", "02", $!{searchMap.txt2html("year")})
+            </select>
+        </td>
+        <td>
+            <select name="units" class="select w90" title="단위">
+                <option value="">미지정</option>
+            	$!CS_CODE.getCodeOption("013", "", $!{searchMap.txt2html("year")})
+            </select>
+        </td>
+        <td>
+			<input type="hidden" name="itemCds" class="inputbox wp60" value="" />
+			<input type="text" name="itemNms" class="inputbox wp60" value="" readonly="readonly" maxlength="30" title="연계항목"/>
+			<input type="image" onclick="javascript:systemItemPop(this.parentNode.parentNode.rowIndex);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_search.gif" alt="연계항목선택"/>
+    		<input type="image" onclick="javascript:setInitItem(this.parentNode.parentNode.rowIndex);return false;" class="valign_middle" src="$!{img_path}/common/board/ic_cancel.gif" alt="연계항목취소"/>
+        </td>
+        <td>
+			<input type="text" name="sourceSystems" class="inputbox wp90" value="" maxlength="30" title="연계시스템"/>
+        </td>
+	</tr>
+</table>
+

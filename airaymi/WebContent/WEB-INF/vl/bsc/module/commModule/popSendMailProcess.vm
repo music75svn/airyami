@@ -1,0 +1,64 @@
+#*************************************************************************
+* CLASS 명      : popSendMail
+* 작 업 자      : 형광민
+* 작 업 일      : 2012년 8월 27일 
+* 기    능      : 메일발송
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     형광민      2012년 8월 27일             최 초 작 업
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+</head>
+
+<script language="javascript" type="text/javascript">
+//<![CDATA[
+	var J = jQuery;
+	
+	J(document).ready(function(){
+		#if($vcMath.toInteger($returnMap.get("ErrorNumber")) != 1)
+			J.showMsgBox("$!{CS_STATIC.strReplaceLF("\n", $returnMap.get("ErrorMessage"))}", "goBack", null);
+		#else
+			J.showMsgBox("정상적으로 처리되었습니다", "goSubmit", null);
+		#end
+	});
+    
+	/******************************************
+	 * form submit
+	 ******************************************/
+	function goSubmit() {
+		self.close();
+	}
+    
+	/******************************************
+	 * 돌아가기
+	 ******************************************/
+	function goBack() {
+		history.go(-1);
+	}
+//]]>
+</script>
+<noscript>
+	<div class="noScriptMsg">
+		<a href="$!{context_path}/bsc/module/commModule/popSendMail.vw?type=popup&amp;$!{searchMap.makeUrlParamFind()}">
+			$!{CS_STATIC.strReplaceLF("<br/>", $returnMap.get("ErrorMessage"))} <br/><br/> 메일전송 페이지로 이동합니다.
+		</a>
+	</div>
+</noscript>
+<form name="form1" id="form1" method="post" action="$!{context_path}/bsc/module/commModule/popSendMail.vw?type=popup">
+	<input type="hidden" id="fromMail"		 name="fromMail"	value="$!{searchMap.txt2html("fromMail")}" />
+	<input type="hidden" id="fromMailNm"	 name="fromMailNm"	value="$!{searchMap.txt2html("fromMailNm")}" />
+	<input type="hidden" id="toMail" 		 name="toMail"      value="$!{searchMap.txt2html("toMail")}" />
+    <input type="hidden" id="toName" 	 	 name="toName" 	    value="$!{searchMap.txt2html("toName")}" />
+    <input type="hidden" id="toNameList" 	 name="toNameList"  value="$!{searchMap.txt2html("toNameList")}" />
+	$!{searchMap.makeHiddenFind()}
+</form>
+ 
+<div id="dialog" title="확인"><p>&nbsp;</p></div>    <!-- 다이어로그 -->
+
+</body>
+</html>

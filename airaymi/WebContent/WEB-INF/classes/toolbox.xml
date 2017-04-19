@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<toolbox>
+	<tool>
+		<key>CS_UTIL</key>
+		<scope>application</scope>
+		<class>com.lexken.framework.util.UtilityHelper</class>
+	</tool>
+
+	<tool>
+		<key>CS_HTML</key>
+		<scope>application</scope>
+		<class>com.lexken.framework.util.HtmlHelper</class>
+	</tool>	
+		
+	<tool>
+		<key>CS_FORMAT</key>
+		<scope>application</scope>
+		<class>com.lexken.framework.util.FormatHelper</class>
+	</tool>
+
+	<tool>
+		<key>CS_STATIC</key>
+		<scope>application</scope>
+		<class>com.lexken.framework.util.StaticUtil</class>
+	</tool>	
+	
+	<tool>
+		<key>CS_INSIDE_CODE</key>
+		<scope>application</scope>
+		<class>com.lexken.framework.common.InsideCode</class>
+	</tool>	
+	
+	<tool>
+		<key>CS_CALENDAR</key>
+		<scope>request</scope>
+		<class>com.lexken.framework.util.CalendarHelper</class>
+	</tool>
+	
+	<tool>
+		<key>CS_CODE</key>
+		<scope>application</scope>
+		<class>com.lexken.framework.codeUtil.CodeUtil</class>
+	</tool>		
+	
+	<tool>
+		<key>CS_DEFINE</key>
+		<scope>application</scope>
+		<class>com.lexken.framework.util.DefineHelper</class>
+	</tool>
+	
+	<tool>
+		<key>CS_CONSTANT</key>
+		<scope>application</scope>
+		<class>com.lexken.framework.common.StringConstants</class>
+	</tool>		
+	
+	<tool>
+		<key>CS_SC_DEPT</key>
+		<scope>request</scope>
+		<class>com.lexken.framework.scDeptUtil.ScDeptUtil</class>
+	</tool>
+	
+	<tool>
+		<key>vcMath</key>
+		<scope>application</scope>
+		<class>org.apache.velocity.tools.generic.MathTool</class>
+	</tool>			
+	
+	<tool>
+		<key>vcList</key>
+		<scope>application</scope>
+		<class>org.apache.velocity.tools.generic.ListTool</class>
+	</tool>
+	
+	<tool>
+		<key>esc</key>
+		<scope>application</scope>
+		<class>org.apache.velocity.tools.generic.EscapeTool</class>
+	</tool>
+	
+</toolbox>
+
+
+
+

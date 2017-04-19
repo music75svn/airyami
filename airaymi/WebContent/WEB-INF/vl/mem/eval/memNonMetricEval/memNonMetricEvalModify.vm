@@ -1,0 +1,410 @@
+#*************************************************************************
+* CLASS 명      : memEvalModify
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년 03월 28일 
+* 기    능      : 업무수행평가     
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    유연주      2017년 03월 28일              최 초 작 업 
+**************************************************************************# 
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	var allEvalReq = true;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		#set ($index = 1)
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/mem/eval/memNonMetricEval/memNonMetricEvalModify_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj) {return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			##height       : $!{jqGrid_height},
+			height       : 250,
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '조직코드', '조직', '사번', '사번', '이름', '지표ID', '평가유형', '지표명', '실적조회', '평가점수', '평가의견'],
+			colModel     :[
+							{name:'YEAR'				,index:'YEAR'				,width:0  		,align:'center' }, 
+                            {name:'DEPT_ID'		        ,index:'DEPT_ID'		    ,width:0		,align:'center'	},
+                            {name:'DEPT_NM'		        ,index:'DEPT_NM'		    ,width:200		,align:'left'	},
+                            {name:'EMP_NO'              ,index:'EMP_NO'             ,width:80       ,align:'center' },
+                            {name:'EVAL_MEMB_EMPN'      ,index:'EVAL_MEMB_EMPN'     ,width:0        ,align:'center' },
+                            {name:'EMP_NM'				,index:'EMP_NM'				,width:80		,align:'center'	},
+                            {name:'METRIC_ID'           ,index:'METRIC_ID'          ,width:0        ,align:'center' },
+                            {name:'TYPE_ID'             ,index:'TYPE_ID'            ,width:0        ,align:'center' },
+                            {name:'METRIC_NM'           ,index:'METRIC_NM'          ,width:200      ,align:'left' },
+                            {name:'ACT'				    ,index:'ACT'				,width:50		,align:'center',	formatter:linkActBtn},
+							{name:'EVAL_SCORE'		    ,index:'EVAL_SCORE'		    ,width:60 		,align:'center',	formatter:linkEvalScore },
+							{name:'EVAL_OPINION'		,index:'EVAL_OPINION'		,width:250 		,align:'center',	formatter:linkEvalOpinion }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : true,
+			cmTemplate	 : {sortable:false},
+			multiselect  : false,
+			cellEdit     : false,
+			gridview     : true,
+			##datatype	 : 'local',
+			loadComplete : function() {
+							},
+			caption:"업무수행평가"
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"DEPT_ID").jqGrid('hideCol',"METRIC_ID").jqGrid('hideCol',"EVAL_MEMB_EMPN").jqGrid('hideCol',"TYPE_ID").setGridWidth($!{jqGrid_width});
+		
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+		
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#formFind").attr("action", "$!{context_path}/mem/eval/memNonMetricEval/memNonMetricEvalList.vw?type=template").submit();
+		});
+	
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnSave").click(function() {
+			saveChk(true);
+		});
+		
+		/******************************************
+		 * 완료버튼 이벤트
+		 ******************************************/
+		J("#btnComplete").click(function() {
+			completeChk(true);
+		});
+		/******************************************
+		 * 완료취소버튼 이벤트
+		 ******************************************/
+		J("#btnCancel").click(function() {
+			cancelChk(true);
+		});
+		
+		/******************************************
+         * fancybox
+         ******************************************/
+        J("#anchor").fancybox();      //상세팝업
+		
+		// 평가기간 보여주기
+		if( "Y" == "$!{periodInfo.EVAL_IN_TERM}" ){
+			var startDt = "$!{periodInfo.EVAL_START_DT}";
+			var endDt = "$!{periodInfo.EVAL_END_DT}";
+			var str = "";
+			if( startDt.length > 0 && endDt.length > 0 ){
+				str += "※  평가기간 : " + startDt + " ~ " + endDt;
+			}
+			
+			J("#alertDis").html(str);
+		} else {
+			J("#alertDis").html("※  업무수행평가 기간이 아닙니다." ).attr("class","txt_red");
+		}
+	});
+	
+	/******************************************
+     * 필수입력 체크
+	 * 평가가 모두 마무리 되었는지 체크
+     ******************************************/
+    function saveChk() {
+		var ids	= J("#list").jqGrid('getDataIDs');
+		
+		for (var i = 0; i < ids.length; i++) {
+			var row = J("#list").jqGrid("getRowData", ids[i]);
+			
+			var scoreBox = J("#formList input[name*='evalScore" + row.EVAL_MEMB_EMPN + "']");
+			
+			for (var j = 0; j < scoreBox.length; j++) {
+    			if (scoreBox[j].value == "") {
+    				alert("평가가 완료되지 않아 평가를 저장할 수 없습니다.");
+    				scoreBox[j].focus();
+    				return;
+    			}
+    		}
+		}
+		
+		J.showConfirmBox("평가를 저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+    }
+    
+	/******************************************
+     * 필수입력 체크
+	 * 평가가 모두 마무리 되었는지 체크
+     ******************************************/
+    function completeChk() {
+		var ids	= J("#list").jqGrid('getDataIDs');
+		
+		for (var i = 0; i < ids.length; i++) {
+			var row = J("#list").jqGrid("getRowData", ids[i]);
+			
+			var scoreBox = J("#formList input[name*='evalScores']");
+			
+			for (var j = 0; j < scoreBox.length; j++) {
+    			if (scoreBox[j].value == "") {
+    				alert("평가가 완료되지 않아 평가를 완료할 수 없습니다.");
+    				scoreBox[j].focus();
+    				return;
+    			}
+    		}
+		}
+		
+ 	    J.showConfirmBox("평가를 완료하시겠습니까?", "confirmDo"); //confirmDo() 콜백함수 호출
+    }
+    
+	/******************************************
+     * 필수입력 체크
+	 * 평가가 모두 마무리 되었는지 체크
+     ******************************************/
+    function cancelChk() {
+		J.showConfirmBox("평가를 완료취소하시겠습니까?", "cancelDo"); //cancelDo() 콜백함수 호출
+    }
+	
+	/******************************************
+     * 저장
+	 * 전체 평가대상자에 대해서 평가완료로 저장을 하고
+	 * 평가완료여부 컬럼을 업데이트 한다.
+     ******************************************/
+    function saveDo() {	
+		var ids	= J("#list").jqGrid('getDataIDs');
+		
+		J("#mode").val("SUBMIT");
+        J("#formList").attr("action", "$!{context_path}/mem/eval/memNonMetricEval/memNonMetricEvalProcess.vw?type=template").submit();
+                
+        return false;
+    }
+    
+	/******************************************
+     * 완료처리
+	 * 전체 평가대상자에 대해서 평가완료로 저장을 하고
+	 * 평가완료여부 컬럼을 업데이트 한다.
+     ******************************************/
+    function confirmDo() {
+		var ids	= J("#list").jqGrid('getDataIDs');
+		
+		J("#mode").val("COMPLETE");
+        J("#formList").attr("action", "$!{context_path}/mem/eval/memNonMetricEval/memNonMetricEvalProcess.vw?type=template").submit();
+                
+        return false;
+    }
+
+	/******************************************
+	 * 완료취소
+	 ******************************************/
+	function cancelDo() {
+		J("#mode").val("CANCEL");
+		J("#formList").attr("action", "$!{context_path}/mem/eval/memNonMetricEval/memNonMetricEvalProcess.vw?type=template").submit();
+	}
+	
+	
+	/******************************************
+	 * 실적버튼 보여주기
+	 ******************************************/
+	 function linkActBtn(cellvalue, options, rowObject) {
+		var str = "";
+		str += '<input type="button" id="btnInsert" style="cursor: pointer; cursor: hand;" value="조회" onclick="showAct('+options.rowId+');return false;"/>';
+		return str;
+	}
+		
+	/******************************************
+	 * 실적화면 팝업
+	 ******************************************/
+	function showAct(rowId){
+		var ret = J("#list").jqGrid('getRowData', rowId);
+		var param = "&amp;empNo=" + ret.EMP_NO
+				   + "&amp;year=" + J("#findYear").val()
+				   + "&amp;findYear=" + J("#findYear").val()
+				   + "&amp;metricId=" + ret.METRIC_ID
+				   + "&amp;typeId=" + ret.TYPE_ID
+		           + "&amp;mode=" + "SEARCH";
+		           
+		var url = "$!{context_path}/mem/eval/memMeet/memEvalActSearchList.vw?type=popup" + param;
+		openWinByName(url,'popMemAct','1210','600','yes');
+	}
+	
+	/******************************************
+	 * 평가점수 텍스트박스 보여주기
+	 ******************************************/
+	function linkEvalScore(cellvalue, opions, rowObject) {
+		var str = "";
+
+		str += "<input type=\"text\" id=\"evalScores\" name=\"evalScores\" value=\"" + rowObject.EVAL_SCORE + "\" class=\" inputbox wp60\"  style=\"ime-mode:disabled\" maxlength=\"3\" onkeypress=\"return numberOnly(event);\" onkeyup=\"addExtraPoint(this, event);\">";
+		str += "<input type='hidden' id='empNos' name='empNos' value='"+rowObject.EVAL_MEMB_EMPN+"'>";
+		str += "<input type='hidden' id='metricIds' name='metricIds' value='"+rowObject.METRIC_ID+"'>";
+		return str;
+	}
+	
+	function numberOnly(e) {
+		if ((e.keyCode != 46) && (e.keyCode < 48 || e.keyCode > 57)) 
+			return false;
+	}
+	
+	/******************************************
+	 * 가점 계산
+	 ******************************************/
+	function addExtraPoint(obj, e) {
+		if (isNaN(J("#" + obj.id).val())) {
+			alert("숫자형식을 입력해 주십시요.");
+			return;
+		}
+	}
+	
+	/******************************************
+	 * jqGrid 평가의견 텍스트
+	 ******************************************/
+	function linkEvalOpinion(cellvalue, options, rowObject) {
+		var str = "";
+		var readOnlyStr = "";
+		if(rowObject.EVAL_REQ_YN == 'N'){
+			readOnlyStr = "disabled";
+		}
+		str += "<textarea id=\"opinion" + rowObject.EVAL_MEMB_EMPN + "\" name=\"opinion" + rowObject.EVAL_MEMB_EMPN + "\" readOnly onClick=\"popOpinion("+options.rowId+");\" "+readOnlyStr+" cols=\"40\" rows=\"1\">" + rowObject.EVAL_OPINION + "</textarea>";
+		return str;
+	}
+	
+	function popOpinion(rowId){
+		// 선택된 row의 data		
+		var ret = J("#list").jqGrid('getRowData', rowId);
+		var evalOpinion = J("#opinion"+ret.EVAL_MEMB_EMPN).val();
+        J("#anchor").attr("href","$!{context_path}/mem/eval/memEval/popEvalOpinion.vw?rowId="+rowId);
+        J("#anchor").click();
+        return false;
+	}
+	
+
+//]]>
+</script>    
+ 
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">업무수행평가</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+			#set($listSize = $!{CS_HTML.txt2html($evalGrade.size())})
+			#set($idx = 0)
+			
+			#foreach($evalGrade in $evalGrade)
+				#set($idx = $idx + 1)
+				<input type="hidden" id="$!CS_HTML.txt2html($evalGrade.GRADE_ITEM_ID)" name="$!CS_HTML.txt2html($evalGrade.GRADE_ITEM_ID)" value="$!CS_HTML.txt2html($evalGrade.ITEM_DISTRI_CNT)" />
+				#if ($idx == $listSize || $idx + 1 == $listSize)
+					<input type="hidden" id="$!CS_HTML.txt2html($evalGrade.GRADE_ITEM_NM)" name="$!CS_HTML.txt2html($evalGrade.GRADE_ITEM_NM)" value="$!CS_HTML.txt2html($evalGrade.GRADE_ITEM_ID)" />
+				#end
+			#end
+			
+			<input type="hidden" id="prevSelectedGrade" name="prevSelectedGrade" value="" />
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/mem/eval/memNonMetricEval/memNonMetricEvalModify.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  	name="findHighPgmId"    	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   	name="findSubPgmId"     	value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      	name="findPgmId"        	value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"    id="findEvalGubun"		name="findEvalGubun"		value="$!{searchMap.txt2html("findEvalGubun")}" />
+				<input type="hidden" 	id="findEvalEmpNm"		name="findEvalEmpNm"		value="$!{searchMap.txt2html("findEvalEmpNm")}" />
+				<input type="hidden" 	id="findEvalGrpId"     	name="findEvalGrpId" 		value="$!{searchMap.txt2html("findEvalGrpId")}"/>
+                <input type="hidden"    id="findAssessorGrpId"  name="findAssessorGrpId"    value="$!{searchMap.txt2html("findAssessorGrpId")}"/>
+                <input type="hidden"    id="findEvalDegreeId"   name="findEvalDegreeId"     value="$!{searchMap.txt2html("findEvalDegreeId")}"/>
+				<input type="hidden"    id="assessorEmpn"       name="assessorEmpn"         value="$!{searchMap.txt2html("assessorEmpn")}" />
+				<input type="hidden" 	id="findYear"       	name="findYear" 		    value="$!{searchMap.txt2html("year")}" />
+				<input type="hidden" 	id="year"       		name="year" 		        value="$!{searchMap.txt2html("year")}" />
+				<input type="hidden"    id="evalGubun"          name="evalGubun"            value="$!{searchMap.txt2html("evalGubun")}" />
+				<input type="hidden"    id="evalEmpNo"          name="evalEmpNo"            value="$!{searchMap.txt2html("evalEmpNo")}" />
+				<input type="hidden"    id="evalEmpNm"          name="evalEmpNm"            value="$!{searchMap.txt2html("evalEmpNm")}" />
+				<input type="hidden"    id="deptCd"             name="deptCd"               value="$!{searchMap.txt2html("deptCd")}" />
+				<input type="hidden"    id="deptNm"             name="deptNm"               value="$!{searchMap.txt2html("deptNm")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="업무수행평가 검색 조건">
+						<caption class="none">업무수행평가 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w200">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+        								$!CS_CODE.getCodeName("017", $!{searchMap.txt2html("findYear")})
+            						</span>
+            					</td>
+                                <td class="searchBox_tit w200">
+                                    <span>평가자</span>
+                                    <span class="searchBar">
+                                        $!{searchMap.txt2html("evalEmpNm")}
+                                    </span>
+                                </td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/mem/eval/memNonMetricEval/memNonMetricEvalProcess.vw?type=template">
+			<input type="hidden" 	id="mode"				name="mode" />
+			<input type="hidden" 	id="year"       		name="year" 		        value="$!{searchMap.txt2html("year")}" />
+			<input type="hidden"    id="evalGubun"          name="evalGubun"            value="$!{searchMap.txt2html("evalGubun")}" />
+			<input type="hidden"    id="evalEmpNo"          name="evalEmpNo"            value="$!{searchMap.txt2html("evalEmpNo")}" />
+			<input type="hidden"    id="evalEmpNm"          name="evalEmpNm"            value="$!{searchMap.txt2html("evalEmpNm")}" />
+			<input type="hidden"    id="deptCd"             name="deptCd"               value="$!{searchMap.txt2html("deptCd")}" />
+	        <input type="hidden"    id="empNo"          	name="empNo"            	value="" />
+	        <input type="hidden"    id="empNm"          	name="empNm"            	value="" />  
+
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="업무수행평가 조회결과">
+							<caption class="none">업무수행평가 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l txt_blue">
+							<span id="alertDis"></span>
+						</div>
+						<div class="blockButton">
+                            <ul>
+								<li><input type="button" id="btnBack"   	value="돌아가기"/></li>
+						#if($!{CS_HTML.txt2html($periodInfo.EVAL_IN_TERM)} == "Y")
+                                <li><input type="button" id="btnSave"       value="저장" /></li>
+                            #if($!{CS_HTML.txt2html($stateInfo.EVAL_STATE)} == "N")
+                                <li><input type="button" id="btnComplete"   value="완료" /></li>
+                            #else
+                                <li><input type="button" id="btnCancel"     value="완료취소" /></li>
+                            #end
+                        #end
+                            </ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+	</div>
+	 <a id="anchor"></a>
+	<div class="clear"></div>
+</div>

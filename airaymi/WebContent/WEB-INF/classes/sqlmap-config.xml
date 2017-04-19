@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+
+	<settings
+		enhancementEnabled="true"
+		maxRequests="256"
+		maxTransactions="16"
+		maxSessions="30"
+		useStatementNamespaces="true"
+	/>
+
+
+	<!--
+     <transactionManager type="JDBC">
+        <dataSource type="JNDI">
+            <property name="DataSource" value="java:comp/env/JDBC/BSC" />
+        </dataSource>
+    </transactionManager>
+	 -->
+
+     <transactionManager type = "JDBC">
+        <dataSource type="DBCP">
+<!--            <property name="JDBC.Driver" value="oracle.jdbc.driver.OracleDriver"/> -->
+            <property name="JDBC.Driver" value="core.log.jdbc.driver.OracleDriver"/>
+<!--            <property name="JDBC.Driver" value="net.sf.log4jdbc.DriverSpy"/> -->
+<!-- 개발 DB -->
+<!--
+            <property name="JDBC.ConnectionURL" value="jdbc:oracle:thin:@150.3.50.52:1521:orcl"/>
+            <property name="JDBC.Username" value="kgsdev"/>
+            <property name="JDBC.Password" value="kgsdev"/>
+ -->
+<!-- 로컬 DB --> 
+            <property name="JDBC.ConnectionURL" value="jdbc:oracle:thin:@192.168.123.101:1521:xe"/>
+            <property name="JDBC.Username" value="KGSBSC"/>
+            <property name="JDBC.Password" value="KGSBSC"/>
+<!--            
+            <property name="JDBC.ConnectionURL" value="jdbc:oracle:thin:@localhost:1521:xe"/>
+            <property name="JDBC.Username" value="KGSBSC"/>
+            <property name="JDBC.Password" value="KGSBSC"/>
+--> 
+  
+<!-- 렉스켄 개발  DB    
+            <property name="JDBC.ConnectionURL" value="jdbc:oracle:thin:@175.197.110.135:1521:ORA135"/>
+            <property name="JDBC.Username" value="BSC_KGS"/>
+            <property name="JDBC.Password" value="BSC_KGS"/>
+   -->       
+<!-- 운영 DB -->
+<!--  
+            <property name="JDBC.ConnectionURL" value="jdbc:oracle:thin:@150.1.1.6:1521:KGSTOT1"/>
+            <property name="JDBC.Username" value="bscora02"/>
+            <property name="JDBC.Password" value="qldptmtl02"/>
+ -->
+<!-- 신 개발 DB 
+            <property name="JDBC.ConnectionURL" value="jdbc:oracle:thin:@175.197.110.217:1521:ORCL"/>
+            <property name="JDBC.Username" value="KGSBSC"/>
+            <property name="JDBC.Password" value="KGSBSC"/>
+ -->
+            <property name="JDBC.DefaultAutoCommit" value="true"/>
+            <property name="Pool.MaximumActiveConnection" value="50"/>
+            <property name="Pool.MaximumIdleConnection" value="1"/>
+            <property name="Pool.MaximumCheckoutTime" value="120000"/>
+            <property name="Pool.TimeToWait" value="500"/>
+            <property name="Pool.PingEnable" value="false"/>
+            <property name="Pool.PingConnectionsOlderThan" value="1"/>
+            <property name="Pool.PingConnectionsNotUsedFor" value="1"/>
+            <property name="Driver.SetBigStringTryClob" value="true"/>
+        </dataSource>
+    </transactionManager>
+<!-- TOMCAT SETTING (DEV) -->
+
+
+<!-- SQLMAP SETTING -->
+
+	<!-- 공통 -->
+	<sqlMap resource="/com/lexken/framework/login/Secure-sqlmap.xml" />				    <!-- 인증관리  -->
+	<sqlMap resource="/com/lexken/framework/codeUtil/CodeUtil-sqlmap.xml" />		    <!-- 코드UTIL -->
+	<sqlMap resource="/com/lexken/framework/scDeptUtil/ScDeptUtil-sqlmap.xml" />	    <!-- 성과조직UTIL -->
+	<sqlMap resource="/com/lexken/bsc/module/sql/CommModule-sqlmap.xml" />			    <!-- 공통모듈 -->
+	<sqlMap resource="/com/lexken/bsc/module/FileDownload-sqlmap.xml" />			    <!-- 파일다운로드 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/Main-sqlmap.xml" />			   			<!-- 메인화면 -->
+
+	<!-- 시스템관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/CodeGrp-sqlmap.xml" />				    <!-- 코드그룹관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/Code-sqlmap.xml" />					    <!-- 코드관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/CalType-sqlmap.xml" />				    <!-- KPI 득점산식 관리  -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/SignalStatus-sqlmap.xml" />			    <!-- 신호등관리 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/UserGrp-sqlmap.xml" />				    <!-- 사용자그룹 매핑 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/Menu-sqlmap.xml" />				    <!-- 메뉴관리 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/MenuRight-sqlmap.xml" />			    <!-- 사용자 그룹별 권한 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/User-sqlmap.xml" />				    <!-- 사용자관리 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/ClosingYear-sqlmap.xml" />			    <!-- 년마감관리 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/ClosingMon-sqlmap.xml" />				<!-- 월마감관리 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/SystemItem-sqlmap.xml" />			    <!-- 시스템항목관리 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/Notice-sqlmap.xml" />					<!-- 공지사항관리 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/SystemDataExec-sqlmap.xml" />			<!-- EAI 시스템연계 실행 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/SystemData-sqlmap.xml" />			    <!-- 시스템 연계데이터 조회 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/BscDataInterface-sqlmap.xml" />		<!-- 전년데이터 일괄적용 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/SystemAgg-sqlmap.xml" />				<!-- 데이터집계관리 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/StagnationDept-sqlmap.xml" />			<!-- 부진부서선정 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/AttFile-sqlmap.xml" />					<!-- 내부평가편람 -->
+	<sqlMap resource="/com/lexken/bsc/stagnant/sql/Stagnation-sqlmap.xml" />			<!-- 부진부서대상 -->
+
+
+	<sqlMap resource="/com/lexken/bsc/system/sql/RegularInsp-sqlmap.xml" />				<!-- 데이터연계 - 가스사용시설정기검사처리율 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/ProEdu-sqlmap.xml" />					<!-- 데이터연계 - 전문교육인원 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/CycleEdu-sqlmap.xml" />				<!-- 데이터연계 - 순회교육인원 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CommEduInc-sqlmap.xml" />				<!-- 데이터연계 - 위탁교육수입(백만원) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/UseFacilitiesInspec-sqlmap.xml" />		<!-- 데이터연계 - 가스사용 정기검사 조회 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/RightProRatio-sqlmap.xml" />			<!-- 데이터연계 - 적기처리건수(연구기획부) -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/SupplyFacilitiesRate-sqlmap.xml" />	<!-- 데이터연계 - 허가및공급시설검사처리율 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/ComSupportAct-sqlmap.xml" />			<!-- 데이터연계 - 기업지원(자율검사)실적 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/OuterEduAttend-sqlmap.xml" />			<!-- 데이터연계 - 직무위탁교육외부수강참여율 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/CyberEduRate-sqlmap.xml" />			<!-- 데이터연계 - LPG차량 사이버교육 수강 점유율 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/DomSafeAuthAct-sqlmap.xml" />			<!-- 데이터연계 - 국내안전인증실적 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/GasFacInsp-sqlmap.xml" />				<!-- 데이터연계 - 가스시설검사(검사지원처) -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/GasFacInspLoc-sqlmap.xml" />			<!-- 데이터연계 - 가스시설검사(지역) -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/GmsAuth-sqlmap.xml" />					<!-- 데이터연계 - 가스시설검사(지역) -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/EntSupportAct-sqlmap.xml" />			<!-- 데이터연계 - 기업지원실적 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/EntSupportActIso-sqlmap.xml" />		<!-- 데이터연계 - 기업지원실적(ISO인증) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/ResearchResultImproveSys-sqlmap.xml" /><!-- 데이터연계 - 연구성과활용건수(제도개선) -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/GreenGasVerify-sqlmap.xml" />			<!-- 데이터연계 - 온실가스검증용역수주 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/GasFacilitiesCheck-sqlmap.xml" />		<!-- 데이터연계 - 가스시설검사(처리건수) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/WorkProductivity-sqlmap.xml" />			<!-- 데이터연계 - 업무생산성(처리건수) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/WorkProductivityLocal-sqlmap.xml" />	<!-- 데이터연계 - 업무생산성(구노동생산성) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/WorkProductivityLocalPeople-sqlmap.xml" />	<!-- 데이터연계 - 업무생산성(구노동생산성, 기술인력수) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/RegularInsp-sqlmap.xml" />				<!-- 데이터연계 - 가스사용시설정기검사처리율(팝업화면) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/GasFacInsp-sqlmap.xml" />				<!-- 데이터연계 - 가스시설검사(검사지원처) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/RightProRatioTotRsc-sqlmap.xml" />		<!-- 데이터연계 - 총계약건수(연구기획부) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/RightProRatioEdu-sqlmap.xml" />			<!-- 데이터연계 - 적기처리건수(교육운영부) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/RightProRatioTotEdu-sqlmap.xml" />		<!-- 데이터연계 - 총계약건수(교육운영부) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/StudentPerPerson-sqlmap.xml" />			<!-- 데이터연계 - 1인당 교육생수(교육운영부) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/PlanRegStore-sqlmap.xml" />				<!-- 데이터연계 - 계획검사정착률(계획등록업소수) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CheckHighExceed-sqlmap.xml" />			<!-- 데이터연계 - 계획검사정착률(검사처리상한초과건수) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CommEduIncChk-sqlmap.xml" />			<!-- 데이터연계 - 위탁교율실적 검사건수(교육기획부) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/BusExcRate-sqlmap.xml" />				<!-- 데이터연계 - 사업비집행률 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/ProSafeImpGas-sqlmap.xml" />			<!-- 데이터연계 - 유통가스제품안전성향상 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/GlbCerIncPer-sqlmap.xml" />				<!-- 데이터연계 - 해외사업 수입실적 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/ForeignIncome-sqlmap.xml" />			<!-- 데이터연계 - 해외사업 수입실적 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/ComSupportAct-sqlmap.xml" />			<!-- 데이터연계 - 기업지원(자율검사)실적(팝업) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CheckServiceTimelyRate-sqlmap.xml" />	<!-- 데이터연계 - 검사서비스 적시제공률(허가시설정기검사) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/EntSupPerf-sqlmap.xml" />				<!-- 데이터연계 - 기업지원실적(공정진단처) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CheckServiceTimelyRateUse-sqlmap.xml" /><!-- 데이터연계 - 검사서비스 적시제공률(사용시설완성검사) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CertificationProcess-sqlmap.xml" />		<!-- 데이터연계 - 국내인증처리기간준수 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/SupplyFacilitiesRate-sqlmap.xml" />		<!-- 데이터연계 - 허가및공급시설검사처리율(팝업) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/ProductivityBranch-sqlmap.xml" />		<!-- 데이터연계 - 업무생산성(구노동생산성) (팝업) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CertificationEffort-sqlmap.xml" />		<!-- 데이터연계 - 가스제품해외인증노력 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/PeopleGasFacilities-sqlmap.xml" />		<!-- 데이터연계 - 서민층 가스시설 개선 실적 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/PlanCheckSettle-sqlmap.xml" />			<!-- 데이터연계 - 계획검사 정착률(계획) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/PlanCheckSettlePro-sqlmap.xml" />		<!-- 데이터연계 - 계획검사 정착률(건수) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/BusinessPro-sqlmap.xml" />				<!-- 데이터연계 - 업무생산성(처리건수) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/SafeManageEdu-sqlmap.xml" />			<!-- 데이터연계 - 안전관리 교육실적 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/EntSupportAct-sqlmap.xml" />			<!-- 데이터연계 - 기업지원실적(검사지원처) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/GasEducationWeight-sqlmap.xml" />		<!-- 데이터연계 - 가스안전교육실적(가중치합) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CommissionEducation-sqlmap.xml" />		<!-- 데이터연계 - 위탁교육 실적 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CusResProRate-sqlmap.xml" />			<!-- 데이터연계 - 고객질의응답 처리율 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CusSati-sqlmap.xml" />					<!-- 데이터연계 - 고객질의 만족도 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/GreenGasVerify-sqlmap.xml" />			<!-- 데이터연계 - 온실가스 검증용역 수주 실적 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/ParEquiMng-sqlmap.xml" />				<!-- 데이터연계 - 특정관리대상시설 집중관리(개소) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CyberEduRate-sqlmap.xml" />				<!-- 데이터연계 - LPG차량 사이버교육 수강 점유율 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/SmartInspSysCntCheck-sqlmap.xml" />	    <!-- 데이터연계 - 검사지원처 스마트검사시스템검사처리건수(처리건수) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/SmartInspSysCntTech-sqlmap.xml" />	    <!-- 데이터연계 - 기술기획부 스마트검사시스템검사처리건수(처리건수) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/EduAbsenteeRes-sqlmap.xml" />	    	<!-- 데이터연계 - 교육운영부 교육불참자해소노력(교육불참자) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/FactoryEvalEff-sqlmap.xml" />	    	<!-- 데이터연계 - 공장심사부 공장심사 신규업소 발굴 노력(팝업) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/BudExcEffect-sqlmap.xml" />				<!-- 데이터연계 - 예산집행효율성(지역) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/BudExcEffectBon-sqlmap.xml" />			<!-- 데이터연계 - 예산집행효율성(본사) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/IntellectualProperty-sqlmap.xml" />		<!-- 데이터연계 - 지적재산권 실적(특허 및 논문실적) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/PersonGasFacilitiesImp-sqlmap.xml" />	<!-- 데이터연계 - 서민안전지원실적 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/OvrsBusSptEntSupportPerf-sqlmap.xml" />	<!-- 데이터연계 - 해외사업지원처 기업지원실적(처리건수) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/FrgnAuthSpt-sqlmap.xml" />				<!-- 데이터연계 - 시험검사처 해외인증(지원건수) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/BusManageRation-sqlmap.xml" />			<!-- 데이터연계 - 경영관리합리성 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/TimelyAccounting-sqlmap.xml" />			<!-- 데이터연계 - 회계업무 Q&A 적시처리율 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/ManPersonnel-sqlmap.xml" />				<!-- 데이터연계 - 공장등록 심사 노력 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/Casualty-sqlmap.xml" />					<!-- 데이터연계 - 가스사고인명피해율감소성과 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/GmsAuth-sqlmap.xml" />					<!-- 데이터연계 - 가스시설검사(지역) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/EntSupportActIso-sqlmap.xml" />			<!-- 데이터연계 - 기업지원실적(ISO인증) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/SalesAchievementRate-sqlmap.xml" />		<!-- 데이터연계 - 매출액(누적) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/GasFacInspBranch-sqlmap.xml" />			<!-- 데이터연계 - 가스시설검사(지역본부지사) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/TotLaborCostIncRate-sqlmap.xml" />		<!-- 데이터연계 - 총인건비인상률 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/LaborCost-sqlmap.xml" />				<!-- 데이터연계 - 인건비내역 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CycleAsset-sqlmap.xml" />				<!-- 데이터연계 - 총자산회전률(KGS,기획조정실) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/QuantMana-sqlmap.xml" />				<!-- 데이터연계 - 계량업무관리비 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/GasSafeRscAmt-sqlmap.xml" />			<!-- 데이터연계 - 가스안전연구 성과(연구원(통합)) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/KgsCoSptAct-sqlmap.xml" />				<!-- 데이터연계 - 기원지원실적(전사) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/VoluntaryService-sqlmap.xml" />			<!-- 데이터연계 - 봉사활동 참여 직원수 -->
+	
+	<!-- 2014.07.08 연계작업 시작 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CityGas-sqlmap.xml" />					<!-- 데이터연계 - 도시가스품질검사 목표대비 처리 건수 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CityAnalysis-sqlmap.xml" />				<!-- 데이터연계 - 가스성분분석 시험 및 표준가스 제조 인증 매출액 합계(백만원) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/ForeignCertification-sqlmap.xml" />		<!-- 데이터연계 - 해외인증 대상 및 인증용역 매출액 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/ObtainArticle-sqlmap.xml" />			<!-- 데이터연계 - 조달물품대행 검사수입 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/TechniqueDevelp-sqlmap.xml" />			<!-- 데이터연계 - 가스발전관련 기업 기술지원 수입실적 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/IsoCertification-sqlmap.xml" />			<!-- 데이터연계 - ISO 인증 매출액 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/ForeignFactory-sqlmap.xml" />			<!-- 데이터연계 - 해외 공장등록 심사 매출액 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CountryExpProof-sqlmap.xml" />			<!-- 데이터연계 - 국내 방폭 인증 매출액(억원) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/ForeignExpProof-sqlmap.xml" />			<!-- 데이터연계 - 해외 방폭 인증 매출액 -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CommissionedEdc-sqlmap.xml" />			<!-- 데이터연계 - 위탁교육 수강인원 3개년 평균대비 110% 달성(2,109명) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/CandidateEdc-sqlmap.xml" />				<!-- 데이터연계 - 양성교육 3년 평균수입+(3년 평균수입*10%) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/TechnicalEdc-sqlmap.xml" />				<!-- 데이터연계 - 2014년도 교육원 전문교육(신규) 수입목표 달성(650백만원) -->
+	<sqlMap resource="/com/lexken/bsc/popup/sql/DisasterMng-sqlmap.xml" />				<!-- 데이터연계 - 재난관리시설 안전점검 건수 -->
+	
+	
+	<!--  2014.07.08 연계작업 끝 -->
+	
+	<sqlMap resource="/com/lexken/bsc/popup/sql/GovBridge-sqlmap.xml" />				<!-- 데이터연계 - 정부경영평가 중간다리 -->
+
+	<!-- 시스템사용현황 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/SystemLoginMorDaily-sqlmap.xml" />		<!-- 시스템사용현황(일별) -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/SystemLoginMorDept-sqlmap.xml" />		<!-- 시스템 사용현황(조직별) -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/SystemLoginMorPos-sqlmap.xml" />		<!-- 시스템 사용현황(직위별) -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/SystemOriginalData-sqlmap.xml" />		<!-- 시스템연계 데이터 조회 -->
+
+	<!-- 목표관리 -->
+	<sqlMap resource="/com/lexken/bsc/tam/sql/TargetInputTerm-sqlmap.xml" />			<!-- 목표기간설정 -->
+	<sqlMap resource="/com/lexken/bsc/tam/sql/TargetMng-sqlmap.xml" />	 				<!-- 지표목표입력 -->
+	<sqlMap resource="/com/lexken/bsc/tam/sql/TargetStatus-sqlmap.xml" />				<!-- 목표입력/승인현황 -->
+	<sqlMap resource="/com/lexken/bsc/tam/sql/TargetSearch-sqlmap.xml" />				<!-- 지표목표조회 -->
+
+	<!-- 실적관리 -->
+	<sqlMap resource="/com/lexken/bsc/tam/sql/ActualMng-sqlmap.xml" />					<!-- 실적관리 -->
+	<sqlMap resource="/com/lexken/bsc/tam/sql/ActInputTerm-sqlmap.xml" />				<!-- 실적일정관리 -->
+	<sqlMap resource="/com/lexken/bsc/tam/sql/ActualStatus-sqlmap.xml" />				<!-- 실적입력 및 승인현황 -->
+	<sqlMap resource="/com/lexken/bsc/tam/sql/ActualSearch-sqlmap.xml" />				<!-- 실적조회 -->
+	<sqlMap resource="/com/lexken/bsc/tam/sql/SummaryReport-sqlmap.xml" />				<!-- 부서별요약보고서관리  -->
+	<sqlMap resource="/com/lexken/bsc/tam/sql/ExcelInterface-sqlmap.xml" />				<!-- 엑셀로딩관리 -->
+
+	<!-- 비계량평가 -->
+	<sqlMap resource="/com/lexken/bsc/eval/sql/ImponEvalTerm-sqlmap.xml" />				<!-- 비계량평가일정관리 -->
+	<sqlMap resource="/com/lexken/bsc/eval/sql/ImponEvalGrp-sqlmap.xml" />				<!-- 비계량평가단관리 -->
+	<sqlMap resource="/com/lexken/bsc/eval/sql/ImponEvalItm-sqlmap.xml" />				<!-- 비계량평가항목관리 -->
+	<sqlMap resource="/com/lexken/bsc/eval/sql/ImponEvalEval-sqlmap.xml" />				<!-- 비계량평가관리 -->
+	<sqlMap resource="/com/lexken/bsc/eval/sql/ImponEvalStatus-sqlmap.xml" />			<!-- 비계량평가진행현황 -->
+
+	<!-- 성과관리체계 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/MetricInputTerm-sqlmap.xml" />			<!-- KPI입력일정관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/MetricGrp-sqlmap.xml" />					<!-- 지표Pool관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/Metric-sqlmap.xml" />					<!-- 조직별KPI관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/MetricApprove-sqlmap.xml" />				<!-- 지표승인 진행관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/CalMetric-sqlmap.xml" />					<!-- 계산된 지표관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/ScDeptMng-sqlmap.xml" />					<!-- 성과조직관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/ScDeptMapping-sqlmap.xml" />				<!-- 성과조직매핑관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/ScDeptDiagMng-sqlmap.xml" />				<!-- 조직성과도관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/DeptStrategy-sqlmap.xml" />				<!-- 전략과제관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/DeptCsf-sqlmap.xml" />					<!-- 조직별 CSF관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/Activity-sqlmap.xml" />					<!-- Activity관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/DeptStrategyDiagMng-sqlmap.xml" />		<!-- 전략체계도관리 -->
+	<sqlMap resource="/com/lexken/bsc/board/sql/Board-sqlmap.xml" />					<!-- 게시판관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/Perspective-sqlmap.xml" />				<!-- 관점관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/Strategy-sqlmap.xml" />					<!-- 전략과제 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/Csf-sqlmap.xml" />						<!-- CSF관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/StandardInfo-sqlmap.xml" />				<!-- 평가기준 -->
+	<sqlMap resource="/com/lexken/bsc/system/sql/ReOpinion-sqlmap.xml" />				<!-- 이의신청 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/Management-sqlmap.xml" />				<!-- 경영목표관리 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/LevelWeight-sqlmap.xml" />				<!-- 난이도평가설정 -->
+	<sqlMap resource="/com/lexken/bsc/base/sql/LevelEval-sqlmap.xml" />					<!-- 조직별난이도평가설정 -->
+
+	<!-- 성과모니터링 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/OrgRank-sqlmap.xml" />					<!-- 조직순위 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/OrgDetail-sqlmap.xml" />					<!-- 조직상세 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/MetricRank-sqlmap.xml" />					<!-- KPI순위 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/StrategyMatrix-sqlmap.xml" />				<!-- 전략과제연계도 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/StrategyMetricKpi-sqlmap.xml" />			<!-- 전략과제KPI리스트 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/MetricDetail-sqlmap.xml" />				<!-- 지표실적상세 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/MetricActualDetail-sqlmap.xml" />			<!-- 월별지표실적상세 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/MetricMatrix-sqlmap.xml" />				<!-- 지표연계현황 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/Vdt-sqlmap.xml" />						<!-- VDT 모니터링 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/MetricActivityPlan-sqlmap.xml" />			<!-- 년간ACTIVITY계획 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/MetricActivityAct-sqlmap.xml" />			<!-- 년간ACTIVITY상세 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/DeptSummaryReport-sqlmap.xml" />			<!-- 부서별요약보고서 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/ViewSignal-sqlmap.xml" />					<!-- 신호등현황 팝업 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/SystemWordDic-sqlmap.xml" />				<!-- 용어사전 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/ScDeptDiagram-sqlmap.xml" />				<!-- 조직성과도 -->
+	<sqlMap resource="/com/lexken/bsc/mon/sql/DeptStrategyDiagram-sqlmap.xml" />		<!-- 전략체계도 -->
+
+	<sqlMap resource="/com/lexken/bsc/message/sql/Message-sqlmap.xml" />					<!-- 메세지 팝업 -->
+
+	<!-- 매트릭스평가 -->
+	<sqlMap resource="/com/lexken/bsc/matrix/sql/MatrixInputTerm-sqlmap.xml" />			<!-- 매트릭스평가-평가일정 -->
+	<sqlMap resource="/com/lexken/bsc/matrix/sql/MatrixGrp-sqlmap.xml" />				<!-- 평가단 -->
+	<sqlMap resource="/com/lexken/bsc/matrix/sql/MatrixKpi-sqlmap.xml" />				<!-- 평가단별지표 -->
+	<sqlMap resource="/com/lexken/bsc/matrix/sql/MatrixItem-sqlmap.xml" />				<!-- 평가항목 -->
+	<sqlMap resource="/com/lexken/bsc/matrix/sql/MatrixItemPart-sqlmap.xml" />			<!-- 평가세부항목 -->
+	<sqlMap resource="/com/lexken/bsc/matrix/sql/MatrixItemWeight-sqlmap.xml" />		<!-- 평가항목가중치 -->
+	<sqlMap resource="/com/lexken/bsc/matrix/sql/MatrixItemScore-sqlmap.xml" />			<!-- 평가항목점수 -->
+	<sqlMap resource="/com/lexken/bsc/matrix/sql/MatrixEval-sqlmap.xml" />				<!-- 평가실시 -->
+	<sqlMap resource="/com/lexken/bsc/matrix/sql/MatrixStatus-sqlmap.xml" />			<!-- 평가진행현황 -->
+	<sqlMap resource="/com/lexken/bsc/matrix/sql/MatrixResult-sqlmap.xml" />			<!-- 평가결과 -->
+
+	<!-- 난이도평가 -->
+	<sqlMap resource="/com/lexken/bsc/level/sql/LevelInputTerm-sqlmap.xml" />			<!-- 난이도평가 일정관리 -->
+	<sqlMap resource="/com/lexken/bsc/level/sql/LevelGrp-sqlmap.xml" />					<!-- 난이도평가 평가단관리 -->
+	<sqlMap resource="/com/lexken/bsc/level/sql/LevelGrade-sqlmap.xml" />				<!-- 난이도평가 평가등급관리 -->
+	<sqlMap resource="/com/lexken/bsc/level/sql/GrpMapping-sqlmap.xml" />				<!-- 난이도평가 그룹-평가자관리 -->
+	<sqlMap resource="/com/lexken/bsc/level/sql/LevelMapping-sqlmap.xml" />				<!-- 난이도평가 그룹-지표관리 -->
+    <sqlMap resource="/com/lexken/bsc/level/sql/ItemGrp-sqlmap.xml" />                  <!-- 평가항목그룹 -->
+    <sqlMap resource="/com/lexken/bsc/level/sql/Item-sqlmap.xml" />                     <!-- 평가항목관리 -->
+    <sqlMap resource="/com/lexken/bsc/level/sql/GradeConvert-sqlmap.xml" />             <!-- 난이도등급점수 -->
+    <sqlMap resource="/com/lexken/bsc/level/sql/AdjustRate-sqlmap.xml" />               <!-- 조정계수 -->
+    <sqlMap resource="/com/lexken/bsc/level/sql/EvalStatus-sqlmap.xml" />				<!-- 평가진행현황 -->
+	<sqlMap resource="/com/lexken/bsc/level/sql/EvalResult-sqlmap.xml" />				<!-- 평가결과 -->
+	<sqlMap resource="/com/lexken/bsc/level/sql/LevelEval-sqlmap.xml" />			    <!-- 평가실시 -->
+
+	<!-- AHP평가 -->
+	<sqlMap resource="/com/lexken/bsc/ahp/sql/AhpInputTerm-sqlmap.xml" />				<!-- AHP 일정관리 -->
+	<sqlMap resource="/com/lexken/bsc/ahp/sql/AhpGrp-sqlmap.xml" />						<!-- AHP 평가단 -->
+	<sqlMap resource="/com/lexken/bsc/ahp/sql/AhpItemGrp-sqlmap.xml" />					<!-- AHP 평가대상그룹 -->
+	<sqlMap resource="/com/lexken/bsc/ahp/sql/AhpItemMapping-sqlmap.xml" />				<!-- AHP 평가대상그룹매핑 -->
+	<sqlMap resource="/com/lexken/bsc/ahp/sql/AhpEvalScore-sqlmap.xml" />				<!-- AHP 평가점수 -->
+	<sqlMap resource="/com/lexken/bsc/ahp/sql/AhpEval-sqlmap.xml" />					<!-- AHP 평가실시 -->
+	<sqlMap resource="/com/lexken/bsc/ahp/sql/AhpStatus-sqlmap.xml" />					<!-- AHP 평가현황 -->
+	<sqlMap resource="/com/lexken/bsc/ahp/sql/AhpResult-sqlmap.xml" />					<!-- AHP 평가결과 -->
+	<sqlMap resource="/com/lexken/bsc/ahp/sql/AhpGrpMapping-sqlmap.xml" />				<!-- AHP 평가단 매핑 -->
+
+	<!-- 전략과제 -->
+	<sqlMap resource="/com/lexken/str/base/sql/StrSubject-sqlmap.xml" />				<!-- 관점관리 -->
+	<sqlMap resource="/com/lexken/str/base/sql/StrDirect-sqlmap.xml" />					<!-- 전략방향 -->
+	<sqlMap resource="/com/lexken/str/base/sql/Subject-sqlmap.xml" />					<!-- 세부과제 -->
+	<sqlMap resource="/com/lexken/str/base/sql/StrMetric-sqlmap.xml" />					<!-- 이행성과지표-->
+	<sqlMap resource="/com/lexken/str/base/sql/StrSubjectMng-sqlmap.xml" />				<!-- 전략과제도 관리 -->
+	<sqlMap resource="/com/lexken/str/tam/sql/TargetInputTerm-sqlmap.xml" />			<!-- 목표입력기간 -->
+	<sqlMap resource="/com/lexken/str/tam/sql/TargetMng-sqlmap.xml" />					<!-- 목표입력 -->
+	<sqlMap resource="/com/lexken/str/tam/sql/TargetStatus-sqlmap.xml" />				<!-- 목표입력/승인현황 -->
+	<sqlMap resource="/com/lexken/str/tam/sql/ActInputTerm-sqlmap.xml" />				<!-- 실적입력기간 -->
+	<sqlMap resource="/com/lexken/str/tam/sql/ActualMng-sqlmap.xml" />					<!-- 실적입력/승인 -->
+	<sqlMap resource="/com/lexken/str/tam/sql/ActualStatus-sqlmap.xml" />				<!-- 실적입력승인현황 -->
+    <sqlMap resource="/com/lexken/str/mon/sql/StrMetricDetail-sqlmap.xml" />			<!-- 이행성과지표 상세 -->
+	<sqlMap resource="/com/lexken/str/mon/sql/MetricMapping-sqlmap.xml" />				<!-- 내평지표 연계 팝업 -->
+	<sqlMap resource="/com/lexken/str/mon/sql/SubjectDetail-sqlmap.xml" />				<!-- 세부과제 정의서 -->
+	<sqlMap resource="/com/lexken/str/mon/sql/StrMetric-sqlmap.xml" />					<!-- 이행성과지표정의서 -->
+	<sqlMap resource="/com/lexken/str/mon/sql/MetricMappingTab-sqlmap.xml" />			<!-- 내부평가지표연계표 -->
+	<sqlMap resource="/com/lexken/str/mon/sql/StrSubjectMng-sqlmap.xml" />			    <!-- 전략과제도 -->
+	<sqlMap resource="/com/lexken/str/system/sql/MetricMappingMng-sqlmap.xml" />		<!-- 내평지표연계 -->
+	<sqlMap resource="/com/lexken/str/system/sql/ClosingYear-sqlmap.xml" />			    <!-- 년마감 -->
+
+	<!-- 신경영목표 -->
+	<sqlMap resource="/com/lexken/man/man/sql/Target-sqlmap.xml" />					    <!-- 목표관리 -->
+	<sqlMap resource="/com/lexken/man/man/sql/StrSubject-sqlmap.xml" />		    	    <!-- 전략과제 -->
+	<sqlMap resource="/com/lexken/man/man/sql/Csf-sqlmap.xml" />					    <!-- CSF -->
+	<sqlMap resource="/com/lexken/man/tam/sql/TargetInputTerm-sqlmap.xml" />			<!-- 목표입력기간 -->
+	<sqlMap resource="/com/lexken/man/tam/sql/TargetMng-sqlmap.xml" />					<!-- 목표입력 -->
+	<sqlMap resource="/com/lexken/man/tam/sql/TargetStatus-sqlmap.xml" />				<!-- 목표입력/승인현황 -->
+	<sqlMap resource="/com/lexken/man/tam/sql/ActInputTerm-sqlmap.xml" />				<!-- 실적입력기간 -->
+	<sqlMap resource="/com/lexken/man/tam/sql/ActualMng-sqlmap.xml" />					<!-- 실적입력 -->
+	<sqlMap resource="/com/lexken/man/tam/sql/ActualStatus-sqlmap.xml" />				<!-- 실적입력/승인현황 -->
+	<sqlMap resource="/com/lexken/man/system/sql/ClosingYear-sqlmap.xml" />			    <!-- 년마감 -->
+	<sqlMap resource="/com/lexken/man/metric/sql/MetricGrp-sqlmap.xml" />				<!-- KGS2020KPI POOL -->
+	<sqlMap resource="/com/lexken/man/metric/sql/metric-sqlmap.xml" />					<!-- KGS2020KPI -->
+	<sqlMap resource="/com/lexken/man/mon/sql/Contribute-sqlmap.xml" />	 			<!-- 경영목표 기여도 -->
+	<sqlMap resource="/com/lexken/man/mon/sql/MetricDetail-sqlmap.xml" />	 			<!-- KGS2020KPI 상세 -->
+	<sqlMap resource="/com/lexken/man/mon/sql/MetricMappingTab-sqlmap.xml" />			<!-- 내부평가지표연계표 -->
+	<sqlMap resource="/com/lexken/man/mon/sql/Metric-sqlmap.xml" />						<!-- KGS2020KPI 팝업 -->
+	<sqlMap resource="/com/lexken/man/metric/sql/CalMetric-sqlmap.xml" />				<!-- 내부평가지표 매핑 -->
+
+
+	<!-- 정부경영평가 -->
+	<sqlMap resource="/com/lexken/gov/system/sql/EvalCatGrp-sqlmap.xml" />				<!-- 평가범주관리 -->
+	<sqlMap resource="/com/lexken/gov/system/sql/EvalCat-sqlmap.xml" />					<!-- 평가부문관리 -->
+	<sqlMap resource="/com/lexken/gov/system/sql/GovMetric-sqlmap.xml" />				<!-- 경평지표관리 -->
+	<sqlMap resource="/com/lexken/gov/system/sql/GovActionPlan-sqlmap.xml" />			<!-- 경평지표실행계획 -->
+	<sqlMap resource="/com/lexken/gov/system/sql/GovActionResult-sqlmap.xml" />			<!-- 경평지표실행결과 -->
+	<sqlMap resource="/com/lexken/gov/system/sql/GovMetricMapping-sqlmap.xml" />		<!-- 경평지표매핑 -->
+	<sqlMap resource="/com/lexken/gov/system/sql/GovMetricGrp-sqlmap.xml" />			<!-- 경평지표POOL관리 -->
+	<sqlMap resource="/com/lexken/gov/system/sql/GovMetricWeight-sqlmap.xml" />			<!-- 경평가중치관리 -->
+	<sqlMap resource="/com/lexken/gov/office/sql/OfficeGrp-sqlmap.xml" />			    <!-- 공공기관평가군 -->
+	<sqlMap resource="/com/lexken/gov/office/sql/Office-sqlmap.xml" />			        <!-- 공공기관 -->
+	<sqlMap resource="/com/lexken/gov/office/sql/OfficeResult-sqlmap.xml" />			<!-- 공공기관결과 -->
+	<sqlMap resource="/com/lexken/gov/office/sql/OfficeMetric-sqlmap.xml" />			<!-- 공공기관경영평가지표입력 -->
+	<sqlMap resource="/com/lexken/gov/office/sql/OfficeMetricResult-sqlmap.xml" />		<!-- 공공기관경영평가지표결과입력 -->
+	<sqlMap resource="/com/lexken/gov/result/sql/EvalResult-sqlmap.xml" />			    <!-- 경영평가결과 -->
+	<sqlMap resource="/com/lexken/gov/result/sql/EvalResultMng-sqlmap.xml" />			<!-- 경영평가결과입력 -->
+	<sqlMap resource="/com/lexken/gov/measure/sql/ArchiveMon-sqlmap.xml" />				<!-- 계량지표총괄표 -->
+	<sqlMap resource="/com/lexken/gov/measure/sql/SubCal-sqlmap.xml" />					<!-- 경평계량 세부요소관리 -->
+	<sqlMap resource="/com/lexken/gov/measure/sql/SubCalMapping-sqlmap.xml" />			<!-- 경평계량 세부요소매핑 -->
+	<sqlMap resource="/com/lexken/gov/measure/sql/GovActualMng-sqlmap.xml" />			<!-- 계량실적입력 -->
+	<sqlMap resource="/com/lexken/gov/measure/sql/SubCalActualMng-sqlmap.xml" />		<!-- 세부요소입력 -->
+	<sqlMap resource="/com/lexken/gov/unmeasure/sql/ResultCompare-sqlmap.xml" />		<!-- 전년도실적비교 -->
+	<sqlMap resource="/com/lexken/gov/unmeasure/sql/ResultTarget-sqlmap.xml" />			<!-- 비계량성과목표 -->
+	<sqlMap resource="/com/lexken/gov/unmeasure/sql/ResultActual-sqlmap.xml" />			<!-- 비계량지적및조치사항 -->
+	<sqlMap resource="/com/lexken/gov/unmeasure/sql/ArchiveMon-sqlmap.xml" />			<!-- 비계량총괄표 -->
+	<sqlMap resource="/com/lexken/gov/unmeasure/sql/GovQuaMetric-sqlmap.xml" />			<!-- 비계량지표 -->
+	<sqlMap resource="/com/lexken/gov/bos/sql/EvalCatGrp-sqlmap.xml" />					<!-- 기관장평가범주관리 -->
+	<sqlMap resource="/com/lexken/gov/bos/sql/MetricMapping-sqlmap.xml" />				<!-- 기관장지표매핑 -->
+	<sqlMap resource="/com/lexken/gov/bos/sql/BosMetric-sqlmap.xml" />					<!-- 기관장지표 -->
+	<sqlMap resource="/com/lexken/gov/bos/sql/BosActionPlan-sqlmap.xml" />				<!-- 기관장지표 실행계획 -->
+	<sqlMap resource="/com/lexken/gov/bos/sql/BosActionResult-sqlmap.xml" />			<!-- 기관장지표 실행결과 -->
+	<sqlMap resource="/com/lexken/gov/bos/sql/ArchiveMon-sqlmap.xml" />					<!-- 기관장지표총괄표 -->
+	<sqlMap resource="/com/lexken/gov/bos/sql/ResultMon-sqlmap.xml" />					<!-- 기관장지표결과 -->
+	<sqlMap resource="/com/lexken/gov/bos/sql/ActualMon-sqlmap.xml" />					<!-- 기관장평가실적 -->
+	<sqlMap resource="/com/lexken/gov/measure/sql/GovActualStatus-sqlmap.xml" />		<!-- 실적입력현황 -->
+	<sqlMap resource="/com/lexken/gov/measure/sql/ArchiveTotMon-sqlmap.xml" />			<!-- 계량평가지표현황표 -->
+	<sqlMap resource="/com/lexken/gov/measure/sql/DeptMapping-sqlmap.xml" />            <!-- 내평조직매핑 -->
+
+
+	<!-- 평가공통 -->
+	<sqlMap resource="/com/lexken/bsc/common/sql/EvalGrade-sqlmap.xml" />				<!-- 평가등급및환산표 -->
+	<sqlMap resource="/com/lexken/bsc/common/sql/EvalGradeDistri-sqlmap.xml" />			<!-- 등급배분표 -->
+	<sqlMap resource="/com/lexken/bsc/common/sql/EvalGradeScore-sqlmap.xml" />			<!-- 점수환산표 -->
+	<sqlMap resource="/com/lexken/bsc/common/sql/EvalGradeTab-sqlmap.xml" />			<!-- 등급표 -->
+	<sqlMap resource="/com/lexken/bsc/common/sql/EvalDegree-sqlmap.xml" />			    <!-- 평가구분 -->
+	<sqlMap resource="/com/lexken/bsc/common/sql/EvalPersonage-sqlmap.xml" />			<!-- 사외인사 -->
+
+	<!-- 개인평가 -->
+	<!-- <sqlMap resource="/com/lexken/prs/emp/sql/EvalGroup-sqlmap.xml" />	 -->				<!-- 직원평가조직별평가군 -->
+	<sqlMap resource="/com/lexken/prs/eval/sql/EvalGroup-sqlmap.xml" />					<!-- 직원평가조직별평가군 -->
+	<sqlMap resource="/com/lexken/prs/eval/sql/EvalGroupItem-sqlmap.xml" />				<!-- 평가군 평가항목-->
+	<sqlMap resource="/com/lexken/prs/eval/sql/EvalAction-sqlmap.xml" />				<!-- 개인평가 평가실시 (현황) -->
+	<sqlMap resource="/com/lexken/prs/eval/sql/EvalMapping-sqlmap.xml" />				<!-- 평가자매핑 -->
+	<sqlMap resource="/com/lexken/prs/eval/sql/EvalBase-sqlmap.xml" />					<!-- 평가요소 -->
+	<sqlMap resource="/com/lexken/prs/eval/sql/EvalStatus-sqlmap.xml" />				<!-- 평가진행현황 -->
+	<sqlMap resource="/com/lexken/prs/eval/sql/EvalResult-sqlmap.xml" />				<!-- 평가결과 -->
+	<sqlMap resource="/com/lexken/prs/eval/sql/EvalConfirm-sqlmap.xml" />				<!-- 평가결과확인 -->
+
+	<!-- 비계량평가 -->
+	<sqlMap resource="/com/lexken/bsc/impon/sql/ImponItem-sqlmap.xml" />					<!-- 평가항목 -->
+	<sqlMap resource="/com/lexken/bsc/impon/sql/ImponEvalUserGrp-sqlmap.xml" />				<!-- 비계량평가단 -->
+	<sqlMap resource="/com/lexken/bsc/impon/sql/EvalUserGrpMappingEvalItem-sqlmap.xml" />	<!-- 평가단별 지표/항목 매핑 -->
+	<sqlMap resource="/com/lexken/bsc/impon/sql/ImponEval-sqlmap.xml" />					<!-- 비계량평가실시 -->
+	<sqlMap resource="/com/lexken/bsc/impon/sql/ImponReport-sqlmap.xml" />					<!-- 실적보고서 -->
+	<sqlMap resource="/com/lexken/bsc/impon/sql/ImponComment-sqlmap.xml" />					<!-- 평가의견 -->
+	<sqlMap resource="/com/lexken/bsc/impon/sql/ImponAdjust-sqlmap.xml" />					<!-- 가감점반영 -->
+	<sqlMap resource="/com/lexken/bsc/impon/sql/ImponResult-sqlmap.xml" />					<!-- 평가결과 -->
+	<sqlMap resource="/com/lexken/bsc/impon/sql/ImponEvalStatus-sqlmap.xml" />				<!-- 평가진행현황 -->
+
+	<!-- 비계량평가 -->
+	<sqlMap resource="/com/lexken/bsc/ipe/sql/EvalItem-sqlmap.xml" />					<!-- (신)평가항목 -->
+
+	<!-- 종합평가 -->
+	<sqlMap resource="/com/lexken/cbe/eval/sql/EvalMethod-sqlmap.xml" />				<!-- 평가환산방법 -->
+	<sqlMap resource="/com/lexken/cbe/eval/sql/EvalWeight-sqlmap.xml" />				<!-- 가중치그룹 -->
+	<sqlMap resource="/com/lexken/cbe/eval/sql/EvalWeightMapping-sqlmap.xml" />			<!-- 평가대상자매핑 -->
+	<sqlMap resource="/com/lexken/cbe/eval/sql/EvalExceDept-sqlmap.xml" />				<!-- 예외평가조직 -->
+	<sqlMap resource="/com/lexken/cbe/eval/sql/EvalRival-sqlmap.xml" />					<!-- 경쟁그룹 -->
+	<sqlMap resource="/com/lexken/cbe/eval/sql/EvalExceUser-sqlmap.xml" />				<!-- 예외인원 -->
+	<sqlMap resource="/com/lexken/cbe/eval/sql/EvalUserCheck-sqlmap.xml" />				<!-- 평가대상자확인 -->
+	<sqlMap resource="/com/lexken/cbe/eval/sql/EvalResult-sqlmap.xml" />				<!-- 종합평가결과 -->
+	<sqlMap resource="/com/lexken/cbe/eval/sql/EvalUser-sqlmap.xml" />					<!-- 평가대상자(평가종합) -->
+	<sqlMap resource="/com/lexken/cbe/eval/sql/EvalExceEval-sqlmap.xml" />				<!-- 예외평가 -->
+	<sqlMap resource="/com/lexken/cbe/eval/sql/EvalCalcResult-sqlmap.xml" />			<!-- 종합평가집계 -->
+	<sqlMap resource="/com/lexken/cbe/eval/sql/EvalDeptConvertScore-sqlmap.xml" />		<!-- 조직환산점수 -->
+
+	<!-- 별도평가 -->
+	<sqlMap resource="/com/lexken/cbe/excep/sql/ExcepDept-sqlmap.xml" />				<!-- 별도평가조직 -->
+	<sqlMap resource="/com/lexken/cbe/excep/sql/ExcepReport-sqlmap.xml" />				<!-- 별도평가근거 -->
+	<sqlMap resource="/com/lexken/cbe/excep/sql/ExcepAction-sqlmap.xml" />				<!-- 평가실시 -->
+	<sqlMap resource="/com/lexken/cbe/excep/sql/ExcepStatus-sqlmap.xml" />				<!-- 평가진행현황 -->
+	<sqlMap resource="/com/lexken/cbe/excep/sql/ExcepResult-sqlmap.xml" />				<!-- 평가결과 -->
+	<sqlMap resource="/com/lexken/cbe/exc/sql/ExcludeUser-sqlmap.xml" />				<!-- 별도평가제외자 -->
+	<sqlMap resource="/com/lexken/cbe/exc/sql/ExcEvalUser-sqlmap.xml" />				<!-- 별도평가대상자 -->
+	<sqlMap resource="/com/lexken/cbe/exc/sql/ExcEvalDept-sqlmap.xml" />				<!-- 별도평가부서 -->
+	<sqlMap resource="/com/lexken/cbe/exc/sql/ExcRpt-sqlmap.xml" />						<!-- 사업추진보고서 -->
+	<sqlMap resource="/com/lexken/cbe/exc/sql/ExcGrade-sqlmap.xml" />					<!-- 평가등급 -->
+	<sqlMap resource="/com/lexken/cbe/exc/sql/ExcResult-sqlmap.xml" />					<!-- 평가결과현황 -->
+
+	<!-- 개인성과 -->
+	<sqlMap resource="/com/lexken/prs/insa/sql/Dept-sqlmap.xml" />						<!-- 인사조직 -->
+	<sqlMap resource="/com/lexken/prs/insa/sql/InsaDeptMapping-sqlmap.xml" />			<!-- 인사조직매핑 -->
+	<sqlMap resource="/com/lexken/prs/insa/sql/InsaDeptScore-sqlmap.xml" />				<!-- 조직업적평가관리 -->
+	<sqlMap resource="/com/lexken/prs/insa/sql/Insa-sqlmap.xml" />						<!-- 인사정보 -->
+	<sqlMap resource="/com/lexken/prs/eval/sql/EvalItem-sqlmap.xml" />					<!-- 평가항목 -->
+	<sqlMap resource="/com/lexken/prs/extra/sql/ExtraPoint-sqlmap.xml" />				<!-- 공모직 대상자 -->
+	<sqlMap resource="/com/lexken/prs/eval/sql/EvalSchedule-sqlmap.xml" />				<!-- 평가일정 -->
+	<sqlMap resource="/com/lexken/prs/exc/sql/ExcGroup-sqlmap.xml" />					<!-- 간부 별도평가군 -->
+	<sqlMap resource="/com/lexken/prs/exc/sql/ExcUser-sqlmap.xml" />					<!-- 간부 평가예외자 -->
+	<sqlMap resource="/com/lexken/prs/exc/sql/ExcEval-sqlmap.xml" />					<!-- 간부 별도평가 -->
+	<sqlMap resource="/com/lexken/prs/exc/sql/ExcOrgEval-sqlmap.xml" />					<!-- 부설기관장 별도평가 -->
+
+	<!-- 임원평가 -->
+ 	<sqlMap resource="/com/lexken/prs/dir/sql/DirEvalMember-sqlmap.xml" />				<!-- 임원 평가대상자선정 -->
+ 	<sqlMap resource="/com/lexken/prs/dir/sql/DirGovMetric-sqlmap.xml" />				<!-- 임원 정평지표관리 -->
+ 	<sqlMap resource="/com/lexken/prs/dir/sql/GovScoreYear-sqlmap.xml" />				<!-- 임원 정평결과확인 -->
+ 	<sqlMap resource="/com/lexken/prs/dir/sql/DirEval-sqlmap.xml" />					<!-- 임원 리더쉽평가 -->
+ 	<sqlMap resource="/com/lexken/prs/dir/sql/JobRpt-sqlmap.xml" />						<!-- 직무성과기술서 -->
+ 	<sqlMap resource="/com/lexken/prs/dir/sql/DirGradeDistri-sqlmap.xml" />				<!-- 등급배분표 -->
+	<sqlMap resource="/com/lexken/prs/dir/sql/DirFinalEval-sqlmap.xml" />				<!-- 평가 -->
+
+	<!-- 간부개인평가 -->
+	<sqlMap resource="/com/lexken/prs/mng/sql/Rpt-sqlmap.xml" />						<!-- 자기성과기술서 -->
+	<sqlMap resource="/com/lexken/prs/mng/sql/EvalMng-sqlmap.xml" />					<!-- 간부개인 대상자선정 -->
+	<sqlMap resource="/com/lexken/prs/mng/sql/EvalGrpMapping-sqlmap.xml" />				<!-- 평가군 매핑 -->
+	<sqlMap resource="/com/lexken/prs/mng/sql/EvalGrpAssessor-sqlmap.xml" />			<!-- 간부개인 대상자선정 -->
+	<sqlMap resource="/com/lexken/prs/mng/sql/EvalAssessor-sqlmap.xml" />               <!-- 개인별 평가자 선정 -->
+	<sqlMap resource="/com/lexken/prs/mng/sql/Eval-sqlmap.xml" />						<!-- 간부개인업적평가 -->
+	<sqlMap resource="/com/lexken/prs/mng/sql/EvalResult-sqlmap.xml" />					<!-- 간부개인업적평가결과 확인 -->
+	<sqlMap resource="/com/lexken/prs/mng/sql/ActInputTerm-sqlmap.xml" />               <!-- 실적등록기한 -->
+    <sqlMap resource="/com/lexken/prs/mng/sql/PlanMng-sqlmap.xml" />                    <!-- 성과계획서 관리 -->
+    <sqlMap resource="/com/lexken/prs/mng/sql/PlanApprove-sqlmap.xml" />                <!-- 성과계획서 확인 -->
+    <sqlMap resource="/com/lexken/prs/mng/sql/PlanHistory-sqlmap.xml" />                <!-- 성과계획서 이력 -->
+    <sqlMap resource="/com/lexken/prs/mng/sql/TalkMng-sqlmap.xml" />            		<!-- 중간면담 -->
+    <sqlMap resource="/com/lexken/prs/mng/sql/ActualMng-sqlmap.xml" />                  <!-- 실적 관리 -->
+    <sqlMap resource="/com/lexken/prs/mng/sql/ActualApprove-sqlmap.xml" />              <!-- 실적 확인 -->
+    <sqlMap resource="/com/lexken/prs/eval/sql/EvalDegree-sqlmap.xml" />                <!-- 가중치관리 -->
+       
+ 	<!-- 직원개인평가 -->
+ 	<sqlMap resource="/com/lexken/prs/emp/sql/EmpMember-sqlmap.xml" />					<!-- 직원개인 대상자선정 -->
+ 	<sqlMap resource="/com/lexken/prs/emp/sql/PrsEvalExc-sqlmap.xml" />					<!-- 직원개인 제외자선정 -->
+ 	<sqlMap resource="/com/lexken/prs/emp/sql/EmpEvalAssessor-sqlmap.xml" />			<!-- 직원개인 제외자선정 -->
+	<sqlMap resource="/com/lexken/prs/emp/sql/PrsEmpEval-sqlmap.xml" />					<!-- 직원개인 평가결과 -->
+	<sqlMap resource="/com/lexken/prs/emp/sql/PrsEmpEvalResult-sqlmap.xml" />			<!-- 평가결과 -->
+	<sqlMap resource="/com/lexken/prs/emp/sql/PrsEmpEvalResultStatus-sqlmap.xml" />		<!-- 평가현황 -->
+	<sqlMap resource="/com/lexken/prs/emp/sql/PrsEmpEvalResultDetail-sqlmap.xml" />		<!-- 평가결과확인 -->
+
+ 	<!-- 평가종합 -->
+ 	<sqlMap resource="/com/lexken/prs/result/sql/MngResult-sqlmap.xml" />				<!-- 간부개인성과 평가결과 확인 -->
+ 	<sqlMap resource="/com/lexken/prs/result/sql/EvalMngRpt-sqlmap.xml" />				<!-- 간부개인성과 평가결과 통지서 -->
+    <sqlMap resource="/com/lexken/prs/result/sql/DirResult-sqlmap.xml" />				<!-- 임원개인성과 평가결과 확인 -->
+
+	<!--  간부조직관리역량평가 -->
+ 	<sqlMap resource="/com/lexken/prs/org/sql/OrgEvalItem-sqlmap.xml" />				<!-- 세부평가항목 -->
+ 	<sqlMap resource="/com/lexken/prs/org/sql/OrgDeptEvalItem-sqlmap.xml" />			<!-- 조직별세부평가항목 -->
+	<sqlMap resource="/com/lexken/prs/org/sql/OrgConnItem-sqlmap.xml" />				<!-- 연계항목 -->
+	<sqlMap resource="/com/lexken/prs/org/sql/OrgExcelLoad-sqlmap.xml" />				<!-- 엑셀로딩 -->
+	<sqlMap resource="/com/lexken/prs/org/sql/OrgDeptScore-sqlmap.xml" />				<!-- 조직별최종평가결과입력 -->
+	<sqlMap resource="/com/lexken/prs/org/sql/OrgDeptPrsScore-sqlmap.xml" />			<!-- 개인별최종평가결과조회 -->
+	<sqlMap resource="/com/lexken/prs/org/sql/OrgDeptEvalItemAct-sqlmap.xml" />			<!-- 조직별평가실적 등록 -->
+	<sqlMap resource="/com/lexken/prs/org/sql/OrgDeptPrsEvalItemAct-sqlmap.xml" />		<!-- 개인별평가실적 등록 -->
+
+	<!-- 정평지표 점수반영 -->
+ 	<sqlMap resource="/com/lexken/bsc/dept/sql/DeptGovWeight-sqlmap.xml" />
+ 	<sqlMap resource="/com/lexken/bsc/dept/sql/DeptGovStd-sqlmap.xml" />				<!-- 정평지표 점수반영 -->
+
+	<!-- 내부평가결과 -->
+ 	<sqlMap resource="/com/lexken/bsc/dept/sql/IntEvalResult-sqlmap.xml" />				<!-- 내부평가결과 -->
+
+	<!-- 성과급 -->
+	<sqlMap resource="/com/lexken/prs/bonus/sql/BonSet-sqlmap.xml" />	 				<!-- 설정 -->
+	<sqlMap resource="/com/lexken/prs/bonus/sql/DirSalSet-sqlmap.xml" />				<!-- 임원연봉설정 -->
+	<sqlMap resource="/com/lexken/prs/bonus/sql/EmpPaySet-sqlmap.xml" />				<!-- 직원연봉설정 -->
+	<sqlMap resource="/com/lexken/prs/bonus/sql/BonDisSet-sqlmap.xml" />				<!-- 파견직설정 -->
+	<sqlMap resource="/com/lexken/prs/bonus/sql/BonDir-sqlmap.xml" />					<!-- 임원직성과연봉 -->
+	<sqlMap resource="/com/lexken/prs/bonus/sql/BonPaySet-sqlmap.xml" />	 			<!-- 직원지급기준설정 -->
+	<sqlMap resource="/com/lexken/prs/bonus/sql/BonEmp-sqlmap.xml" />					<!-- 직원성과급 -->
+
+	<!-- 성과연봉 -->
+	<sqlMap resource="/com/lexken/prs/annSal/sql/AnnSal-sqlmap.xml" />	 				<!-- 성과연봉 -->
+	
+	<!-- 기본연봉 -->
+	<sqlMap resource="/com/lexken/prs/basicSal/sql/BasicSal-sqlmap.xml" />	 			<!-- 기본연봉 -->
+	<sqlMap resource="/com/lexken/prs/basicSal/sql/BasicSalDistri-sqlmap.xml" />		<!-- 기본연봉 등급배분표 -->
+
+    <sqlMap resource="/com/lexken/bsc/base/sql/MetricGrpJH-sqlmap.xml" />            	<!-- 임시지표POOL -->
+   
+     <sqlMap resource="/com/lexken/prs/evalCon/sql/EmpEvalConAssessor-sqlmap.xml" />     <!-- 직원개인기여도평가 평가자관리 -->
+    <sqlMap resource="/com/lexken/prs/evalCon/sql/EvalConItem-sqlmap.xml" />            <!-- 직원개인기여도평가 평가항목 -->
+    <sqlMap resource="/com/lexken/prs/evalCon/sql/EvalConAllo-sqlmap.xml" />            <!-- 직원개인기여도평가 인원배분기준관리 -->
+    <sqlMap resource="/com/lexken/prs/evalCon/sql/EvalConGrade-sqlmap.xml" />           <!-- 직원개인기여도평가 평가등급배분표 관리 -->
+    <sqlMap resource="/com/lexken/prs/evalCon/sql/EmpEvalCon-sqlmap.xml" />             <!-- 직원개인기여도평가 평가 -->
+    <sqlMap resource="/com/lexken/prs/evalCon/sql/EmpEvalConResultStatus-sqlmap.xml" /> <!-- 직원개인기여도평가 평가현황 -->
+    <sqlMap resource="/com/lexken/prs/evalCon/sql/EmpEvalConResult-sqlmap.xml" />       <!-- 직원개인기여도평가 평가결과 -->
+    <sqlMap resource="/com/lexken/prs/evalCon/sql/EmpEvalConMember-sqlmap.xml" />       <!--직원개인기여도평가 평가대상자 선정 -->
+    <sqlMap resource="/com/lexken/prs/evalCon/sql/EvalConMileage-sqlmap.xml" />         <!-- 직원개인기여도평가 마일리지관리 -->
+    
+    <sqlMap resource="/com/lexken/prs/mngCon/sql/PlanMngCon-sqlmap.xml" />              <!-- 직원개인기여도평가 성과계획서관리 -->
+    <sqlMap resource="/com/lexken/prs/mngCon/sql/PlanConApprove-sqlmap.xml" />          <!-- 직원개인평가 부서장/주관부서확인 -->
+    <sqlMap resource="/com/lexken/prs/mngCon/sql/TalkMngCon-sqlmap.xml" />              <!-- 직원개인업무성과 중간면담 -->
+    <sqlMap resource="/com/lexken/prs/mngCon/sql/ActualMngCon-sqlmap.xml" />            <!-- 직원개인업무성과 실적등록 -->
+    <sqlMap resource="/com/lexken/prs/mngCon/sql/ActualConApprove-sqlmap.xml" />        <!-- 직원개인업무성과 실적확인 -->
+    <sqlMap resource="/com/lexken/prs/mngCon/sql/ScoreUpload-sqlmap.xml" />             <!-- 업무성과점수 업로드 -->
+    <sqlMap resource="/com/lexken/prs/evalCon/sql/EmpEvalConReport-sqlmap.xml" />            <!-- 업무성과기술서 -->
+	<!-- @@@ sqlmap-end @@@ -->
+
+	<!-- 직원업적평가체계 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemEvalSchedule-sqlmap.xml" />			<!-- 직원평가일정 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemMeasGrade-sqlmap.xml" />				<!-- 계량평가등급환산표 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemEvalGroup-sqlmap.xml" />				<!-- 평가그룹관리 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemJobEval-sqlmap.xml" />				<!-- 업무수행평가항목관리 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemDetailEvalMetric-sqlmap.xml" />		<!-- 상세평가지표관리 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemEvalUserRate-sqlmap.xml" />			<!-- 평가자비율설정 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemNonMetricRate-sqlmap.xml" />			<!-- 비계량지표평가자비율설정 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemDeptEvalUser-sqlmap.xml" />			<!-- 부서별평가자관리 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemUser-sqlmap.xml" />					<!-- 평가대상자관리 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemMetricGrp-sqlmap.xml" />				<!-- 평가지표POOL관리 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemMetric-sqlmap.xml" />					<!-- 평가지표관리 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemApartEvalGun-sqlmap.xml" />			<!-- 별도평가군관리 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemExtraPoint-sqlmap.xml" />				<!-- 공모직대상자관리 -->
+	<!-- 직원업적평가체계 -->
+	
+	<!-- 코드및 기타 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemFormUpload-sqlmap.xml" />				<!-- 양식업로드 -->
+	<!-- 코드및 기타 -->
+	
+	<!-- 직업업적평가종합 -->
+	<sqlMap resource="/com/lexken/mem/tot/sql/MemEvalGun-sqlmap.xml" />					<!-- 평가군관리 -->
+	<sqlMap resource="/com/lexken/mem/tot/sql/MemDissent-sqlmap.xml" />					<!-- 이의신청 -->
+	<sqlMap resource="/com/lexken/mem/tot/sql/MemTotResult-sqlmap.xml" />				<!-- 최종결과 -->
+	<!-- 직업업적평가종합 -->
+	
+	<!-- 직업업적평가 -->
+	<sqlMap resource="/com/lexken/mem/eval/sql/MemJobDesc-sqlmap.xml" />				<!-- 업무성과기술서 -->
+	<sqlMap resource="/com/lexken/mem/eval/sql/MemActIn-sqlmap.xml" />					<!-- 실적입력 -->
+	<sqlMap resource="/com/lexken/mem/eval/sql/MemActualMng-sqlmap.xml" />				<!-- 실적입력상세 -->
+	<sqlMap resource="/com/lexken/mem/eval/sql/MemMeet-sqlmap.xml" />					<!-- 중간면담 -->
+	<sqlMap resource="/com/lexken/mem/eval/sql/MemEval-sqlmap.xml" />					<!-- 업무수행평가 -->
+	<sqlMap resource="/com/lexken/mem/eval/sql/MemNonMetricEval-sqlmap.xml" />			<!-- 비계량지표평가 -->
+	<sqlMap resource="/com/lexken/mem/eval/sql/MemMetricAct-sqlmap.xml" />				<!-- 공통지표실적 -->
+	<sqlMap resource="/com/lexken/mem/eval/sql/MemEvalResult-sqlmap.xml" />				<!-- 업무수행평가결과 -->
+	<sqlMap resource="/com/lexken/mem/eval/sql/MemDeptScore-sqlmap.xml" />				<!-- 조직평가결과 -->
+	<sqlMap resource="/com/lexken/mem/eval/sql/MemDeptEmpScore-sqlmap.xml" />			<!-- 조직평가결과 -->
+	<!-- 직업업적평가 -->
+	
+	<!-- 공통지표실적 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemEvalGrade-sqlmap.xml" />				<!-- 공통지표실적 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemEvalGradeScore-sqlmap.xml" />			<!-- 공통지표실적 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemEvalGradeDistri-sqlmap.xml" />		<!-- 공통지표실적 -->
+	<sqlMap resource="/com/lexken/mem/base/sql/MemEvalGradeTab-sqlmap.xml" />			<!-- 공통지표실적 -->
+	<!-- 공통지표실적-->
+
+	<!-- 모니터링 -->
+	<sqlMap resource="/com/lexken/mem/monitor/sql/MemProcMonitor-sqlmap.xml" />			<!-- 업무진행사항모니터링 -->
+	<sqlMap resource="/com/lexken/mem/monitor/sql/MemEvalProcMonitor-sqlmap.xml" />		<!-- 평가진행사항모니터링 -->
+	<!-- 모니터링-->
+<!-- SQLMAP SETTING -->
+
+</sqlMapConfig>
+

@@ -1,0 +1,48 @@
+#*************************************************************************
+* CLASS 명      : evalScheduleList_xml
+* 작 업 자      : 김상용
+* 작 업 일      : 2013년 04월 29일 
+* 기    능      : 개인평가 평가일정 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김상용     2013년 04월 29일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+#foreach($list in $list)
+	{
+		"YEAR"              	: "$!{CS_HTML.txt2html($list.YEAR)}",             
+		"DIR_EVAL_START_DT"		: "$!{CS_HTML.txt2html($list.DIR_EVAL_START_DT)}",
+		"DIR_EVAL_END_DT"    	: "$!{CS_HTML.txt2html($list.DIR_EVAL_END_DT)}",  
+		"DIR_RPT_START_DT"   	: "$!{CS_HTML.txt2html($list.DIR_RPT_START_DT)}", 
+		"DIR_RPT_END_DT"     	: "$!{CS_HTML.txt2html($list.DIR_RPT_END_DT)}",   
+		"MNG_START_DT"       	: "$!{CS_HTML.txt2html($list.MNG_START_DT)}",   
+		"MNG_END_DT"        	: "$!{CS_HTML.txt2html($list.MNG_END_DT)}",       
+		"MNG_ORG_START_DT" 		: "$!{CS_HTML.txt2html($list.MNG_ORG_START_DT)}", 
+		"MNG_ORG_END_DT"     	: "$!{CS_HTML.txt2html($list.MNG_ORG_END_DT)}",   
+		"MNG_RPT_START_DT" 		: "$!{CS_HTML.txt2html($list.MNG_RPT_START_DT)}", 
+		"MNG_RPT_END_DT"     	: "$!{CS_HTML.txt2html($list.MNG_RPT_END_DT)}",
+		"MNG_OBJ_START_DT" 		: "$!{CS_HTML.txt2html($list.MNG_OBJ_START_DT)}", 
+		"MNG_OBJ_END_DT"     	: "$!{CS_HTML.txt2html($list.MNG_OBJ_END_DT)}",  
+		"EMP_START_DT"     		: "$!{CS_HTML.txt2html($list.EMP_START_DT)}",     
+		"EMP_END_DT"         	: "$!{CS_HTML.txt2html($list.EMP_END_DT)}",        
+		"MNG_PLAN_START_DT"     : "$!{CS_HTML.txt2html($list.MNG_PLAN_START_DT)}",        
+		"MNG_PLAN_END_DT"       : "$!{CS_HTML.txt2html($list.MNG_PLAN_END_DT)}",        
+		"CREATE_DT"				: "$!{CS_HTML.txt2html($list.CREATE_DT)}",        
+		"MODIFY_DT"        	  	: "$!{CS_HTML.txt2html($list.MODIFY_DT)}"         
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

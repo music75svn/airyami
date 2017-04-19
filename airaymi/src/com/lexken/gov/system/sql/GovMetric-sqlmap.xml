@@ -1,0 +1,1042 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.system.govMetric">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT                                                                
+	            B.EVAL_CAT_GRP_NM                                                 
+	          , C.EVAL_CAT_NM    
+	          , A.GOV_METRIC_GRP_ID    
+	          , G.GOV_METRIC_GRP_NM                                             
+	          , A.GOV_METRIC_ID                                                   
+	          , A.GOV_METRIC_NM    
+	          , F_CODE_NM('007', A.GBN_ID, A.YEAR) GBN_NM      
+	          , F_CODE_NM('146', A.EVAL_METHOD_ID, A.YEAR) EVAL_METHOD_NM   
+	          , F_CODE_NM('147', A.DIREC_ID, A.YEAR) DIREC_NM                                                         
+	          , D.SC_DEPT_NM                                                      
+	          , E.USER_NM AS INSERT_USER_NM                                       
+	          , NVL((SELECT COUNT(GMM.METRIC_ID)                  
+        			   FROM GOV_METRIC_MAPPING GMM
+                 INNER JOIN BSC_METRIC BM
+            			 ON GMM.YEAR = BM.YEAR
+            			AND GMM.METRIC_ID = BM.METRIC_ID                                                             
+        			  WHERE GMM.YEAR = A.YEAR                                                             
+           				AND GMM.GOV_METRIC_ID = A.GOV_METRIC_ID
+             		),0)  MAPPED_CNT
+	          , A.MAIN_METRIC_YN                         
+		   FROM GOV_METRIC A                                                     
+		   LEFT OUTER JOIN BSC_SC_DEPT D
+             ON A.YEAR = D.YEAR 
+            AND A.SC_DEPT_ID = D.SC_DEPT_ID
+           LEFT OUTER JOIN BSC_USERINFO E
+             ON A.INSERT_USER_ID = E.USER_ID
+           LEFT OUTER JOIN GOV_METRIC_GRP G
+             ON A.YEAR = G.YEAR
+            AND A.GOV_METRIC_GRP_ID = G.GOV_METRIC_GRP_ID
+          INNER JOIN GOV_EVAL_CAT_GRP B
+             ON G.YEAR = B.YEAR AND G.EVAL_CAT_GRP_ID = B.EVAL_CAT_GRP_ID
+          INNER JOIN GOV_EVAL_CAT C
+             ON G.YEAR = C.YEAR AND G.EVAL_CAT_ID = C.EVAL_CAT_ID                             
+		  WHERE A.YEAR = #findYear#     
+		     <isEqual prepend="AND" property="findUseYn" compareValue="Y">
+	       	 	A.DELETE_DT IS NULL
+	         </isEqual>
+	         <isNotEqual prepend="AND" property="findUseYn" compareValue="Y">
+	         	A.DELETE_DT IS NOT NULL
+	         </isNotEqual>
+		  START WITH A.UP_METRIC_ID IS NULL
+        CONNECT BY PRIOR A.YEAR = A.YEAR
+            AND PRIOR A.GOV_METRIC_ID = A.UP_METRIC_ID                                         
+	   	  ORDER SIBLINGS BY B.SORT_ORDER, C.SORT_ORDER , A.SORT_ORDER 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getMainList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT                                                                
+                GOV_METRIC_ID                                                   
+              , GOV_METRIC_NM    
+          FROM GOV_METRIC                          
+         WHERE YEAR =#year#                                      
+           AND MAIN_METRIC_YN='Y'
+           AND DELETE_DT IS NULL
+	         AND GOV_METRIC_ID != #govMetricId# 
+         ORDER BY SORT_ORDER 
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표관리 목록 보기(비계량)
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getNonMetricList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT                                                                
+                GOV_METRIC_ID                                                   
+              , GOV_METRIC_NM    
+          FROM GOV_METRIC                          
+         WHERE YEAR = #year#                                      
+           AND GBN_ID ='02'
+           AND DELETE_DT IS NULL
+        ORDER BY SORT_ORDER 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR                  
+             , A.GOV_METRIC_ID     
+             , A.GOV_METRIC_GRP_ID    
+             , A.GOV_METRIC_NM         
+             , A.CONTENT               
+             , A.GBN_ID                
+             , A.DIREC_ID              
+             , A.EVAL_METHOD_ID        
+             , A.UNIT                  
+             , A.ACT_CAL_TYPE       
+             , A.DETAIL_EVAL_SUMMARY_COMMENT
+             , A.SC_DEPT_ID  
+             , B.SC_DEPT_NM          
+             , A.INSERT_USER_ID  
+             , C.USER_NM AS INSERT_USER_NM      
+             , A.BASE_VALUE            
+             , A.BEST_TARGET           
+             , A.LOWEST_TARGET         
+             , A.STAD_CONST            
+             , A.SORT_ORDER            
+             , A.WEIGHT                
+             , A.SIMULATION_YN         
+             , A.UNMEAS_BEST_TARGET    
+             , A.MAIN_METRIC_YN        
+             , A.UP_METRIC_ID  
+             , CASE WHEN A.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USER_YN       
+             , A.BEST_TARGET_3YEAR
+             , A.LOWEST_TARGET_3YEAR
+             , A.ACTUAL_3YEAR
+             , A.RATE_YEAR
+             , A.ACTUAL_BEFORE_YEAR
+             , A.CORRECT_COEFFICIENT
+          FROM GOV_METRIC A
+          LEFT OUTER JOIN BSC_SC_DEPT B ON   A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID                               
+          LEFT OUTER JOIN BSC_USERINFO C ON A.INSERT_USER_ID = C.USER_ID                        
+         WHERE A.YEAR = #year#
+           <isNotEmpty property="govMetricId">
+           AND A.GOV_METRIC_ID =#govMetricId#
+           </isNotEmpty>		   	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표관리 코드 채번
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getMetricId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT 'GM'||LPAD(NVL(MAX(SUBSTR(GOV_METRIC_ID,3,6)),0)+1,5,'0') SEQ FROM GOV_METRIC
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO GOV_METRIC ( 
+			   YEAR
+			 , GOV_METRIC_ID
+			 , GOV_METRIC_GRP_ID
+			 , GOV_METRIC_NM
+			 , EVAL_CAT_GRP_ID
+			 , EVAL_CAT_ID
+			 , CONTENT
+			 , GBN_ID
+			 , DIREC_ID
+			 , EVAL_METHOD_ID
+			 , UNIT
+			 , ACT_CAL_TYPE
+			 , DETAIL_EVAL_SUMMARY_COMMENT
+			 , SC_DEPT_ID
+			 , INSERT_USER_ID
+			 , BASE_VALUE
+			 , BEST_TARGET
+			 , LOWEST_TARGET
+			 , STAD_CONST
+			 , CREATE_DT
+			 , SORT_ORDER
+			 , WEIGHT
+			 , UNMEAS_BEST_TARGET
+			 , MAIN_METRIC_YN
+			 , UP_METRIC_ID
+			 , DELETE_DT
+			 , BEST_TARGET_3YEAR
+			 , LOWEST_TARGET_3YEAR
+			 , ACTUAL_3YEAR
+			 , RATE_YEAR
+			 , CORRECT_COEFFICIENT
+			 ) VALUES ( 
+			   #year#
+			 , #govMetricId#
+			 , #govMetricGrpId#
+			 , #govMetricNm#
+			 , #evalCatGrpId#
+			 , #evalCatId#
+			 , #content#
+			 , #gbnId#
+			 , #direcId#
+			 , #evalMethodId#
+			 , #unit#
+			 , #actCalType#
+			 , #detailEvalSummaryComment#
+			 , #scDeptId#
+			 , #insertUserId#
+			 , #baseValue#
+			 , #bestTarget#
+			 , #lowestTarget#
+			 , #stadConst#
+			 , SYSDATE
+			 , #sortOrder#
+			 , #weight#
+			 , #unmeasBestTarget#
+			 , #mainMetricYn#
+			 , #upMetricId#
+			 ,
+			 <isEqual property="useYn" compareValue="Y">
+		     NULL
+		     </isEqual>
+		     <isNotEqual property="useYn" compareValue="Y">
+		     SYSDATE
+		     </isNotEqual>
+		     , #bestTarget3year#
+			 , #lowestTarget3year#
+			 , #actual3year#
+			 , #rateYear#
+			 , #correctCoefficient#
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE GOV_METRIC 
+		   SET GOV_METRIC_NM          = #govMetricNm# 
+		   	 , GOV_METRIC_GRP_ID	  = #govMetricGrpId#
+		   	 , EVAL_CAT_GRP_ID		  = #evalCatGrpId#
+		   	 , EVAL_CAT_ID			  = #evalCatId#
+			 , CONTENT                = #content# 
+			 , GBN_ID                 = #gbnId# 
+			 , DIREC_ID               = #direcId# 
+			 , EVAL_METHOD_ID         = #evalMethodId# 
+			 , UNIT                   = #unit# 
+			 , ACT_CAL_TYPE           = #actCalType# 
+			 , DETAIL_EVAL_SUMMARY_COMMENT = #detailEvalSummaryComment# 
+			 , SC_DEPT_ID             = #scDeptId# 
+			 , INSERT_USER_ID         = #insertUserId# 
+			 , BASE_VALUE             = #baseValue# 
+			 , BEST_TARGET            = #bestTarget# 
+			 , LOWEST_TARGET          = #lowestTarget# 
+			 , STAD_CONST             = #stadConst# 
+			 , SORT_ORDER             = #sortOrder# 
+			 , WEIGHT                 = #weight# 
+			 , UNMEAS_BEST_TARGET     = #unmeasBestTarget# 
+			 , MAIN_METRIC_YN         = #mainMetricYn# 
+			 , UP_METRIC_ID           = #upMetricId# 
+			 ,
+			 <isEqual property="useYn" compareValue="Y">
+	         DELETE_DT = NULL
+	         </isEqual>
+	         <isNotEqual property="useYn" compareValue="Y">
+	         DELETE_DT = SYSDATE
+	         </isNotEqual>
+	         , BEST_TARGET_3YEAR      = #bestTarget3year# 
+			 , LOWEST_TARGET_3YEAR    = #lowestTarget3year# 
+			 , ACTUAL_3YEAR           = #actual3year# 
+			 , RATE_YEAR              = #rateYear#
+			 , CORRECT_COEFFICIENT	  = #correctCoefficient#
+		 WHERE YEAR = #year#
+		   AND GOV_METRIC_ID = #govMetricId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE GOV_METRIC SET DELETE_DT=SYSDATE
+		 WHERE YEAR = #year#
+		   AND GOV_METRIC_ID = #govMetricId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 산식항목 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: GOV_CAL_TYPE_COL
+	==================================================================
+	-->	
+	<delete id="deleteCalTypeCol" parameterClass="hashMap">
+		DELETE FROM GOV_CAL_TYPE_COL
+		WHERE YEAR = #year#
+		  AND GOV_METRIC_ID = #govMetricId#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 산식항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_CAL_TYPE_COL
+	==================================================================
+	-->	
+	<insert id="insertCalTypeCol" parameterClass="hashMap">
+		INSERT INTO GOV_CAL_TYPE_COL (
+               YEAR
+             , GOV_METRIC_ID
+             , ACT_CAL_TYPE_COL_ID
+             , ACT_CAL_TYPE_COL_NM
+             , UNIT             
+             , INSERT_GUBUN
+             , ITEM_CD
+             , TIME_ROLLUP
+		     , ITEM_ROLLUP
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #govMetricId#
+             , #calTypeCol#
+             , #calTypeColNm#
+             , #unit#
+             , #insertGubun#
+             , #itemCd#
+             , #timeRollup#
+             , #itemRollup#            
+             , SYSDATE
+             )
+	</insert>	
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 세부평가내용 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: GOV_DETAIL_EVAL_ITEM
+	==================================================================
+	-->	
+	<delete id="deleteDetailItem" parameterClass="hashMap">
+		DELETE FROM GOV_DETAIL_EVAL_ITEM
+		WHERE YEAR = #year#
+		  AND GOV_METRIC_ID = #govMetricId#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 세부평가내용 등록
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_DETAIL_EVAL_ITEM
+	==================================================================
+	-->	
+	<insert id="insertDetail" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT 'GDI'||LPAD(NVL(MAX(SUBSTR(DETAIL_EVAL_ID,4,5)),0)+1,4,'0') SEQ FROM GOV_DETAIL_EVAL_ITEM
+		</selectKey>
+		INSERT INTO GOV_DETAIL_EVAL_ITEM (
+               YEAR
+             , GOV_METRIC_ID
+             , DETAIL_EVAL_ID
+             , DETAIL_EVAL_CONTENT
+             , EVAL_COMMENT
+             , INSERT_USER_ID
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #govMetricId#
+             <isEqual property="detailEvalId" compareValue="">
+             , #SEQ#
+             </isEqual>
+             <isNotEqual property="detailEvalId" compareValue="">
+             , #detailEvalId#
+             </isNotEqual>
+             , #detailEvalContent#
+             , #evalContent#
+             , #detailUserId#
+             , SYSDATE
+             )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표Pool 산식 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_CAL_TYPE_COL
+	==================================================================
+	-->
+	<select id="calTypeColList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.GOV_METRIC_ID
+		     , A.ACT_CAL_TYPE_COL_ID
+		     , A.ACT_CAL_TYPE_COL_NM
+		     , A.INSERT_GUBUN
+		     , A.UNIT
+		     , A.ITEM_CD
+		     , B.ITEM_NM
+		     , A.TIME_ROLLUP
+		     , A.ITEM_ROLLUP
+		FROM GOV_CAL_TYPE_COL A
+			 LEFT OUTER JOIN BSC_SYSTEM_ITEM B ON A.YEAR = B.YEAR AND A.ITEM_CD = B.ITEM_CD AND B.DELETE_DT IS NULL
+		WHERE A.YEAR = #year#
+		  AND A.GOV_METRIC_ID = #govMetricId#
+		ORDER BY A.ACT_CAL_TYPE_COL_ID ASC
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 지표Pool 평가범주,평가부문 조회
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_CAL_TYPE_COL
+	==================================================================
+	-->
+	<select id="getEvalCatList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT EVAL_CAT_GRP_ID
+	         , EVAL_CAT_ID
+	      FROM GOV_METRIC_GRP
+	  	 WHERE GOV_METRIC_GRP_ID =  #govMetricGrpId#
+	  	   AND YEAR = #year#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표Pool 세부평가내용 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="calTypeDetailList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.GOV_METRIC_ID
+		     , A.DETAIL_EVAL_ID
+		     , A.DETAIL_EVAL_NM
+		     , B.INSERT_USER_ID
+		     , C.USER_NM AS INSERT_USER_NM      
+		FROM GOV_DETAIL_EVAL_ITEM A
+		INNER JOIN GOV_METRIC B ON A.YEAR = B.YEAR AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+		LEFT OUTER JOIN BSC_USERINFO C ON B.INSERT_USER_ID = C.USER_ID
+		WHERE A.YEAR = #year#
+		  AND A.GOV_METRIC_ID = #govMetricId#
+		ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표Pool 착안내용 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_EVAL_CONCEPT
+	==================================================================
+	-->
+	<select id="detailConceptList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.YEAR
+             , A.CONCEPT_ID
+             , A.CONCEPT_NM
+             , B.DETAIL_EVAL_ID
+             , B.DETAIL_EVAL_NM             
+             , C.GOV_METRIC_ID
+             , C.GOV_METRIC_NM
+             , C.INSERT_USER_ID
+             , D.USER_NM AS INSERT_USER_NM      
+        FROM GOV_DETAIL_EVAL_CONCEPT A
+        INNER JOIN GOV_DETAIL_EVAL_ITEM B ON A.YEAR = B.YEAR AND A.DETAIL_EVAL_ID = B.DETAIL_EVAL_ID
+        INNER JOIN GOV_METRIC C ON B.YEAR = C.YEAR AND B.GOV_METRIC_ID = C.GOV_METRIC_ID
+        LEFT OUTER JOIN BSC_USERINFO D ON C.INSERT_USER_ID = D.USER_ID
+        WHERE A.YEAR = #year#
+          AND B.DETAIL_EVAL_ID = #detailEvalId#
+          AND C.GOV_METRIC_ID = #govMetricId#
+        ORDER BY A.SORT_ORDER, B.SORT_ORDER, C.SORT_ORDER
+	</select>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표정의서 팝업 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getMetricDefinePop" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR                  
+             , A.GOV_METRIC_ID         
+             , A.EVAL_CAT_ID         
+             , EC.EVAL_CAT_NM  
+             , A.EVAL_CAT_GRP_ID
+             , ECG.EVAL_CAT_GRP_NM       
+             , A.GOV_METRIC_NM         
+             , A.CONTENT               
+             , A.GBN_ID     
+             , F_CODE_NM('007' , A.GBN_ID , A.YEAR ) AS GBN_NM
+             , A.DIREC_ID    
+             , F_CODE_NM('147' , A.DIREC_ID , A.YEAR ) AS DIREC_NM          
+             , A.EVAL_METHOD_ID        
+             , F_CODE_NM('146' , A.EVAL_METHOD_ID , A.YEAR ) AS EVAL_METHOD_NM
+             , A.UNIT     
+             , F_CODE_NM('013' , A.UNIT , A.YEAR ) AS UNIT_NM             
+             , A.ACT_CAL_TYPE       
+             , A.DETAIL_EVAL_SUMMARY_COMMENT
+             , A.SC_DEPT_ID  
+             , B.SC_DEPT_NM          
+             , A.INSERT_USER_ID  
+             , C.USER_NM AS INSERT_USER_NM      
+             , A.BASE_VALUE            
+             , A.BEST_TARGET           
+             , A.LOWEST_TARGET         
+             , A.STAD_CONST            
+             , A.SORT_ORDER            
+             , A.WEIGHT                
+             , A.SIMULATION_YN         
+             , A.UNMEAS_BEST_TARGET    
+             , A.MAIN_METRIC_YN        
+             , F_CODE_NM('132' , A.MAIN_METRIC_YN , A.YEAR ) AS MAIN_METRIC_YN_NM     
+             , A.UP_METRIC_ID
+             , UM.GOV_METRIC_NM AS UP_METRIC_NM 
+             , CASE WHEN A.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USER_YN
+             , F_CODE_NM('011' , CASE WHEN A.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END , A.YEAR ) AS USER_YN_NM        
+          FROM GOV_METRIC A
+          LEFT OUTER JOIN BSC_SC_DEPT B ON   A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID                               
+          LEFT OUTER JOIN BSC_USERINFO C ON A.INSERT_USER_ID = C.USER_ID              
+          LEFT OUTER JOIN GOV_EVAL_CAT_GRP ECG ON A.YEAR = ECG.YEAR AND A.EVAL_CAT_GRP_ID = ECG.EVAL_CAT_GRP_ID
+       	  LEFT OUTER JOIN GOV_EVAL_CAT EC ON A.YEAR = EC.YEAR AND A.EVAL_CAT_GRP_ID = EC.EVAL_CAT_GRP_ID AND A.EVAL_CAT_ID = EC.EVAL_CAT_ID
+       	  LEFT OUTER JOIN GOV_METRIC UM ON A.YEAR = UM.YEAR AND A.UP_METRIC_ID = UM.GOV_METRIC_ID AND UM.MAIN_METRIC_YN='Y' AND UM.DELETE_DT IS NULL
+         WHERE A.YEAR = #year#
+           AND A.GOV_METRIC_ID = #govMetricId#		   	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표정의서 팝업 세부지표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getMetricDefinePopSubMetricList" parameterClass="hashMap" resultClass="hashMap">
+	SELECT B.EVAL_CAT_GRP_NM
+	     , C.EVAL_CAT_NM
+	     , A.GOV_METRIC_ID
+	     , A.GOV_METRIC_NM
+	     , F_CODE_NM ('007', A.GBN_ID, A.YEAR) AS GBN_NM
+	     , F_CODE_NM ('146', A.EVAL_METHOD_ID, A.YEAR) AS EVAL_METHOD_NM
+	     , F_CODE_NM ('147', A.DIREC_ID, A.YEAR) AS DIREC_NM
+	     , D.SC_DEPT_NM
+	     , E.USER_NM AS INSERT_USER_NM
+	     , NVL ( (SELECT COUNT ( * ) FROM GOV_METRIC_MAPPING 
+	               WHERE 1=1 AND YEAR = A.YEAR AND GOV_METRIC_ID = A.GOV_METRIC_ID), 0) AS MAPPED_CNT
+	  FROM GOV_METRIC A
+	       INNER JOIN GOV_EVAL_CAT_GRP B ON A.YEAR = B.YEAR AND A.EVAL_CAT_GRP_ID = B.EVAL_CAT_GRP_ID
+	       INNER JOIN GOV_EVAL_CAT C ON A.YEAR = C.YEAR AND A.EVAL_CAT_ID = C.EVAL_CAT_ID 
+	       LEFT OUTER JOIN BSC_SC_DEPT D ON A.YEAR = D.YEAR AND A.SC_DEPT_ID = D.SC_DEPT_ID 
+	       LEFT OUTER JOIN BSC_USERINFO E ON A.INSERT_USER_ID = E.USER_ID
+	 WHERE 1 = 1
+	   AND A.YEAR = #year#
+	   AND A.UP_METRIC_ID = #govMetricId#
+	   AND A.DELETE_DT IS NULL
+	 ORDER BY B.SORT_ORDER NULLS LAST, B.EVAL_CAT_GRP_ID
+	 		, C.SORT_ORDER NULLS LAST, C.EVAL_CAT_ID
+	 		, A.SORT_ORDER NULLS LAST, A.GOV_METRIC_ID
+	</select>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 권한 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<update id="deleteAdminData" parameterClass="hashMap">
+		<isEqual property="adminGubun" compareValue="11">
+        DELETE FROM BSC_ADMIN
+         WHERE ADMIN_GUBUN='11'
+        </isEqual>
+        <isEqual property="adminGubun" compareValue="13">
+        DELETE FROM BSC_ADMIN
+         WHERE ADMIN_GUBUN='13'
+        </isEqual>
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 계량실적입력자 매핑 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<insert id="insertAdminData" parameterClass="hashMap">
+		<isEqual property="adminGubun" compareValue="11">
+			INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID)
+	        SELECT DISTINCT '11', INSERT_USER_ID
+	          FROM GOV_METRIC
+	         WHERE DELETE_DT IS NULL
+	           AND GBN_ID='01' 
+        </isEqual>
+        <isEqual property="adminGubun" compareValue="13">
+        	INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID)
+	        SELECT DISTINCT '13', A.INSERT_USER_ID
+              FROM GOV_DETAIL_EVAL_ITEM A
+              LEFT OUTER JOIN GOV_METRIC B ON A.YEAR=B.YEAR AND A.GOV_METRIC_ID =B.GOV_METRIC_ID
+             WHERE B.DELETE_DT IS NULL 
+        </isEqual>
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량성과목표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_MEAS
+	==================================================================
+	-->
+	<select id="getMeasList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.GOV_METRIC_ID,
+                B.GOV_METRIC_NM,
+                A.MEAS_ID,
+                A.MEAS_NM,
+                A.UNIT,
+                F_CODE_NM('013',A.UNIT, A.YEAR) UNIT_NM,
+                A.RES_OF_PROPER,
+                A.RES_OF_1_BEF,
+                A.RES_OF_1_AFT,
+                A.TARGET_BASE,
+                A.INSERT_USER_ID,
+                C.USER_NM AS INSERT_USER_NM,
+                A.SORT_ORDER,
+                A.CREATE_ID
+           FROM GOV_DETAIL_MEAS A
+                INNER JOIN GOV_METRIC B
+                ON A.YEAR = B.YEAR
+                AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+                AND B.DELETE_DT IS NULL
+                LEFT OUTER JOIN V_ROLE_USER C
+                ON A.INSERT_USER_ID = C.USER_ID
+          WHERE A.YEAR = #year#
+            AND A.GOV_METRIC_ID = #govMetricId#
+          ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량성과목표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_NON_MEAS
+	==================================================================
+	-->
+	<select id="getNonMeasList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.GOV_METRIC_ID,
+                B.GOV_METRIC_NM,
+                A.NON_MEAS_ID,
+                A.NON_MEAS_NM,
+                A.TARGET_OF_PROPER_DESC,
+                A.RES_OF_1_BEF_DESC,
+                A.INSERT_USER_ID,
+                C.USER_NM AS INSERT_USER_NM,
+                A.SORT_ORDER,
+                A.CREATE_ID
+           FROM GOV_DETAIL_NON_MEAS A
+                INNER JOIN GOV_METRIC B
+                ON A.YEAR = B.YEAR
+                AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+                AND B.DELETE_DT IS NULL
+                LEFT OUTER JOIN V_ROLE_USER C
+                ON A.INSERT_USER_ID = C.USER_ID
+          WHERE A.YEAR = #year#
+            AND A.GOV_METRIC_ID = #govMetricId#
+          ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량지적및조치사항 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_POINT_OUT
+	==================================================================
+	-->
+	<select id="getActList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.YEAR,
+                A.GOV_METRIC_ID,
+                A.POINT_OUT_ID,
+                A.POINT_OUT_CONTENT,
+                A.IMPROVEMENT,
+                A.COMMENTS,
+                A.INSERT_USER_ID,
+                B.USER_NM AS INSERT_USER_NM,
+                A.CREATE_ID,
+                A.SORT_ORDER
+           FROM GOV_DETAIL_POINT_OUT A
+                LEFT OUTER JOIN V_ROLE_USER B
+                ON A.INSERT_USER_ID = B.USER_ID
+          WHERE A.YEAR = #year#
+            AND A.GOV_METRIC_ID = #govMetricId#
+            AND A.POINT_OUT_GBN_ID = '01'
+          ORDER BY A.SORT_ORDER
+               
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량지적및조치사항 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_POINT_OUT
+	==================================================================
+	-->
+	<select id="getGovList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.YEAR,
+                A.GOV_METRIC_ID,
+                A.POINT_OUT_ID,
+                A.POINT_OUT_CONTENT,
+                A.IMPROVEMENT,
+                A.COMMENTS,
+                A.INSERT_USER_ID,
+                B.USER_NM AS INSERT_USER_NM,
+                A.CREATE_ID,
+                A.SORT_ORDER
+           FROM GOV_DETAIL_POINT_OUT A
+                LEFT OUTER JOIN V_ROLE_USER B
+                ON A.INSERT_USER_ID = B.USER_ID
+          WHERE A.YEAR = #year#
+            AND A.GOV_METRIC_ID = #govMetricId#
+            AND A.POINT_OUT_GBN_ID = '02'
+          ORDER BY A.SORT_ORDER
+               
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량지적및조치사항 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_POINT_OUT
+	==================================================================
+	-->
+	<select id="getMasList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.YEAR,
+                A.GOV_METRIC_ID,
+                A.POINT_OUT_ID,
+                A.POINT_OUT_CONTENT,
+                A.IMPROVEMENT,
+                A.COMMENTS,
+                A.INSERT_USER_ID,
+                B.USER_NM AS INSERT_USER_NM,
+                A.CREATE_ID,
+                A.SORT_ORDER
+           FROM GOV_DETAIL_POINT_OUT A
+                LEFT OUTER JOIN V_ROLE_USER B
+                ON A.INSERT_USER_ID = B.USER_ID
+          WHERE A.YEAR = #year#
+            AND A.GOV_METRIC_ID = #govMetricId#
+            AND A.POINT_OUT_GBN_ID = '03'
+          ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전년도실적비교 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_COMPARE
+	==================================================================
+	-->
+	<select id="getCompareList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT A.YEAR,
+               A.GOV_METRIC_ID,
+               A.COMPARE_ID,
+               A.FIELD,
+               A.RES_OF_PROPER_DESC,
+               A.IMPROVEMENT,
+               A.RES_OF_1_BEF_DESC,
+               A.INSERT_USER_ID,
+               D.USER_NM AS INSERT_USER_NM,
+               A.SORT_ORDER     
+          FROM GOV_DETAIL_COMPARE A
+          LEFT OUTER JOIN GOV_METRIC B ON A.YEAR=B.YEAR AND A.GOV_METRIC_ID=B.GOV_METRIC_ID 
+          LEFT OUTER JOIN GOV_DETAIL_EVAL_ITEM C ON B.YEAR = C.YEAR AND B.GOV_METRIC_ID = C.GOV_METRIC_ID
+          LEFT OUTER JOIN BSC_USERINFO D ON A.INSERT_USER_ID = D.USER_ID
+         WHERE A.YEAR = #year#   
+          AND A.GOV_METRIC_ID = #govMetricId#
+		 ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표Pool 세부평가내용 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_EVAL_ITEM, GOV_DETAIL_EVAL_CONCEPT
+	==================================================================
+	-->
+	<select id="detailEvalItemList" parameterClass="hashMap" resultClass="hashMap">
+	    SELECT A.YEAR
+	         , A.GOV_METRIC_ID        
+	         , A.DETAIL_EVAL_ID        
+	         , A.DETAIL_EVAL_NM
+	         , B.CONCEPT_ID
+	         , B.CONCEPT_NM        
+	         , A.INSERT_USER_ID
+	         , C.USER_NM AS INSERT_USER_NM
+	         , DECODE(A.CONCEPT_CNT, 0, 1, A.CONCEPT_CNT) CONCEPT_CNT         
+	      FROM (
+		            SELECT YEAR, GOV_METRIC_ID, DETAIL_EVAL_ID, DETAIL_EVAL_NM, SORT_ORDER, INSERT_USER_ID
+		                 , (SELECT COUNT(CONCEPT_ID) FROM GOV_DETAIL_EVAL_CONCEPT WHERE YEAR = GOV_DETAIL_EVAL_ITEM.YEAR AND DETAIL_EVAL_ID = GOV_DETAIL_EVAL_ITEM.DETAIL_EVAL_ID) CONCEPT_CNT 
+		              FROM GOV_DETAIL_EVAL_ITEM
+		             WHERE YEAR = #year# 
+		         ) A   
+	      LEFT OUTER JOIN GOV_DETAIL_EVAL_CONCEPT B
+	        ON A.YEAR = B.YEAR AND A.DETAIL_EVAL_ID = B.DETAIL_EVAL_ID
+	      LEFT OUTER JOIN BSC_USERINFO C 
+	        ON A.INSERT_USER_ID = C.USER_ID   
+	     WHERE A.YEAR =  #year#     
+	       AND A.GOV_METRIC_ID = #govMetricId#
+	     ORDER BY A.SORT_ORDER, B.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실행계획이 없는 세부평가내용을 삭제
+	  #	기능	: DELTE
+	  #	TABLE	: GOV_DETAIL_EVAL_ITEM
+	==================================================================
+	-->
+	<delete id="deleteGovDetailEvalItem" parameterClass="hashMap">
+		DELETE
+		  FROM GOV_DETAIL_EVAL_ITEM A
+		 WHERE A.YEAR = #year#
+		   AND A.GOV_METRIC_ID = #govMetricId#
+		   AND A.DETAIL_EVAL_ID IN (
+		<iterate property="delDetailItem" conjunction=", ">
+			$delDetailItem[]$
+		</iterate>
+		   							)
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실행계획이 없는 평가착안사항 삭제
+	  #	기능	: DELTE
+	  #	TABLE	: GOV_DETAIL_EVAL_ITEM
+	==================================================================
+	-->
+	<delete id="deleteGovDetailEvalConcept" parameterClass="hashMap">
+		DELETE
+		  FROM GOV_DETAIL_EVAL_CONCEPT A
+		 WHERE A.YEAR = #year#
+		   AND (A.DETAIL_EVAL_ID, A.CONCEPT_ID) IN (
+		<iterate property="delConcept" conjunction=", ">
+			$delConcept[]$
+		</iterate>
+													)
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 삭제할(실행계획이 없는) 세부평가내용 ID를 가져온다.
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getGovDetailEvalItem" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DETAIL_EVAL_ID
+		  FROM GOV_DETAIL_EVAL_ITEM A
+		 WHERE A.YEAR = #year#
+		   AND A.GOV_METRIC_ID = #govMetricId#
+		   AND A.DETAIL_EVAL_ID IN ( SELECT A.DETAIL_EVAL_ID
+		                              FROM GOV_DETAIL_EVAL_CONCEPT A
+		                              LEFT OUTER JOIN GOV_ACTION_PLAN B
+		                                ON A.YEAR = B.YEAR AND A.CONCEPT_ID = B.CONCEPT_ID
+		                             WHERE A.YEAR = #year#
+		                             GROUP BY A.DETAIL_EVAL_ID
+		                            HAVING COUNT(B.PLAN_ID) = 0 )
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 삭제할(실행계획이 없는) 평가착안사항 ID를 가져온다.
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getGovDetailEvalConcept" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DETAIL_EVAL_ID, A.CONCEPT_ID
+		  FROM GOV_DETAIL_EVAL_CONCEPT A
+		 WHERE A.YEAR = #year#
+		   AND A.DETAIL_EVAL_ID IN (SELECT DISTINCT DETAIL_EVAL_ID FROM GOV_DETAIL_EVAL_ITEM WHERE YEAR = #year# AND GOV_METRIC_ID = #govMetricId#)
+		   AND A.CONCEPT_ID IN ( SELECT A.CONCEPT_ID
+		                           FROM GOV_DETAIL_EVAL_CONCEPT A
+		                           LEFT OUTER JOIN GOV_ACTION_PLAN B
+		                             ON A.YEAR = B.YEAR AND A.CONCEPT_ID = B.CONCEPT_ID
+		                          WHERE A.YEAR = #year#
+		                          GROUP BY A.CONCEPT_ID
+		                         HAVING COUNT(B.PLAN_ID) = 0 ) 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 세부평가내용 저장
+	  #	기능	: MERGE INTO
+	  #	TABLE	: GOV_DETAIL_EVAL_ITEM
+	==================================================================
+	-->
+	<insert id="saveGovDetailEvalItem" parameterClass="hashMap">
+        MERGE INTO GOV_DETAIL_EVAL_ITEM A
+        USING DUAL
+           ON (A.YEAR = #year# AND A.DETAIL_EVAL_ID = #detailEvalId#)
+         WHEN MATCHED THEN
+                UPDATE SET A.DETAIL_EVAL_NM = #detailEvalNm#, A.SORT_ORDER = #sortOrder#, A.INSERT_USER_ID = #userId#
+         WHEN NOT MATCHED THEN
+                INSERT (YEAR, GOV_METRIC_ID, DETAIL_EVAL_ID, DETAIL_EVAL_NM, SORT_ORDER, INSERT_USER_ID, CREATE_DT)
+                VALUES (#year#, #govMetricId#, #detailEvalId#, #detailEvalNm#, #sortOrder#, #userId#, SYSDATE)
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가착안사항 저장
+	  #	기능	: MERGE INTO
+	  #	TABLE	: GOV_DETAIL_EVAL_CONCEPT
+	==================================================================
+	-->
+	<insert id="saveGovDetailEvalConcept" parameterClass="hashMap">
+        MERGE INTO GOV_DETAIL_EVAL_CONCEPT A
+        USING DUAL
+           ON (A.YEAR = #year# AND A.CONCEPT_ID = #conceptId#)
+         WHEN MATCHED THEN
+                UPDATE SET A.CONCEPT_NM = #conceptNm#, A.SORT_ORDER = #sortOrder#
+         WHEN NOT MATCHED THEN
+                INSERT (YEAR, DETAIL_EVAL_ID, CONCEPT_ID, CONCEPT_NM, SORT_ORDER, CREATE_DT)
+                VALUES (#year#, #detailEvalId#, #conceptId#, #conceptNm#, #sortOrder#, SYSDATE)
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 세부평가내용 ID 생성
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getDetailEvalItemId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT 'GD' || NVL(LPAD(SUBSTR(MAX(DETAIL_EVAL_ID), 3) + 1, 5, '0'), '00001') DETAIL_EVAL_ID
+		  FROM GOV_DETAIL_EVAL_ITEM
+		 WHERE YEAR = #year#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가착안사항 ID 생성
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_EVAL_CONCEPT
+	==================================================================
+	-->
+	<select id="getDetailEvalConceptId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT 'GC' || GREATEST(NVL(LPAD(SUBSTR(MAX(CONCEPT_ID), 3) + 1, 5, '0'), #maxConceptId#), #maxConceptId#) CONCEPT_ID
+		  FROM GOV_DETAIL_EVAL_CONCEPT
+		 WHERE YEAR = #year#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가착안사항 MAX ID를 가져온다.
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_EVAL_CONCEPT
+	==================================================================
+	-->
+	<select id="getMaxConceptId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT NVL(LPAD(SUBSTR(MAX(CONCEPT_ID), 3) + 1, 5, '0'), '00001') MAX_CONCEPT_ID
+		  FROM GOV_DETAIL_EVAL_CONCEPT
+		 WHERE YEAR = #year#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실행계획 리스트를 가져온다.
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_EVAL_CONCEPT
+	==================================================================
+	-->
+	<select id="getActionPlanList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT C.PLAN_ID, C.PLAN_NM
+          FROM GOV_ACTION_PLAN C
+         WHERE C.YEAR = #year# AND C.CONCEPT_ID = #govConceptId#
+         ORDER BY C.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가착안사항 리스트를 가져온다.
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_EVAL_CONCEPT
+	==================================================================
+	-->
+	<select id="getConcept" parameterClass="hashMap" resultClass="hashMap">
+		SELECT CONCEPT_ID, CONCEPT_NM
+		  FROM GOV_DETAIL_EVAL_CONCEPT
+		 WHERE YEAR = #year# AND CONCEPT_ID = #govConceptId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 세부평가내용 리스트를 가져온다.
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_DETAIL_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getDetailEval" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DETAIL_EVAL_ID, DETAIL_EVAL_NM
+		  FROM GOV_DETAIL_EVAL_ITEM
+		 WHERE (YEAR, DETAIL_EVAL_ID) IN (SELECT YEAR, DETAIL_EVAL_ID FROM GOV_DETAIL_EVAL_CONCEPT WHERE YEAR = #year# AND CONCEPT_ID = #govConceptId#)
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표이름를 가져온다.
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getGovMetric" parameterClass="hashMap" resultClass="hashMap">
+		SELECT GOV_METRIC_ID, GOV_METRIC_NM
+		  FROM GOV_METRIC
+		 WHERE (YEAR, GOV_METRIC_ID) IN (
+		                                    SELECT YEAR, GOV_METRIC_ID
+		                                      FROM GOV_DETAIL_EVAL_ITEM
+		                                     WHERE (YEAR, DETAIL_EVAL_ID) IN (SELECT YEAR, DETAIL_EVAL_ID FROM GOV_DETAIL_EVAL_CONCEPT WHERE YEAR = #year# AND CONCEPT_ID = #govConceptId#)
+		                                )
+	</select>
+</sqlMap>
+
+

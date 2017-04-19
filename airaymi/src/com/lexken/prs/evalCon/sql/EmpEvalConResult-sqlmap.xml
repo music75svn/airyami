@@ -1,0 +1,535 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.evalCon.empEvalConResult">
+
+    <!--
+    ==================================================================   
+      # 설명    : typeAlias 선언
+      #    기능    : SETTING
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <typeAlias alias="hashMap"             type="java.util.HashMap" />
+     
+
+  <!--
+    ==================================================================   
+      # 설명    : 직원개인기여도평가 평가결과 목록 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+	 <select id="getEvalList" parameterClass="hashMap" resultClass="hashMap">
+         SELECT   YEAR
+		        , DEPT_CD
+		        , DEPT_KOR_NM
+		        , ASSESSOR_EMPN
+		        , KOR_NM
+		        , EVAL_COUNT
+		        , EVAL_GRP_YN
+		        , EVAL_SUBMIT_YN
+    FROM
+        (  SELECT A.YEAR  
+             	, A.DEPT_CD 
+            	, F_DEPT_FULL_NM (A.YEAR, A.DEPT_CD,'BSC_INSA_DEPT') DEPT_KOR_NM
+           		, A.ASSESSOR_EMPN
+           		, A.KOR_NM
+            	, A.EVAL_COUNT
+            	, DECODE(EVAL_GRP_CNT, 0,'N','Y') AS EVAL_GRP_YN
+            	, CASE WHEN EVAL_COUNT = SUM(EVAL_SUBMIT_YN) THEN 'Y' 
+                       ELSE 'N' END EVAL_SUBMIT_YN   
+        FROM
+            (  SELECT A.YEAR
+                , A.DEPT_CD
+                , A.DEPT_KOR_NM
+                , B.ASSESSOR_EMPN
+                , I.KOR_NM 
+                , CASE 
+                    WHEN F.EVAL_SUBMIT_YN = 'Y' THEN 1                                
+                    WHEN F.EVAL_SUBMIT_YN = 'N' THEN 0                                
+                    WHEN F.EVAL_SUBMIT_YN IS NULL THEN 2                                
+                    ELSE -1                          
+                 END EVAL_SUBMIT_YN
+                 , (SELECT COUNT(1) FROM CON_EMP_MEMBER WHERE YEAR = A.YEAR AND DEPT_CD = A.DEPT_CD  AND EVAL_YN = 'Y') AS EVAL_COUNT
+                 , (SELECT COUNT(EVAL_GRP_ID) FROM PRS_EVAL_GRP WHERE YEAR = D.YEAR AND EVAL_GRP_ID = D.EVAL_GRP_ID AND DELETE_DT IS NULL) AS EVAL_GRP_CNT               
+            FROM BSC_INSA_DEPT A    
+            LEFT OUTER JOIN CON_EMP_EVAL_ASSESSOR B ON A.YEAR = B.YEAR AND A.DEPT_CD = B.DEPT_CD  
+            LEFT OUTER JOIN BSC_INSA I ON B.YEAR = I.YEAR AND B.ASSESSOR_EMPN  = I.EMPN  
+            LEFT OUTER JOIN CON_EMP_MEMBER C ON B.YEAR = C.YEAR AND B.DEPT_CD = C.DEPT_CD AND EVAL_YN = 'Y'     
+            LEFT OUTER JOIN CON_EMP_DEPT_EVAL_GRP D ON B.YEAR = D.YEAR AND B.DEPT_CD = D.DEPT_CD   
+            LEFT OUTER JOIN PRS_EVAL_GRP E ON D.YEAR = E.YEAR AND D.EVAL_GRP_ID = E.EVAL_GRP_ID AND E.DELETE_DT IS NULL  
+            LEFT OUTER JOIN CON_EMP_EVAL_MEMBER F ON C.YEAR = F.YEAR AND C.EMPN = F.EMPN AND E.EVAL_GRP_ID = F.EVAL_GRP_ID            
+            WHERE A.YEAR =  #findYear#   AND B.ASSESSOR_EMPN IS NOT NULL) A    
+            <!--  
+        LEFT OUTER JOIN CON_EMP_EVAL_MEMBER B ON A.YEAR = B.YEAR 
+         <isNotEmpty prepend="AND" property="findAssessorEmpn">
+        		 B.EMPN = #findAssessorEmpn#
+         </isNotEmpty>		
+          -->       
+        WHERE A.YEAR =  #findYear# 
+        <isNotEmpty prepend="AND" property="findAssessorEmpn">
+              A.ASSESSOR_EMPN =  #findAssessorEmpn#                      
+        </isNotEmpty>
+        AND A.DEPT_CD IN ( SELECT A.DEPT_CD
+                                 FROM BSC_INSA_DEPT A
+                                 LEFT OUTER JOIN BSC_INSA_DEPT B
+                                   ON A.YEAR = B.YEAR AND A.USE_YN = B.USE_YN AND A.DEPT_CD = B.UP_DEPT_CD
+                                WHERE A.YEAR = #findYear# 
+                                <!-- AND A.USE_YN = 'T'  -->
+                                  AND A.DEPT_CD > '1090'
+                                GROUP BY A.DEPT_CD
+                               HAVING COUNT(B.DEPT_CD) = 0
+                          )
+        GROUP BY  A.YEAR
+	            , A.DEPT_CD
+	            , A.DEPT_KOR_NM
+	            , A.ASSESSOR_EMPN
+	            , A.KOR_NM
+	            , A.EVAL_COUNT
+	            , EVAL_GRP_CNT   
+        ORDER BY KOR_NM )  
+    </select>
+
+    <!--
+    ==================================================================   
+      # 설명    : 직원개인기여도평가 평가결과 목록 상세보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getList" parameterClass="hashMap" resultClass="hashMap">
+    
+     SELECT  T1.YEAR
+     		, T1.ASSESSOR_EMPN
+     		, ( SELECT KOR_NM
+     		      FROM BSC_INSA 
+     		     WHERE T1.ASSESSOR_EMPN = EMPN
+     		       AND T1.YEAR = YEAR ) AS ASSESSOR_EMPN_NM
+     		, T1.EMPN     
+	        , T1.KOR_NM     
+	        , T1.DEPT_CD    
+	        , T1.DEPT_KOR_NM    
+	        , T1.CAST_TC     
+	        , T1.CAST_TC_NM
+	        , T1.POS_TC     
+	        , T1.POS_TC_NM
+		    , <iterate property="itemArray" conjunction=",">
+		     	 MAX($itemArray[]$) $itemArray[]$
+		      </iterate>
+		    , <iterate property="itemArray" conjunction=",">
+		     	 MAX($itemArray[]$EVAL_GBN) $itemArray[]$EVAL_GBN
+		      </iterate>
+		    , <iterate property="itemArray" conjunction=",">
+		     	 MAX($itemArray[]$SCORE_ETC) $itemArray[]$SCORE_ETC
+		      </iterate>
+		    , MAX(T1.SCORE_ETC) AS SCORE_ETC
+		    , T1.EVAL_SUBMIT_YN
+            , T1.GRADE
+            , T1.SCORE
+            , T1.RANK
+		FROM (
+		        SELECT A.YEAR 
+		        	, A.EMPN     
+		            , A.KOR_NM     
+		            , A.DEPT_CD    
+		            , F_DEPT_FULL_NM( A.YEAR, A.DEPT_CD,'BSC_INSA_DEPT') DEPT_KOR_NM  
+		            , A.CAST_TC     
+		            , F_CODE_NM('170',A.CAST_TC,  A.YEAR) AS CAST_TC_NM
+		            , A.POS_TC     
+		            , F_CODE_NM('171',A.POS_TC,  A.YEAR) AS POS_TC_NM
+		            , <iterate property="itemArray" conjunction=",">
+					  CASE WHEN B.EVAL_ITEM_ID = '$itemArray[]$' THEN C.GRADE ELSE NULL END $itemArray[]$
+					</iterate>
+					, <iterate property="itemArray" conjunction=",">
+					  CASE WHEN B.EVAL_ITEM_ID = '$itemArray[]$' THEN B.EVAL_GBN ELSE NULL END $itemArray[]$EVAL_GBN
+					</iterate>
+					, <iterate property="itemArray" conjunction=",">
+					  CASE WHEN B.EVAL_GBN = '02' AND B.EVAL_ITEM_ID = '$itemArray[]$' THEN C.SCORE ELSE NULL END $itemArray[]$SCORE_ETC
+					</iterate>
+					, CASE WHEN B.EVAL_GBN = '02' THEN C.SCORE ELSE NULL END SCORE_ETC
+		            , E.GRADE
+					, A.SCORE AS SCORE
+            		, A.RANKING AS RANK
+            		, A.EVAL_SUBMIT_YN
+            		, D.ASSESSOR_EMPN
+		        FROM CON_EMP_MEMBER A
+		            INNER JOIN (SELECT
+		                              T1.YEAR
+		                            , T1.EVAL_ITEM_ID
+		                            , T1.EVAL_ITEM_NM
+		                            , T1.EVAL_GBN
+		                        FROM CON_EVAL_ITEM T1
+		                        WHERE T1.YEAR = #findYear#) B
+		                ON A.YEAR = B.YEAR
+		            LEFT OUTER JOIN CON_EMP_EVAL_GRADE C
+		                ON A.YEAR = C.YEAR
+		                AND A.EMPN = C.EMPN
+		                AND B.EVAL_ITEM_ID = C.EVAL_ITEM_ID
+		            INNER JOIN CON_EMP_EVAL_ASSESSOR D
+		                ON A.YEAR = D.YEAR
+		                AND A.DEPT_CD = D.DEPT_CD
+		                AND D.ASSESSOR_EMPN IS NOT NULL
+		            LEFT OUTER JOIN CON_EMP_EVAL_MEMBER E
+			            ON A.YEAR = E.YEAR
+			            AND A.EMPN = E.EMPN
+		        WHERE A.YEAR = #findYear#
+			         <isNotEmpty prepend="AND" property="findAssessorEmpn">
+			          D.ASSESSOR_EMPN = #findAssessorEmpn#
+			        </isNotEmpty> 
+		          AND A.DEPT_CD = #findDeptCd#
+		          AND A.EVAL_YN = 'Y'
+		        ORDER BY A.EMPN, B.EVAL_ITEM_ID
+		) T1
+		WHERE T1.YEAR = #findYear#
+		<isNotEmpty property="findEmpnNameText">
+			<isEqual prepend="AND" property="findNameEmpn" compareValue="findEmpn">
+				T1.EMPN LIKE '%' || #findEmpnNameText# ||'%'
+			</isEqual>
+			<isEqual prepend="AND" property="findNameEmpn" compareValue="findName">
+				T1.KOR_NM LIKE '%' || #findEmpnNameText# ||'%'
+			</isEqual>
+		</isNotEmpty>
+		GROUP BY T1.YEAR ,T1.EMPN , T1.KOR_NM , T1.DEPT_CD , T1.DEPT_KOR_NM , T1.CAST_TC_NM , T1.POS_TC_NM , T1.CAST_TC , T1.POS_TC 
+     		, T1.SCORE , T1.RANK , T1.GRADE  , T1.EVAL_SUBMIT_YN , T1.ASSESSOR_EMPN     
+	  ORDER BY T1.RANK, T1.SCORE DESC, T1.KOR_NM
+    
+    </select>
+    
+    <!--
+	==================================================================
+	  # 설명	: 직원개인기여도평가 평가제출여부(부서별)
+	  #	기능	: SELECT
+	  #	TABLE	: CON_EMP_MEMBER
+	==================================================================
+	-->
+	<select id="getDeptEmpEvalConSubmitYn" remapResults="true" parameterClass="hashMap" resultClass="java.lang.String">
+       SELECT DISTINCT NVL(B.EVAL_SUBMIT_YN,'N') AS EVAL_SUBMIT_YN
+          FROM CON_EMP_MEMBER A
+        LEFT OUTER JOIN CON_EMP_EVAL_MEMBER B
+     ON A.YEAR = B.YEAR AND A.EMPN = B.EMPN  
+         WHERE A.YEAR =#findYear# 
+         AND A.DEPT_CD =#alloDeptCd#
+         AND A.EVAL_YN ='Y'   
+	</select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 직원개인기여도평가 평가결과 리스트에 들어갈 등급조회
+      #    기능    : SELECT
+      #    TABLE    : BSC_CODE
+    ==================================================================
+    -->
+    <select id="getGradeList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT  CODE_ID,CODE_NM  
+          FROM BSC_CODE
+        WHERE 1 = 1
+          AND YEAR = #findYear#
+          AND CODE_GRP_ID ='223'
+        ORDER BY SORT_ORDER
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 직원개인기여도평가 평가결과 평가자에 해당되는 조직 조회
+      #    기능    : SELECT
+      #    TABLE    : BSC_INSA
+    ==================================================================
+    -->
+    <select id="getDeptId" parameterClass="hashMap" resultClass="hashMap">
+        SELECT EMPN , KOR_NM ,DEPT_CD FROM BSC_INSA WHERE YEAR = #findYear# AND EMPN = #findAssessorEmpn#
+    </select>
+    
+       <!--
+	==================================================================
+	  # 설명	: 직원개인기여도평가 평가결과 평가군 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: CON_EMP_DEPT_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getEmpEvalConGroupCd" remapResults="true" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT
+		      EVAL_GRP_ID
+		FROM CON_EMP_DEPT_EVAL_GRP
+		WHERE YEAR = #findYear#
+		  AND DEPT_CD = #deptCd#
+	</select>
+    
+    <!-- 
+     ==================================================================
+      # 설명    : 직원개인 기여도 평가자 목록 보기
+      #    기능    : SELECT
+      #    TABLE    :
+    ==================================================================
+    -->
+    <select id="getEvalAssessor" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT 
+		      A.YEAR
+		    <!-- , A.DEPT_CD  -->
+		    , A.ASSESSOR_EMPN
+		    , B.USER_NM AS KOR_NM
+		FROM CON_EMP_EVAL_ASSESSOR A
+		 INNER JOIN V_ROLE_USER B
+		            ON A.ASSESSOR_EMPN = B.SABUN
+		  WHERE A.YEAR = #findYear#          
+		   ORDER BY B.USER_NM ASC         
+    </select>
+    
+    <!--
+	==================================================================
+	  # 설명	: 직원개인업적평가 평가결과리스트 평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: CON_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getEvalConEvalItemList" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+			  A.EVAL_ITEM_ID 
+			, A.EVAL_ITEM_NM 
+			, A.EVAL_ITEM_ID || 'SCORE_ETC' AS EVAL_ITEM_SCORE
+			, A.CONTENT 
+			,A.EVAL_GBN 
+		FROM CON_EVAL_ITEM A
+        WHERE A.YEAR = #findYear# 
+        ORDER BY A.SORT_ORDER
+	</select>
+    
+    <!--
+	==================================================================
+	  # 설명	: 직원개인기여도평가 평가등급가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getEmpEvalConAllo" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT  A.YEAR
+         		, A.GRADE_ITEM_ID
+         		, B.CODE_NM AS GRADE_ITEM_NM
+         		, A.DISTRI_GUBUN
+            	, A.ITEM_CNT
+            	, A.ITEM_DISTRI_CNT                         
+        FROM
+            CON_ECM_GRADE_DISTRI_TAB A
+       LEFT OUTER JOIN BSC_CODE B             
+            ON A.YEAR = B.YEAR            
+            AND A.GRADE_ITEM_ID = B.CODE_ID            
+            AND B.CODE_GRP_ID = '225'                         
+        WHERE
+          A.YEAR=  #findYear#
+          AND A.DISTRI_GUBUN ='02'
+           AND A.ITEM_CNT IN (SELECT COUNT(EMPN) FROM CON_EMP_MEMBER 
+			                       WHERE YEAR =  #findYear#
+			                         AND DEPT_CD = #alloDeptCd# 
+			                         AND EVAL_YN = 'Y')
+   			ORDER BY B.SORT_ORDER ASC 
+	</select>
+	
+    <!--
+	==================================================================
+	  # 설명	: 직원개인기여도평가 평가등급가져오기(유효성)
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getEmpEvalConChe" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT  A.YEAR
+         		, A.GRADE_ITEM_ID
+         		, B.CODE_NM AS GRADE_ITEM_NM
+         		, A.DISTRI_GUBUN
+            	, A.ITEM_CNT
+            	, A.ITEM_DISTRI_CNT                         
+        FROM
+            CON_ECM_GRADE_DISTRI_TAB A
+       LEFT OUTER JOIN BSC_CODE B             
+            ON A.YEAR = B.YEAR            
+            AND A.GRADE_ITEM_ID = B.CODE_ID            
+            AND B.CODE_GRP_ID = '225'                         
+        WHERE
+          A.YEAR=  #findYear#
+          AND A.DISTRI_GUBUN ='02'
+          AND B.SORT_ORDER NOT IN (SELECT MAX(SORT_ORDER) FROM BSC_CODE WHERE YEAR = #findYear# AND CODE_GRP_ID ='225')
+           AND A.ITEM_CNT IN (SELECT COUNT(EMPN) FROM CON_EMP_MEMBER 
+			                       WHERE YEAR =  #findYear#
+			                         AND DEPT_CD = #alloDeptCd# 
+			                         AND EVAL_YN = 'Y')
+   			ORDER BY B.SORT_ORDER ASC 
+	</select>
+    
+    <!--
+	==================================================================
+	  # 설명	: 직원개인기여도평가 평가항목별 등급별 인원수
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getEmpEvalConItemAlloCount" parameterClass="hashMap" resultClass="hashMap">
+	    SELECT YEAR ,
+		    <iterate property="itemArray" conjunction=",">
+		     	 SUM($itemArray[]$) $itemArray[]$
+	        </iterate>
+            FROM ( SELECT A.YEAR,
+		            <iterate property="itemArray" conjunction=",">
+				     CASE WHEN  A.GRADE_ITEM_ID = '$itemArray[]$' THEN A.ITEM_DISTRI_CNT  ELSE 0 END $itemArray[]$
+				    </iterate>
+			        FROM CON_ECM_GRADE_DISTRI_TAB  A
+			        WHERE   A.YEAR=  #findYear#
+			        	AND A.DISTRI_GUBUN ='02'
+			          	AND A.ITEM_CNT IN  ( SELECT COUNT(EMPN) FROM CON_EMP_MEMBER 
+			          						WHERE YEAR = #findYear#  AND DEPT_CD =  #alloDeptCd#  AND EVAL_YN = 'Y'  )          
+	             ) GROUP BY YEAR
+            
+	</select>
+	
+    
+    <!--
+    ==================================================================   
+      # 설명    : 직원개인기여도평가 평가결과 제출 등록
+      #    기능    : INSERT
+      #    TABLE    : CON_EMP_EVAL_MEMBER
+    ==================================================================
+    -->    
+    <insert id="insertData" parameterClass="hashMap">
+         MERGE INTO CON_EMP_EVAL_MEMBER A
+            USING (SELECT #findYear# AS YEAR, #evalGrpId# AS EVAL_GRP_ID, #evalConEmpnId# AS ASSESOR_EMPN, #gradeMileage# AS GRADE , #evalSubmitYn# AS EVAL_SUBMIT_YN
+            		, SCORE , RANKING FROM CON_EMP_MEMBER WHERE YEAR= #findYear# AND EMPN = #evalConEmpnId#)B
+            ON (A.YEAR = B.YEAR AND A.EVAL_GRP_ID = B.EVAL_GRP_ID AND A.EMPN = B.ASSESOR_EMPN)
+            WHEN MATCHED THEN
+                UPDATE SET A.GRADE = B.GRADE  , A.EVAL_SUBMIT_YN = B.EVAL_SUBMIT_YN
+            WHEN NOT MATCHED THEN
+                INSERT (A.YEAR, A.EVAL_GRP_ID, A.EMPN, A.GRADE, A.EVAL_SUBMIT_YN , A.SCORE , A.RANKING, A.CREATE_DT)
+                VALUES(B.YEAR, B.EVAL_GRP_ID, B.ASSESOR_EMPN, B.GRADE, B.EVAL_SUBMIT_YN , B.SCORE , B.RANKING , SYSDATE)
+    </insert>    
+    
+    <!--
+    ==================================================================   
+      # 설명    : 직원개인기여도평가 평가결과 목록 (엑셀)
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getExcelList" parameterClass="hashMap" resultClass="hashMap">
+    
+     SELECT  T1.YEAR
+     		, T1.ASSESSOR_EMPN
+     		, ( SELECT KOR_NM 
+     		      FROM BSC_INSA 
+     		     WHERE T1.ASSESSOR_EMPN = EMPN
+     		       AND T1.YEAR = YEAR ) AS ASSESSOR_EMPN_NM
+     		, T1.EMPN     
+	        , T1.KOR_NM     
+	        , T1.DEPT_CD    
+	        , T1.DEPT_KOR_NM 
+	        , (SELECT DISP_SORT
+                 FROM BSC_DEPTINFO 
+                WHERE T1.DEPT_CD = DEPT_ID) DISP_SORT 
+	        , T1.CAST_TC     
+	        , T1.CAST_TC_NM
+	        , T1.POS_TC     
+	        , T1.POS_TC_NM
+		    , <iterate property="itemArray" conjunction=",">
+		     	 MAX($itemArray[]$) $itemArray[]$
+		      </iterate>
+		    , <iterate property="itemArray" conjunction=",">
+		     	 MAX($itemArray[]$EVAL_GBN) $itemArray[]$EVAL_GBN
+		      </iterate>
+		    , <iterate property="itemArray" conjunction=",">
+		     	 MAX($itemArray[]$SCORE_ETC) $itemArray[]$SCORE_ETC
+		      </iterate>
+		    , MAX(T1.SCORE_ETC) AS SCORE_ETC
+		    , T1.EVAL_SUBMIT_YN
+            , T1.GRADE
+            , T1.SCORE
+            , T1.RANK
+		FROM (
+		        SELECT A.YEAR 
+		        	, A.EMPN     
+		            , A.KOR_NM     
+		            , A.DEPT_CD    
+		            , F_DEPT_FULL_NM( A.YEAR, A.DEPT_CD,'BSC_INSA_DEPT') DEPT_KOR_NM  
+		            , A.CAST_TC     
+		            , F_CODE_NM('170',A.CAST_TC,  A.YEAR) AS CAST_TC_NM
+		            , A.POS_TC     
+		            , F_CODE_NM('171',A.POS_TC,  A.YEAR) AS POS_TC_NM
+		            , <iterate property="itemArray" conjunction=",">
+					  CASE WHEN B.EVAL_ITEM_ID = '$itemArray[]$' THEN C.GRADE ELSE NULL END $itemArray[]$
+					</iterate>
+					, <iterate property="itemArray" conjunction=",">
+					  CASE WHEN B.EVAL_ITEM_ID = '$itemArray[]$' THEN B.EVAL_GBN ELSE NULL END $itemArray[]$EVAL_GBN
+					</iterate>
+					, <iterate property="itemArray" conjunction=",">
+					  CASE WHEN B.EVAL_GBN = '02' AND B.EVAL_ITEM_ID = '$itemArray[]$' THEN C.SCORE ELSE NULL END $itemArray[]$SCORE_ETC
+					</iterate>
+					, CASE WHEN B.EVAL_GBN = '02' THEN C.SCORE ELSE NULL END SCORE_ETC
+		            , E.GRADE
+					, A.SCORE AS SCORE
+            		, A.RANKING AS RANK
+            		, A.EVAL_SUBMIT_YN
+            		, D.ASSESSOR_EMPN
+		        FROM CON_EMP_MEMBER A
+		            INNER JOIN (SELECT
+		                              T1.YEAR
+		                            , T1.EVAL_ITEM_ID
+		                            , T1.EVAL_ITEM_NM
+		                            , T1.EVAL_GBN
+		                        FROM CON_EVAL_ITEM T1
+		                        WHERE T1.YEAR = #findYear#) B
+		                ON A.YEAR = B.YEAR
+		            LEFT OUTER JOIN CON_EMP_EVAL_GRADE C
+		                ON A.YEAR = C.YEAR
+		                AND A.EMPN = C.EMPN
+		                AND B.EVAL_ITEM_ID = C.EVAL_ITEM_ID
+		            INNER JOIN CON_EMP_EVAL_ASSESSOR D
+		                ON A.YEAR = D.YEAR
+		                AND A.DEPT_CD = D.DEPT_CD
+		                AND D.ASSESSOR_EMPN IS NOT NULL
+		            LEFT OUTER JOIN CON_EMP_EVAL_MEMBER E
+			            ON A.YEAR = E.YEAR
+			            AND A.EMPN = E.EMPN
+		        WHERE A.YEAR = #findYear#
+		          AND A.EVAL_YN = 'Y'
+		        ORDER BY A.EMPN, B.EVAL_ITEM_ID
+		) T1
+		WHERE T1.YEAR = #findYear#
+		GROUP BY T1.YEAR ,T1.EMPN , T1.KOR_NM , T1.DEPT_CD , T1.DEPT_KOR_NM , T1.CAST_TC_NM , T1.POS_TC_NM , T1.CAST_TC , T1.POS_TC 
+     		, T1.SCORE , T1.RANK , T1.GRADE  , T1.EVAL_SUBMIT_YN , T1.ASSESSOR_EMPN     
+	  ORDER BY DISP_SORT, T1.RANK, T1.SCORE DESC, T1.KOR_NM
+    
+    </select>
+    
+    
+	<!--
+	==================================================================
+	  # 설명	: 직원개인기여도평가 업무특성평가 완료여부 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: CON_EMP_MEMBER
+	==================================================================
+	-->
+	<select id="getEvalConSubmitYn" remapResults="true" parameterClass="hashMap" resultClass="java.lang.String">
+		 SELECT CASE WHEN MAX(EVAL_COUNT) = MAX(EVAL_SUBMIT_COUNT) THEN 'Y'
+                     ELSE 'N'
+                 END AS TOTAL_SUBMIT_YN
+           FROM (SELECT COUNT(1) AS EVAL_COUNT
+            		  , NULL AS EVAL_SUBMIT_COUNT
+                   FROM CON_EMP_MEMBER  T1
+                  INNER JOIN  CON_EMP_EVAL_ASSESSOR T2 
+                     ON T1.YEAR  = T2.YEAR
+                    AND T1.DEPT_CD = T2.DEPT_CD
+                  WHERE T1.YEAR = #findYear# 
+                    AND T2.ASSESSOR_EMPN = #assessorEmpn#
+                    AND T1.EVAL_YN = 'Y'
+          UNION ALL
+                 SELECT NULL AS EVAL_COUNT
+                 	  , COUNT(1) AS EVAL_SUBMIT_COUNT
+                   FROM CON_EMP_MEMBER  T1
+                  INNER JOIN  CON_EMP_EVAL_ASSESSOR T2 
+                     ON T1.YEAR  = T2.YEAR
+                    AND T1.DEPT_CD = T2.DEPT_CD
+                  WHERE T1.YEAR = #findYear# 
+                    AND T2.ASSESSOR_EMPN = #assessorEmpn#
+                    AND T1.EVAL_YN = 'Y'
+                    AND T1.EVAL_SUBMIT_YN = 'Y'
+                )
+	</select>
+	
+</sqlMap>
+
+

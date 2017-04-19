@@ -1,0 +1,56 @@
+#*************************************************************************
+* CLASS 명      : kgsCoSptAct_xml
+* 작 업 자      : 김기현
+* 작 업 일      : 2012년 6월 18일
+* 기    능      : 시스템항목관리 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김기현     2012년 6월 18일            최 초 작 업
+**************************************************************************#
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		#if($!{searchMap.txt2html("findItemCd")} != "S073D005")
+    		"YEAR"              : "$!{CS_HTML.txt2html($list.YEAR)}",
+    		"MON"               : "$!{CS_HTML.txt2html($list.MON)}",
+    		"DEPT_CD"           : "$!{CS_HTML.txt2html($list.DEPT_CD)}",
+    		"DEPT_NM"           : "$!{CS_HTML.txt2html($list.DEPT_NM)}",
+    		"RPT_TC_NM"         : "$!{CS_HTML.txt2html($list.RPT_TC_NM)}",
+    		"ROLE_TC_NM"        : "$!{CS_HTML.txt2html($list.ROLE_TC_NM)}",
+    		"INSP_KIND_TC_NM"   : "$!{CS_HTML.txt2html($list.INSP_KIND_TC_NM)}",
+    		"LAW_TC_NM"         : "$!{CS_HTML.txt2html($list.LAW_TC_NM)}",
+    		"STIC_LAG_TC_NM"    : "$!{CS_HTML.txt2html($list.STIC_LAG_TC_NM)}",
+    		"STIC_MID_TC_NM"    : "$!{CS_HTML.txt2html($list.STIC_MID_TC_NM)}",
+    		"STIC_SML_TC_NM"    : "$!{CS_HTML.txt2html($list.STIC_SML_TC_NM)}",
+    		"INSP_QTY"          : "$!{CS_HTML.txt2html($list.INSP_QTY)}"
+		#else
+			"YEAR"              : "$!{CS_HTML.txt2html($list.YEAR)}",
+    		"MON"               : "$!{CS_HTML.txt2html($list.MON)}",
+    		"DEPT_CD"           : "$!{CS_HTML.txt2html($list.DEPT_CD)}",
+    		"DEPT_NM"           : "$!{CS_HTML.txt2html($list.DEPT_NM)}",
+    		"EQUI_NM"           : "$!{CS_HTML.txt2html($list.EQUI_NM)}",
+    		"CO_NM"           	: "$!{CS_HTML.txt2html($list.CO_NM)}",
+    		"BSNO"            	: "$!{CS_HTML.txt2html($list.BSNO)}",
+    		"ADDR"          	: "$!{CS_HTML.txt2html($list.ADDR)}",
+    		"INSP_NM"          	: "$!{CS_HTML.txt2html($list.INSP_NM)}",
+    		"INSP_PLAN_DATE"    : "$!{CS_HTML.txt2html($list.INSP_PLAN_DATE)}",
+    		"REAL_INSP_DATE"    : "$!{CS_HTML.txt2html($list.REAL_INSP_DATE)}"
+		#end
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

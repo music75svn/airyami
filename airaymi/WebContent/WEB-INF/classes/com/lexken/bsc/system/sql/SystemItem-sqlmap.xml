@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.systemItem">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.ITEM_CD
+             , A.ITEM_NM
+             , A.ITEM_ACTUAL_DIVI
+             , F_CODE_NM('061', A.ITEM_ACTUAL_DIVI, A.YEAR) AS ITEM_ACTUAL_DIVI_NM
+             , A.ITEM_DIVI
+             , F_CODE_NM('062', A.ITEM_DIVI, A.YEAR) AS ITEM_DIVI_NM
+             , REPLACE( REPLACE ( A.CONTENT, CHR(13), '' ), CHR(10), ' ' ) CONTENT
+             , A.EXCEL_USER_ID
+             , A.DEPT_APPLY_SCOPE
+             , F_CODE_NM('157', A.DEPT_APPLY_SCOPE, A.YEAR) AS DEPT_APPLY_SCOPE_NM
+             , B.USER_NM AS EXCEL_USER_NM
+             , NVL(C.ITEM_CNT, 0) ITEM_CNT
+             , CASE WHEN A.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END USE_YN
+		FROM BSC_SYSTEM_ITEM A
+				LEFT OUTER JOIN V_ROLE_USER B ON A.EXCEL_USER_ID = B.USER_ID
+				LEFT OUTER JOIN (SELECT YEAR
+									  , ITEM_CD
+									  , SUM(ITEM_CNT) ITEM_CNT 
+								   FROM (
+										 SELECT YEAR, ITEM_CD, COUNT(1) ITEM_CNT
+		                                   FROM BSC_CAL_TYPE_COL
+		                                  WHERE ITEM_CD IS NOT NULL
+		                                    AND METRIC_ID IN (SELECT METRIC_ID
+		                                                        FROM BSC_METRIC
+		                                                       WHERE YEAR = #findYear#
+		                                                         AND SC_DEPT_ID IN (SELECT SC_DEPT_ID FROM BSC_SC_DEPT WHERE YEAR = #findYear# AND DELETE_DT IS NULL)
+		                                                         AND DELETE_DT IS NULL)
+		                                    AND DELETE_DT IS NULL
+		                                  GROUP BY YEAR , ITEM_CD
+		                                 UNION ALL
+                                		 SELECT YEAR
+                                		 	  , ITEM_CD
+                                		 	  , COUNT(1) ITEM_CNT 
+                                		   FROM BSC_METRIC 
+                                		  WHERE YEAR = #findYear#
+                                		    AND ITEM_CD IS NOT NULL
+											AND SC_DEPT_ID IN (SELECT SC_DEPT_ID 
+																 FROM BSC_SC_DEPT 
+																WHERE YEAR = #findYear# 
+																  AND DELETE_DT IS NULL)
+											AND DELETE_DT IS NULL 
+										  GROUP BY YEAR 
+										      , ITEM_CD
+										 ) GROUP BY YEAR, ITEM_CD) C 
+				ON A.YEAR = C.YEAR 
+			   AND A.ITEM_CD = C.ITEM_CD            
+		 WHERE 1 = 1
+
+		 <isNotEmpty prepend="AND" property="findYear" >
+		       A.YEAR = #findYear#
+		 </isNotEmpty>
+
+		 <isNotEmpty prepend="AND" property="findItemActualDivi" >
+		       A.ITEM_ACTUAL_DIVI = #findItemActualDivi#
+		 </isNotEmpty>
+
+		 <isNotEmpty prepend="AND" property="findItemDivi" >
+		       A.ITEM_DIVI = #findItemDivi#
+		 </isNotEmpty>
+
+		 <isNotEmpty prepend="AND" property="findItemNm" >
+		       UPPER(A.ITEM_NM) LIKE  '%' || TRIM(UPPER(#findItemNm#)) ||'%'
+		 </isNotEmpty>
+
+		 <isEqual prepend="AND" compareValue="Y" property="findUseYn">
+		       A.DELETE_DT IS NULL
+		 </isEqual>
+
+		 <isEqual prepend="AND" compareValue="N" property="findUseYn">
+		       A.DELETE_DT IS NOT NULL
+		 </isEqual>
+
+		ORDER BY A.YEAR, A.ITEM_CD, A.ITEM_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+	         , A.ITEM_CD
+	         , A.ITEM_NM
+	         , A.ITEM_ACTUAL_DIVI
+	         , A.ITEM_DIVI
+	         , A.SYSTEM_GBN
+	         , A.CONTENT
+	         , A.EXCEL_USER_ID
+	         , A.DEPT_APPLY_SCOPE
+	         , A.URL
+	         , B.USER_NM AS EXCEL_USER_NM
+	         , CASE WHEN A.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END USE_YN
+	         , NVL(A.RESTRICTED, 'N') RESTRICTED
+	     FROM BSC_SYSTEM_ITEM A
+	          LEFT OUTER JOIN V_ROLE_USER B ON A.EXCEL_USER_ID = B.USER_ID
+		WHERE A.YEAR = #year#
+		  AND A.ITEM_CD = #itemCd#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_SYSTEM_ITEM (
+		             YEAR
+		           , ITEM_CD
+		           , ITEM_NM
+		           , ITEM_ACTUAL_DIVI
+		           , ITEM_DIVI
+		           , SYSTEM_GBN
+		           , CONTENT
+		           , EXCEL_USER_ID
+		           , DEPT_APPLY_SCOPE
+		           , URL
+		           , RESTRICTED
+		           , CREATE_DT
+		           , MODIFY_DT
+		           , DELETE_DT
+		     ) VALUES (
+		             #year#
+		           , #itemCd#
+		           , #itemNm#
+		           , #itemActualDivi#
+		           , #itemDivi#
+		           , #systemGbn#
+		           , #content#
+		           , #excelUserId#
+		           , #deptApplyScope#
+		           , #url#
+		           , #restricted#
+		           , SYSDATE
+		           , SYSDATE
+		<isEqual property="useYn" compareValue="N">
+		           , SYSDATE
+		</isEqual>
+		<isNotEqual property="useYn" compareValue="N">
+		           , NULL
+		</isNotEqual>
+		            )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_SYSTEM_ITEM
+		   SET ITEM_NM          = #itemNm#
+		     , ITEM_ACTUAL_DIVI = #itemActualDivi#
+		     , ITEM_DIVI        = #itemDivi#
+		     , SYSTEM_GBN       = #systemGbn#
+		     , CONTENT          = #content#
+		     , EXCEL_USER_ID    = #excelUserId#
+		     , DEPT_APPLY_SCOPE = #deptApplyScope#
+		     , MODIFY_DT        = SYSDATE
+		     , URL				= #url#
+		     , RESTRICTED		= #restricted#
+		<isEqual property="useYn" compareValue="N">
+		     , DELETE_DT        = SYSDATE
+		</isEqual>
+		<isNotEqual property="useYn" compareValue="N">
+		     , DELETE_DT        = NULL
+		</isNotEqual>
+		 WHERE YEAR = #year#
+		   AND ITEM_CD = #itemCd#
+	</update>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE BSC_SYSTEM_ITEM
+		   SET DELETE_DT = SYSDATE
+		 WHERE 1 = 1
+		   AND YEAR = #year#
+		   AND ITEM_CD = #itemCd#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 연계항목명 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getItemNm" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT ITEM_NM
+		  FROM BSC_SYSTEM_ITEM
+		 WHERE YEAR = #findYear#
+		   AND ITEM_CD = #findItemCd#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 연계개수 팝업 데이터 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAL_TYPE_COL, BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getPopItemCntList" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT YEAR
+		       , SC_DEPT_ID
+		       , SC_DEPT_NM
+		       , METRIC_ID
+		       , METRIC_NM
+		       , CAL_TYPE_COL
+		       , CAL_TYPE_COL_NM
+		       , ITEM_CD
+		       , ITEM_NM
+		    FROM (
+					  SELECT A.YEAR
+					       , C.SC_DEPT_ID
+					       , D.SC_DEPT_NM
+					       , A.METRIC_ID
+					       , C.METRIC_NM
+					       , A.CAL_TYPE_COL
+					       , A.CAL_TYPE_COL_NM
+					       , B.ITEM_CD
+					       , B.ITEM_NM
+					    FROM BSC_CAL_TYPE_COL A INNER JOIN BSC_SYSTEM_ITEM B ON A.YEAR = B.YEAR
+					                                                       AND A.ITEM_CD = B.ITEM_CD
+					                                                       AND B.DELETE_DT IS NULL
+					         INNER JOIN BSC_METRIC C ON A.YEAR = C.YEAR
+					                               AND A.METRIC_ID = C.METRIC_ID
+					                               AND C.DELETE_DT IS NULL
+					         INNER JOIN BSC_SC_DEPT D ON C.YEAR = D.YEAR
+					                                AND C.SC_DEPT_ID = D.SC_DEPT_ID
+					                                AND D.DELETE_DT IS NULL
+					   WHERE A.YEAR = #findYear#
+					     AND A.ITEM_CD = #findItemCd#
+					     AND A.DELETE_DT IS NULL
+					     AND A.ITEM_CD IS NOT NULL
+					 UNION ALL        
+					  SELECT E.YEAR
+				           , E.SC_DEPT_ID
+				           , F.SC_DEPT_NM
+				           , E.METRIC_ID
+				           , E.METRIC_NM
+				           , '' CAL_TYPE_COL_ID
+				           , H.CODE_NM CAL_TYPE_COL_NM
+				           , E.ITEM_CD
+				           , G.ITEM_NM                         
+				        FROM BSC_METRIC E
+					   INNER JOIN BSC_SC_DEPT F 
+					      ON E.YEAR = F.YEAR                                   
+					     AND E.SC_DEPT_ID = F.SC_DEPT_ID                                   
+					     AND E.DELETE_DT IS NULL
+					   INNER JOIN BSC_SYSTEM_ITEM G 
+					      ON E.YEAR = G.YEAR                                                          
+					     AND E.ITEM_CD = G.ITEM_CD                                                          
+					     AND G.DELETE_DT IS NULL            
+					   INNER JOIN BSC_CODE H
+					      ON H.CODE_GRP_ID = '061'
+					     AND H. CODE_ID = '01'        
+					   WHERE E.YEAR =  #findYear#
+					     AND E.ITEM_CD =  #findItemCd#
+					     AND E.DELETE_DT IS NULL    
+					)     
+		ORDER BY METRIC_ID, CAL_TYPE_COL
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 기존 권한 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->
+	<delete id="deleteAdmin" parameterClass="hashMap">
+		DELETE FROM BSC_ADMIN
+		 WHERE ADMIN_GUBUN IN ('20')
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 엑셀담당자 입력
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->
+	<insert id="insertAdmin" parameterClass="hashMap">
+		INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID, DEPT_ID)
+        SELECT DISTINCT '20'
+            ,  A.EXCEL_USER_ID
+            , (SELECT MAX(DEPT_ID) AS DEPT_ID
+                 FROM V_ROLE_USER
+                WHERE USER_ID = A.EXCEL_USER_ID)
+          FROM BSC_SYSTEM_ITEM A
+         WHERE A.DELETE_DT IS NULL
+           AND A.EXCEL_USER_ID IS NOT NULL
+	</insert>
+
+</sqlMap>
+
+

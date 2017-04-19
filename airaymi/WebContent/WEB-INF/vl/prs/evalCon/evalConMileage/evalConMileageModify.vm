@@ -1,0 +1,245 @@
+#*************************************************************************
+* CLASS 명      : evalConMileageModify
+* 작 업 자      : 김효은 
+* 작 업 일      : 2014년 3월 19일 
+* 기    능      : 직원개인기여도평가 마일리지관리    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    김효은      2014년 3월 19일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+    var J = jQuery;
+
+    J(document).ready(function(){
+    
+        /******************************************
+         * 취소버튼 (돌아가기)
+         ******************************************/
+        J("#btnBack").click(function() {
+            J("#form1").attr("action", "$!{context_path}/prs/evalCon/evalConMileage/evalConMileageDetailList.vw?type=template").submit();
+        });
+        
+        /******************************************
+         * 저장버튼 이벤트
+         ******************************************/
+        J("#btnInsert").click(function(e) {
+            e.preventDefault();
+            saveChk();
+        });
+
+        /******************************************
+         * 저장버튼 이중 클릭 방지
+         ******************************************/
+        J("form").submit(function(){
+            J("#btnInsert").unbind();
+        });
+        
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#indicator"),
+			limit:2000
+		});
+		J("#content").trigger("keyup");
+		
+		/******************************************
+		 * 마일리지 숫자만 입력
+		 ******************************************/
+		J("#mileage").numeric({allow:"."}); 
+		J("#mileage").css("ime-mode", "disabled");
+
+		/******************************************
+		 * 이력항목 변경 이벤트
+		 ******************************************/
+		J('#rewardCd').bind('change',function(){//년도를 선택하면 평가자가 변경
+		  chaGubun(J("#rewardCd").val());
+	    });
+		
+		//if(J("#mode").val() == "MOD"){
+		//	chaGubun('$!{CS_HTML.txt2html($detail.REWARD_CD)}'); //디폴트값
+		//}else{
+			chaGubun('01');
+		//}
+		
+    });
+	
+	/******************************************
+	  * 이력항목 선택시 적립/사용 구분 변경
+	 ******************************************/
+	function chaGubun(rewardCd){
+	
+    	J.ajax({
+    		url        : "$!{context_path}/prs/evalCon/evalConMileage/evalConGubun_ajax.vw",
+    		type       : "POST",
+    		data       : "rewardCd=" + rewardCd,
+        	dataType   : "xml",
+    		contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success    : function (xml) {
+				var gubunId = "";
+				var gubunNm = "";
+				var content = "";
+    			if(J(xml).find("items").find("item").length > 0) {
+    				J(xml).find("items").find("item").each(function() {  
+                    	gubunId   = J(this).find("gubunId").text();
+                    	gubunNm   = J(this).find("gubunNm").text();
+                    	content   = J(this).find("content").text();
+						J("#gubunId").val(gubunId);
+						J("#gubunNm").text(gubunNm);
+						J("#content").text(content);
+				});
+    		  }
+        	},  
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+          });
+    	}
+
+    /******************************************
+     * 필수입력 체크
+     ******************************************/
+    function saveChk() {
+		var finalMileage = '$!{CS_HTML.txt2html($finalMileage)}';
+		var total = 0;
+		
+		if(J("#mileage").val() == ""){
+			J.showMsgBox("마일리지를 입력해주세요.", null, "mileage");
+			return false;
+		}else{
+        	if(J("#mode").val() == "ADD"){//수정일때
+        		if(J("#gubunId").val()  == "U"){
+    				total  = parseFloat(finalMileage) - parseFloat(J("#mileage").val());
+    			}else{
+    				total  = parseFloat(finalMileage) + parseFloat(J("#mileage").val());
+    			}
+        	}
+    		
+    		total= Number(total);
+    		
+    		if(total < 0){
+        		 J.showMsgBox("잔여마일리지보다 사용할 마일리지가 더 큽니다..<br/>다시 조정해 주십시오.", null, "mileage");
+        		 return false;
+    		}
+    		J("#total").val(total);
+		}
+		
+        J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+    }
+    
+    /******************************************
+     * 저장
+     ******************************************/
+    function saveDo() {
+        J("#form1").attr("action", "$!{context_path}/prs/evalCon/evalConMileage/evalConMileageDetailProcess.vw?type=template").submit();
+    }
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/prs/evalCon/evalConMileage/evalConMileageProcess.vw?type=template">
+    <input type="hidden"     id="mode"            name="mode"              value="$!{searchMap.txt2html("mode")}" />
+    <input type="hidden"     id="deptKorNm"       name="deptKorNm"         value="$!{searchMap.txt2html("deptKorNm")}" />
+    <input type="hidden"     id="korNm"           name="korNm"             value="$!{searchMap.txt2html("korNm")}" />
+    <input type="hidden"     id="empn"            name="empn"              value="$!{searchMap.txt2html("empn")}" />
+    <input type="hidden"     id="total"           name="total"  />
+
+    $!{searchMap.makeHiddenFind()}
+    
+    <div id="Table">
+        <div id="Table_blockContainer">
+            <div class="tableTop">
+                #parse("/WEB-INF/vl/common/template/tabs.vm")
+                <div class="clear"></div>
+            </div>
+            <div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                           <tr>
+                               <td class="searchBox_tit w300">
+                					<span>부서 : </span>
+									<span class="searchBar">$!{searchMap.txt2html("deptKorNm")}</span>
+                                </td>
+                               <td class="searchBox_tit w300">
+                					<span>이름 : </span>
+									<span class="searchBar">$!{searchMap.txt2html("korNm")}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+            <div class="blockDetail">
+                <table summary="직원개인기여도평가 마일리지관리 등록">
+                    <caption class="none">직원개인기여도평가 마일리지관리 등록</caption>
+                    <colgroup>
+                        <col width="15%" />
+                        <col width="85%" />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <th scope="row"><label for="mileageNo">일련번호</label></th>
+                            <td>
+								<input type="hidden" id="mileageNo" name="mileageNo" class="inputbox w100" maxlength="3" />※ 저장시 자동으로 부여됩니다.
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span> <label for="rewardCd">이력항목</label></th>
+                            <td>
+                                <select id="rewardCd" name="rewardCd" class="select w200">
+                                    $!CS_CODE.getCodeOption("227", $detail.REWARD_CD, $!{searchMap.txt2html("year")})
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span> <label for="rewardCd">사용년도</label></th>
+                            <td>
+                                <select id="useYear" name="useYear" class="select w80s">
+                                    $!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span> <label for="mileage">적립/사용 구분</label></th>
+                            <td><span id="gubunNm" class="searchBar"></span>
+							<input type="hidden" id="gubunId" name="gubunId" class="inputbox w190" value='' maxlength="20"/></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span> <label for="mileage">마일리지 </label></th>
+                            <td>
+                                <input type="text" id="mileage" name="mileage" class="inputbox w190" value='' maxlength="5"/> 
+								(잔여 마일리지 :$!{CS_HTML.txt2html($finalMileage)} 점)
+                            </td>
+                        </tr>
+						<tr>
+    						<th scope="row"><label for="content">설명</label></th>
+    						<td>
+    							<textarea id="content" name="content" class="tabletext" title="설명" cols="" rows="10"></textarea>
+								<span id="indicator">0</span>/2000byte
+    						</td>
+    					</tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="blockButton">
+                <ul>
+                    <li><input type="button" id="btnBack"   value="돌아가기" /></li>
+                    <li><input type="submit" id="btnInsert" value="저장" /></li>
+                </ul>
+            </div>    
+        </div>
+        <div class="clear"></div>
+    </div>
+</form>

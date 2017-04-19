@@ -1,0 +1,41 @@
+#*************************************************************************
+* CLASS 명      : officeList_xml
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 11월 5일
+* 기    능      : 공공기관 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      정철수     2012년 11월 5일            최 초 작 업
+*  2     김민주      2013년 06월 24일           추 가 작 업
+**************************************************************************#
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}",
+		"OFFICE_EVAL_GRP_ID"   : "$!{CS_HTML.txt2html($list.OFFICE_EVAL_GRP_ID)}",
+		"OFFICE_EVAL_GRP_NM"   : "$!{CS_HTML.txt2html($list.OFFICE_EVAL_GRP_NM)}",
+		"OG_CNT"   			   : "$!{CS_HTML.txt2html($list.OG_CNT)}",
+		"OG_ROWNUM"   		   : "$!{CS_HTML.txt2html($list.OG_ROWNUM)}",
+		"OFFICE_ID"            : "$!{CS_HTML.txt2html($list.OFFICE_ID)}",
+		"OFFICE_NM"            : "$!{CS_HTML.txt2html($list.OFFICE_NM)}",
+		"TITLE_OFFICE_NM"      : "$!{CS_HTML.txt2html($list.OFFICE_NM)}",
+		"SORT_ORDER"           : "$!{CS_HTML.txt2html($list.SORT_ORDER)}",
+		"CNT"				   : "$!{CS_HTML.txt2html($list.CNT)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

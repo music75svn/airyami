@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.eval.memActualMng">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 실적관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_ACT_IN, MEM_CAL_TYPE_COLS
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT T2.CAL_TYPE_COL, T2.CAL_TYPE_COL_NM, T2.UNIT, F_CODE_NM('013', T2.UNIT, #year#) UNIT_NM
+		     , T1.MON01, T1.MON02, T1.MON03, T1.MON04, T1.MON05, T1.MON06
+		     , T1.MON07, T1.MON08, T1.MON09, T1.MON10, T1.MON11, T1.MON12
+		FROM (
+		    SELECT CAL_TYPE_COL
+		               , MAX(MON01) MON01, MAX(MON02) MON02, MAX(MON03) MON03, MAX(MON04) MON04
+		               , MAX(MON05) MON05, MAX(MON06) MON06, MAX(MON07) MON07, MAX(MON08) MON08
+		               , MAX(MON09) MON09, MAX(MON10) MON10, MAX(MON11) MON11, MAX(MON12) MON12
+		    FROM (
+		                SELECT  CAL_TYPE_COL
+		                      , CASE WHEN CAL_TYPE_COL = 'A' AND MON = '01' THEN A WHEN CAL_TYPE_COL = 'B' AND MON = '01' THEN B WHEN CAL_TYPE_COL = 'C' AND MON = '01' THEN C WHEN CAL_TYPE_COL = 'D' AND MON = '01' THEN D
+		                             WHEN CAL_TYPE_COL = 'E' AND MON = '01' THEN E WHEN CAL_TYPE_COL = 'F' AND MON = '01' THEN F WHEN CAL_TYPE_COL = 'G' AND MON = '01' THEN G WHEN CAL_TYPE_COL = 'H' AND MON = '01' THEN H
+		                             WHEN CAL_TYPE_COL = 'I' AND MON = '01' THEN I WHEN CAL_TYPE_COL = 'J' AND MON = '01' THEN J WHEN CAL_TYPE_COL = 'K' AND MON = '01' THEN K WHEN CAL_TYPE_COL = 'L' AND MON = '01' THEN L
+		                             WHEN CAL_TYPE_COL = 'M' AND MON = '01' THEN M WHEN CAL_TYPE_COL = 'N' AND MON = '01' THEN N WHEN CAL_TYPE_COL = 'O' AND MON = '01' THEN O WHEN CAL_TYPE_COL = 'P' AND MON = '01' THEN P
+		                             WHEN CAL_TYPE_COL = 'Q' AND MON = '01' THEN Q WHEN CAL_TYPE_COL = 'R' AND MON = '01' THEN R WHEN CAL_TYPE_COL = 'S' AND MON = '01' THEN S WHEN CAL_TYPE_COL = 'T' AND MON = '01' THEN T
+		                             WHEN CAL_TYPE_COL = 'U' AND MON = '01' THEN U WHEN CAL_TYPE_COL = 'V' AND MON = '01' THEN V WHEN CAL_TYPE_COL = 'W' AND MON = '01' THEN W WHEN CAL_TYPE_COL = 'X' AND MON = '01' THEN X
+		                             WHEN CAL_TYPE_COL = 'Y' AND MON = '01' THEN Y WHEN CAL_TYPE_COL = 'Z' AND MON = '01' THEN Z
+		                        END MON01
+		                      , CASE WHEN CAL_TYPE_COL = 'A' AND MON = '02' THEN A WHEN CAL_TYPE_COL = 'B' AND MON = '02' THEN B WHEN CAL_TYPE_COL = 'C' AND MON = '02' THEN C WHEN CAL_TYPE_COL = 'D' AND MON = '02' THEN D
+		                             WHEN CAL_TYPE_COL = 'E' AND MON = '02' THEN E WHEN CAL_TYPE_COL = 'F' AND MON = '02' THEN F WHEN CAL_TYPE_COL = 'G' AND MON = '02' THEN G WHEN CAL_TYPE_COL = 'H' AND MON = '02' THEN H
+		                             WHEN CAL_TYPE_COL = 'I' AND MON = '02' THEN I WHEN CAL_TYPE_COL = 'J' AND MON = '02' THEN J WHEN CAL_TYPE_COL = 'K' AND MON = '02' THEN K WHEN CAL_TYPE_COL = 'L' AND MON = '02' THEN L
+		                             WHEN CAL_TYPE_COL = 'M' AND MON = '02' THEN M WHEN CAL_TYPE_COL = 'N' AND MON = '02' THEN N WHEN CAL_TYPE_COL = 'O' AND MON = '02' THEN O WHEN CAL_TYPE_COL = 'P' AND MON = '02' THEN P
+		                             WHEN CAL_TYPE_COL = 'Q' AND MON = '02' THEN Q WHEN CAL_TYPE_COL = 'R' AND MON = '02' THEN R WHEN CAL_TYPE_COL = 'S' AND MON = '02' THEN S WHEN CAL_TYPE_COL = 'T' AND MON = '02' THEN T
+		                             WHEN CAL_TYPE_COL = 'U' AND MON = '02' THEN U WHEN CAL_TYPE_COL = 'V' AND MON = '02' THEN V WHEN CAL_TYPE_COL = 'W' AND MON = '02' THEN W WHEN CAL_TYPE_COL = 'X' AND MON = '02' THEN X
+		                             WHEN CAL_TYPE_COL = 'Y' AND MON = '02' THEN Y WHEN CAL_TYPE_COL = 'Z' AND MON = '02' THEN Z
+		                        END MON02
+		                      , CASE WHEN CAL_TYPE_COL = 'A' AND MON = '03' THEN A WHEN CAL_TYPE_COL = 'B' AND MON = '03' THEN B WHEN CAL_TYPE_COL = 'C' AND MON = '03' THEN C WHEN CAL_TYPE_COL = 'D' AND MON = '03' THEN D
+		                             WHEN CAL_TYPE_COL = 'E' AND MON = '03' THEN E WHEN CAL_TYPE_COL = 'F' AND MON = '03' THEN F WHEN CAL_TYPE_COL = 'G' AND MON = '03' THEN G WHEN CAL_TYPE_COL = 'H' AND MON = '03' THEN H
+		                             WHEN CAL_TYPE_COL = 'I' AND MON = '03' THEN I WHEN CAL_TYPE_COL = 'J' AND MON = '03' THEN J WHEN CAL_TYPE_COL = 'K' AND MON = '03' THEN K WHEN CAL_TYPE_COL = 'L' AND MON = '03' THEN L
+		                             WHEN CAL_TYPE_COL = 'M' AND MON = '03' THEN M WHEN CAL_TYPE_COL = 'N' AND MON = '03' THEN N WHEN CAL_TYPE_COL = 'O' AND MON = '03' THEN O WHEN CAL_TYPE_COL = 'P' AND MON = '03' THEN P
+		                             WHEN CAL_TYPE_COL = 'Q' AND MON = '03' THEN Q WHEN CAL_TYPE_COL = 'R' AND MON = '03' THEN R WHEN CAL_TYPE_COL = 'S' AND MON = '03' THEN S WHEN CAL_TYPE_COL = 'T' AND MON = '03' THEN T
+		                             WHEN CAL_TYPE_COL = 'U' AND MON = '03' THEN U WHEN CAL_TYPE_COL = 'V' AND MON = '03' THEN V WHEN CAL_TYPE_COL = 'W' AND MON = '03' THEN W WHEN CAL_TYPE_COL = 'X' AND MON = '03' THEN X
+		                             WHEN CAL_TYPE_COL = 'Y' AND MON = '03' THEN Y WHEN CAL_TYPE_COL = 'Z' AND MON = '03' THEN Z
+		                        END MON03
+		                      , CASE WHEN CAL_TYPE_COL = 'A' AND MON = '04' THEN A WHEN CAL_TYPE_COL = 'B' AND MON = '04' THEN B WHEN CAL_TYPE_COL = 'C' AND MON = '04' THEN C WHEN CAL_TYPE_COL = 'D' AND MON = '04' THEN D
+		                             WHEN CAL_TYPE_COL = 'E' AND MON = '04' THEN E WHEN CAL_TYPE_COL = 'F' AND MON = '04' THEN F WHEN CAL_TYPE_COL = 'G' AND MON = '04' THEN G WHEN CAL_TYPE_COL = 'H' AND MON = '04' THEN H
+		                             WHEN CAL_TYPE_COL = 'I' AND MON = '04' THEN I WHEN CAL_TYPE_COL = 'J' AND MON = '04' THEN J WHEN CAL_TYPE_COL = 'K' AND MON = '04' THEN K WHEN CAL_TYPE_COL = 'L' AND MON = '04' THEN L
+		                             WHEN CAL_TYPE_COL = 'M' AND MON = '04' THEN M WHEN CAL_TYPE_COL = 'N' AND MON = '04' THEN N WHEN CAL_TYPE_COL = 'O' AND MON = '04' THEN O WHEN CAL_TYPE_COL = 'P' AND MON = '04' THEN P
+		                             WHEN CAL_TYPE_COL = 'Q' AND MON = '04' THEN Q WHEN CAL_TYPE_COL = 'R' AND MON = '04' THEN R WHEN CAL_TYPE_COL = 'S' AND MON = '04' THEN S WHEN CAL_TYPE_COL = 'T' AND MON = '04' THEN T
+		                             WHEN CAL_TYPE_COL = 'U' AND MON = '04' THEN U WHEN CAL_TYPE_COL = 'V' AND MON = '04' THEN V WHEN CAL_TYPE_COL = 'W' AND MON = '04' THEN W WHEN CAL_TYPE_COL = 'X' AND MON = '04' THEN X
+		                             WHEN CAL_TYPE_COL = 'Y' AND MON = '04' THEN Y WHEN CAL_TYPE_COL = 'Z' AND MON = '04' THEN Z
+		                        END MON04
+		                      , CASE WHEN CAL_TYPE_COL = 'A' AND MON = '05' THEN A WHEN CAL_TYPE_COL = 'B' AND MON = '05' THEN B WHEN CAL_TYPE_COL = 'C' AND MON = '05' THEN C WHEN CAL_TYPE_COL = 'D' AND MON = '05' THEN D
+		                             WHEN CAL_TYPE_COL = 'E' AND MON = '05' THEN E WHEN CAL_TYPE_COL = 'F' AND MON = '05' THEN F WHEN CAL_TYPE_COL = 'G' AND MON = '05' THEN G WHEN CAL_TYPE_COL = 'H' AND MON = '05' THEN H
+		                             WHEN CAL_TYPE_COL = 'I' AND MON = '05' THEN I WHEN CAL_TYPE_COL = 'J' AND MON = '05' THEN J WHEN CAL_TYPE_COL = 'K' AND MON = '05' THEN K WHEN CAL_TYPE_COL = 'L' AND MON = '05' THEN L
+		                             WHEN CAL_TYPE_COL = 'M' AND MON = '05' THEN M WHEN CAL_TYPE_COL = 'N' AND MON = '05' THEN N WHEN CAL_TYPE_COL = 'O' AND MON = '05' THEN O WHEN CAL_TYPE_COL = 'P' AND MON = '05' THEN P
+		                             WHEN CAL_TYPE_COL = 'Q' AND MON = '05' THEN Q WHEN CAL_TYPE_COL = 'R' AND MON = '05' THEN R WHEN CAL_TYPE_COL = 'S' AND MON = '05' THEN S WHEN CAL_TYPE_COL = 'T' AND MON = '05' THEN T
+		                             WHEN CAL_TYPE_COL = 'U' AND MON = '05' THEN U WHEN CAL_TYPE_COL = 'V' AND MON = '05' THEN V WHEN CAL_TYPE_COL = 'W' AND MON = '05' THEN W WHEN CAL_TYPE_COL = 'X' AND MON = '05' THEN X
+		                             WHEN CAL_TYPE_COL = 'Y' AND MON = '05' THEN Y WHEN CAL_TYPE_COL = 'Z' AND MON = '05' THEN Z
+		                        END MON05
+		                      , CASE WHEN CAL_TYPE_COL = 'A' AND MON = '06' THEN A WHEN CAL_TYPE_COL = 'B' AND MON = '06' THEN B WHEN CAL_TYPE_COL = 'C' AND MON = '06' THEN C WHEN CAL_TYPE_COL = 'D' AND MON = '06' THEN D
+		                             WHEN CAL_TYPE_COL = 'E' AND MON = '06' THEN E WHEN CAL_TYPE_COL = 'F' AND MON = '06' THEN F WHEN CAL_TYPE_COL = 'G' AND MON = '06' THEN G WHEN CAL_TYPE_COL = 'H' AND MON = '06' THEN H
+		                             WHEN CAL_TYPE_COL = 'I' AND MON = '06' THEN I WHEN CAL_TYPE_COL = 'J' AND MON = '06' THEN J WHEN CAL_TYPE_COL = 'K' AND MON = '06' THEN K WHEN CAL_TYPE_COL = 'L' AND MON = '06' THEN L
+		                             WHEN CAL_TYPE_COL = 'M' AND MON = '06' THEN M WHEN CAL_TYPE_COL = 'N' AND MON = '06' THEN N WHEN CAL_TYPE_COL = 'O' AND MON = '06' THEN O WHEN CAL_TYPE_COL = 'P' AND MON = '06' THEN P
+		                             WHEN CAL_TYPE_COL = 'Q' AND MON = '06' THEN Q WHEN CAL_TYPE_COL = 'R' AND MON = '06' THEN R WHEN CAL_TYPE_COL = 'S' AND MON = '06' THEN S WHEN CAL_TYPE_COL = 'T' AND MON = '06' THEN T
+		                             WHEN CAL_TYPE_COL = 'U' AND MON = '06' THEN U WHEN CAL_TYPE_COL = 'V' AND MON = '06' THEN V WHEN CAL_TYPE_COL = 'W' AND MON = '06' THEN W WHEN CAL_TYPE_COL = 'X' AND MON = '06' THEN X
+		                             WHEN CAL_TYPE_COL = 'Y' AND MON = '06' THEN Y WHEN CAL_TYPE_COL = 'Z' AND MON = '06' THEN Z
+		                        END MON06
+		                      , CASE WHEN CAL_TYPE_COL = 'A' AND MON = '07' THEN A WHEN CAL_TYPE_COL = 'B' AND MON = '07' THEN B WHEN CAL_TYPE_COL = 'C' AND MON = '07' THEN C WHEN CAL_TYPE_COL = 'D' AND MON = '07' THEN D
+		                             WHEN CAL_TYPE_COL = 'E' AND MON = '07' THEN E WHEN CAL_TYPE_COL = 'F' AND MON = '07' THEN F WHEN CAL_TYPE_COL = 'G' AND MON = '07' THEN G WHEN CAL_TYPE_COL = 'H' AND MON = '07' THEN H
+		                             WHEN CAL_TYPE_COL = 'I' AND MON = '07' THEN I WHEN CAL_TYPE_COL = 'J' AND MON = '07' THEN J WHEN CAL_TYPE_COL = 'K' AND MON = '07' THEN K WHEN CAL_TYPE_COL = 'L' AND MON = '07' THEN L
+		                             WHEN CAL_TYPE_COL = 'M' AND MON = '07' THEN M WHEN CAL_TYPE_COL = 'N' AND MON = '07' THEN N WHEN CAL_TYPE_COL = 'O' AND MON = '07' THEN O WHEN CAL_TYPE_COL = 'P' AND MON = '07' THEN P
+		                             WHEN CAL_TYPE_COL = 'Q' AND MON = '07' THEN Q WHEN CAL_TYPE_COL = 'R' AND MON = '07' THEN R WHEN CAL_TYPE_COL = 'S' AND MON = '07' THEN S WHEN CAL_TYPE_COL = 'T' AND MON = '07' THEN T
+		                             WHEN CAL_TYPE_COL = 'U' AND MON = '07' THEN U WHEN CAL_TYPE_COL = 'V' AND MON = '07' THEN V WHEN CAL_TYPE_COL = 'W' AND MON = '07' THEN W WHEN CAL_TYPE_COL = 'X' AND MON = '07' THEN X
+		                             WHEN CAL_TYPE_COL = 'Y' AND MON = '07' THEN Y WHEN CAL_TYPE_COL = 'Z' AND MON = '07' THEN Z
+		                        END MON07
+		                      , CASE WHEN CAL_TYPE_COL = 'A' AND MON = '08' THEN A WHEN CAL_TYPE_COL = 'B' AND MON = '08' THEN B WHEN CAL_TYPE_COL = 'C' AND MON = '08' THEN C WHEN CAL_TYPE_COL = 'D' AND MON = '08' THEN D
+		                             WHEN CAL_TYPE_COL = 'E' AND MON = '08' THEN E WHEN CAL_TYPE_COL = 'F' AND MON = '08' THEN F WHEN CAL_TYPE_COL = 'G' AND MON = '08' THEN G WHEN CAL_TYPE_COL = 'H' AND MON = '08' THEN H
+		                             WHEN CAL_TYPE_COL = 'I' AND MON = '08' THEN I WHEN CAL_TYPE_COL = 'J' AND MON = '08' THEN J WHEN CAL_TYPE_COL = 'K' AND MON = '08' THEN K WHEN CAL_TYPE_COL = 'L' AND MON = '08' THEN L
+		                             WHEN CAL_TYPE_COL = 'M' AND MON = '08' THEN M WHEN CAL_TYPE_COL = 'N' AND MON = '08' THEN N WHEN CAL_TYPE_COL = 'O' AND MON = '08' THEN O WHEN CAL_TYPE_COL = 'P' AND MON = '08' THEN P
+		                             WHEN CAL_TYPE_COL = 'Q' AND MON = '08' THEN Q WHEN CAL_TYPE_COL = 'R' AND MON = '08' THEN R WHEN CAL_TYPE_COL = 'S' AND MON = '08' THEN S WHEN CAL_TYPE_COL = 'T' AND MON = '08' THEN T
+		                             WHEN CAL_TYPE_COL = 'U' AND MON = '08' THEN U WHEN CAL_TYPE_COL = 'V' AND MON = '08' THEN V WHEN CAL_TYPE_COL = 'W' AND MON = '08' THEN W WHEN CAL_TYPE_COL = 'X' AND MON = '08' THEN X
+		                             WHEN CAL_TYPE_COL = 'Y' AND MON = '08' THEN Y WHEN CAL_TYPE_COL = 'Z' AND MON = '08' THEN Z
+		                        END MON08
+		                      , CASE WHEN CAL_TYPE_COL = 'A' AND MON = '09' THEN A WHEN CAL_TYPE_COL = 'B' AND MON = '09' THEN B WHEN CAL_TYPE_COL = 'C' AND MON = '09' THEN C WHEN CAL_TYPE_COL = 'D' AND MON = '09' THEN D
+		                             WHEN CAL_TYPE_COL = 'E' AND MON = '09' THEN E WHEN CAL_TYPE_COL = 'F' AND MON = '09' THEN F WHEN CAL_TYPE_COL = 'G' AND MON = '09' THEN G WHEN CAL_TYPE_COL = 'H' AND MON = '09' THEN H
+		                             WHEN CAL_TYPE_COL = 'I' AND MON = '09' THEN I WHEN CAL_TYPE_COL = 'J' AND MON = '09' THEN J WHEN CAL_TYPE_COL = 'K' AND MON = '09' THEN K WHEN CAL_TYPE_COL = 'L' AND MON = '09' THEN L
+		                             WHEN CAL_TYPE_COL = 'M' AND MON = '09' THEN M WHEN CAL_TYPE_COL = 'N' AND MON = '09' THEN N WHEN CAL_TYPE_COL = 'O' AND MON = '09' THEN O WHEN CAL_TYPE_COL = 'P' AND MON = '09' THEN P
+		                             WHEN CAL_TYPE_COL = 'Q' AND MON = '09' THEN Q WHEN CAL_TYPE_COL = 'R' AND MON = '09' THEN R WHEN CAL_TYPE_COL = 'S' AND MON = '09' THEN S WHEN CAL_TYPE_COL = 'T' AND MON = '09' THEN T
+		                             WHEN CAL_TYPE_COL = 'U' AND MON = '09' THEN U WHEN CAL_TYPE_COL = 'V' AND MON = '09' THEN V WHEN CAL_TYPE_COL = 'W' AND MON = '09' THEN W WHEN CAL_TYPE_COL = 'X' AND MON = '09' THEN X
+		                             WHEN CAL_TYPE_COL = 'Y' AND MON = '09' THEN Y WHEN CAL_TYPE_COL = 'Z' AND MON = '09' THEN Z
+		                        END MON09
+		                      , CASE WHEN CAL_TYPE_COL = 'A' AND MON = '10' THEN A WHEN CAL_TYPE_COL = 'B' AND MON = '10' THEN B WHEN CAL_TYPE_COL = 'C' AND MON = '10' THEN C WHEN CAL_TYPE_COL = 'D' AND MON = '10' THEN D
+		                             WHEN CAL_TYPE_COL = 'E' AND MON = '10' THEN E WHEN CAL_TYPE_COL = 'F' AND MON = '10' THEN F WHEN CAL_TYPE_COL = 'G' AND MON = '10' THEN G WHEN CAL_TYPE_COL = 'H' AND MON = '10' THEN H
+		                             WHEN CAL_TYPE_COL = 'I' AND MON = '10' THEN I WHEN CAL_TYPE_COL = 'J' AND MON = '10' THEN J WHEN CAL_TYPE_COL = 'K' AND MON = '10' THEN K WHEN CAL_TYPE_COL = 'L' AND MON = '10' THEN L
+		                             WHEN CAL_TYPE_COL = 'M' AND MON = '10' THEN M WHEN CAL_TYPE_COL = 'N' AND MON = '10' THEN N WHEN CAL_TYPE_COL = 'O' AND MON = '10' THEN O WHEN CAL_TYPE_COL = 'P' AND MON = '10' THEN P
+		                             WHEN CAL_TYPE_COL = 'Q' AND MON = '10' THEN Q WHEN CAL_TYPE_COL = 'R' AND MON = '10' THEN R WHEN CAL_TYPE_COL = 'S' AND MON = '10' THEN S WHEN CAL_TYPE_COL = 'T' AND MON = '10' THEN T
+		                             WHEN CAL_TYPE_COL = 'U' AND MON = '10' THEN U WHEN CAL_TYPE_COL = 'V' AND MON = '10' THEN V WHEN CAL_TYPE_COL = 'W' AND MON = '10' THEN W WHEN CAL_TYPE_COL = 'X' AND MON = '10' THEN X
+		                             WHEN CAL_TYPE_COL = 'Y' AND MON = '10' THEN Y WHEN CAL_TYPE_COL = 'Z' AND MON = '10' THEN Z
+		                        END MON10
+		                      , CASE WHEN CAL_TYPE_COL = 'A' AND MON = '11' THEN A WHEN CAL_TYPE_COL = 'B' AND MON = '11' THEN B WHEN CAL_TYPE_COL = 'C' AND MON = '11' THEN C WHEN CAL_TYPE_COL = 'D' AND MON = '11' THEN D
+		                             WHEN CAL_TYPE_COL = 'E' AND MON = '11' THEN E WHEN CAL_TYPE_COL = 'F' AND MON = '11' THEN F WHEN CAL_TYPE_COL = 'G' AND MON = '11' THEN G WHEN CAL_TYPE_COL = 'H' AND MON = '11' THEN H
+		                             WHEN CAL_TYPE_COL = 'I' AND MON = '11' THEN I WHEN CAL_TYPE_COL = 'J' AND MON = '11' THEN J WHEN CAL_TYPE_COL = 'K' AND MON = '11' THEN K WHEN CAL_TYPE_COL = 'L' AND MON = '11' THEN L
+		                             WHEN CAL_TYPE_COL = 'M' AND MON = '11' THEN M WHEN CAL_TYPE_COL = 'N' AND MON = '11' THEN N WHEN CAL_TYPE_COL = 'O' AND MON = '11' THEN O WHEN CAL_TYPE_COL = 'P' AND MON = '11' THEN P
+		                             WHEN CAL_TYPE_COL = 'Q' AND MON = '11' THEN Q WHEN CAL_TYPE_COL = 'R' AND MON = '11' THEN R WHEN CAL_TYPE_COL = 'S' AND MON = '11' THEN S WHEN CAL_TYPE_COL = 'T' AND MON = '11' THEN T
+		                             WHEN CAL_TYPE_COL = 'U' AND MON = '11' THEN U WHEN CAL_TYPE_COL = 'V' AND MON = '11' THEN V WHEN CAL_TYPE_COL = 'W' AND MON = '11' THEN W WHEN CAL_TYPE_COL = 'X' AND MON = '11' THEN X
+		                             WHEN CAL_TYPE_COL = 'Y' AND MON = '11' THEN Y WHEN CAL_TYPE_COL = 'Z' AND MON = '11' THEN Z
+		                        END MON11
+		                      , CASE WHEN CAL_TYPE_COL = 'A' AND MON = '12' THEN A WHEN CAL_TYPE_COL = 'B' AND MON = '12' THEN B WHEN CAL_TYPE_COL = 'C' AND MON = '12' THEN C WHEN CAL_TYPE_COL = 'D' AND MON = '12' THEN D
+		                             WHEN CAL_TYPE_COL = 'E' AND MON = '12' THEN E WHEN CAL_TYPE_COL = 'F' AND MON = '12' THEN F WHEN CAL_TYPE_COL = 'G' AND MON = '12' THEN G WHEN CAL_TYPE_COL = 'H' AND MON = '12' THEN H
+		                             WHEN CAL_TYPE_COL = 'I' AND MON = '12' THEN I WHEN CAL_TYPE_COL = 'J' AND MON = '12' THEN J WHEN CAL_TYPE_COL = 'K' AND MON = '12' THEN K WHEN CAL_TYPE_COL = 'L' AND MON = '12' THEN L
+		                             WHEN CAL_TYPE_COL = 'M' AND MON = '12' THEN M WHEN CAL_TYPE_COL = 'N' AND MON = '12' THEN N WHEN CAL_TYPE_COL = 'O' AND MON = '12' THEN O WHEN CAL_TYPE_COL = 'P' AND MON = '12' THEN P
+		                             WHEN CAL_TYPE_COL = 'Q' AND MON = '12' THEN Q WHEN CAL_TYPE_COL = 'R' AND MON = '12' THEN R WHEN CAL_TYPE_COL = 'S' AND MON = '12' THEN S WHEN CAL_TYPE_COL = 'T' AND MON = '12' THEN T
+		                             WHEN CAL_TYPE_COL = 'U' AND MON = '12' THEN U WHEN CAL_TYPE_COL = 'V' AND MON = '12' THEN V WHEN CAL_TYPE_COL = 'W' AND MON = '12' THEN W WHEN CAL_TYPE_COL = 'X' AND MON = '12' THEN X
+		                             WHEN CAL_TYPE_COL = 'Y' AND MON = '12' THEN Y WHEN CAL_TYPE_COL = 'Z' AND MON = '12' THEN Z
+		                        END MON12
+		            FROM (
+		                    SELECT A.CODE_ID AS MON
+		                         , TO_CHAR(B.A) A, TO_CHAR(B.B) B, TO_CHAR(B.C) C, TO_CHAR(B.D) D, TO_CHAR(B.E) E, TO_CHAR(B.F) F
+								 , TO_CHAR(B.G) G, TO_CHAR(B.H) H, TO_CHAR(B.I) I, TO_CHAR(B.J) J, TO_CHAR(B.K) K, TO_CHAR(B.L) L
+								 , TO_CHAR(B.M) M, TO_CHAR(B.N) N, TO_CHAR(B.O) O, TO_CHAR(B.P) P, TO_CHAR(B.Q) Q, TO_CHAR(B.R) R
+								 , TO_CHAR(B.S) S, TO_CHAR(B.T) T, TO_CHAR(B.U) U, TO_CHAR(B.V) V, TO_CHAR(B.W) W, TO_CHAR(B.X) X
+								 , TO_CHAR(B.Y) Y, TO_CHAR(B.Z) Z
+		                    FROM BSC_CODE A
+		                             LEFT OUTER JOIN MEM_ACT_IN B
+		                             ON B.YEAR = #year#
+		                             AND A.CODE_ID = B.MON
+		                             AND B.METRIC_ID = #metricId#
+		                    WHERE A.CODE_GRP_ID = '024'
+		                       AND A.DELETE_DT IS NULL
+		            ) LEFT OUTER JOIN (SELECT CAL_TYPE_COL
+		            				   FROM MEM_CAL_TYPE_COL
+		                               WHERE YEAR = #year#
+		                               AND METRIC_ID = #metricId#
+		                               AND DELETE_DT IS NULL ) ON 1=1
+		    )
+		    GROUP BY CAL_TYPE_COL
+		) T1
+		LEFT OUTER JOIN MEM_CAL_TYPE_COL T2
+					ON T2.YEAR = #year#
+					AND T2.METRIC_ID = #metricId#
+					AND T1.CAL_TYPE_COL = T2.CAL_TYPE_COL
+		ORDER BY CAL_TYPE_COL
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 지표 목표,실적, 달성율 조회
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_METRIC_TARGET, MEM_ACT_IN
+	==================================================================
+	-->
+	<select id="getScoreList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT LV AS TYPE
+		     , CASE WHEN LV = 1 THEN 'KPI 실적'
+		            WHEN LV = 2 THEN 'KPI 목표'
+		            WHEN LV = 3 THEN '점수'
+		            WHEN LV = 4 THEN '등급'
+		            WHEN LV = 5 THEN '환산점수'
+		       END TYPE_NM
+		     , CASE WHEN LV = 5 THEN '점'
+		     		WHEN LV = 4 THEN '-'
+		     		WHEN LV = 3 THEN '%'
+		            ELSE (SELECT F_CODE_NM('013', UNIT, YEAR) FROM MEM_METRIC WHERE YEAR = #year# AND METRIC_ID = #metricId# AND DELETE_DT IS NULL)
+		       END UNIT_NM
+		     , MAX(MON01) MON01, MAX(MON02) MON02, MAX(MON03) MON03, MAX(MON04) MON04
+		     , MAX(MON05) MON05, MAX(MON06) MON06, MAX(MON07) MON07, MAX(MON08) MON08
+		     , MAX(MON09) MON09, MAX(MON10) MON10, MAX(MON11) MON11, MAX(MON12) MON12
+		FROM (
+		        SELECT LV
+		                  , CASE WHEN LV = 1 AND MON = '01' THEN VALUE
+		                         WHEN LV = 2 AND MON = '01' THEN TGT_VALUE
+		                         WHEN LV = 3 AND MON = '01' THEN SCORE
+		                         WHEN LV = 4 AND MON = '01' THEN FINAL_GRADE
+		                         WHEN LV = 5 AND MON = '01' THEN FINAL_SCORE
+		                    END MON01
+		                  , CASE WHEN LV = 1 AND MON = '02' THEN VALUE
+		                         WHEN LV = 2 AND MON = '02' THEN TGT_VALUE
+		                         WHEN LV = 3 AND MON = '02' THEN SCORE
+		                         WHEN LV = 4 AND MON = '02' THEN FINAL_GRADE
+		                         WHEN LV = 5 AND MON = '02' THEN FINAL_SCORE
+		                    END MON02
+		                  , CASE WHEN LV = 1 AND MON = '03' THEN VALUE
+		                         WHEN LV = 2 AND MON = '03' THEN TGT_VALUE
+		                         WHEN LV = 3 AND MON = '03' THEN SCORE
+		                         WHEN LV = 4 AND MON = '03' THEN FINAL_GRADE
+		                         WHEN LV = 5 AND MON = '03' THEN FINAL_SCORE
+		                    END MON03
+		                  , CASE WHEN LV = 1 AND MON = '04' THEN VALUE
+		                         WHEN LV = 2 AND MON = '04' THEN TGT_VALUE
+		                         WHEN LV = 3 AND MON = '04' THEN SCORE
+		                         WHEN LV = 4 AND MON = '04' THEN FINAL_GRADE
+		                         WHEN LV = 5 AND MON = '04' THEN FINAL_SCORE
+		                    END MON04
+		                  , CASE WHEN LV = 1 AND MON = '05' THEN VALUE
+		                         WHEN LV = 2 AND MON = '05' THEN TGT_VALUE
+		                         WHEN LV = 3 AND MON = '05' THEN SCORE
+		                         WHEN LV = 4 AND MON = '05' THEN FINAL_GRADE
+		                         WHEN LV = 5 AND MON = '05' THEN FINAL_SCORE
+		                    END MON05
+		                  , CASE WHEN LV = 1 AND MON = '06' THEN VALUE
+		                         WHEN LV = 2 AND MON = '06' THEN TGT_VALUE
+		                         WHEN LV = 3 AND MON = '06' THEN SCORE
+		                         WHEN LV = 4 AND MON = '06' THEN FINAL_GRADE
+		                         WHEN LV = 5 AND MON = '06' THEN FINAL_SCORE
+		                    END MON06
+		                  , CASE WHEN LV = 1 AND MON = '07' THEN VALUE
+		                         WHEN LV = 2 AND MON = '07' THEN TGT_VALUE
+		                         WHEN LV = 3 AND MON = '07' THEN SCORE
+		                         WHEN LV = 4 AND MON = '07' THEN FINAL_GRADE
+		                         WHEN LV = 5 AND MON = '07' THEN FINAL_SCORE
+		                    END MON07
+		                  , CASE WHEN LV = 1 AND MON = '08' THEN VALUE
+		                         WHEN LV = 2 AND MON = '08' THEN TGT_VALUE
+		                         WHEN LV = 3 AND MON = '08' THEN SCORE
+		                         WHEN LV = 4 AND MON = '08' THEN FINAL_GRADE
+		                         WHEN LV = 5 AND MON = '08' THEN FINAL_SCORE
+		                    END MON08
+		                  , CASE WHEN LV = 1 AND MON = '09' THEN VALUE
+		                         WHEN LV = 2 AND MON = '09' THEN TGT_VALUE
+		                         WHEN LV = 3 AND MON = '09' THEN SCORE
+		                         WHEN LV = 4 AND MON = '09' THEN FINAL_GRADE
+		                         WHEN LV = 5 AND MON = '09' THEN FINAL_SCORE
+		                    END MON09
+		                  , CASE WHEN LV = 1 AND MON = '10' THEN VALUE
+		                         WHEN LV = 2 AND MON = '10' THEN TGT_VALUE
+		                         WHEN LV = 3 AND MON = '10' THEN SCORE
+		                         WHEN LV = 4 AND MON = '10' THEN FINAL_GRADE
+		                         WHEN LV = 5 AND MON = '10' THEN FINAL_SCORE
+		                    END MON10
+		                  , CASE WHEN LV = 1 AND MON = '11' THEN VALUE
+		                         WHEN LV = 2 AND MON = '11' THEN TGT_VALUE
+		                         WHEN LV = 3 AND MON = '11' THEN SCORE
+		                         WHEN LV = 4 AND MON = '11' THEN FINAL_GRADE
+		                         WHEN LV = 5 AND MON = '11' THEN FINAL_SCORE
+		                    END MON11
+		                  , CASE WHEN LV = 1 AND MON = '12' THEN VALUE
+		                         WHEN LV = 2 AND MON = '12' THEN TGT_VALUE
+		                         WHEN LV = 3 AND MON = '12' THEN SCORE
+		                         WHEN LV = 4 AND MON = '12' THEN FINAL_GRADE
+		                         WHEN LV = 5 AND MON = '12' THEN FINAL_SCORE
+		                    END MON12
+		        FROM (
+		            SELECT A.CODE_ID MON
+		                 , TO_CHAR(B.TGT_VALUE) TGT_VALUE
+		                 , TO_CHAR(C.VALUE) VALUE
+		                 , TO_CHAR(C.SCORE) SCORE
+		                 , TO_CHAR(C.FINAL_SCORE) FINAL_SCORE
+		                 , F_CODE_NM('235', C.FINAL_GRADE, #year#) FINAL_GRADE
+		            FROM BSC_CODE A
+		                     LEFT OUTER JOIN MEM_METRIC_TARGET B ON B.YEAR = #year# AND A.CODE_ID = B.MON AND B.METRIC_ID = #metricId# AND B.DELETE_DT IS NULL
+		                     LEFT OUTER JOIN MEM_ACT_IN C ON C.YEAR = #year# AND A.CODE_ID = C.MON AND C.METRIC_ID = #metricId#
+		            WHERE A.CODE_GRP_ID = '024'
+		                AND A.DELETE_DT IS NULL
+		        ) LEFT OUTER JOIN ( SELECT LEVEL LV FROM DUAL CONNECT BY LEVEL <![CDATA[ <= ]]> 5) ON 1=1
+		)
+		GROUP BY LV
+		ORDER BY LV
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 실적산식 및 득점산식 조회
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_METRIC
+	==================================================================
+	-->
+	<select id="getCalTypeInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.ACT_CAL_TYPE, A.SCORE_CAL_TYPE_ID, B.CAL_TYPE_NM AS SCORE_CAL_TYPE_NM
+		FROM MEM_METRIC A
+		         LEFT OUTER JOIN BSC_CAL_TYPE B ON A.SCORE_CAL_TYPE_ID = B.CAL_TYPE_ID
+		WHERE A.YEAR = #year#
+		  AND A.METRIC_ID = #metricId#
+		  AND A.DELETE_DT IS NULL
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표산식 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_CAL_TYPE_COL
+	==================================================================
+	-->
+	<select id="calTypeColList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.METRIC_ID
+             , A.CAL_TYPE_COL
+             , A.CAL_TYPE_COL_NM
+        FROM MEM_CAL_TYPE_COL A
+        WHERE A.YEAR = #year#
+          AND A.METRIC_ID = #metricId#
+          AND A.DELETE_DT IS NULL
+        ORDER BY A.CAL_TYPE_COL ASC
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 조회 월이 실적입력 월인지 확인
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_METRIC_MON
+	==================================================================
+	-->
+	<select id="getActRegDefMonYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT CASE WHEN COUNT(1) > 0 THEN 'Y' ELSE 'N' END
+		  FROM MEM_METRIC_MON
+		 WHERE YEAR = #year#
+           AND MON = #mon#
+           AND METRIC_ID = #metricId#
+		   AND DELETE_DT IS NULL
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 실적입력기한 여부 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ACT_IN_TERM
+	==================================================================
+	-->
+	<select id="getActInputTermYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT CASE WHEN MAX(YEAR) IS NULL THEN 'N'
+		            WHEN MAX(YEAR) IS NOT NULL THEN 'Y'
+		       END IS_INPUT_TERM
+		  FROM MEM_EVAL_SCHEDULE
+		 WHERE YEAR = #year#
+           AND ACT_START_DT <![CDATA[ <= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')
+           AND ACT_END_DT   <![CDATA[ >= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: KPI 실적반려 사유 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_ACT_IN
+	==================================================================
+	-->
+	<select id="getReturnReason" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT RETURN_REASON
+          FROM MEM_ACT_IN
+		 WHERE YEAR = #year#
+           AND MON = #mon#
+           AND METRIC_ID = #metricId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: KPI 실적반려 사유 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_ACT_IN
+	==================================================================
+	-->
+	<select id="getMetricNm" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT METRIC_NM
+          FROM MEM_METRIC
+		 WHERE YEAR = #year#
+           AND METRIC_ID = #metricId#
+           AND DELETE_DT IS NULL
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 실적삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_ACT_IN
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM MEM_ACT_IN
+		 WHERE YEAR = #year#
+		   AND MON = #mon#
+		   AND METRIC_ID = #metricId#
+	</update>
+
+<!--
+	==================================================================
+	  # 설명	: 실적입력자 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAUSE
+	==================================================================
+	-->
+	<select id="getUserId" remapResults="true" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT INSERT_USER_ID
+		 FROM MEM_METRIC A
+		WHERE A.YEAR = #year#
+		  AND A.METRIC_ID = #metricId#
+		  AND A.SC_DEPT_ID = #scDeptId#
+		  AND A.DELETE_DT IS NULL
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<parameterMap id="paramMap" class="java.util.HashMap">
+		<parameter property="year" 			jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="mon" 			jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="analCycle" 	jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="seq" 			jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="metricId" 		jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="colName" 		jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="colValue" 		jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="actStatusId" 	jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="loginUserId" 	jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="loginUserNm" 	jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+
+	<!--
+	==================================================================
+	  # 설명	: 실적등록
+	  #	기능	: PROCEDURES
+	  #	TABLE	: BSC_ACTUAL
+	==================================================================
+	-->
+	<procedure id="insertData" parameterMap="paramMap">
+		{CALL MEM_TAM.MEM_ACTUAL_INSERT(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}
+	</procedure>
+</sqlMap>
+
+

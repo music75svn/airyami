@@ -1,0 +1,289 @@
+#*************************************************************************
+* CLASS 명      : actInputTermList
+* 작 업 자      : 김효은
+* 작 업 일      : 2013년 11월 28일 
+* 기    능      : 실적등록기한
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김효은      2013년 11월 28일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/prs/mng/actInputTerm/actInputTermList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/prs/mng/actInputTerm/actInputTermList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '평가월', '시작일자', '종료일자','YEAR_ID', 'MON_ID'],
+			colModel     :[
+							{name:'YEAR'                 ,index:'YEAR'                 ,width:150   ,align:'center' ,formatter:linkUpdate}, 
+                            {name:'MON'                  ,index:'MON'                  ,width:150   ,align:'center' }, 
+                            {name:'START_DT'             ,index:'START_DT'             ,width:150   ,align:'center' }, 
+                            {name:'END_DT'               ,index:'END_DT'               ,width:150   ,align:'center' },
+							{name:'YEAR_ID'              ,index:'YEAR_ID'              ,width:150   ,align:'center' }, 
+							{name:'MON_ID'	             ,index:'MON_ID'               ,width:150   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			loadComplete : function() {
+								if(J.gridSelectChk("list")){
+                            		goAction('$!{CS_STATIC.getYear()}');
+                        		}else{
+                            		goAction(1);
+								}
+                            	J("#mode").val("MOD");
+                           },
+			caption:"실적입력기간"
+		}).jqGrid('hideCol',"YEAR_ID").jqGrid('hideCol',"MON_ID").setGridWidth($!{jqGrid_r3_width});
+		
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+        
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#mode").val("ADD");
+			J("#evalMon").attr("disabled", false);
+			J("#evalYear").attr("disabled", false);
+			J("#startDt").val("");
+			J("#endDt").val("");
+		});
+        
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+		
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnUpdate").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+		
+	});
+	
+	/******************************************
+	 * 상세 조회
+	 ******************************************/
+    function goAction(rowId) {
+    		var stMode = J("#stMode").val();
+    		var ret = J("#list").jqGrid('getRowData',rowId);
+	    if (ret.YEAR_ID == undefined) {
+    		var year = J("#findYear").val();
+			var mon = "01";
+    	}else{
+    		var year = ret.YEAR_ID;
+    		var mon = ret.MON_ID;
+        }	
+		
+		J.ajax({
+        	url      : "$!{context_path}/prs/mng/actInputTerm/actInputTermModify.vw",
+        	cache    : false,
+        	type     : "POST",
+			data     : "findYear=" + year + "&amp;mon=" + mon + "&amp;stMode=" + stMode,
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+        		J("#actInputTermData").empty();  //body부분 div를 empty 시켜줌(empty를 시키지 않을 경우 메모리릭 발생) 
+        		J("#actInputTermData").append(data);
+        	}
+    	});
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) {
+		return '<a href=javascript:goAction(' + options.rowId + ')>' + cellvalue + '</a>';
+	}
+	
+	/******************************************
+	 * 삭제
+	 ******************************************/
+	function goDelete() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("삭제할 데이터를 선택하십시요", null, null); 
+		} else {
+			J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+    
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var months = "";
+        
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					months += rowdata.MON_ID + '|';
+				}
+			});
+		}
+         
+		J("#months").val(months);
+		J("#mode").val("DEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/prs/mng/actInputTerm/actInputTermProcess.vw?type=template").submit();
+		return false;
+	}
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+    	if(!J.checkLength("startDt", "시작일자",1, 10)) {
+    		return;
+		}
+		
+		if(!J.checkLength("endDt", "종료일자",1, 10)) {
+    		return;
+		}	
+		
+		if(J("#startDt").val() > J("#endDt").val()) {
+			J.showMsgBox("종료일자가 시작일자보다 빠를수 없습니다.", null, J("#endDt").val()); 
+    		return;
+		}
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#startDt").val((J("#startDt").val().replace(/[.]/g, "")));
+		J("#endDt").val((J("#endDt").val().replace(/[.]/g, "")));
+		J("#evalYear").attr("disabled", false);
+		J("#evalMon").attr("disabled", false);
+		J("#userId").val(J("#findUserId").val());
+		J("#userYn").val("Y");
+		J("#year").val(J("#evalYear").val());
+		J("#mon").val(J("#evalMon").val());
+		J("#formList").attr("action", "$!{searchMap.txt2html("context")}/prs/mng/actInputTerm/actInputTermProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">실적입력기간</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/mng/actInputTerm/actInputTermList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"    id="stMode"		    name="stMode"		    value="MOD" />
+				<input type="hidden"    id="findUserId"     name="findUserId" 		value="$!{CS_LOGIN.getUser_id()}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="실적입력기간검색 조건">
+						<caption class="none">실적입력기간 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/prs/mng/actInputTerm/actInputTermProcess.vw?type=template">
+			<input type="hidden" id="mode"      name="mode" />
+			<input type="hidden" id="months"   	name="months" />
+			<input type="hidden" id="year"      name="year" />
+			<input type="hidden" id="mon"       name="mon" />
+			<input type="hidden" id="userId"    name="userId" />
+			<input type="hidden" id="userYn"    name="userYn" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable floatLeft">
+						<table id="list" summary="실적입력기간 조회결과">
+							<caption class="none">실적입력기간 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					
+					<div id="actInputTermData" class="floatRight"></div>
+					
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l"></div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnInsert" value="신규" /></li>
+								<li><input type="button" id="btnUpdate" value="저장" /></li>
+								<li><input type="submit" id="btnDelete" value="삭제" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+	</div>
+	<div class="clear"></div>
+</div>

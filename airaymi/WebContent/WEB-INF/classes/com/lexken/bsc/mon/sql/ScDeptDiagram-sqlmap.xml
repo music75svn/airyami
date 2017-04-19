@@ -1,0 +1,677 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.mon.scDeptDiagram">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 조직성과도 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT M.YEAR,
+	            M.PERSPECTIVE_ID,
+	            M.PERSPECTIVE_NM,
+	            M.DIRECTION_ID,
+	            M.DIRECTION_NM,
+	            M.STRATEGY_ID,
+	            M.STRATEGY_NM,
+	            M.METRIC_ID,
+	            M.METRIC_NM,
+	            M.UP_METRIC_ID,
+	            M.EVAL_CYCLE,
+	            M.EVAL_CYCLE_NM,
+	            M.WEIGHT,
+	            M.UNIT,
+	            M.UNIT_NM,
+	            M.TARGET,
+	            M.ACTUAL,
+	            M.SCORE,
+	            M.STATUS,
+	            M.STATUS_NM,
+	            M.STATUS_COLOR,
+	            M.PERS_SORT_ORDER,
+	            M.STRA_SORT_ORDER,
+<!--
+	            M.DIRECT_SORT_ORDER,
+-->
+	            M.METRIC_SORT_ORDER
+		   FROM (SELECT M.YEAR,
+		                M.PERSPECTIVE_ID,
+		                M.PERSPECTIVE_NM,
+		                M.DIRECTION_ID,
+		                M.DIRECTION_NM,
+		                M.STRATEGY_ID,
+		                M.STRATEGY_NM,
+		                M.METRIC_ID,
+		                M.METRIC_NM,
+		                M.UP_METRIC_ID,
+		                M.EVAL_CYCLE,
+		                M.EVAL_CYCLE_NM,
+		                M.WEIGHT,
+		                M.UNIT,
+		                M.UNIT_NM,
+		                TO_CHAR(M.TARGET) TARGET,
+		                TO_CHAR(M.ACTUAL) ACTUAL,
+		                TO_CHAR(M.SCORE) SCORE,
+		                M.STATUS,
+		                M.STATUS_NM,
+		                NVL(SC.COLOR, '##B4B4B4') AS STATUS_COLOR,
+		                M.PERS_SORT_ORDER,
+		                M.STRA_SORT_ORDER,
+<!--
+		                M.DIRECT_SORT_ORDER,
+-->
+		                M.METRIC_SORT_ORDER
+           		   FROM ( SELECT A.YEAR,
+		                         A.MON,
+		                         A.ANAL_CYCLE,
+		                         A.METRIC_ID,
+		                         A.METRIC_NM,
+		                         E.METRIC_ID AS UP_METRIC_ID,
+		                         A.PERSPECTIVE_ID,
+		                         A.PERSPECTIVE_NM,
+		                         A.DIRECTION_ID,
+		                         A.DIRECTION_NM,
+		                         A.STRATEGY_ID,
+		                         A.STRATEGY_NM,
+		                         A.TARGET,
+		                         A.ACTUAL,
+		                         A.FINAL_SCORE SCORE,
+		                         A.STATUS,
+		                         F_CODE_NM('021',A.STATUS,A.YEAR) STATUS_NM,
+		                         A.EVAL_CYCLE,
+		                         A.EVAL_CYCLE_NM,
+		                         A.WEIGHT,
+		                         A.UNIT,
+		                         A.UNIT_NM,
+		                         B.SORT_ORDER AS PERS_SORT_ORDER,
+		                         C.SORT_ORDER AS STRA_SORT_ORDER,
+<!--
+		                         D.SORT_ORDER AS DIRECT_SORT_ORDER,
+-->
+		                         A.SORT_ORDER AS METRIC_SORT_ORDER,
+		                         A.TYPE_ID,
+		                         A.TYPE_NM
+		                    FROM BSC_METRICSCORE A
+		                         LEFT OUTER JOIN BSC_PERSPECTIVE B
+		                         ON A.YEAR = B.YEAR
+		                         AND A.PERSPECTIVE_ID = B.PERSPECTIVE_ID
+		                         AND B.DELETE_DT IS NULL
+		                         LEFT OUTER JOIN BSC_STRATEGY C
+		                         ON A.YEAR = C.YEAR
+		                         AND A.STRATEGY_ID = C.STRATEGY_ID
+		                         AND C.DELETE_DT IS NULL
+<!--
+		                         LEFT OUTER JOIN BSC_DIRECTION D
+		                         ON A.YEAR = D.YEAR
+		                         AND A.DIRECTION_ID = D.DIRECTION_ID
+		                         AND D.DELETE_DT IS NULL
+-->
+		                         LEFT OUTER JOIN ( SELECT A.YEAR,
+                                                          B.METRIC_ID,
+                                                          A.SUB_METRIC_ID
+                                                 FROM BSC_CAL_METRIC A
+                                                          INNER JOIN BSC_METRIC B
+                                                          ON A.YEAR = B.YEAR
+                                                          AND A.METRIC_ID = B.METRIC_ID
+                                                          AND B.SC_DEPT_ID =  #findSelScDeptId#
+                                                          AND B.DELETE_DT IS NULL
+                                               WHERE A.YEAR = #findYear#
+                                                    AND A.DELETE_DT IS NULL) E
+		                         ON A.YEAR = E.YEAR
+		                         AND A.METRIC_ID = E.SUB_METRIC_ID
+		                   WHERE 1=1
+		                     AND A.YEAR = #findYear#
+		                     AND A.MON = #findMon#
+		                     AND A.ANAL_CYCLE = #findAnalCycle#
+		                     AND A.SC_DEPT_ID = #findSelScDeptId#
+		                ) M
+		                LEFT OUTER JOIN BSC_COMMON_STATUS SC
+		                ON M.YEAR = SC.YEAR
+		                AND M.STATUS = SC.STATUS_ID
+		          ) M
+            START WITH M.UP_METRIC_ID IS NULL AND M.YEAR = #findYear#
+          CONNECT BY PRIOR M.METRIC_ID = M.UP_METRIC_ID AND M.YEAR = #findYear#
+            ORDER SIBLINGS BY
+<!--
+              M.DIRECT_SORT_ORDER
+-->
+              M.DIRECTION_ID
+            , M.STRA_SORT_ORDER
+            , M.STRATEGY_ID
+            , M.METRIC_SORT_ORDER
+            , M.METRIC_ID
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직성과도 조직순위 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getOrgRankList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.MON
+             , A.ANAL_CYCLE
+           	 , A.SC_DEPT_ID
+           	 , B.SC_DEPT_NM
+           	 , TO_CHAR(A.SCORE, 990.999) AS SCORE
+           	 , A.STATUS
+           	 , F_CODE_NM ('021', A.STATUS, A.YEAR) STATUS_NM
+           	 , ROUND (A.CONVERSION_SCORE, 6) AS CONVERSION_SCORE
+           	 , RANK () OVER (ORDER BY A.SCORE DESC NULLS LAST, B.SORT_ORDER) RANK
+          FROM BSC_DEPTSCORE A
+         INNER JOIN BSC_SC_DEPT B
+            ON A.YEAR = B.YEAR
+           AND A.SC_DEPT_ID = B.SC_DEPT_ID
+           AND B.DELETE_DT IS NULL
+         WHERE A.YEAR = #findYear#
+           AND A.MON = #findMon# 
+           AND A.ANAL_CYCLE = #findAnalCycle#
+<!--
+         <isEqual prepend="AND" property="findDiagramGubun" compareValue="01">
+         	B.SC_DEPT_GRP_ID IN ('01', '02', '03', '18', '04', '05', '06', '10', '07', '15')	
+         	AND B.LEVEL_ID = '2'
+         </isEqual>
+         <isEqual prepend="AND" property="findDiagramGubun" compareValue="02">
+         	B.SC_DEPT_GRP_ID IN ('11', '12', '13', '14')	
+         	AND B.LEVEL_ID = '2'
+         </isEqual>
+         <isEqual prepend="AND" property="findDiagramGubun" compareValue="03">
+         	B.SC_DEPT_GRP_ID = '16'	
+         	AND B.SC_DEPT_ID NOT IN ('D006378')
+         </isEqual>
+-->
+           AND B.DIAGRAM_GUBUN = #findDiagramGubun#           
+         <isEqual property="findSelScDeptId" compareValue="D000001">
+         	<isEqual property="findDiagramGubun" compareValue="03">
+         		AND LEVEL_ID = '1'
+         	</isEqual>
+         	<isNotEqual property="findDiagramGubun" compareValue="03">
+         		AND LEVEL_ID = '2'
+         	</isNotEqual>
+         </isEqual>
+         <isNotEqual property="findSelScDeptId" compareValue="D000001">
+         	<isEqual property="findDiagramGubun" compareValue="02">
+           		AND LEVEL_ID = '2'
+            </isEqual>
+            <isNotEqual property="findDiagramGubun" compareValue="02">
+           		AND LEVEL_ID = (SELECT LEVEL_ID FROM BSC_SC_DEPT WHERE YEAR = #findYear# AND SC_DEPT_ID = #findSelScDeptId#)
+           	</isNotEqual>	
+         </isNotEqual>
+         ORDER BY RANK () OVER (ORDER BY A.SCORE DESC NULLS LAST, B.SORT_ORDER)	 
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 조직성과도 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getList_BAK" parameterClass="hashMap" resultClass="hashMap">
+		SELECT T.*
+			 , NVL(T.OPINION_CNT, 0) + NVL(T.COACHING_CNT, 0) + NVL(T.ACTIVITY_CNT, 0) AS TOT_OPIN_CNT
+		  FROM (
+				SELECT   A.YEAR
+				       , A.MON
+				       , A.SC_DEPT_ID
+				       , A.SC_DEPT_NM
+				       , A.STRATEGY_ID
+				       , A.STRATEGY_NM
+				       , A.METRIC_ID
+				       , A.METRIC_NM
+				       , (SELECT COUNT (1)
+				            FROM BSC_OPINION
+				           WHERE YEAR = A.YEAR
+				             AND MON = A.MON
+				             AND METRIC_ID = A.METRIC_ID) OPINION_CNT
+				       , (SELECT COUNT (1)
+				            FROM BSC_COACHING
+				           WHERE YEAR = A.YEAR
+				             AND MON = A.MON
+				             AND METRIC_ID = A.METRIC_ID) COACHING_CNT
+				       , (SELECT   DECODE (CASE
+				                              WHEN X.MON = '01'
+				                                 THEN X.PLAN_CONTENTS_1MON
+				                              ELSE (SELECT NEXT_PLAN_CONTENTS
+				                                      FROM BSC_INIT_ACTIVITY
+				                                     WHERE YEAR = X.YEAR
+				                                       AND MON = X.MON - 1
+				                                       AND METRIC_ID = X.METRIC_ID)
+				                           END
+				                         , NULL, 0
+				                         , '', 0
+				                         , 1
+				                          )
+				                 + DECODE (X.ACT_CONTENTS, NULL, 0, '', 0, 1)
+				                 + DECODE (X.NEXT_PLAN_CONTENTS, NULL, 0, '', 0, 1)
+				            FROM BSC_INIT_ACTIVITY X
+				           WHERE X.YEAR = A.YEAR
+				             AND X.MON = A.MON
+				             AND X.METRIC_ID = A.METRIC_ID) ACTIVITY_CNT
+				       , (SELECT T.STATUS
+				            FROM BSC_METRICSCORE T
+				           WHERE T.YEAR = A.YEAR
+				             AND (    T.MON = '01'
+				                  AND T.MON <![CDATA[<]]>= A.MON)
+				             AND T.ANAL_CYCLE = A.ANAL_CYCLE
+				             AND T.METRIC_ID = A.METRIC_ID) AS STATUS_01
+				       , (SELECT T.STATUS
+				            FROM BSC_METRICSCORE T
+				           WHERE T.YEAR = A.YEAR
+				             AND (    T.MON = '02'
+				                  AND T.MON <![CDATA[<]]>= A.MON)
+				             AND T.ANAL_CYCLE = A.ANAL_CYCLE
+				             AND T.METRIC_ID = A.METRIC_ID) AS STATUS_02
+				       , (SELECT T.STATUS
+				            FROM BSC_METRICSCORE T
+				           WHERE T.YEAR = A.YEAR
+				             AND (    T.MON = '03'
+				                  AND T.MON <![CDATA[<]]>= A.MON)
+				             AND T.ANAL_CYCLE = A.ANAL_CYCLE
+				             AND T.METRIC_ID = A.METRIC_ID) AS STATUS_03
+				       , (SELECT T.STATUS
+				            FROM BSC_METRICSCORE T
+				           WHERE T.YEAR = A.YEAR
+				             AND (    T.MON = '04'
+				                  AND T.MON <![CDATA[<]]>= A.MON)
+				             AND T.ANAL_CYCLE = A.ANAL_CYCLE
+				             AND T.METRIC_ID = A.METRIC_ID) AS STATUS_04
+				       , (SELECT T.STATUS
+				            FROM BSC_METRICSCORE T
+				           WHERE T.YEAR = A.YEAR
+				             AND (    T.MON = '05'
+				                  AND T.MON <![CDATA[<]]>= A.MON)
+				             AND T.ANAL_CYCLE = A.ANAL_CYCLE
+				             AND T.METRIC_ID = A.METRIC_ID) AS STATUS_05
+				       , (SELECT T.STATUS
+				            FROM BSC_METRICSCORE T
+				           WHERE T.YEAR = A.YEAR
+				             AND (    T.MON = '06'
+				                  AND T.MON <![CDATA[<]]>= A.MON)
+				             AND T.ANAL_CYCLE = A.ANAL_CYCLE
+				             AND T.METRIC_ID = A.METRIC_ID) AS STATUS_06
+				       , (SELECT T.STATUS
+				            FROM BSC_METRICSCORE T
+				           WHERE T.YEAR = A.YEAR
+				             AND (    T.MON = '07'
+				                  AND T.MON <![CDATA[<]]>= A.MON)
+				             AND T.ANAL_CYCLE = A.ANAL_CYCLE
+				             AND T.METRIC_ID = A.METRIC_ID) AS STATUS_07
+				       , (SELECT T.STATUS
+				            FROM BSC_METRICSCORE T
+				           WHERE T.YEAR = A.YEAR
+				             AND (    T.MON = '08'
+				                  AND T.MON <![CDATA[<]]>= A.MON)
+				             AND T.ANAL_CYCLE = A.ANAL_CYCLE
+				             AND T.METRIC_ID = A.METRIC_ID) AS STATUS_08
+				       , (SELECT T.STATUS
+				            FROM BSC_METRICSCORE T
+				           WHERE T.YEAR = A.YEAR
+				             AND (    T.MON = '09'
+				                  AND T.MON <![CDATA[<]]>= A.MON)
+				             AND T.ANAL_CYCLE = A.ANAL_CYCLE
+				             AND T.METRIC_ID = A.METRIC_ID) AS STATUS_09
+				       , (SELECT T.STATUS
+				            FROM BSC_METRICSCORE T
+				           WHERE T.YEAR = A.YEAR
+				             AND (    T.MON = '10'
+				                  AND T.MON <![CDATA[<]]>= A.MON)
+				             AND T.ANAL_CYCLE = A.ANAL_CYCLE
+				             AND T.METRIC_ID = A.METRIC_ID) AS STATUS_10
+				       , (SELECT T.STATUS
+				            FROM BSC_METRICSCORE T
+				           WHERE T.YEAR = A.YEAR
+				             AND (    T.MON = '11'
+				                  AND T.MON <![CDATA[<]]>= A.MON)
+				             AND T.ANAL_CYCLE = A.ANAL_CYCLE
+				             AND T.METRIC_ID = A.METRIC_ID) AS STATUS_11
+				       , (SELECT T.STATUS
+				            FROM BSC_METRICSCORE T
+				           WHERE T.YEAR = A.YEAR
+				             AND (    T.MON = '12'
+				                  AND T.MON <![CDATA[<]]>= A.MON)
+				             AND T.ANAL_CYCLE = A.ANAL_CYCLE
+				             AND T.METRIC_ID = A.METRIC_ID) AS STATUS_12
+				       , A.STRA_SORT_ORDER
+               		   , A.METRIC_SORT_ORDER
+				    FROM BSC_METRICSCORE A
+				   WHERE A.YEAR = #findYear#
+				     AND A.MON = #findMon#
+				     AND A.ANAL_CYCLE = #findAnalCycle#
+				     AND A.SC_DEPT_ID = #selScDeptId#
+				     AND A.DISPLAY_GBN = 'T'
+		     ) T
+		ORDER BY STRA_SORT_ORDER, STRATEGY_ID, METRIC_SORT_ORDER, METRIC_ID
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 월별지표실적상세 차트(목표) 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getChartTarget" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+		SELECT A.METRIC_ID, MAX(A.UNIT) AS UNIT,
+		        ROUND(SUM(CASE WHEN A.MON = '01'  THEN A.TARGET END),1) MONTH01,
+		        ROUND(SUM(CASE WHEN A.MON = '02'  THEN A.TARGET END),1) MONTH02,
+		        ROUND(SUM(CASE WHEN A.MON = '03'  THEN A.TARGET END),1) MONTH03,
+		        ROUND(SUM(CASE WHEN A.MON = '04'  THEN A.TARGET END),1) MONTH04,
+		        ROUND(SUM(CASE WHEN A.MON = '05'  THEN A.TARGET END),1) MONTH05,
+		        ROUND(SUM(CASE WHEN A.MON = '06'  THEN A.TARGET END),1) MONTH06,
+		        ROUND(SUM(CASE WHEN A.MON = '07'  THEN A.TARGET END),1) MONTH07,
+		        ROUND(SUM(CASE WHEN A.MON = '08'  THEN A.TARGET END),1) MONTH08,
+		        ROUND(SUM(CASE WHEN A.MON = '09'  THEN A.TARGET END),1) MONTH09,
+		        ROUND(SUM(CASE WHEN A.MON = '10'  THEN A.TARGET END),1) MONTH10,
+		        ROUND(SUM(CASE WHEN A.MON = '11'  THEN A.TARGET END),1) MONTH11,
+		        ROUND(SUM(CASE WHEN A.MON = '12'  THEN A.TARGET END),1) MONTH12
+		  FROM BSC_METRICSCORE A
+		 WHERE A.YEAR = #year#
+		   AND A.ANAL_CYCLE = #analCycle#
+		   AND A.METRIC_ID = #metricId#
+		 GROUP BY A.METRIC_ID
+		 ]]>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 월별지표실적상세 차트(실적) 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getChartActual" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+		SELECT A.METRIC_ID, MAX(A.UNIT) AS UNIT,
+		        ROUND(SUM(CASE WHEN A.MON = '01'  THEN A.ACTUAL END),1) MONTH01,
+		        ROUND(SUM(CASE WHEN A.MON = '02'  THEN A.ACTUAL END),1) MONTH02,
+		        ROUND(SUM(CASE WHEN A.MON = '03'  THEN A.ACTUAL END),1) MONTH03,
+		        ROUND(SUM(CASE WHEN A.MON = '04'  THEN A.ACTUAL END),1) MONTH04,
+		        ROUND(SUM(CASE WHEN A.MON = '05'  THEN A.ACTUAL END),1) MONTH05,
+		        ROUND(SUM(CASE WHEN A.MON = '06'  THEN A.ACTUAL END),1) MONTH06,
+		        ROUND(SUM(CASE WHEN A.MON = '07'  THEN A.ACTUAL END),1) MONTH07,
+		        ROUND(SUM(CASE WHEN A.MON = '08'  THEN A.ACTUAL END),1) MONTH08,
+		        ROUND(SUM(CASE WHEN A.MON = '09'  THEN A.ACTUAL END),1) MONTH09,
+		        ROUND(SUM(CASE WHEN A.MON = '10'  THEN A.ACTUAL END),1) MONTH10,
+		        ROUND(SUM(CASE WHEN A.MON = '11'  THEN A.ACTUAL END),1) MONTH11,
+		        ROUND(SUM(CASE WHEN A.MON = '12'  THEN A.ACTUAL END),1) MONTH12
+		  FROM BSC_METRICSCORE A
+		 WHERE A.YEAR = #year#
+		   AND A.ANAL_CYCLE = #analCycle#
+		   AND A.METRIC_ID = #metricId#
+		 GROUP BY A.METRIC_ID
+		 ]]>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 월별지표실적상세 차트(점수) 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getChartScore" parameterClass="hashMap" resultClass="hashMap">
+		<![CDATA[
+		SELECT A.METRIC_ID,
+		        ROUND(SUM(CASE WHEN A.MON = '01'  THEN A.SCORE END),1) MONTH01,
+		        ROUND(SUM(CASE WHEN A.MON = '02'  THEN A.SCORE END),1) MONTH02,
+		        ROUND(SUM(CASE WHEN A.MON = '03'  THEN A.SCORE END),1) MONTH03,
+		        ROUND(SUM(CASE WHEN A.MON = '04'  THEN A.SCORE END),1) MONTH04,
+		        ROUND(SUM(CASE WHEN A.MON = '05'  THEN A.SCORE END),1) MONTH05,
+		        ROUND(SUM(CASE WHEN A.MON = '06'  THEN A.SCORE END),1) MONTH06,
+		        ROUND(SUM(CASE WHEN A.MON = '07'  THEN A.SCORE END),1) MONTH07,
+		        ROUND(SUM(CASE WHEN A.MON = '08'  THEN A.SCORE END),1) MONTH08,
+		        ROUND(SUM(CASE WHEN A.MON = '09'  THEN A.SCORE END),1) MONTH09,
+		        ROUND(SUM(CASE WHEN A.MON = '10'  THEN A.SCORE END),1) MONTH10,
+		        ROUND(SUM(CASE WHEN A.MON = '11'  THEN A.SCORE END),1) MONTH11,
+		        ROUND(SUM(CASE WHEN A.MON = '12'  THEN A.SCORE END),1) MONTH12
+		  FROM BSC_METRICSCORE A
+		 WHERE A.YEAR = #year#
+		   AND A.ANAL_CYCLE = #analCycle#
+		   AND A.METRIC_ID = #metricId#
+		GROUP BY  A.METRIC_ID
+		]]>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 실적입력자 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAUSE
+	==================================================================
+	-->
+	<select id="getUserId" remapResults="true" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT INSERT_USER_ID
+		 FROM BSC_METRIC A
+		WHERE A.YEAR = #year#
+		  AND A.METRIC_ID = #metricId#
+		  AND A.SC_DEPT_ID = #selScDeptId#
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 미진사유 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAUSE
+	==================================================================
+	-->
+	<select id="getCause" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.MON
+		     , A.METRIC_ID
+		     , A.CAUSE_DESC
+		     , A.INSERT_USER_ID
+		     , (SELECT USER_NM FROM V_ROLE_USER WHERE A.INSERT_USER_ID = USER_ID ) AS INSERT_USER_NM
+		     , A.CATCH_UP
+		     , A.OPNION
+		     , A.OPNION_USER_ID
+		     , (SELECT USER_NM FROM V_ROLE_USER WHERE A.OPNION_USER_ID = USER_ID ) AS OPNION_USER_NM 
+		 FROM BSC_CAUSE A
+		WHERE A.YEAR = #year#
+		  AND A.MON = #mon#
+		  AND A.METRIC_ID = #metricId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: Activity관리 상세 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INITIATIVE_ACT_ATTACH
+	==================================================================
+	-->
+	<select id="getFileList" parameterClass="hashMap" resultClass="hashMap">
+ 		SELECT A.YEAR
+	         , A.METRIC_ID
+	         , A.SEQ
+	         , A.ATTACH_FILE_NM
+	         , A.ATTACH_FILE_FNM
+	         , A.ATTACH_FILE_SUFFIX
+	         , F_ENCRYPT(A.ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+         FROM BSC_INITIATIVE_ACT_ATTACH A
+        WHERE A.YEAR = #year#
+          AND A.METRIC_ID = #metricId#
+          AND A.MON = #mon#
+        ORDER BY A.SEQ
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 의견받을 대상자 조회
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT SEND_USER
+  FROM (SELECT CASE GRP_ID
+                  WHEN 1 THEN INSERT_USER_ID
+                  WHEN 2 THEN APPROVE_USER_ID
+                  WHEN 3 THEN MANAGER_USER_ID
+                  WHEN 4 THEN ETC1
+                  WHEN 5 THEN ETC2
+               END
+                  SEND_USER
+          FROM (SELECT A.*,
+                       (SELECT USER_NM
+                          FROM V_ROLE_USER
+                         WHERE INSERT_USER_ID = USER_ID)
+                          INSERT_USER_NM,
+                       (SELECT USER_NM
+                          FROM V_ROLE_USER
+                         WHERE APPROVE_USER_ID = USER_ID)
+                          APPROVE_USER_NM,
+                       (SELECT USER_NM
+                          FROM V_ROLE_USER
+                         WHERE MANAGER_USER_ID = USER_ID)
+                          MANAGER_USER_NM,
+                       B.*,
+                       C.*
+                  FROM (SELECT B.SC_DEPT_ID,
+                               B.SC_DEPT_NM,
+                               METRIC_ID,
+                               METRIC_NM,
+                               INSERT_USER_ID,
+                               APPROVE_USER_ID,
+                               CASE
+                                  WHEN LEVEL_ID = 2
+                                  THEN
+                                     B.MANAGER_USER_ID
+                                  WHEN LEVEL_ID > 2
+                                  THEN
+                                     (SELECT MANAGER_USER_ID
+                                        FROM BSC_SC_DEPT
+                                       WHERE     B.YEAR = YEAR
+                                             AND B.UP_SC_DEPT_ID = SC_DEPT_ID
+                                             AND DELETE_DT IS NULL)
+                                  ELSE
+                                     ''
+                               END
+                                  MANAGER_USER_ID,
+                               LEVEL_ID
+                          FROM BSC_METRIC A, BSC_SC_DEPT B
+                         WHERE     A.YEAR = #findYear#
+                               AND METRIC_ID = #metricId#                                                                       
+                               AND A.YEAR = B.YEAR
+                               AND A.SC_DEPT_ID = B.SC_DEPT_ID
+                               AND A.DELETE_DT IS NULL
+                               AND B.DELETE_DT IS NULL) A,
+                       (SELECT ETC1, ETC2
+                          FROM BSC_CODE
+                         WHERE CODE_GRP_ID = '203' AND CODE_ID = '01'
+                       ) B,
+                       (    SELECT ROWNUM GRP_ID
+                              FROM DUAL
+<![CDATA[                        CONNECT BY LEVEL < 6) C))  ]]>
+ WHERE SEND_USER IS NOT NULL
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직성과도 등록
+	  #	기능	: INSERT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 의견 수정
+	  #	기능	: UPDATE
+	  #	TABLE	:
+	==================================================================
+	-->
+	<insert id="updateOpnionDB" parameterClass="hashMap">
+		MERGE INTO BSC_CAUSE A
+		USING (SELECT #findYear# AS YEAR, #findMon# AS MON, #metricId# AS METRIC_ID FROM DUAL ) AA
+		   ON (A.YEAR = AA.YEAR
+		  AND A.MON = AA.MON
+		  AND A.METRIC_ID = AA.METRIC_ID)
+		WHEN MATCHED THEN
+		     UPDATE SET A.OPNION = #opnion#
+					  , A.OPNION_USER_ID = #userId#
+		              , A.UPDATE_DT = SYSDATE
+		WHEN NOT MATCHED THEN     
+		     INSERT (A.YEAR, A.MON, A.METRIC_ID, A.CREATE_DT, A.OPNION, A.OPNION_USER_ID)
+		     VALUES (AA.YEAR, AA.MON, AA.METRIC_ID, SYSDATE, #opnion#, #userId#)
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 미진사유 수정
+	  #	기능	: UPDATE
+	  #	TABLE	:
+	==================================================================
+	-->
+	<insert id="updateDescDB" parameterClass="hashMap">
+		MERGE INTO BSC_CAUSE A
+		USING (SELECT #findYear# AS YEAR, #findMon# AS MON, #metricId# AS METRIC_ID FROM DUAL ) AA
+		   ON (A.YEAR = AA.YEAR
+		  AND A.MON = AA.MON
+		  AND A.METRIC_ID = AA.METRIC_ID)
+		WHEN MATCHED THEN
+		     UPDATE SET A.CAUSE_DESC = #causeDesc#
+					  , A.INSERT_USER_ID = #userId#
+		              , A.UPDATE_DT = SYSDATE
+		WHEN NOT MATCHED THEN     
+		     INSERT (A.YEAR, A.MON, A.METRIC_ID, A.CREATE_DT, A.CAUSE_DESC, A.INSERT_USER_ID)
+		     VALUES (AA.YEAR, AA.MON, AA.METRIC_ID, SYSDATE, #causeDesc#, #userId#)
+	</insert>
+	
+
+	<!--
+	==================================================================
+	  # 설명	: 조직성과도 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	:
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+
+	</update>
+	
+	
+	<!--
+	==================================================================
+	  # 설명	: 조직성과도 지역본부지사 선택
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SC_DEPT_ORG_CHART
+	==================================================================
+	-->
+	<select id="getDiagramGubunDept" parameterClass="hashMap" resultClass="hashMap">
+		SELECT *
+		  FROM (  SELECT B.SC_DEPT_ID, B.SC_DEPT_NM
+		            FROM BSC_SC_DEPT_ORG_CHART A, BSC_SC_DEPT B
+		           WHERE A.YEAR = #findYear#
+		             AND A.DIAGRAM_GUBUN = '02'
+		             AND A.YEAR = B.YEAR
+		             AND A.DW_DEPT_ID = B.SC_DEPT_ID
+		             AND B.DELETE_DT IS NULL
+		             AND B.SC_DEPT_ID <![CDATA[<>]]> 'D000001'
+		        ORDER BY B.SC_DEPT_ID)
+		 WHERE ROWNUM = 1
+	</select>
+
+
+</sqlMap>
+
+

@@ -1,0 +1,142 @@
+#*************************************************************************
+* CLASS 명      : metricDetailPop.vm
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 8월 28일 
+* 기    능      : 지표상세 의견 등록
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김윤기      2012년 6월 14일             최 초 작 업
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+<head >
+	#parse("/WEB-INF/vl/common/template/head.vm")
+    <script type="text/javascript" language="javascript" >
+	
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+    
+		/******************************************
+		 * 닫기버튼 이벤트
+		 ******************************************/
+		J("#btnClose").click(function() {
+			self.close();
+		});		
+		
+		/******************************************
+		 * 내용 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#indicator"),
+			limit:3500
+		});
+		J("#content").trigger("keyup");		
+	
+		
+	});
+	
+
+	function saveChk() {
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+		/*
+		if(confirm("저장하시겠습니까?")){
+			saveDo();
+		}
+		*/
+	}
+    
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/bsc/mon/metricDetail/metricDetailPopProcess.vw").submit();
+	}
+
+	
+    </script>
+</head>
+<body>	
+	<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/mon/metricDetail/metricDetailPopProcess.vw">
+	<input type="hidden" name="year"	       value="$!{searchMap.txt2html("year")}"/>
+	<input type="hidden" name="mon"		 	   value="$!{searchMap.txt2html("mon")}"/>
+	<input type="hidden" name="mode"	   	   value="$!{searchMap.txt2html("mode")}"/>
+	<input type="hidden" name="target"	   	   value="$!{searchMap.txt2html("target")}"/>
+	<input type="hidden" name="scDeptId"	   value="$!{searchMap.txt2html("scDeptId")}"/>  
+	<input type="hidden" name="strategyId"	   value="$!{searchMap.txt2html("strategyId")}"/>
+	<input type="hidden" name="metricId"	   value="$!{searchMap.txt2html("metricId")}"/>
+	<input type="hidden" name="id"	   		   value="$!{searchMap.txt2html("id")}"/>
+	<input type="hidden" name="ansUserId"	   value="$!{CS_LOGIN.getUser_id()}"/>
+	
+	<table width="100%" border="0" cellspacing="5" cellpadding="0" summary="">
+		<caption ></caption>
+    	<tr>
+			<th scope="col" class="none"></th>
+        </tr>
+		<tr><td height="5"></td></tr>
+		<tr>
+    		<td style="font-size:12px;font-weight:bold;">&nbsp;<img src="$!{img_path}/common/ico_body_tit.gif"  align="top" alt="" />&nbsp;
+				
+			#set ($content = "")				
+			#if("ANSMOD"== $!{searchMap.txt2html("mode")})
+    					댓글수정
+						#set ($content = $!{CS_HTML.txt2html($content1.ANSWER )} )
+			#else
+				#if("OPINION"== $!{searchMap.txt2html("target")})
+					#if("MOD"== $!{searchMap.txt2html("mode")})
+    					의견수정
+    				#else
+    					답변등록
+    				#end
+				#else
+    				#if("MOD"== $!{searchMap.txt2html("mode")})
+    					코칭수정
+    				#else
+    					답변등록
+    				#end
+				#end
+				#set ($content = $!{CS_HTML.txt2html($content1.CONTENT )} )
+			#end
+			</td>
+    	</tr>
+    	<tr><td class="tit_line"></td></tr>
+    	<tr><td height="5"></td></tr>
+    	<tr>
+    		<td>
+    			<table width="100%" border="0" cellspacing="0" cellpadding="0" summary="">
+        		<caption ></caption>
+            	<tr class="none">
+        			<th scope="col"></th>
+                </tr>
+    			<tr >
+    				<td class="textCenter"><textarea rows="10" cols="65" id="content" name="content" title="내용입력">$!{CS_HTML.txt2html($content )}</textarea>
+                    <div class="textRight"><span id="indicator">0</span>/3500byte</div></td>
+    			</tr>
+    			</table>
+    		</td>
+		</tr>
+	</table>
+	<div id="splitterBox">
+		<div>
+			<div class="blockButton_all">			
+				<div class="blockButton">			
+					<ul>
+						<li><input type="submit" id="btnInsert" value="저장" /></li>
+						<li><input type="button" id="btnClose" value="닫기" /></li>
+						<li>&nbsp;&nbsp;&nbsp;&nbsp;</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="dialog" title="확인"><p>&nbsp;</p></div>    <!-- 다이어로그 -->
+    </form>
+</body>
+</html>

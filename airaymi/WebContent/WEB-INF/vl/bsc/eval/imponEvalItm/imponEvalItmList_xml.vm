@@ -1,0 +1,42 @@
+#*************************************************************************
+* CLASS 명      : imponEvalItmList_xml
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 7월 24일 
+* 기    능      : 비계량평가항목관리 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김윤기     2012년 7월 24일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"MON"                  : "$!{CS_HTML.txt2html($list.MON)}", 
+		"METRIC_GRP_ID"        : "$!{CS_HTML.txt2html($list.METRIC_GRP_ID)}", 
+		"ITEM_CD"              : "$!{CS_HTML.txt2html($list.ITEM_CD)}", 
+		"ITEM_NM"              : "$!{CS_HTML.txt2html($list.ITEM_NM)}",
+		 
+		#foreach($subList in $itmList)
+			"$!{CS_HTML.txt2html($subList.CODE_ID)}" : "$!{CS_HTML.txt2html($list.get($subList.CODE_ID))}",
+		#end
+		 
+		"WEIGHT"               : "$!{CS_HTML.txt2html($list.WEIGHT)}"
+	}
+	
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

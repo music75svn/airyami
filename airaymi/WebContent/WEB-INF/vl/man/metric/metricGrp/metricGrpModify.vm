@@ -1,0 +1,738 @@
+#*************************************************************************
+* CLASS 명	: metricGrpModify
+* 작 업 자		: 김민주
+* 작 업 일		: 2013년 06월 27일
+* 기    능		: KGS2020KPI POOL
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    김 민 주      2013년 06월 27일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/man/metric/metricGrp/metricGrpList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * 실적산식 검증버튼 이벤트
+		 ******************************************/
+		J("#btnActCalType").click(function(e) {
+			//checkModifyCalType();
+		});
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#contentIndicator"),
+			limit:1000
+		});
+		J("#content").trigger("keyup");
+		
+		/******************************************
+		 * 득점산식 구간대 변경이벤트
+		 ******************************************/
+		J("#scoreCalTypeGubun").bind('change', function() {
+			dispSection();
+		});
+		
+		/******************************************
+		 * 점수구간 숫자만 입력받기
+		 ******************************************/
+		J("input[name=viewValues]").numeric({allow:".-"});
+		J("input[name=viewValues]").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 환산점수 숫자만 입력받기
+		 ******************************************/
+		J("input[name=conversionScores]").numeric({allow:"."});
+		J("input[name=conversionScores]").css("ime-mode", "disabled");
+
+		/******************************************
+		 * 화면 초기셋팅
+		 ******************************************/
+		init();
+		
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchor").fancybox();            //산식입력 팝업
+		
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		var val = J("input[name='viewValues']").val();
+		
+		if(!J.checkLength("manKpiGrpNm", "KGS2020KPI POOL명", 1, 300)) {
+			return;
+		}
+		
+		if(J("#typeId").val() == "01") {
+			if(J("#evalCycle").val() == "") {
+				J.showMsgBox("주기를 선택하십시오.", null, "evalCycle");
+				return;
+			}
+			
+			if(J("#timeRollup").val() == "") {
+				J.showMsgBox("기간합산을 선택하십시오.", null, "timeRollup");
+				return;
+			}
+			
+			if(J("#unit").val() == "") {
+				J.showMsgBox("단위를 선택하십시오.", null, "unit");
+				return;
+			}
+		}
+		
+			if(J("#cpcGubun").val() == "") {
+				J.showMsgBox("누적실적합산을 선택하십시오.", null, "cpcGubun");
+				return;
+			}
+		
+		if (J("input[name='deleteDt']:checked").val() == undefined) {
+			J.showMsgBox("사용여부를 선택해 주십시요", null, "deleteDt1");
+			return;
+		}
+/*		
+		if(isNaN(val) == true) {
+				alert("점수확인 하십시요.");
+				J("input[name='viewValues']").focus();
+				return false;
+			}
+*/		
+		if(J("#typeId").val() == "01"){ //정량지표일 경우	
+			if(!J.checkLength("actCalType", "지표산식", 1, 500)) {
+    			return;
+    		}
+    		
+			if((J("#scoreCalTypeGubun").val() == "01" || J("#scoreCalTypeGubun").val() == "03") && J("#scoreCalTypeId").val() == "") {
+    			J.showMsgBox("득점산식을 선택해 주십시요", null, "scoreCalTypeId");
+    			return;
+    		}
+    		
+			//실적산식 입력 체크
+    		if(!actCalTypeColSaveChk()) return;
+    		
+    		//구간 입력 체크
+            if(!scoreCalTypeSaveChk()) return;
+    		
+            //구간대처리
+            if(!calEvalSection()) return;
+    	}
+				
+		document.charset='utf-8';
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+	
+	/******************************************
+	 * 산식항목 입력 체크
+	 ******************************************/
+	function actCalTypeColSaveChk() {
+		var saveChk = true; 
+		
+		//단위 체크
+		J("select[name=units]", "#actCalTypeArea").each(function(index, item) {
+			if(J(item).val() == "") {
+				J.showMsgBox("단위를 입력해 주십시오.", null, J('select[name=units]').eq(index));
+				saveChk = false;
+				return false;
+			}
+		});
+		
+		//실적입력구분 체크
+		J("select[name=insertGubuns]", "#actCalTypeArea").each(function(index, item) {
+			if(J(item).val() == "") {
+				J.showMsgBox("실적입력구분을 입력해 주십시요", null, J('select[name=insertGubuns]').eq(index));
+				saveChk = false;
+				return false;
+			}
+		});
+		
+		//산식항목명 체크
+		J("input[name=calTypeColNms]", "#actCalTypeArea").each(function(index, item) {
+			if(J(item).val() == "") {
+				J.showMsgBox("산식항목명을 입력해 주십시요", null, J('input[name=calTypeColNms]').eq(index));
+				saveChk = false;
+				return false;
+			}
+		});
+		
+		return saveChk;
+	}
+	
+	/******************************************
+	 * 등록구간 입력 체크
+	 ******************************************/
+	function scoreCalTypeSaveChk() {
+		var saveChk = true; 
+		
+        if( J("#scoreCalTypeGubun").val() == "02" || J("#scoreCalTypeGubun").val() == "03" || J("#scoreCalTypeGubun").val() == "04" ) {
+            
+            J("input[name=conversionScores]", "#evalSectionArea").each(function(index, item) {
+                if(J(item).val() == "") {
+                    J.showMsgBox("환산점수를 입력해 주십시요", null, J('input[name=conversionScores]').eq(index));
+                    saveChk = false;
+                    return false;
+                }
+                if( isNaN(J(item).val())) {
+                    J.showMsgBox("환산점수을 숫자만 입력 가능합니다.", null, J('input[name=conversionScores]').eq(index));
+                    saveChk = false;
+                    return false;
+                }
+            });
+            
+            J("input[name=viewValues]", "#evalSectionArea").each(function(index, item) {
+                if(J(item).val() == "") {
+                    J.showMsgBox("점수구간을 입력해 주십시요", null, J('input[name=viewValues]').eq(index));
+                    saveChk = false;
+                    return false;
+                }
+                if( isNaN(J(item).val())) {
+                    J.showMsgBox("점수구간을 숫자만 입력 가능합니다.", null, J('input[name=viewValues]').eq(index));
+                    saveChk = false;
+                    return false;
+                }
+                
+            });
+            
+        }
+		
+        return saveChk;
+	}
+	
+	/******************************************
+	 * 구간대 처리
+	 ******************************************/
+	function calEvalSection() {
+		var value = J("#scoreCalTypeGubun").val(); 
+		var cnt = J("input[name=viewValues]").length ;
+		
+    	var firstVal = "";
+    	var lastVal = "";
+    	var isDescending = true;
+		
+    	if (value == "02" || value == "03" || value == "04") {
+    		var tmp_0 = 0 ;
+    		var tmp_1 = 0 ;
+			
+    		if( "" != J("input[name=viewValues]").eq(0).val() && "" != J("input[name=viewValues]").eq(1).val()) {
+    			tmp_0 = parseFloat(J("input[name=viewValues]").eq(0).val());
+    			tmp_1 = parseFloat(J("input[name=viewValues]").eq(1).val());
+    			if(tmp_0 > tmp_1 && value == "02" || value == "03") {
+    				isDescending = true;
+    			} else if( tmp_0 < tmp_1 && value == "04") {
+    				isDescending = false;
+    			} else {
+                    alert("상/하향구간 점수가 잘못 되어있습니다.");
+                    J("input[name=viewValues]").eq(0).focus()
+    				return false;
+    			}
+    		} else {
+    			return false;
+    		}
+			
+    		for(var i = 2; i < cnt - 1; i++) {
+    			tmp_0 = parseFloat(J("input[name=viewValues]").eq(i-1).val());
+    			tmp_1 = parseFloat(J("input[name=viewValues]").eq(i).val());
+    			if(isDescending) {
+    				if(tmp_0 > tmp_1) {
+    				} else {
+                        alert("상향구간 점수가 잘못 되어있습니다.");
+                        J("input[name=viewValues]").eq(i).focus()
+    					return false;
+    				}
+    			} else {
+    				if(tmp_0 < tmp_1) {
+    				} else {
+                        alert("하향구간 점수가 잘못 되어있습니다.");
+                        J("input[name=viewValues]").eq(i).focus()
+    					return false;
+    				}
+    			}
+    		}
+    	}
+		
+    	if(isDescending) {
+    		firstVal = "9999999";
+    		lastVal = "-9999999";
+    	} else {
+    		firstVal = "-9999999";
+    		lastVal = "9999999";
+    	}
+        
+    	if (value == "02" || value == "03") {
+    		for(var i = 0; i < cnt; i++) {
+    			if (i == 0) {
+					J("input[name=fromValues]").eq(i).val( J("input[name=viewValues]").eq(i).val() );
+					J("input[name=toValues]").eq(i).val(firstVal);
+    			} else if (i == cnt-1) {
+					J("input[name=fromValues]").eq(i).val(lastVal);
+					J("input[name=toValues]").eq(i).val( J("input[name=viewValues]").eq(i).val() );
+    			} else {
+					J("input[name=fromValues]").eq(i).val( J("input[name=viewValues]").eq(i).val() );
+					J("input[name=toValues]").eq(i).val( J("input[name=viewValues]").eq(i-1).val() );
+    			}
+    		}
+    	} else if (value == "04") {
+    		for(var i = 0; i < cnt; i++) {
+    			if (i == 0) {
+					J("input[name=fromValues]").eq(i).val(firstVal);
+					J("input[name=toValues]").eq(i).val( J("input[name=viewValues]").eq(i).val() );
+    			} else if (i == cnt-1) {
+					J("input[name=fromValues]").eq(i).val( J("input[name=viewValues]").eq(i-1).val() );
+					J("input[name=toValues]").eq(i).val(lastVal);
+    			} else {
+					J("input[name=fromValues]").eq(i).val( J("input[name=viewValues]").eq(i-1).val() );
+					J("input[name=toValues]").eq(i).val( J("input[name=viewValues]").eq(i).val() );
+    			}
+    		}
+    	}
+    	return true;
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		
+		J("#useYn").attr("disabled", false);
+		J("#actCalTypeTemplate").remove();
+		J("#form1").attr("action", "$!{context_path}/man/metric/metricGrp/metricGrpProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 실적산식 변경시 실적항목 변경
+	 ******************************************/
+	function checkModifyCalType() {
+		var actCalTypeNm = J("#actCalType").val();
+		var str = actCalTypeNm.extChar().split("/").unique(); //산식 배열
+		var strSize = str.length - 1; //산식항목 개수
+		
+		var obj = J("#actCalTypeTB tbody tr");
+		var objSize = obj.length;
+		
+		//기존 산식항목 삭제
+		if(objSize > 3) { 
+    		for(var i = objSize - 2; i > 1; i--) {
+    			obj.eq(i).remove();
+    		}
+		}
+		
+		//신규 산식항목 설정
+		for(var i = 0; i < strSize; i++) {
+			J("#actCalTypeTemplate tr td:first span").text(str[i]);
+			J("#actCalTypeTemplate input[name=calTypeCols]").val(str[i]);
+			J("#actCalTypeTemplate tr").clone().insertBefore("#kpiActCalTypeNm");
+		}
+	}
+	
+	/*****************************************************
+	 * 득점산식 구분에 의한 평가구간을 활성 비활성 한다.
+	 *****************************************************/
+    function dispSection() {
+    	var arg = J("#scoreCalTypeGubun").val();
+		
+    	if(arg == "02" || arg == "03" || arg == "04") {
+			J("#evalSectionArea").show();
+    	} else {
+    		J("#evalSectionArea").hide();
+    	}
+		
+    	if(arg == "02" || arg == "04") {
+			J("#scoreCalTypeId option:eq(0)").attr("selected", "selected");
+			J("#scoreCalTypeId").attr("disabled", true);
+    	} else {
+    		if(J("#typeId").val() == "01"){ //정량지표일 경우
+				J("#scoreCalTypeId").removeProp("disabled");
+				J("#scoreCalTypeId").val(J("#orgScoreCalTypeId").val());
+    		}
+    	}
+		
+    	if(arg == "02" || arg == "03") { //상향구간대, 득점산식+구간대
+			J("span.optionStr").text("이상");
+			J("span.optionStr:last").text("미만");
+    	} else if(arg == "04") { //하향구간대
+			J("span.optionStr").text("이하");
+			J("span.optionStr:last").text("초과");
+    	}
+    }
+	
+	/*****************************************************
+	 * 평가유형(계량) 이벤트
+	 *****************************************************/
+    function onChgTypeid() {
+		var typeId = J("#typeId").val();
+		var arg = J("#scoreCalTypeGubun").val();
+		
+		if(typeId == "01") {  //계량일 경우
+			J("#actCalTypeStr").show();
+			J("#actCalTypeArea").show();
+			J("#scoreCalTypeArea").show();
+			
+			if(arg == "02" || arg == "03" || arg == "04") {
+				J("#evalSectionArea").show();
+			}
+			
+			J("#unit").val(J("#orgUnit").val());
+			J("#unit").attr("disabled", false);
+			J("#unitValidation").show();
+			J("#evalCycle").val(J("#orgEvalCycle").val());
+			J("#evalCycle").attr("disabled", false);
+			J("#timeRollup").val(J("#orgTimeRollup").val());
+			J("#timeRollup").attr("disabled", false);
+			
+		} 
+	}
+	
+	/*****************************************************
+	 * 화면초기셋팅
+	 *****************************************************/ 
+	function init() {
+		onChgTypeid(); //평가유형(정량/정성)에 따른 설정
+		dispSection(); //득점산식 구분에 따른 설정
+		
+		//사용중이고 하위KPI가 존재하는 경우 삭제못함
+		#if($!{CS_HTML.txt2html($detail.DELETE_DT)} == "Y" && $!{CS_HTML.txt2html($detail.CNT)} != "0")
+			J("#useYn").attr("disabled", true);
+        #end
+	}
+	
+	/*****************************************************
+	 * 산식입력기 팝업
+	 *****************************************************/ 
+	function popCalTypeCol() {
+		var actCalType = J("#actCalType").val();
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popCalTypeCol.vw?findYear=$!{searchMap.txt2html("year")}&amp;actCalType=" + actCalType);
+		J("#anchor").click();
+	}
+	
+//]]>
+</script>    
+ 
+	<form id="form1" name="form1" method="post" action="$!{context_path}/man/metric/metricGrp/metricGrpProcess.vw?type=template">
+    <input type="hidden" id="mode"		    	name="mode"		     		value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden" id="year"           	name="year"           		value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden" id="orgScoreCalTypeId"	name="orgScoreCalTypeId"	value="$!{CS_HTML.txt2html($detail.SCORE_CAL_TYPE_ID)}" />
+	<input type="hidden" id="orgUnit"           name="orgUnit"				value="$!{CS_HTML.txt2html($detail.UNIT)}" />
+	<input type="hidden" id="orgEvalCycle"		name="orgEvalCycle"			value="$!{CS_HTML.txt2html($detail.EVAL_CYCLE)}" />
+	<input type="hidden" id="orgTimeRollup"		name="orgTimeRollup"		value="$!{CS_HTML.txt2html($detail.TIME_ROLLUP)}" />
+	<input type="hidden" id="orgActCalType"		name="orgActCalType"		value="$!{CS_HTML.txt2html($detail.ACT_CAL_TYPE)}" />
+	<input type="hidden" id="deptCnt"			name="deptCnt"				/>
+	<input type="hidden" id="actMons"			name="actMons"				/>
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			
+    		<div class="blockDetail">
+    			<table summary="KGS2020KPI POOL 등록">
+					<caption class="none">KGS2020KPI POOL 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="35%" />
+						<col width="15%" />
+						<col width="35%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row"><label for="manKpiGrpId">KGS2020KPI POOL코드</label></th>
+    						<td colspan="3">
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.MAN_KPI_GRP_ID)}
+									<input type="hidden" id="manKpiGrpId" name="manKpiGrpId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.MAN_KPI_GRP_ID)}" maxlength="7" readonly="readonly"/>
+								#else
+									<input type="hidden" id="manKpiGrpId" name="manKpiGrpId" class="inputbox w100" maxlength="7" />
+									※ 저장시 자동으로 부여됩니다.
+								#end
+							</td>
+    					</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="manKpiGrpNm">KGS2020KPI POOL명</label></th>
+							<td colspan="3">
+								<input type="text" id="manKpiGrpNm" name="manKpiGrpNm" class="inputbox w600" value='$!{CS_HTML.txt2html($detail.MAN_KPI_GRP_NM)}' maxlength="300"/>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="description">설명</label></th>
+							<td colspan="3">
+								<input type="text" id="description" name="description" class="inputbox w600" value='$!{CS_HTML.txt2html($detail.DESCRIPTION)}' maxlength="300"/>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="typeId">평가유형</label></th>
+							<td>
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.TYPE_NM)}
+									<input type="hidden" id="typeId" name="typeId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.TYPE_ID)}" maxlength="7" readonly="readonly"/>
+								#else
+									계량
+									<input type="hidden" id="typeId" name="typeId" class="inputbox w100" maxlength="7" value="01"/>
+								#end
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span><label for="evalCycle">주기</label></th>
+							<td>
+								<select id="evalCycle" name="evalCycle" class="select w210" >
+									<option value=''>==선택==</option>
+    								$!CS_CODE.getCodeOption("008", $!{CS_HTML.txt2html($detail.EVAL_CYCLE)})	
+    							</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="timeRollup">기간합산</label></th>
+							<td>
+								<select id="timeRollup" name="timeRollup" class="select w210" >
+									<option value=''>==선택==</option>
+    								$!CS_CODE.getCodeOption("009", $!{CS_HTML.txt2html($detail.TIME_ROLLUP)})	
+    							</select>
+							</td>
+							<th scope="row"><span class="txt_red">(*)</span><label for="unit">단위</label></th>
+							<td>
+								<select id="unit" name="unit" class="select w210" >
+									<option value=''>==선택==</option>
+    								$!CS_CODE.getCodeOption("013", $!{CS_HTML.txt2html($detail.UNIT)})	
+    							</select>
+							</td>
+						</tr>
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span><label for="cpcGubun">누적실적합산</label></th>
+    						<td colspan="1">
+    							<select id="cpcGubun" name="cpcGubun" class="select w210" >
+									<option value=''>==선택==</option>
+    								$!CS_CODE.getCodeOption("201", $!{CS_HTML.txt2html($detail.CPC_GUBUN)})	
+    							</select>
+    						</td>
+    						<th scope="row"><span class="txt_red">(*)</span><label for="deleteDt">사용여부</label></th>
+    						<td colspan="1">
+    							<input type="radio" id="deleteDt1" name="deleteDt" value="Y" $!{CS_HTML.getChecked($!{CS_HTML.txt2html($detail.DELETE_DT, 'Y')}, 'Y')} /> 사용 &nbsp;&nbsp;&nbsp;
+    							<input type="radio" id="deleteDt2" name="deleteDt" value="N" $!{CS_HTML.getChecked($!{CS_HTML.txt2html($detail.DELETE_DT, 'Y')}, 'N')} /> 미사용
+    						</td>
+    					</tr>
+						<tr>
+							<th scope="row"><label for="content">비고</label></th>
+							<td colspan="3">
+    							<textarea id="content" name="content" class="tabletext" title="비고" cols="" rows="10">$!{CS_HTML.txt2html($detail.CONTENT)}</textarea>
+								<span id="indicator">0</span>/1000byte
+							</td>
+						</tr>
+    				</tbody>
+				</table>
+    		</div>
+    				
+			<!-- 실적산식 -->
+			<span id="actCalTypeStr" class="none">※ $!{METRIC_NM}산식을 변경하시면, 산식항목을 새로 입력하셔야 합니다.</span>
+			<div id="actCalTypeArea" class="blockDetail2 none">
+    			<table id="actCalTypeTB" summary="산식항목 등록">
+    				<caption class="none">산식항목 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="25%" />
+						<col width="10%" />
+						<col width="10%" />
+						<col width="20%" />
+						<col width="20%" />
+    				</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row"><label for="actCalType">$!{METRIC_NM} 산식</label></th>
+    						<td colspan="3">
+								<input type="text" id="actCalType" name="actCalType" class="inputbox wp90" value='$!{CS_HTML.txt2html($detail.ACT_CAL_TYPE)}' maxlength="300" readonly="readonly"/>
+								<input type="image" onclick="javascript:popCalTypeCol();return false;" class="valign_middle" src="$!{img_path}/common/bt_05.gif" alt="산식입력"/>
+							</td>
+    					</tr>
+    					<tr id="actCalTypeList">
+    						<th scope="row">산식항목</th>
+    						<th scope="row">산식항목명</th>
+							<th scope="row">실적입력구분</th>
+							<th scope="row">단위</th>
+    					</tr>
+				
+                        #foreach($list in $calTypeColList)
+    						<tr>
+        						<td>
+									<span>$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}</span>
+									<input type="hidden" name="calTypeCols" class="inputbox wp90" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}"/>
+								</td>
+        						<td>
+									<input type="text" name="calTypeColNms" class="inputbox wp90" value="$!{CS_HTML.txt2html($list.CAL_TYPE_COL_NM)}" maxlength="80" title="산식항목"/>
+								</td>
+    							<td>
+									수기
+        							<input type="hidden" name="insertGubuns" class="inputbox wp90" value="02" maxlength="80" title="입력구분"/>
+								</td>
+    							<td>
+									<select name="units" class="select w90" title="단위">
+                                        <option value="">미지정</option>
+										$!CS_CODE.getCodeOption("013", $list.UNIT, $!{searchMap.txt2html("year")})
+									</select>
+								</td>
+        					</tr>
+                        #end
+				
+						<tr id="kpiActCalTypeNm">
+    						<th scope="row">$!{METRIC_NM} 산식명</th>
+							<td class="textLeft" colspan="3"><span>$!{calTypeColDesc}</span></td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		
+    		<!-- 득적산식 -->
+			<div id="scoreCalTypeArea" class="blockDetail2 none">
+    			<table summary="득점산식 등록">
+    				<caption class="none">득점산식 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row" colspan="2" style="text-align:left; padding-left:85px">득점산식</th>
+    					</tr>
+    					<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="scoreCalTypeGubun">득점산식구분</label></th>
+    						<td style="text-align:left; padding-left:20px">
+								<select id="scoreCalTypeGubun" name="scoreCalTypeGubun" class="select w200">
+    								<option value="01" selected="selected">득점산식</option>
+    							</select>
+							</td> 
+    					</tr>
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="scoreCalTypeId">득점산식</label></th>
+    						<td style="text-align:left; padding-left:20px">
+								<select id="scoreCalTypeId" name="scoreCalTypeId" class="select wp98">
+									<option value="">미지정</option>
+    								#foreach($list in $scoreCalTypeList)
+										<option value="$!{CS_HTML.txt2html($list.CAL_TYPE_ID)}" $!{CS_HTML.getSelected($!{CS_HTML.txt2html($list.CAL_TYPE_ID)}, $!{CS_HTML.txt2html($detail.SCORE_CAL_TYPE_ID)})}>[$!{CS_HTML.txt2html($list.CAL_TYPE_ID)}]$!{CS_HTML.txt2html($list.CAL_TYPE_NM)}</option>
+									#end
+    							</select>
+							</td> 
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+			
+			<!-- 평가등급 구간대 -->
+			<div id="evalSectionArea" class="blockDetail2 none">
+    			<table summary="평가등급구간대 등록">
+    				<caption class="none">평가등급구간대 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="15%" />
+						
+						#foreach($list in $evalSectionList)
+							<col width="14%" />
+						#end
+						
+    				</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row" rowspan="3"><span class="txt_red">(*)</span> 평가등급구간대</th>
+    						<th scope="row">구간분류</th>
+							
+							#foreach($list in $evalSectionList)
+    							<th scope="row">$!{CS_HTML.txt2html($list.EVAL_SECTION_NM)}</th>
+							#end
+							
+    					</tr>
+						<tr>
+							<th scope="row">점수구간</th>
+							
+							#set($curValue = "")
+							#set($lastValue = "")
+							#set($idx = 1)
+							#set($evalSectionListSize = $!{CS_HTML.txt2html($evalSectionList.size())})
+							#foreach($list in $evalSectionList)
+								#if($idx == $evalSectionListSize)
+									#set($curValue = $!{lastValue})
+								#else
+									#set($curValue = $!{CS_HTML.txt2html($list.VIEW_VAL)})
+								#end
+    							<td>
+									<input type="hidden" name="evalSectionIds" class="inputbox w50" value="$!{CS_HTML.txt2html($list.EVAL_SECTION_ID)}" />
+    								<input type="text" name="viewValues" class="inputbox w50" value="$!{curValue}" maxlength="9" title="점수"/>
+									<input type="hidden" name="fromValues" class="inputbox w50" value="$!{CS_HTML.txt2html($list.FROM_VALUE)}" />
+									<input type="hidden" name="toValues" class="inputbox w50" value="$!{CS_HTML.txt2html($list.TO_VALUE)}" />
+									<span class="optionStr">이상</span>
+    							</td>
+								#set($idx = $idx + 1)
+								#set($lastValue = $curValue)
+							#end
+							
+    					</tr>
+						<tr>
+    						<th scope="row">환산점수</th>
+							#foreach($list in $evalSectionList)
+								<td>
+    								<input type="text" name="conversionScores" class="inputbox w80" value="$!{CS_HTML.txt2html($list.CONVERSION_SCORE)}" maxlength="5" title="환산점수"/>
+    							</td>
+							#end
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+			
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="button" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<a id="anchor"></a>
+    	<div class="clear"></div>
+    </div>
+</form>
+
+<table id="actCalTypeTemplate" class="none" summary="산식항목">
+	<tr>
+        <td>
+			<span></span>
+			<input type="hidden" name="calTypeCols" class="inputbox wp90" value=""/>
+		</td>
+        <td>
+			<input type="text" name="calTypeColNms" class="inputbox wp90" value="" maxlength="80" title="산식항목"/>
+        </td>
+        <td>수기
+        	<input type="hidden" name="insertGubuns" class="inputbox wp90" value="02" maxlength="80" title="입력구분"/>
+        </td>
+        <td>
+            <select name="units" class="select w90" title="단위">
+                <option value="">미지정</option>
+            	$!CS_CODE.getCodeOption("013", "", $!{searchMap.txt2html("year")})
+            </select>
+        </td>
+	</tr>
+</table>

@@ -1,0 +1,492 @@
+#*************************************************************************
+* CLASS 명  : actualStatusList
+* 작 업 자      : 정철수
+* 작 업 일      : 2013년 07월 09일
+* 기    능      : 실적입력승인현황
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     정철수      2013년 07월 09일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/man/tam/actualStatus/actualStatusList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		//입력담당자 리스트
+		jQuery("#insertActuallist").jqGrid({
+			url          :"$!{context_path}/man/tam/actualStatus/actualStatusInsertList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '입력자사번', '입력담당자', '이메일', '담당부서 코드', '담당부서', '전체', '미입력', '입력완료', '확인요청', '확인', '승인', '반려'],
+			colModel     :[
+							{name:'YEAR'                 ,index:'YEAR'                 ,width:150   ,align:'center' },
+                            {name:'INSERT_USER_ID'       ,index:'INSERT_USER_ID'       ,width:150   ,align:'center' },
+                            {name:'INSERT_USER_NM'       ,index:'INSERT_USER_NM'       ,width:150   ,align:'center' },
+                            {name:'EMAIL'                ,index:'EMAIL'                ,width:150   ,align:'center' },
+                            {name:'INSERT_DEPT_ID'       ,index:'INSERT_DEPT_ID'       ,width:150   ,align:'center' },
+                            {name:'INSERT_DEPT_NM'       ,index:'INSERT_DEPT_NM'       ,width:150   ,align:'left'   },
+                            {name:'TOT_CNT'              ,index:'TOT_CNT'              ,width:150   ,align:'center' },
+                            {name:'CNT01'                ,index:'CNT01'                ,width:150   ,align:'center' ,formatter:linkUpdate},
+                            {name:'CNT02'                ,index:'CNT02'                ,width:150   ,align:'center' },
+                            {name:'CNT06'                ,index:'CNT06'                ,width:150   ,align:'center' },
+                            {name:'CNT03'                ,index:'CNT03'                ,width:150   ,align:'center' },
+                            {name:'CNT04'                ,index:'CNT04'                ,width:150   ,align:'center' },
+                            {name:'CNT05'                ,index:'CNT05'                ,width:150   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			cmTemplate   : {sortable:true},
+			caption:"실적입력/승인현황",
+			footerrow	 : true,
+			userDataOnFooter : true,
+			loadComplete : function() {
+				var grid = J("#insertActuallist");
+
+				grid.jqGrid('footerData', 'set', {INSERT_DEPT_NM:"합계"});
+
+				calculateSumGridColumn(grid, "TOT_CNT");
+				calculateSumGridColumn(grid, "CNT01");
+				calculateSumGridColumn(grid, "CNT02");
+				calculateSumGridColumn(grid, "CNT06");
+				calculateSumGridColumn(grid, "CNT03");
+				calculateSumGridColumn(grid, "CNT04");
+				calculateSumGridColumn(grid, "CNT05");
+            }
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"INSERT_USER_ID").jqGrid('hideCol',"EMAIL").jqGrid('hideCol',"INSERT_DEPT_ID").setGridWidth($!{jqGrid_width});
+
+		//확인담당자 리스트
+		jQuery("#checkActuallist").jqGrid({
+			url          :"$!{context_path}/man/tam/actualStatus/actualStatusCheckList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '확인자사번', '확인담당자', '이메일', '확인부서 코드', '확인부서', '전체', '미입력', '입력완료', '확인요청', '확인', '승인', '반려'],
+			colModel     :[
+							{name:'YEAR'                 ,index:'YEAR'                 ,width:150   ,align:'center' },
+                            {name:'APPROVE_USER_ID'      ,index:'APPROVE_USER_ID'      ,width:150   ,align:'center' },
+                            {name:'APPROVE_USER_NM'      ,index:'APPROVE_USER_NM'      ,width:150   ,align:'center' },
+                            {name:'EMAIL'                ,index:'EMAIL'                ,width:150   ,align:'center' },
+                            {name:'APPROVE_DEPT_ID'      ,index:'APPROVE_DEPT_ID'      ,width:150   ,align:'center' },
+                            {name:'APPROVE_DEPT_NM'      ,index:'APPROVE_DEPT_NM'      ,width:150   ,align:'left'   },
+                            {name:'TOT_CNT'              ,index:'TOT_CNT'              ,width:150   ,align:'center' },
+                            {name:'CNT01'                ,index:'CNT01'                ,width:150   ,align:'center' ,formatter:linkUpdate},
+                            {name:'CNT02'                ,index:'CNT02'                ,width:150   ,align:'center' },
+                            {name:'CNT06'                ,index:'CNT06'                ,width:150   ,align:'center' },
+                            {name:'CNT03'                ,index:'CNT03'                ,width:150   ,align:'center' },
+                            {name:'CNT04'                ,index:'CNT04'                ,width:150   ,align:'center' },
+                            {name:'CNT05'                ,index:'CNT05'                ,width:150   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			caption:"실적입력/승인현황",
+			footerrow	 : true,
+			userDataOnFooter : true,
+			loadComplete : function() {
+				var grid = J("#checkActuallist");
+
+				grid.jqGrid('footerData', 'set', {APPROVE_DEPT_NM:"합계"});
+
+				calculateSumGridColumn(grid, "TOT_CNT");
+				calculateSumGridColumn(grid, "CNT01");
+				calculateSumGridColumn(grid, "CNT02");
+				calculateSumGridColumn(grid, "CNT06");
+				calculateSumGridColumn(grid, "CNT03");
+				calculateSumGridColumn(grid, "CNT04");
+				calculateSumGridColumn(grid, "CNT05");
+            }
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"APPROVE_USER_ID").jqGrid('hideCol',"EMAIL").jqGrid('hideCol',"APPROVE_DEPT_ID").setGridWidth($!{jqGrid_width});
+
+
+		//승인담당자 리스트
+		jQuery("#approveActuallist").jqGrid({
+			url          :"{context_path}/man/tam/actualStatus/actualStatusApproveList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '전체', '미입력', '입력완료', '확인요청', '확인','승인', '반려'],
+			colModel     :[
+							{name:'YEAR'								,index:'YEAR'								,width:150   ,align:'center' },
+                            {name:'TOT_CNT'								,index:'TOT_CNT'							,width:150   ,align:'center' },
+                            {name:'CNT01'                				,index:'CNT01'                				,width:150   ,align:'center' ,formatter:linkUpdate},
+                            {name:'CNT02'                				,index:'CNT02'                				,width:150   ,align:'center' },
+                            {name:'CNT06'				                ,index:'CNT06'                				,width:150   ,align:'center' },
+                            {name:'CNT03'				                ,index:'CNT03'                				,width:150   ,align:'center' },
+                            {name:'CNT04'				                ,index:'CNT04'                				,width:150   ,align:'center' },
+                            {name:'CNT05'				                ,index:'CNT05'                				,width:150   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			caption:"실적입력/승인현황",
+			footerrow	 : true,
+			userDataOnFooter : true,
+			loadComplete : function() {
+				var grid = J("#approveActuallist");
+
+				grid.jqGrid('footerData', 'set', {YEAR:"합계"});
+
+				calculateSumGridColumn(grid, "TOT_CNT");
+				calculateSumGridColumn(grid, "CNT01");
+				calculateSumGridColumn(grid, "CNT02");
+				calculateSumGridColumn(grid, "CNT06");
+				calculateSumGridColumn(grid, "CNT03");
+				calculateSumGridColumn(grid, "CNT04");
+				calculateSumGridColumn(grid, "CNT05");
+            }
+		}).jqGrid('hideCol',"YEAR").setGridWidth($!{jqGrid_width});
+
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+    	 * jqGrid 수정페이지 링크
+    	 ******************************************/
+    	function linkUpdate(cellvalue, options, rowObject) {
+    		return '<span class="txt_red">' + cellvalue + '</span>';
+    	}
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+		/******************************************
+		 * 메일 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnMail").click(function() {
+			mailWrite();
+			return false;
+		});
+
+		/******************************************
+		 * 실적집계 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnProc").click(function() {
+			goExecute();
+			return false;
+		});
+
+		/******************************************
+		 * 실적 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnMapping").click(function() {
+			goActual();
+			return false;
+		});
+
+		J("#execYear").val(J("#findYear").val());
+		J("#execMon").val(J("#findMon").val());
+	});
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#year").val(J("#findYear").val());
+		J("#mon").val(J("#findMon").val());
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#monNm").val(J("#findMon > option:selected").text());
+		J("#statusNm").val(J("#findStatus > option:selected").text());
+
+
+	 	#if($!{searchMap.txt2html("gubun")} == "01")
+			J("#formList").attr("action", "$!{context_path}/man/tam/actualStatus/actualInsertStatusListExcel.vw?type=excel").submit();
+		#elseif($!{searchMap.txt2html("gubun")} == "02")
+			J("#formList").attr("action", "$!{context_path}/man/tam/actualStatus/actualCheckStatusListExcel.vw?type=excel").submit();
+		#elseif($!{searchMap.txt2html("gubun")} == "03")
+			J("#formList").attr("action", "$!{context_path}/man/tam/actualStatus/actualApproveStatusListExcel.vw?type=excel").submit();
+		#end
+		return false;
+	}
+
+	/******************************************
+	 * 집계
+	 ******************************************/
+	function goExecute() {
+		J.showConfirmBox("집계를 실행하시겠습니까?", "excuteDo"); //excuteDo() 콜백함수 호출
+	}
+
+
+	/******************************************
+	 * 집계
+	 ******************************************/
+	function excuteDo() {
+		J("#year").val(J("#execYear").val());
+		J("#mon").val(J("#execMon").val());
+		J("#procId").val("SP_MAN_SCORE_KGS");
+		J("#mode").val("CALL");
+		J.showMsgBox("집계를 실행합니다.<br/> 완료될 때까지 잠시만 기다려 주십시요.", null, null);
+		J("#formList").attr("action", "$!{context_path}/man/tam/actualStatus/actualStatusProcess.vw?type=template").submit();
+
+	}
+
+	/******************************************
+	 * 실적반영
+	 ******************************************/
+	function goActual() {
+		J.showConfirmBox("내평지표 실적을 반영 하시겠습니까?", "actualDo"); //actualDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 실적반영
+	 ******************************************/
+	function actualDo() {
+		J("#year").val(J("#execYear").val());
+		J("#mon").val(J("#execMon").val());
+		J("#procId").val("SP_STR_ACTUAL");
+		J("#mode").val("CALL");
+		J("#formList").attr("action", "$!{context_path}/man/tam/actualStatus/actualStatusProcess.vw?type=template").submit();
+
+	}
+
+	/******************************************
+	 * 메일발송 팝업
+	 ******************************************/
+	function mailWrite(){
+		var list = "";
+		var id = "";
+		var ids = "";
+		var rowdata = "";
+		var toMail = "";
+		var toName = "";
+		var toNameList = "";
+
+		#if($!{searchMap.txt2html("gubun")} == "01")
+			list = "insertActuallist";
+			id = J("#insertActuallist").getGridParam('selarrrow');
+			ids = J("#insertActuallist").jqGrid('getDataIDs');
+		#elseif($!{searchMap.txt2html("gubun")} == "02")
+			list = "checkActuallist";
+			id = J("#checkActuallist").getGridParam('selarrrow');
+			ids = J("#checkActuallist").jqGrid('getDataIDs');
+		#elseif($!{searchMap.txt2html("gubun")} == "03")
+			list = "approveActuallist";
+			id = J("#approveActuallist").getGridParam('selarrrow');
+			ids = J("#approveActuallist").jqGrid('getDataIDs');
+		#end
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#"+ list).getRowData(ids[i]);
+					if(rowdata.EMAIL != '' && rowdata.EMAIL != null) {
+    					toMail += rowdata.EMAIL + "|";
+
+    					#if($!{searchMap.txt2html("gubun")} == "01")
+							toName += rowdata.INSERT_USER_NM + "|";
+							toNameList += rowdata.INSERT_USER_NM + "<" + rowdata.EMAIL + ">;";
+    					#else
+							toName += rowdata.APPROVE_USER_NM + "|";
+    						toNameList += rowdata.APPROVE_USER_NM + "<" + rowdata.EMAIL + ">;";
+    					#end
+					}
+				}
+			});
+		}
+
+		if(!J.gridSelectChk(list)){
+			J.showMsgBox("메일을 전송할 대상자를 선택하십시요", null, null);
+		} else {
+			openWinByName('','pop','900','430','no');
+
+			J("#toMail").val(toMail);
+    		J("#toName").val(toName);
+			J("#toNameList").val(toNameList);
+    		J("#mailForm").attr("target", "pop");
+    		J("#mailForm").attr("action", "$!{context_path}/bsc/module/commModule/popSendMail.vw?type=popup").submit();
+    	}
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">실적입력승인현황</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/man/tam/actualStatus/actualStatusList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  	name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   	name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      	name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden" 	id="execYear"		 	name="execYear" 		value="$!{searchMap.txt2html("execYear")}" />
+				<input type="hidden" 	id="execMon"  			name="execMon"  		value="$!{searchMap.txt2html("execMon")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="실적입력승인현황검색 조건">
+						<caption class="none">실적입력승인현황 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEARMON}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+										<select id="findMon" name="findMon" class="select w70">
+            								$!CS_CODE.getCodeOption("024", $!{searchMap.txt2html("findMon")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w170">
+									<span>처리상태</span>
+            						<span class="searchBar">
+            							<select id="findStatus" name="findStatus" class="select w70">
+											<option value=""  #if($!{searchMap.txt2html("findStatus")} == "")  selected="selected" #end >전체</option>
+            								<option value="N" #if($!{searchMap.txt2html("findStatus")} == "N") selected="selected" #end >미완료</option>
+											<option value="Y" #if($!{searchMap.txt2html("findStatus")} == "Y") selected="selected" #end >완료</option>
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+									<span>구분</span>
+            						<span class="searchBar">
+            							<input type="radio" id="gubun1" name="gubun" value="01" $!{CS_HTML.getChecked($!{searchMap.txt2html("gubun")}, '01')} /> 입력현황 &nbsp;
+            							<input type="radio" id="gubun2" name="gubun" value="02" $!{CS_HTML.getChecked($!{searchMap.txt2html("gubun")}, '02')} /> 확인현황 &nbsp;
+            							<input type="radio" id="gubun3" name="gubun" value="03" $!{CS_HTML.getChecked($!{searchMap.txt2html("gubun")}, '03')} /> 승인현황
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/man/tam/actualStatus/actualStatusProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"		 		name="year" />
+			<input type="hidden" id="mons" 				name="mons" />
+			<input type="hidden" id="mon"  				name="mon" />
+			<input type="hidden" id="yearNm" 	 		name="yearNm" />
+			<input type="hidden" id="statusNm" 	 		name="statusNm" />
+			<input type="hidden" id="monNm"  			name="monNm" />
+			<input type="hidden" id="manKpiIds" 		name="manKpiIds" />
+			<input type="hidden" id="manKpiId"  		name="manKpiId" />
+			<input type="hidden" id="procId"	 		name="procId" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div id="insertStatusGrid" class="blockGridListTable #if($!{searchMap.txt2html("gubun")} == "02" || $!{searchMap.txt2html("gubun")} == "03") none #end">
+						<table id="insertActuallist" summary="실적입력현황 조회결과">
+							<caption class="none">실적입력현황 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!-- 데이터그리드 Start -->
+					<div id="checkStatusGrid" class="blockGridListTable #if($!{searchMap.txt2html("gubun")} == "01" || $!{searchMap.txt2html("gubun")} == "03") none #end">
+						<table id="checkActuallist" summary="실적확인현황 조회결과">
+							<caption class="none">실적확인현황 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager2"></div>
+					</div>
+					<!-- 데이터그리드 Start -->
+					<div id="approveStatusGrid" class="blockGridListTable #if($!{searchMap.txt2html("gubun")} == "01" || $!{searchMap.txt2html("gubun")} == "02") none #end">
+						<table id="approveActuallist" summary="실적승인현황 조회결과">
+							<caption class="none">실적승인현황 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager3"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton" style="float:left; text-align:left; width:145px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnMapping" value="내평지표실적반영" /></li>
+								<li><input type="button" id="btnProc" value="실적집계" /></li>
+								#if($!{searchMap.txt2html("gubun")} != "03")
+								##<li><input type="submit" id="btnMail" value="메일발송" /></li>
+								#end
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>
+
+<form id="mailForm" name="mailForm" method="post" action="$!{context_path}/bsc/module/commModule/popSendMail.vw">
+    <input type="hidden" id="toMail" 		name="toMail" />
+	<input type="hidden" id="toName" 	    name="toName" />
+    <input type="hidden" id="toNameList"    name="toNameList" />
+    <input type="hidden" id="mailSendGbn"	name="mailSendGbn" /> <!-- 메일발송 디폴트문구(공통코드:140) -->
+</form>

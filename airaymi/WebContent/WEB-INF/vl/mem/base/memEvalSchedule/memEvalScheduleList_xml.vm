@@ -1,0 +1,44 @@
+#*************************************************************************
+* CLASS 명      : memEvalScheduleList_xml
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년 03월09일 
+* 기    능      : 직원 평가일정 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      유연주     2017년 03월09일             최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+#foreach($list in $list)
+	{
+		"YEAR"              	: "$!{CS_HTML.txt2html($list.YEAR)}",             
+		"IND_START_DT"			: "$!{CS_HTML.txt2html($list.IND_START_DT)}",
+		"IND_END_DT"    		: "$!{CS_HTML.txt2html($list.IND_END_DT)}",  
+		"ACT_START_DT"   		: "$!{CS_HTML.txt2html($list.ACT_START_DT)}", 
+		"ACT_END_DT"     		: "$!{CS_HTML.txt2html($list.ACT_END_DT)}",   
+		"STA_START_DT"       	: "$!{CS_HTML.txt2html($list.STA_START_DT)}",   
+		"STA_END_DT"        	: "$!{CS_HTML.txt2html($list.STA_END_DT)}",       
+		"EVAL_START_DT" 		: "$!{CS_HTML.txt2html($list.EVAL_START_DT)}", 
+		"EVAL_END_DT"     		: "$!{CS_HTML.txt2html($list.EVAL_END_DT)}",   
+		"OBJ_START_DT" 			: "$!{CS_HTML.txt2html($list.OBJ_START_DT)}", 
+		"OBJ_END_DT"     		: "$!{CS_HTML.txt2html($list.OBJ_END_DT)}",
+		"LAST_RST_START_DT" 	: "$!{CS_HTML.txt2html($list.LAST_RST_START_DT)}", 
+		"LAST_RST_END_DT"     	: "$!{CS_HTML.txt2html($list.LAST_RST_END_DT)}",   
+		"CREATE_DT"				: "$!{CS_HTML.txt2html($list.CREATE_DT)}",        
+		"MODIFY_DT"        	  	: "$!{CS_HTML.txt2html($list.MODIFY_DT)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

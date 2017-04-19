@@ -1,0 +1,220 @@
+#*************************************************************************
+* CLASS 명      : evalConGradeList
+* 작 업 자      : 김효은
+* 작 업 일      : 2014년 3월 19일 
+* 기    능      : 직원개인기여도평가 평가등급배분표 관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김효은      2014년 3월 19일             최 초 작 업
+**************************************************************************# 
+
+#set($curr_url = $!{context_path} + "/prs/evalCon/evalConGrade/evalConGradeList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+    var J = jQuery;
+    
+    J(document).ready(function(){
+    
+        /******************************************
+         * 데이터 그리드 출력
+         ******************************************/
+        var str = J('#formFind').serialize();
+        
+        jQuery("#list").jqGrid({
+			url          :"$!{context_path}/prs/evalCon/evalConGrade/evalConGradeList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :[ '평가대상수'
+						  #foreach($itemlist in $itemList)
+						  , '$!{CS_HTML.txt2html($itemlist.GRADE_ITEM_NM)}'
+						  #end
+						  , '평가항목합'
+						  ], 
+			colModel     :[
+							{name:'ITEM_CNT'             ,index:'ITEM_CNT'                 ,width:150   ,align:'center' 		}
+							#foreach($itemlist in $itemList)
+                            , {name:'$!{CS_HTML.txt2html($itemlist.GRADE_ITEM_ID)}'       ,index:'$!{CS_HTML.txt2html($itemlist.GRADE_ITEM_ID)}'       ,width:100   ,align:'center' } 
+                            #end
+							, {name:'VALIDATE_SUM_YN'           ,index:'VALIDATE_SUM_YN'           ,width:150   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			cmTemplate	 : {sortable:false},
+			gridview     : true,
+			caption		 :"등급배분표",
+			loadComplete : function() {
+								// jqGrid 의 데이터 로딩 후 설정 작업 진행
+								var ids = J("#list").jqGrid('getDataIDs');
+								
+								if( ids.length > 0 ){
+									var retVal = "";
+									var isValidate  = true;
+									
+									for(var i = 0 ; i < ids.length ; i++ ){
+										var rowdata = J("#list").getRowData(i + 1);
+										var validateSumYn = rowdata.VALIDATE_SUM_YN ;
+										if( "N" == validateSumYn ){
+											if( isValidate ){
+												retVal += rowdata.ITEM_CNT;
+											}else {
+												retVal += ', ' + rowdata.ITEM_CNT;
+											}
+											isValidate = false;
+										}
+									}
+    								
+    								if( !isValidate ){
+										J("#validateSumYn").html("※  확인 평가대상수 : " + retVal );
+									}
+
+								}
+								
+                           }
+		}).jqGrid('hideCol',"VALIDATE_SUM_YN").setGridWidth($!{jqGrid_width});
+        
+        /******************************************
+         * 조회
+         ******************************************/
+        J("#formFind").submit(function(event) {
+            //submit 하기전 작업추가
+        });
+        
+        /******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+		
+		/******************************************
+		 * 엑셀업로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnUpload").click(function() {
+    		goExcelUp();
+		});
+		
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchor").fancybox();            //엑셀업로드 팝업
+		
+    });
+    
+    /******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear").val() + "년");
+		J("#formList").attr("action", "$!{context_path}/prs/evalCon/evalConGrade/evalConGradeListExcel.vw?type=excel").submit();
+		return false;
+	}
+	
+	
+	function goExcelUp(){
+		var year = J("#findYear").val();
+		var findHighPgmId = J("#findHighPgmId").val();
+		var findSubPgmId = J("#findSubPgmId").val();
+		var findPgmId = J("#findPgmId").val();
+		J("#anchor").attr("href","$!{context_path}/prs/evalCon/evalConGrade/popExcelUpload.vw?findYear=" + year +  "&amp;findHighPgmId=" + findHighPgmId + "&amp;findSubPgmId=" + findSubPgmId + "&amp;findPgmId=" + findPgmId);
+		J("#anchor").click();
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+    <div id="Table_blockContainer">
+        <h1 class="none">직원개인기여도평가 평가등급배분표 관리</h1>
+        <div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/evalCon/evalConGrade/evalConGradeList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  	name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   	name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      	name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="등급배분표검색 조건">
+						<caption class="none">등급배분표 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+                                        <select id="findYear" name="findYear" class="select w80" onchange="chgYear();">
+                                            $!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+                                        </select>
+                                    </span>
+            					</td>
+							</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+			<a id="anchor"></a>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/prs/evalCon/evalConGrade/evalGradeDistriProcess.vw?type=template">
+			<input type="hidden" id="mode"      	name="mode" />
+			<input type="hidden" id="year"		 	name="year" 		value="$!{searchMap.txt2html("findYear")}"/>
+			<input type="hidden" id="yearNm"     	name="yearNm" />
+			<input type="hidden" id="evalMethodNm"  name="evalMethodNm" value="$!{CS_HTML.txt2html($evalMethodDetail.EVAL_METHOD_NM)}"/>
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="등급배분표 조회결과">
+							<caption class="none">등급배분표 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+						
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							<div class="txt_red">
+								<b><span id="validateSumYn"></span></b>
+    						</div>
+						</div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnExcelDown"   value="다운로드" /></li>
+								<li><input type="button" id="btnUpload" value="업로드" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+        
+    </div>
+    <div class="clear"></div>
+</div>

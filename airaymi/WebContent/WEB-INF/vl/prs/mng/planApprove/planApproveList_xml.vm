@@ -1,0 +1,44 @@
+#*************************************************************************
+* CLASS 명      : planApproveList_xml
+* 작 업 자      : 김효은
+* 작 업 일      : 2013년 12월 6일 
+* 기    능      : 성과계획서 확인 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김효은     2013년 12월 6일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($planList.size())})
+#set($idx = 0)
+
+{
+    "page": "1",
+    "total": 1,
+    "records": "$listSize",
+    "rows":[
+
+#foreach($list in $planList)
+    {
+        "YEAR"               : "$!{CS_HTML.txt2html($list.YEAR)}", 
+        "DIRECTION_CD"       : "$!{CS_HTML.txt2html($list.DIRECTION_CD)}", 
+        "DIRECTION_NM"       : "$!{CS_HTML.txt2html($list.DIRECTION_NM)}", 
+        "TARGET_ID"  		 : "$!{CS_HTML.txt2html($list.TARGET_ID)}", 
+        "TARGET_NM"          : "$!{CS_HTML.txt2html($list.TARGET_NM)}", 
+        "METRIC_NM"          : "$!{CS_HTML.txt2html($list.METRIC_NM)}", 
+        "TARGET_VALUE"       : "$!{CS_HTML.txt2html($list.TARGET_VALUE)}", 
+        "UNIT_NM"            : "$!{CS_HTML.txt2html($list.UNIT_NM)}", 
+        "WEIGHT"             : "$!{CS_HTML.txt2html($list.WEIGHT)}",
+        "DFFLY"              : "$!{CS_HTML.txt2html($list.DFFLY)}",
+        "Q1_TARGET_VALUE"    : "$!{CS_HTML.txt2html($list.Q1_TARGET_VALUE)}", 
+        "Q2_TARGET_VALUE"    : "$!{CS_HTML.txt2html($list.Q2_TARGET_VALUE)}", 
+        "Q3_TARGET_VALUE"    : "$!{CS_HTML.txt2html($list.Q3_TARGET_VALUE)}", 
+        "Q4_TARGET_VALUE"    : "$!{CS_HTML.txt2html($list.Q4_TARGET_VALUE)}"
+    }
+    #set($idx = $idx + 1)
+    #if($idx != $listSize)
+     ,
+    #end
+#end
+
+    ]
+}

@@ -1,0 +1,128 @@
+#*************************************************************************
+* CLASS 명      : popEvalBaseList
+* 작 업 자      : 현걸욱
+* 작 업 일      : 2012년 11월 27일 
+* 기    능      : 평가요소(팝업)
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     현걸욱      2012년 11월 27일             최 초 작 업
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/prs/eval/evalBase/popEvalBaseList.vw")
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnClose").click(function() {
+			self.close();
+			
+		});
+		
+	});
+	
+//]]>
+</script>
+</head>
+<body>
+	<div class="h20">
+	</div>
+<div>
+	<div id="Table_blockContainer_w600">
+		<h1 class="none">평가요소</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			<div class="searchBox">
+				<div><div><div>
+				<table summary="평가요소검색 조건">
+					<caption class="none">평가요소 검색 조건</caption> 
+					<thead><tr><th></th></tr></thead>
+    				<tbody>
+        				<tr>
+							<td class="searchBox_tit w250">
+        						<span><label for="findYear">$!{YEAR}</label></span>
+        						<span class="searchBar">
+        							$!{searchMap.txt2html("findYear")}년
+        						</span>
+        					</td>
+							<td class="searchBox_tit w250">
+            					<span><label for="findEvalDegreeId">평가구분</label></span>
+								<span class="searchBar">
+									$!{searchMap.txt2html("evalDegreeNm")}
+								</span>
+                            </td>
+        				</tr>
+    				</tbody>
+				</table>
+                </div></div></div>
+	        </div>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" enctype="multipart/form-data" action="$!{context_path}/prs/eval/evalBase/evalBaseProcess.vw?type=template">
+			<input type="hidden" id="mode"       	name="mode" />
+			<input type="hidden" id="year"       	name="year" />
+			<input type="hidden" id="yearNm"     	name="yearNm" />
+			<input type="hidden" id="evalDegreeId"  name="evalDegreeId" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div class="blockDetail">
+        			<table summary="평가요소 등록">
+    					<caption class="none">평가요소 등록</caption>
+        				<colgroup>
+        					<col width="15%" />
+        					<col width="85%" />
+        				</colgroup>
+        				<tbody>
+    						<tr>
+    							<th scope="row"><span class="txt_red">(*)</span> <label for="content">설명</label></th>
+    							<td>
+    								<textarea id="content" name="content" class="tabletext" title="설명" cols="" rows="10" >$!{CS_HTML.txt2html($detail.CONTENT)}</textarea>
+								</td>
+    						</tr>
+    						<tr>
+    							<th scope="row"><label for="attachFileNm">첨부파일</label></th>
+    							<td>
+									#foreach($fileList in $fileList)
+                						$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))} 
+                						&nbsp;&nbsp;
+										<br/>
+									#end
+									<div>
+                						<ul id="fileAttach">
+                						</ul>
+                					</div>
+								</td>
+    						</tr>
+    					</tbody>
+        			</table>
+        		</div>
+				<div class="blockButton_all">
+					<div class="blockButton_l"></div>
+					<div class="blockButton">
+						<ul>
+							<li><input type="button" id="btnClose" value="닫기" /></li>
+						</ul>
+					</div>
+				</div>	
+			</div>
+		</form>
+		
+	</div>
+	<div class="clear"></div>
+</div>
+
+</body>
+</html>

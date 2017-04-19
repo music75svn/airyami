@@ -1,0 +1,159 @@
+#*************************************************************************
+* CLASS 명      : messageList
+* 작 업 자      : 안요한
+* 작 업 일      : 2013년 8월 10일 
+* 기    능      : 메세지보내기 팝업
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     안요한      2013년 8월 10일             최 초 작 업
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+<head >
+	#parse("/WEB-INF/vl/common/template/head.vm")
+<script type="text/javascript" language="javascript" >
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+		
+		J("#close").click(function(){
+			J("#formList").attr("action", "");
+			self.close();//팝업정보쿠키설정
+		});
+		
+		/******************************************
+		 * 상세계획 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#indicator"),
+			limit:500
+		});
+		
+		J("#content").trigger("keyup");
+		
+		/******************************************
+		 * 보내기버튼 이벤트
+		 ******************************************/
+		J("#btnSend").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+	});
+		
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		
+		if(J("#recipientId").val() == "") {
+			alert("받는사람 선택 해주세요");
+		} else if(confirm("쪽지를 보내시겠습니까?")){
+			saveDo();
+		}
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+	
+		J("#mode").val("SEND");
+		
+		J("#formList").attr("action", "$!{context_path}/bsc/message/message/popMessageProcess.vw").submit();
+	}
+		
+	/*****************************************************
+	 * 사람선택 팝업
+	 *****************************************************/
+	function popChargeUser() {
+		var year = J("#year").val();
+		var param = "&amp;findYear=" + year;
+
+		var url = "$!{context_path}/bsc/message/message/userList.vw?type=popup" + param ;
+		openWinByName(url,'UserInfoPop','1000','500','no');
+
+	}		
+	
+	/*****************************************************
+	 * 사람선택 팝업 취소
+	 *****************************************************/
+	function cancelChargeUser() {
+		J("input[name=recipientId]").val("");
+		J("input[name=recipientNm]").val("");
+	}
+</script>
+</head>
+<body>
+<div style="width:550;">
+	<div style="padding:10px 10px">
+		<h1 class="none">메세지보내기 팝업</h1>
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/message/message/messageProcess.vw">
+			<input type="hidden" id="mode"       name="mode" />
+			<input type="hidden" id="year"		 name="year" value="$!{searchMap.txt2html("year")}"/>
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockDetail2 non">
+					<table summary="">
+					<caption></caption>
+						<colgroup>
+	    					<col width="20%" />
+	    					<col width="80%" />
+	    				</colgroup>
+					<tbody>
+						<tr>
+							<th scope="row"><label for="sender">보내는 사람</label></th>							
+							<td  style="text-align:left;">
+								$!{CS_LOGIN.getUser_nm()}													
+								<input type="hidden" id="senderId" name="senderId" class="inputbox w250" value='$!{CS_LOGIN.getUser_id()}' /> 
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="recipient">받는 사람</label></th>							
+							<td  style="text-align:left;">
+								<input type="hidden" id="recipientId" name="recipientId" class="inputbox w400" value='' readonly="readonly"/>
+								<input type="text" id="recipientNm" name="recipientNm" class="inputbox w350" value='' readonly="readonly"/>
+								<input type="image" onclick="javascript:popChargeUser();return false;" class="valign_middle" src="$!{img_path}/common/board/ic_search.gif" alt="받는사람선택"/>
+								<input type="image" onclick="javascript:cancelChargeUser();return false;" class="valign_middle" src="$!{img_path}/common/board/ic_cancel.gif" alt="받는사람선택취소"/> 
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+    							<textarea id="content" name="content" class="tabletext" title="내용" cols="" rows="15"></textarea>
+								<span id="indicator">0</span>/500byte							
+							</td>
+						</tr>
+					</tbody>	
+					</table>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">			
+						<div class="blockButton_l"></div>
+						<div class="blockButton">			
+							<ul>
+								<li><input type="button" id="btnSend" name="btnSend" value="보내기" /></li>
+								<li><input type="button" id="close" name="close" value="닫기" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,221 @@
+#*************************************************************************
+* CLASS 명      : evalWeightMappingModify
+* 작 업 자      : 박경태 
+* 작 업 일      : 2012년 12월 7일 
+* 기    능      : 평가대상자매핑    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    박경태      2012년 12월 7일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/cbe/eval/evalWeightMapping/evalWeightMappingList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * 근무일자 숫자만 입력
+		 ******************************************/
+		/*
+		J("#workTerm").numeric();
+		J("#workTerm").css("ime-mode", "disabled");
+		*/
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchor").fancybox();
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		var jikgubIds = "";
+		/*
+		if(!J.checkLength("workTerm", "근무일수", 1, 5)) {
+			return;
+		}
+		*/
+		J("input:checkbox[name:jikgubId]").each(function () {
+			if(this.checked){
+				jikgubIds += this.value + '|';
+			}
+		});
+		
+		if(jikgubIds == "") {
+			J.showMsgBox("평가대상직급을 선택해 주십시요", null, null);
+			return;
+		}
+		
+		if(J("#scDeptIds").val() == "") {
+			J.showMsgBox("평가대상조직을 선택해 주십시요", null, null);
+			return;
+		}
+		
+		J("#jikgubIds").val(jikgubIds);
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		
+		J("#form1").attr("action", "$!{context_path}/cbe/eval/evalWeightMapping/evalWeightMappingProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 조직선택
+	 ******************************************/
+	function popSelScDept() {
+		var findYear = J("#year").val();
+		var evalDegreeId = J("#evalDegreeId").val();
+		var weightGrpId = J("#weightGrpId").val();
+		J("#anchor").attr("href","$!{context_path}/cbe/eval/evalWeightMapping/popDeptCopy.vw?findYear="+findYear+"&amp;evalDegreeId="+evalDegreeId+"&amp;weightGrpId="+weightGrpId);
+		J("#anchor").click();
+	}
+	
+	/******************************************
+	 * 평가대상조직 저장
+	 ******************************************/
+	function saveDept(){
+		
+		J.ajax({
+        	url      : "$!{context_path}/cbe/eval/evalWeightMapping/saveDept_ajax.vw",﻿
+        	cache    : false,
+        	type     : "POST",
+			data     : J("#form1").serialize(),
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+				var xmlDoc = J.parseXML(data);
+        		J("#findEvalDegreeId").empty();
+				J(xmlDoc).find("data").each(function() {
+					J("#alertScDeptNm").html(J(this).find("text").text());
+				})
+			}
+    	});
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/cbe/eval/evalWeightMapping/evalWeightMappingProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="evalDegreeId"   name="evalDegreeId"   value="$!{searchMap.txt2html("evalDegreeId")}" />
+	<input type="hidden"	id="weightGrpId"    name="weightGrpId"    value="$!{searchMap.txt2html("weightGrpId")}" />
+	<input type="hidden"	id="scDeptId"       name="scDeptId"       value="$!{searchMap.txt2html("scDeptId")}" />
+	<input type="hidden" 	id="scDeptIds"		name="scDeptIds" 	  value="$!{CS_HTML.txt2html($deptDesc.SC_DEPT_ID)}"/>
+	<input type="hidden" 	id="jikgubIds"		name="jikgubIds" />
+
+
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+								<td class="searchBox_tit w250">평가구분 <span class="searchBar">$!{CS_HTML.txt2html($detailGubun.EVAL_DEGREE_NM)}</span></td>
+								<td class="searchBox_tit w250">가중치그룹 <span class="searchBar">$!{CS_HTML.txt2html($detail.WEIGHT_GRP_NM)}</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="평가대상자매핑 등록">
+					<caption class="none">평가대상자매핑 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+						<!--
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="workTerm">근무기간(일)</label></th>
+    						<td><input type="text" id="workTerm" name="workTerm" class="inputbox w100" value='$!{CS_HTML.txt2html($detail.WORK_TERM)}' maxlength="5"/></td>
+    					</tr>
+						-->
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="jikgubId">평가대상직급</label></th>
+    						<td>
+								#set($checked = "")
+								#set($jikgubIdx = 0)
+								#foreach($jikgubList in $jikgubList )
+									#set($checked = "")
+									#foreach($checkJikgubList in $checkJikgubList)
+										#if( "$!{CS_HTML.txt2html($jikgubList.JIKGUB_ID)}" == "$!{CS_HTML.txt2html($checkJikgubList.JIKGUB_ID)}" )
+											##set($checked = "checked=\"checked\"")
+										#end
+									#end
+									<input type="checkbox" name="jikgubId" value="$!{CS_HTML.txt2html($jikgubList.JIKGUB_ID)}" $checked >$!{CS_HTML.txt2html($jikgubList.JIKGUB_NM)}</input>&nbsp;&nbsp;
+									#set($jikgubIdx = $jikgubIdx + 1)
+									#if( $jikgubIdx == 10 )
+										#set($jikgubIdx = 0)
+										<br/>
+									#end
+								#end
+							</td>
+    					</tr>
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="scDeptId">평가대상조직</label></th>
+    						<td>
+								<span id="alertScDeptNm">$!{CS_HTML.txt2html($deptDesc.SC_DEPT_NM)}</span><br>
+								<input type="image" onclick="javascript:popSelScDept();return false;" class="valign_middle" src="$!{img_path}/common/bt_08.gif"  alt="관리조직추가"/>
+							</td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+		<a id="anchor"></a>
+    	<div class="clear"></div>
+    </div>
+</form>

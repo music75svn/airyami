@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mem.eval.memActIn">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: MEM_JOB_DESC
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력기간
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EVAL_SCHEDULE
+	==================================================================
+	-->
+	<select id="getPeriodInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+		       TO_CHAR(TO_DATE(ACT_START_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS ACT_START_DT
+		     , TO_CHAR(TO_DATE(ACT_END_DT, 'YYYYMMDD'), 'YYYY.MM.DD') AS ACT_END_DT
+             , CASE WHEN
+             			 ACT_START_DT <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMMDD') 
+             	     AND ACT_END_DT <![CDATA[ >= ]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+        			THEN
+                         'Y'
+                    ELSE
+                         'N'
+                    END AS ACT_IN_TERM
+		  FROM MEM_EVAL_SCHEDULE
+		 WHERE YEAR = #findYear#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 면담요청여부 조회
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_MEET
+	==================================================================
+	-->
+	<select id="getMeetYn" parameterClass="hashMap" resultClass="hashMap">
+		SELECT 
+		       DECODE(COUNT(*), 0, 'N', 'Y') MEET_YN
+		  FROM MEM_MEET
+		 WHERE YEAR = #findYear#
+		  AND  EMP_NO = #empNo#
+		  AND  MEET_STATE = '01'
+		  AND DELETE_DT IS NULL
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_JOB_DESC
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		       A.YEAR
+		     , A.EMP_NO
+		     , A.EMP_NM
+		     , F_DEPT_LEV2_NM(A.YEAR, A.DEPT_CD) AS DEPT_NM
+		     , F_CODE_NM('170', A.CAST_TC , A.YEAR) AS CAST_NM 
+		     , F_CODE_NM('171', A.POS_TC , A.YEAR) AS POS_NM
+		     , DECODE(MAX(C.MON), '', '미입력', MAX(C.MON)||'월') AS FINAL_AC_IN_MON
+		     , A.METRIC_STATUS_ID
+		     , NVL2(A.METRIC_STATUS_ID, F_CODE_NM('244', A.METRIC_STATUS_ID , A.YEAR), '미입력') AS METRIC_STATUS_NM
+		     , MAX(D.KOR_NM) AS EVAL_1_EMP_NM
+		     , DECODE(NVL(A.EVAL_REQ_YN, 'N'), 'N', '미요청', '요청') AS EVAL_REQ_YN
+		  FROM MEM_USER A
+		     , MEM_METRIC B
+		     , MEM_ACT_IN C
+		     , BSC_INSA D
+		 WHERE A.YEAR = B.YEAR(+)
+		   AND A.EMP_NO = B.EMP_NO(+)
+		   AND B.YEAR = C.YEAR(+)
+		   AND B.METRIC_ID = C.METRIC_ID(+)
+		   AND A.YEAR = D.YEAR   
+		   AND A.EVAL_1_EMP_NO = D.EMPN
+		   AND A.YEAR = #findYear#
+		   AND B.DELETE_DT IS NULL
+		   
+	<isNotEmpty prepend="AND" property="sEmpNo">
+		<isEqual property="mode" compareValue="SEARCH">
+			  (A.EVAL_1_EMP_NO = #sEmpNo# OR A.EVAL_2_EMP_NO = #sEmpNo#)
+		</isEqual>
+		<isNotEqual property="mode" compareValue="SEARCH">
+	           A.EMP_NO = #sEmpNo#
+		</isNotEqual>
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="findEmpNm">
+	           A.EMP_NM LIKE '%' || TRIM(#findEmpNm#) || '%'
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="findCastTc">
+	           A.CAST_TC = #findCastTc#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="findPosTc">
+	           A.POS_TC = #findPosTc#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="findDeptCd">
+	           A.DEPT_CD = #findDeptCd#
+	</isNotEmpty>
+	     GROUP BY A.YEAR, A.EMP_NO, A.EMP_NM, A.DEPT_CD, A.CAST_TC, A.POS_TC, A.METRIC_STATUS_ID, A.EVAL_REQ_YN
+		 ORDER BY A.EMP_NM
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력 평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_METRIC
+	==================================================================
+	-->
+	<select id="getEvalItemList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		       F_CODE_NM('240', A.EVAL_GBN_ID , A.YEAR) AS EVAL_GBN_NM 
+		     , A.METRIC_ID
+		     , A.METRIC_NM
+		     , A.TYPE_ID
+		     , F_CODE_NM('007', A.TYPE_ID , A.YEAR) AS TYPE_NM
+		     , F_CODE_NM('013', A.UNIT , A.YEAR) AS UNIT_NM
+		     , A.EVAL_CYCLE_ID
+		     , F_CODE_NM('008', A.EVAL_CYCLE_ID , A.YEAR) AS EVAL_CYCLE_NM
+		     , B.TGT_VALUE AS YEAR_GOAL
+		     , A.WEIGHT
+		  FROM MEM_METRIC A
+		     , MEM_METRIC_TARGET B
+		 WHERE A.YEAR = B.YEAR(+)
+		   AND A.METRIC_ID = B.METRIC_ID(+)
+		   AND B.MON(+) = '12'
+		   AND A.YEAR = #year#
+		   AND A.EMP_NO = #empNo#
+		   AND A.DELETE_DT IS NULL
+		   AND B.DELETE_DT IS NULL
+		 ORDER BY A.EVAL_GBN_ID, METRIC_ID
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: ActionPlan 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_METRIC_ACTIONPLAN, MEM_ACT_ACTION_PLAN
+	==================================================================
+	-->
+	<select id="getActionPlanList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		       A.YEAR
+		     , A.METRIC_ID
+		     , A.ACTIONPLAN_ID
+		     , A.PLAN_DESC
+		     , TO_CHAR(TO_DATE(A.PLAN_START_DT, 'YYYYMM'), 'YYYY.MM') AS PLAN_START_DT
+		     , TO_CHAR(TO_DATE(A.PLAN_END_DT, 'YYYYMM'), 'YYYY.MM') AS PLAN_END_DT
+		     , B.ACTIONPLAN_SEQ
+		     , ROWNUM AS ROW_SEQ
+		     , TO_CHAR(TO_DATE(B.YEAR || B.START_MON, 'YYYYMM'), 'YYYY.MM') AS ACT_START_MON
+		     , TO_CHAR(TO_DATE(B.YEAR || B.END_MON, 'YYYYMM'), 'YYYY.MM') AS ACT_END_MON
+		     , B.START_MON
+		     , B.END_MON
+		     , B.ACT_CONTENT
+		     , B.PROC_RATE
+		  FROM MEM_METRIC_ACTIONPLAN A
+		     , MEM_ACT_ACTION_PLAN B
+		 WHERE A.YEAR = B.YEAR(+)
+		   AND A.METRIC_ID = B.METRIC_ID(+)
+		   AND A.ACTIONPLAN_ID = B.ACTIONPLAN_ID(+)
+		   AND A.METRIC_ID = #metricId#
+		   AND A.YEAR = #year#
+		   AND A.DELETE_DT IS NULL
+		 ORDER BY A.METRIC_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: ActionPlan 상세정보 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_METRIC_ACTIONPLAN
+	==================================================================
+	-->
+	<select id="getPopActionPlanInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		       A.YEAR
+		     , A.METRIC_ID
+		     , B.METRIC_NM
+		     , A.ACTIONPLAN_ID
+		     , A.PLAN_DESC
+		     , TO_CHAR(TO_DATE(A.PLAN_START_DT, 'YYYYMM'), 'YYYY.MM') AS PLAN_START_DT
+		     , TO_CHAR(TO_DATE(A.PLAN_END_DT, 'YYYYMM'), 'YYYY.MM') AS PLAN_END_DT
+		     , (
+		     		SELECT 
+			               CASE WHEN
+			             			 ACT_START_DT <![CDATA[ <= ]]> TO_CHAR(SYSDATE, 'YYYYMMDD') 
+			             	     AND ACT_END_DT <![CDATA[ >= ]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+			        			THEN
+			                         'Y'
+			                    ELSE
+			                         'N'
+			                    END AS ACT_IN_TERM
+					  FROM MEM_EVAL_SCHEDULE
+					 WHERE YEAR = #findYear#
+		     ) AS ACT_IN_TERM
+		  FROM MEM_METRIC_ACTIONPLAN A
+		     , MEM_METRIC B
+		 WHERE A.YEAR = B.YEAR
+		   AND A.METRIC_ID = B.METRIC_ID
+		   AND A.METRIC_ID = #findMetricId#
+		   AND A.ACTIONPLAN_ID = #findActionPlanId#
+		   AND A.YEAR = #findYear#
+		   AND A.DELETE_DT IS NULL
+		   AND B.DELETE_DT IS NULL
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: ActionPlan 상세팝업 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_METRIC_ACTIONPLAN, MEM_ACT_ACTION_PLAN
+	==================================================================
+	-->
+	<select id="getPopActionPlanDetailList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+		       A.YEAR
+		     , A.METRIC_ID
+		     , A.ACTIONPLAN_ID
+		     , A.PLAN_DESC
+		     , TO_CHAR(TO_DATE(A.PLAN_START_DT, 'YYYYMM'), 'YYYY.MM') AS PLAN_START_DT
+		     , TO_CHAR(TO_DATE(A.PLAN_END_DT, 'YYYYMM'), 'YYYY.MM') AS PLAN_END_DT
+		     , B.ACTIONPLAN_SEQ
+		     , TO_CHAR(TO_DATE(B.YEAR || B.START_MON, 'YYYYMM'), 'YYYY.MM') AS ACT_START_MON
+		     , TO_CHAR(TO_DATE(B.YEAR || B.END_MON, 'YYYYMM'), 'YYYY.MM') AS ACT_END_MON
+		     , B.START_MON
+		     , B.END_MON
+		     , B.ACT_CONTENT
+		     , B.PROC_RATE
+		  FROM MEM_METRIC_ACTIONPLAN A
+		     , MEM_ACT_ACTION_PLAN B
+		 WHERE A.YEAR = B.YEAR
+		   AND A.METRIC_ID = B.METRIC_ID
+		   AND A.ACTIONPLAN_ID = B.ACTIONPLAN_ID
+		   AND A.METRIC_ID = #findMetricId#
+		   AND A.ACTIONPLAN_ID = #findActionPlanId#
+		   AND A.YEAR = #findYear#
+		   AND A.DELETE_DT IS NULL
+		 ORDER BY A.METRIC_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: ActionPlan 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: MEM_ACT_ACTION_PLAN
+	==================================================================
+	-->	
+	<delete id="deleteActionPlanList" parameterClass="hashMap">
+		DELETE MEM_ACT_ACTION_PLAN 
+		 WHERE YEAR = #findYear#
+		   AND METRIC_ID = #findMetricId#
+		   AND ACTIONPLAN_ID = #findActionPlanId#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: ActionPlan 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_EVAL_GRP_TARGET
+	==================================================================
+	-->
+	<insert id="insertActionPlanList" parameterClass="hashMap">		
+		INSERT INTO MEM_ACT_ACTION_PLAN (
+		       YEAR
+		     , METRIC_ID
+		     , ACTIONPLAN_ID
+		     , ACTIONPLAN_SEQ
+		     , START_MON
+		     , END_MON
+		     , ACT_CONTENT
+		     , PROC_RATE
+		     , CREATE_DT		     
+			 ) VALUES ( 
+			   #findYear#
+			 , #findMetricId#
+			 , #findActionPlanId#
+			 , #actionPlanSeq#
+			 , #startMon#
+			 , #endMon#
+			 , #actContent#
+			 , #procRate#
+			 , sysdate			
+			 )
+	</insert>
+
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력첨부파일 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_ACT_IN_ATTACH
+	==================================================================
+	-->
+	<select id="getAttachFileList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.METRIC_ID
+		     , A.SEQ
+             , A.ATTACH_FILE_NM
+             , A.ATTACH_FILE_FNM
+             , A.ATTACH_FILE_SUFFIX
+             , A.ATTACH_FILE_PATH
+          FROM MEM_ACT_IN_ATTACH A
+         WHERE A.YEAR = #year#
+           AND A.METRIC_ID = #metricId#
+          ORDER BY A.SEQ
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 첨부파일 삭제
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_ACT_IN_ATTACH
+	==================================================================
+	-->	
+	<delete id="deleteFileInfo" parameterClass="hashMap">
+		DELETE FROM MEM_ACT_IN_ATTACH
+		 WHERE YEAR = #findYear# 
+		   AND METRIC_ID = #metricId#
+		   AND SEQ = #seq#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 첨부파일 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_ACT_IN_ATTACH
+	==================================================================
+	-->	
+	<insert id="insertFileInfo" parameterClass="hashMap">
+		INSERT INTO MEM_ACT_IN_ATTACH (
+			   YEAR	
+             , METRIC_ID
+             , SEQ
+             , ATTACH_FILE_NM
+             , ATTACH_FILE_FNM
+             , ATTACH_FILE_SUFFIX
+             , ATTACH_FILE_PATH
+             , CREATE_DT
+           ) VALUES (
+           	   #year#	
+             , #metricId#
+             , (SELECT NVL(MAX(SEQ)+1,1) FROM MEM_ACT_IN_ATTACH WHERE YEAR = #year# AND METRIC_ID = #metricId#)
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSufix#
+             , #attachFilePath#
+             , SYSDATE
+    	   )       
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 면담취소
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_MEET
+	==================================================================
+	-->	
+	<delete id="deleteMeetData" parameterClass="hashMap">
+		UPDATE MEM_MEET
+		   SET DELETE_DT = SYSDATE
+		 WHERE YEAR = #year# 
+		   AND EMP_NO = #empNo#
+		   AND MEET_STATE = '01'
+		   AND DELETE_DT IS NULL
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 면담요청
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_MEET
+	==================================================================
+	-->	
+	<insert id="insertMeetData" parameterClass="hashMap">
+		INSERT INTO MEM_MEET (
+			   YEAR	
+             , EMP_NO
+             , SEQ
+             , EVAL_1_EMP_NO
+             , MEET_STATE
+             , CREATE_DT
+           ) VALUES (
+           	   #year#	
+             , #empNo#
+             , (SELECT NVL(MAX(SEQ)+1,1) FROM MEM_MEET WHERE YEAR = #year# AND EMP_NO = #empNo#)
+             , (SELECT EVAL_1_EMP_NO FROM MEM_USER WHERE YEAR = #year# AND EMP_NO = #empNo#)
+             , '01'
+             , SYSDATE
+    	   )       
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 자기평가 등급조회 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_ECM_GRADE_DISTRI_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getSelfGradeList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.GRADE_ITEM_ID
+		     , A.GRADE_ITEM_NM
+		  FROM MEM_ECM_GRADE_DISTRI_EVAL_ITEM A
+		 WHERE A.EVAL_METHOD_ID = 'G000009'
+		 ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 자기평가 상세팝업 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_EVAL_SELF, BSC_INSA
+	==================================================================
+	-->
+	<select id="popMemSelfEvalList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR , 
+		       B.EMPN AS EMP_NO , 
+		       C.EVAL_GRADE_ID , 
+		       DECODE(A.OPINION, 'EXCELLENT', 'EXCELLENT', DECODE(A.OPINION, 'UNSUFFICIENT', 'UNSUFFICIENT', 'ETC' ) ) AS OPINION_KEY , 
+		       DECODE(A.OPINION, 'EXCELLENT', '우수한점', DECODE(A.OPINION, 'UNSUFFICIENT', '미흡한점', '기타의견' ) ) AS OPINION_KEY_NM , 
+		       REPLACE( REPLACE ( DECODE(A.OPINION, 'EXCELLENT', C.EXCELLENT_OPINION, DECODE(A.OPINION, 'UNSUFFICIENT', C.UNSUFFICIENT_OPINION, C.ETC_OPINION ) ), CHR(13), '' ), CHR(10), '<![CDATA[<BR>]]>' ) AS OPINION , 
+		       B.KOR_NM AS EMP_NM , 
+		       A.SORT_ORDER AS CAL_NUM , 
+		       '3' CAL_CNT 
+		  FROM 
+		       (SELECT #findYear# YEAR , 
+		              'EXCELLENT' AS OPINION, 
+		              '1' AS SORT_ORDER 
+		         FROM DUAL 
+		           UNION 
+		       SELECT #findYear# YEAR , 
+		              'UNSUFFICIENT' AS OPINION, 
+		              '2' AS SORT_ORDER 
+		         FROM DUAL 
+		           UNION 
+		       SELECT #findYear# YEAR , 
+		              'ETC' AS OPINION, 
+		              '3' AS SORT_ORDER 
+		         FROM DUAL 
+		       ) A , 
+		       BSC_INSA B , 
+		       MEM_EVAL_SELF C 
+		 WHERE A.YEAR = B.YEAR 
+		       AND B.YEAR = #findYear# 
+		       AND B.EMPN = #findEmpNo#
+		       AND B.YEAR = C.YEAR(+) 
+		       AND B.EMPN = C.EMP_NO(+)
+		   ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 자기평가 등록
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_EVAL_SELF
+	==================================================================
+	-->
+	<insert id="insertSelfEvalData" parameterClass="hashMap">
+		MERGE INTO MEM_EVAL_SELF A
+             USING (SELECT #findYear# YEAR, #findEmpNo# EMP_NO FROM DUAL) B
+                ON (A.YEAR = B.YEAR AND A.EMP_NO = B.EMP_NO) 
+        WHEN MATCHED THEN
+          UPDATE 
+             SET EVAL_GRADE_ID = #evalGradeId#
+               , EXCELLENT_OPINION = #excellentOpinion#
+               , UNSUFFICIENT_OPINION = #unsufficientOpinion#
+               , ETC_OPINION = #etcOpinion#
+			   , CREATE_DT = SYSDATE
+        WHEN NOT MATCHED THEN
+          INSERT (
+               YEAR
+             , EMP_NO
+             , EVAL_GRADE_ID
+             , EXCELLENT_OPINION
+             , UNSUFFICIENT_OPINION
+             , ETC_OPINION
+             , CREATE_DT
+        ) VALUES (
+               #findYear#
+             , #findEmpNo#
+             , #evalGradeId#
+             , #excellentOpinion#
+             , #unsufficientOpinion#
+             , #etcOpinion#
+             , SYSDATE
+        )
+	</insert>
+	
+	<!--
+	==================================================================
+	  # 설명	: 평가요청 플래그 수정
+	  #	기능	: INSERT
+	  #	TABLE	: MEM_USER
+	==================================================================
+	-->
+	<update id="updateEvalReqData" parameterClass="hashMap">
+		UPDATE MEM_USER
+		   SET EVAL_REQ_YN      = #evalReqYn#
+             , MODIFY_DT        = SYSDATE
+         WHERE YEAR             = #findYear#
+           AND EMP_NO           = #findEmpNo#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 자기평가 등급조회 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: MEM_USER
+	==================================================================
+	-->
+	<select id="getEvalReqYn" parameterClass="hashMap" resultClass="hashMap">
+		SELECT NVL(EVAL_REQ_YN, 'N') AS EVAL_REQ_YN
+		     , A.METRIC_STATUS_ID
+		     , NVL2(A.METRIC_STATUS_ID, F_CODE_NM('244', A.METRIC_STATUS_ID , A.YEAR), '미입력') AS METRIC_STATUS_NM
+		  FROM MEM_USER A
+		 WHERE A.YEAR = #findYear#
+		   AND A.EMP_NO = #empNo#
+	</select>
+</sqlMap>

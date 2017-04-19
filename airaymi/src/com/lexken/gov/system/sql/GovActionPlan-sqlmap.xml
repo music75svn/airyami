@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.system.govActionPlan">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: GOV_ACTION_PLAN
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 경평실행계획관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_ACTION_PLAN
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+         SELECT                                                                
+                 A.GOV_METRIC_ID                                                   
+               , A.GOV_METRIC_NM    
+               , B.DETAIL_EVAL_ID
+               , REPLACE( REPLACE ( B.DETAIL_EVAL_NM, CHR(13), '' ), CHR(10), ' ' ) DETAIL_EVAL_NM
+               , C.CONCEPT_ID
+               , REPLACE( REPLACE ( C.CONCEPT_NM, CHR(13), '' ), CHR(10), ' ' ) CONCEPT_NM
+               , D.PLAN_ID
+               , REPLACE( REPLACE ( D.PLAN_NM, CHR(13), '' ), CHR(10), ' ' ) PLAN_NM
+               , E.SC_DEPT_S_NM
+               , F.USER_NM AS INSERT_USER_NM
+               , COUNT (1) OVER (PARTITION BY A.YEAR, A.GOV_METRIC_ID) AS GOV_METRIC_CNT
+               , ROW_NUMBER () OVER (PARTITION BY A.YEAR, A.GOV_METRIC_ID ORDER BY A.SORT_ORDER, B.SORT_ORDER, C.SORT_ORDER, D.SORT_ORDER,D.PLAN_ID) AS GOV_METRIC_INDEX
+               , COUNT (1) OVER (PARTITION BY A.YEAR, A.GOV_METRIC_ID, C.DETAIL_EVAL_ID ) AS DETAIL_EVAL_CNT
+               , ROW_NUMBER () OVER (PARTITION BY A.YEAR, A.GOV_METRIC_ID, C.DETAIL_EVAL_ID ORDER BY A.SORT_ORDER, B.SORT_ORDER, C.SORT_ORDER, D.SORT_ORDER,D.PLAN_ID ) AS DETAIL_EVAL_INDEX               
+               , COUNT (1) OVER (PARTITION BY A.YEAR, A.GOV_METRIC_ID, C.DETAIL_EVAL_ID, D.CONCEPT_ID ) AS CONCEPT_CNT
+               , ROW_NUMBER () OVER (PARTITION BY A.YEAR, A.GOV_METRIC_ID, C.DETAIL_EVAL_ID, D.CONCEPT_ID ORDER BY A.SORT_ORDER, B.SORT_ORDER, C.SORT_ORDER, NVL(D.SORT_ORDER, 0),D.PLAN_ID) AS CONCEPT_INDEX               
+           FROM GOV_METRIC A     
+           <!--
+           LEFT OUTER JOIN GOV_DETAIL_EVAL_ITEM B ON A.YEAR = B.YEAR AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+           LEFT OUTER JOIN GOV_DETAIL_EVAL_CONCEPT C ON B.YEAR = C.YEAR AND B.DETAIL_EVAL_ID = C.DETAIL_EVAL_ID
+           -->
+           INNER JOIN GOV_DETAIL_EVAL_ITEM B ON A.YEAR = B.YEAR AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+           INNER JOIN GOV_DETAIL_EVAL_CONCEPT C ON B.YEAR = C.YEAR AND B.DETAIL_EVAL_ID = C.DETAIL_EVAL_ID
+           LEFT OUTER JOIN GOV_ACTION_PLAN D ON C.YEAR = D.YEAR AND C.CONCEPT_ID = D.CONCEPT_ID 
+           LEFT OUTER JOIN BSC_SC_DEPT E ON   A.YEAR = E.YEAR AND A.SC_DEPT_ID = E.SC_DEPT_ID
+           LEFT OUTER JOIN BSC_USERINFO F ON B.INSERT_USER_ID = F.USER_ID
+           WHERE A.YEAR = #findYear#
+		<isNotEmpty property="findEmpn" prepend="AND">
+				 B.INSERT_USER_ID = #findEmpn#
+		</isNotEmpty>
+			 AND A.GBN_ID = '02'
+             AND A.DELETE_DT IS NULL
+           START WITH A.UP_METRIC_ID IS NULL CONNECT BY PRIOR A.YEAR = A.YEAR AND PRIOR A.GOV_METRIC_ID = A.UP_METRIC_ID                                         
+           ORDER BY NVL(A.SORT_ORDER, 0), A.GOV_METRIC_NM, NVL(B.SORT_ORDER, 0), B.DETAIL_EVAL_NM, NVL(C.SORT_ORDER, 0), C.CONCEPT_NM, NVL(D.SORT_ORDER, 0), D.PLAN_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평실행계획관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_ACTION_PLAN
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+         SELECT                                                                
+                 A.GOV_METRIC_ID                                                   
+               , A.GOV_METRIC_NM    
+               , B.DETAIL_EVAL_ID
+               , B.DETAIL_EVAL_NM
+               , C.CONCEPT_ID
+               , C.CONCEPT_NM
+               , D.PLAN_ID
+               , D.PLAN_NM
+               , D.SORT_ORDER
+               , E.SC_DEPT_NM                                                      
+               , F.USER_NM AS INSERT_USER_NM                         
+           FROM GOV_METRIC A     
+           INNER JOIN GOV_DETAIL_EVAL_ITEM B ON A.YEAR = B.YEAR AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+           INNER JOIN GOV_DETAIL_EVAL_CONCEPT C ON B.YEAR = C.YEAR AND B.DETAIL_EVAL_ID = C.DETAIL_EVAL_ID
+           LEFT OUTER JOIN GOV_ACTION_PLAN D ON C.YEAR = D.YEAR AND C.CONCEPT_ID = D.CONCEPT_ID 
+           LEFT OUTER JOIN BSC_SC_DEPT E ON   A.YEAR = E.YEAR AND A.SC_DEPT_ID = E.SC_DEPT_ID                               
+           LEFT OUTER JOIN BSC_USERINFO F ON B.INSERT_USER_ID = F.USER_ID           
+         WHERE D.YEAR = #year#
+           AND D.PLAN_ID =#planId#		   	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 착안사항 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_ACTION_PLAN
+	==================================================================
+	-->
+	<select id="getConceptDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.GOV_METRIC_ID,
+		       A.GOV_METRIC_NM,
+		       B.DETAIL_EVAL_ID,
+		       B.DETAIL_EVAL_NM,
+		       C.CONCEPT_ID,
+		       C.CONCEPT_NM,
+		       E.SC_DEPT_NM,
+		       F.USER_NM AS INSERT_USER_NM
+		       , '' PLAN_ID, '' PLAN_NM
+		  FROM GOV_METRIC A
+		       INNER JOIN GOV_DETAIL_EVAL_ITEM B
+		          ON A.YEAR = B.YEAR AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+		       INNER JOIN GOV_DETAIL_EVAL_CONCEPT C
+		          ON B.YEAR = C.YEAR AND B.DETAIL_EVAL_ID = C.DETAIL_EVAL_ID
+		       LEFT OUTER JOIN BSC_SC_DEPT E
+		          ON A.YEAR = E.YEAR AND A.SC_DEPT_ID = E.SC_DEPT_ID
+		       LEFT OUTER JOIN BSC_USERINFO F
+		          ON B.INSERT_USER_ID = F.USER_ID
+		 WHERE A.GOV_METRIC_ID = #govMetricId#
+		   AND B.DETAIL_EVAL_ID = #detailEvalId#
+		   AND C.CONCEPT_ID = #conceptId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평실행계획관리 코드 채번
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_ACTION_PLAN
+	==================================================================
+	-->
+	<select id="getPlanId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT 'GP'||LPAD(NVL(MAX(SUBSTR(PLAN_ID,3,6)),0)+1,5,'0') SEQ FROM GOV_ACTION_PLAN WHERE YEAR = #year#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평실행계획관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_ACTION_PLAN
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO GOV_ACTION_PLAN ( 
+			   YEAR
+			 , PLAN_ID
+			 , CONCEPT_ID
+			 , PLAN_NM
+			 , SORT_ORDER
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #planId#
+			 , #conceptId#
+			 , #planNm#
+			 , #sortOrder#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평실행계획관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_ACTION_PLAN
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE GOV_ACTION_PLAN 
+		   SET PLAN_NM       		  = #planNm# 
+			 , SORT_ORDER        	  = #sortOrder# 
+		 WHERE YEAR = #year#
+		   AND PLAN_ID = #planId#		
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평실행계획관리 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: GOV_ACTION_PLAN
+	==================================================================
+	-->	
+	<delete id="deleteData" parameterClass="hashMap">
+		DELETE 
+		  FROM GOV_ACTION_PLAN
+		 WHERE YEAR = #year#
+		   AND PLAN_ID = #planId#
+	</delete>
+	
+</sqlMap>
+
+

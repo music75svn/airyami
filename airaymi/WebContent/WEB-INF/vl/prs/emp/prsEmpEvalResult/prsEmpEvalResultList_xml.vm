@@ -1,0 +1,47 @@
+#*************************************************************************
+* CLASS 명      : prsEmpEvalResultList_xml
+* 작 업 자      : 신인수
+* 작 업 일      : 2013년 7월 5일
+* 기    능      : 평가결과 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      신인수     2013년 7월 5일            최 초 작 업
+**************************************************************************#
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+    "page": "1",
+    "total": 1,
+    "records": "$listSize",
+    "rows":[
+
+#foreach($list in $list)
+    {
+        "EVAL_GRP_ID"          : "$!{CS_HTML.txt2html($list.EVAL_GRP_ID)}",
+		"EVAL_GRP_NM"          : "$!{CS_HTML.txt2html($list.EVAL_GRP_NM)}",
+        "EMPN"                 : "$!{CS_HTML.txt2html($list.EMPN)}",
+        "KOR_NM"               : "$!{CS_HTML.txt2html($list.KOR_NM)}",
+        "DEPT_CD"              : "$!{CS_HTML.txt2html($list.DEPT_CD)}",
+        "DEPT_KOR_NM"          : "$!{CS_HTML.txt2html($list.DEPT_KOR_NM)}",
+        "UP_DEPT_CD"           : "$!{CS_HTML.txt2html($list.UP_DEPT_CD)}",
+        "UP_DEPT_KOR_NM"       : "$!{CS_HTML.txt2html($list.UP_DEPT_KOR_NM)}",
+        "CAST_TC"              : "$!{CS_HTML.txt2html($list.CAST_TC)}",
+        "CAST_TC_NM"           : "$!{CS_HTML.txt2html($list.CAST_TC_NM)}",
+        "POS_TC"               : "$!{CS_HTML.txt2html($list.POS_TC)}",
+        "POS_TC_NM"            : "$!{CS_HTML.txt2html($list.POS_TC_NM)}",
+        "SCORE"                : "$!{CS_HTML.txt2html($list.SCORE)}",
+        "RANKING"              : "$!{CS_HTML.txt2html($list.RANKING)}",
+        "GRADE"                : "$!{CS_HTML.txt2html($list.GRADE)}",
+        "EVAL_SUBMIT_YN"  	   : "$!{CS_HTML.txt2html($list.EVAL_SUBMIT_YN)}",
+        "EVAL_SUBMIT_2ND_YN"   : "$!{CS_HTML.txt2html($list.EVAL_SUBMIT_2ND_YN)}"
+    }
+    #set($idx = $idx + 1)
+    #if($idx != $listSize)
+     ,
+    #end
+#end
+
+    ]
+}

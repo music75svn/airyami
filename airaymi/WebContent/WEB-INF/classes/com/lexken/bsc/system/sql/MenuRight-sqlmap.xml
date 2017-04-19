@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.menuRight">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 사용자 그룹별 권한 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MENU_RIGHT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT 
+		       A.PGM_ID
+		     , A.PGM_NM
+		     , A.SORT_ORDER
+		     , A.UP_PGM_ID
+		     , (SELECT PGM_NM FROM BSC_PGMLIST WHERE PGM_ID = A.UP_PGM_ID) UP_PGM_NM        
+		  FROM BSC_PGMLIST A
+		       INNER JOIN BSC_MENU_RIGHT B ON A.PGM_ID = B.PGM_ID AND B.ADMIN_GUBUN =  #findAdminGubun#                                                 
+		WHERE 1=1
+		  
+		<isNotEmpty prepend="AND" property="findSubId">
+			A.PGM_ID IN (SELECT L4_PGM_ID FROM V_LEVEL_PGMLIST WHERE UP_PGM_ID = #findTopUpId# AND PGM_ID = #findSubId#)
+		</isNotEmpty>
+		
+		<isEmpty prepend="AND" property="findSubId">
+			A.PGM_ID IN (SELECT L4_PGM_ID FROM V_LEVEL_PGMLIST WHERE UP_PGM_ID = #findTopUpId#)
+		</isEmpty>
+	                      
+		ORDER BY A.SORT_ORDER, A.PGM_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 1레벨 메뉴 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MENU_RIGHT
+	==================================================================
+	-->
+	<select id="getMenuLevel1List" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.PGM_ID
+			 , A.PGM_NM                                             
+		  FROM BSC_PGMLIST A                                            
+		 WHERE A.LEVEL_ID = '01'
+		 ORDER BY SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 2레벨 메뉴 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MENU_RIGHT
+	==================================================================
+	-->
+	<select id="getMenuLevel2List" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.PGM_ID
+			 , A.PGM_NM
+		 FROM BSC_PGMLIST A
+		WHERE A.LEVEL_ID  = '02'
+		  AND A.UP_PGM_ID = #findTopUpId#
+		ORDER BY SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 해당 권한에 선택되지 않은 메뉴리스트 반환
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MENU_RIGHT
+	==================================================================
+	-->
+	<select id="getTotalMenuList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT 
+		       A.PGM_ID
+		     , A.PGM_NM
+		     , A.SORT_ORDER
+		     , A.UP_PGM_ID
+		     , (SELECT PGM_NM FROM BSC_PGMLIST WHERE PGM_ID = A.UP_PGM_ID) UP_PGM_NM        
+		  FROM BSC_PGMLIST A
+		       LEFT OUTER JOIN BSC_MENU_RIGHT B ON A.PGM_ID = B.PGM_ID AND B.ADMIN_GUBUN =  #adminGubun#                                                 
+		WHERE 1=1
+		  AND B.PGM_ID IS NULL
+		  
+		<isNotEmpty prepend="AND" property="findSubId">
+			A.PGM_ID IN (SELECT L4_PGM_ID FROM V_LEVEL_PGMLIST WHERE UP_PGM_ID = #topUpId# AND PGM_ID = #subId#)
+		</isNotEmpty>
+		
+		<isEmpty prepend="AND" property="findSubId">
+			A.PGM_ID IN (SELECT L4_PGM_ID FROM V_LEVEL_PGMLIST WHERE UP_PGM_ID = #topUpId#)
+		</isEmpty>
+	                      
+		ORDER BY A.SORT_ORDER, A.PGM_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 해당 권한에 선택된 메뉴리스트 반환
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MENU_RIGHT
+	==================================================================
+	-->
+	<select id="getSelectedMenuList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT 
+		       A.PGM_ID
+		     , A.PGM_NM
+		     , A.SORT_ORDER
+		     , A.UP_PGM_ID
+		     , (SELECT PGM_NM FROM BSC_PGMLIST WHERE PGM_ID = A.UP_PGM_ID) UP_PGM_NM        
+		  FROM BSC_PGMLIST A
+		       INNER JOIN BSC_MENU_RIGHT B ON A.PGM_ID = B.PGM_ID AND B.ADMIN_GUBUN =  #adminGubun#                                                 
+		WHERE 1=1
+		  
+		<isNotEmpty prepend="AND" property="findSubId">
+			A.PGM_ID IN (SELECT L4_PGM_ID FROM V_LEVEL_PGMLIST WHERE UP_PGM_ID = #topUpId# AND PGM_ID = #subId#)
+		</isNotEmpty>
+		
+		<isEmpty prepend="AND" property="findSubId">
+			A.PGM_ID IN (SELECT L4_PGM_ID FROM V_LEVEL_PGMLIST WHERE UP_PGM_ID = #topUpId#)
+		</isEmpty>
+	                      
+		ORDER BY A.SORT_ORDER, A.PGM_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 사용자 그룹별 권한 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_MENU_RIGHT (
+               ADMIN_GUBUN
+             , PGM_ID
+             ) VALUES (
+               #adminGubun#
+             , #pgmId#
+             )
+	</insert>	
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 사용자 그룹별 권한 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_MENU_RIGHT A
+		WHERE A.ADMIN_GUBUN = #adminGubun#
+		
+		<isNotEmpty prepend="AND" property="findSubId">
+			A.PGM_ID IN (SELECT L4_PGM_ID FROM V_LEVEL_PGMLIST WHERE UP_PGM_ID = #topUpId# AND PGM_ID = #subId#)
+		</isNotEmpty>
+		
+		<isEmpty prepend="AND" property="findSubId">
+			A.PGM_ID IN (SELECT L4_PGM_ID FROM V_LEVEL_PGMLIST WHERE UP_PGM_ID = #topUpId#)
+		</isEmpty>
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 상단 탑 메뉴명 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_PGMLIST
+	==================================================================
+	-->
+	<select id="getTopPgmNm" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT PGM_NM
+		  FROM BSC_PGMLIST
+		 WHERE PGM_ID = #topUpId#
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 서브 메뉴명 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_PGMLIST
+	==================================================================
+	-->
+	<select id="getSubPgmNm" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT PGM_NM
+		  FROM BSC_PGMLIST
+		 WHERE PGM_ID = #subId#
+	</select>		
+</sqlMap>
+
+

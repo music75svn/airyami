@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.impon.imponResult">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_IPE_METRIC_EVAL_RESULT
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_METRIC_EVAL_RESULT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT A.YEAR,
+	           A.EVAL_DEGREE_ID,
+	           A.METRIC_GRP_ID,
+	           A.METRIC_ID,
+	           C.SC_DEPT_NM,
+	           B.METRIC_NM,
+	           A.FINAL_METRIC_SCORE,
+	           C.SC_DEPT_GRP_ID, 
+	           C.SC_DEPT_ID,
+	           CASE WHEN D.ITEM_ID IS NULL THEN '01' ELSE '02' END ITEM_GBN_ID
+	      FROM BSC_IPE_METRIC_EVAL_RESULT A
+	      LEFT OUTER JOIN BSC_METRIC B ON A.YEAR=B.YEAR AND A.METRIC_ID=B.METRIC_ID AND B.DELETE_DT IS NULL
+	      LEFT OUTER JOIN BSC_SC_DEPT C ON A.YEAR=C.YEAR AND B.SC_DEPT_ID=C.SC_DEPT_ID 
+	      LEFT OUTER JOIN BSC_IPE_ITEM_WEIGHT D ON A.YEAR=D.YEAR AND A.EVAL_DEGREE_ID=D.EVAL_DEGREE_ID 
+	                                            AND A.METRIC_GRP_ID=D.METRIC_GRP_ID AND A.METRIC_ID=D.METRIC_ID 
+	     WHERE A.YEAR=#findYear#
+	       <isNotEmpty property="findEvalDegreeId" prepend="AND">
+		       A.EVAL_DEGREE_ID=#findEvalDegreeId# 
+	       </isNotEmpty>
+	       <isNotEmpty property="findScDeptGrpId" prepend="AND">
+       		   C.SC_DEPT_GRP_ID = #findScDeptGrpId#
+       	   </isNotEmpty> 
+       	   <isNotEmpty property="findScDeptId" prepend="AND">
+       		   C.SC_DEPT_ID = #findScDeptId#
+       	   </isNotEmpty> 
+       	 ORDER BY C.SC_DEPT_GRP_ID, C.SC_DEPT_ID  
+	</select>
+			
+	<!--
+	==================================================================   
+	  # 설명	: 평가차수 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_DEGREE
+	==================================================================
+	-->
+	<select id="getCodeList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT CODE_ID,
+               CODE_NM
+          FROM BSC_CODE
+          WHERE YEAR=#findYear#
+            AND CODE_GRP_ID='003'
+            AND DELETE_DT IS NULL
+    </select>
+    
+    <!--
+	==================================================================   
+	  # 설명	: 사용자 조직보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_DEGREE
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT C.SC_DEPT_ID,
+               C.SC_DEPT_NM
+          FROM V_ROLE_USER A
+          LEFT OUTER JOIN BSC_SC_DEPT_MAPPING B ON B.YEAR=#findYear# AND A.DEPT_ID=B.DEPT_ID
+          LEFT OUTER JOIN BSC_SC_DEPT C ON B.YEAR=C.YEAR AND B.SC_DEPT_ID=C.SC_DEPT_ID           
+         WHERE USER_ID=#findInsertUserId#
+    </select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_METRIC_EVAL_RESULT
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_DEGREE_ID        
+			 , METRIC_GRP_ID         
+			 , METRIC_ID             
+			 , EVAL_METRIC_SCORE     
+			 , ADJUST_SCORE          
+			 , FINAL_METRIC_SCORE    
+		  FROM BSC_IPE_METRIC_EVAL_RESULT 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND METRIC_ID = #metricId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_IPE_METRIC_EVAL_RESULT
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('BSC_IPE_METRIC_EVAL_RESULT','','','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO BSC_IPE_METRIC_EVAL_RESULT ( 
+			   YEAR
+			 , EVAL_DEGREE_ID
+			 , METRIC_GRP_ID
+			 , METRIC_ID
+			 , EVAL_METRIC_SCORE
+			 , ADJUST_SCORE
+			 , FINAL_METRIC_SCORE
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #metricGrpId#
+			 , #metricId#
+			 , #evalMetricScore#
+			 , #adjustScore#
+			 , #finalMetricScore#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IPE_METRIC_EVAL_RESULT
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_IPE_METRIC_EVAL_RESULT 
+		   SET EVAL_METRIC_SCORE      = #evalMetricScore# 
+			 , ADJUST_SCORE           = #adjustScore# 
+			 , FINAL_METRIC_SCORE     = #finalMetricScore# 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND METRIC_ID = #metricId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가결과 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IPE_METRIC_EVAL_RESULT
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_IPE_METRIC_EVAL_RESULT 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND METRIC_ID = #metricId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가의견 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_METRIC_EVAL_RESULT
+	==================================================================
+	-->
+	<select id="getFeedList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.YEAR,
+	            A.EVAL_DEGREE_ID,
+	            A.METRIC_GRP_ID,
+	            A.ITEM_ID,
+	            A.SEQ,
+	            A.ATTACH_FILE_NM,
+	            A.ATTACH_FILE_FNM,
+	            A.ATTACH_FILE_SUFFIX,
+	            F_ENCRYPT(A.ATTACH_FILE_PATH,'wkWei8aIoQw3u9en') ATTACH_FILE_PATH
+	       FROM BSC_IPE_EVAL_FEED A
+	      WHERE A.YEAR=#year#
+	        AND A.EVAL_DEGREE_ID=#evalDegreeId#
+	        AND METRIC_GRP_ID=#metricGrpId#
+	        <isEqual property="itemGbnId" compareValue="01">
+	        AND A.ITEM_ID=#metricId# 
+	        </isEqual>
+	        <isEqual property="itemGbnId" compareValue="02">
+	        AND ITEM_ID IN(SELECT ITEM_ID
+	                         FROM BSC_IPE_ITEM_WEIGHT
+	                        WHERE YEAR=#year#
+	                          AND EVAL_DEGREE_ID=#evalDegreeId#
+	                          AND METRIC_GRP_ID=#metricGrpId#
+	                          AND METRIC_ID=#metricId# 
+	                          AND WEIGHT IS NOT NULL)
+	       </isEqual>                   
+	</select>
+	
+	
+</sqlMap>
+
+

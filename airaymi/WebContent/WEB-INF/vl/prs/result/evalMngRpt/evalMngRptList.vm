@@ -1,0 +1,324 @@
+#*************************************************************************
+* CLASS 명      : evalMngRptList
+* 작 업 자      : 박선혜
+* 작 업 일      : 2013년 06월 18일 
+* 기    능      : 간부개인성과 평가결과 통지서 관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  -----------  -----------------  -------------------------  --------
+*  1       박선혜      2013년 06월 18일         최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/prs/result/evalMngRpt/evalMngRptList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		#*var findEvalCastTc = J(":input:radio[name=findEvalCastTc]:checked").val();
+        if(undefined == findEvalCastTc){
+            J(":input:radio[name=findEvalCastTc]:eq(0)").attr("checked",true);
+        }*#
+        var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/prs/result/evalMngRpt/evalMngRptList_xml.vw" + "?" + str,
+			mtype        :"POST",			
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['사번','사원번호', '이름', '부서코드','부서명', '직급코드', '직급', '직위코드','직위','등급', '이의제기신청여부', '이의제기신청여부','이의제기답변여부','이의제기답변여부','직급코드','평가군','부서코드','평가년도'],
+			colModel     :[
+							{name:'EMPNS'   		,index:'EMPNS'				,width:10		,align:'center' , formatter:linkEmpn},
+							{name:'EMPN'   			,index:'EMPN'				,width:50		,align:'center' },
+							{name:'KOR_NM'   		,index:'KOR_NM'				,width:50   	,align:'center'  ,formatter:linkRpt},
+							{name:'CUR_DEPT_CD'		,index:'CUR_DEPT_CD'		,width:10		,align:'center' },
+							{name:'DEPT_FULL_NM'	,index:'DEPT_FULL_NM'		,width:150		,align:'center' },
+							{name:'CUR_CAST_TC'		,index:'CUR_CAST_TC'		,width:10		,align:'center' },
+							{name:'CAST_TC_NM'		,index:'CAST_TC_NM'			,width:80		,align:'center' },
+							{name:'CUR_POS_TC'		,index:'CUR_POS_TC'			,width:10		,align:'center' },
+							{name:'POS_TC_NM'		,index:'POS_TC_NM'			,width:80		,align:'center' },
+							{name:'GRADE'			,index:'GRADE'				,width:50		,align:'center' },
+							{name:'OBJECTION_YN'	,index:'OBJECTION_YN'		,width:80		,align:'center' ,formatter:linkReg},
+							{name:'OBJECTION'	    ,index:'OBJECTION'	    	,width:10		,align:'center' },
+							{name:'OBJECTION_ANS_YN',index:'OBJECTION_ANS_YN'	,width:80		,align:'center' ,formatter:linkAns},
+							{name:'OBJECTION_ANS'   ,index:'OBJECTION_ANS'	    ,width:10		,align:'center' },
+							{name:'CAST_TC'			,index:'CAST_TC'			,width:10		,align:'center' },
+                            {name:'EVAL_GRP_ID'     ,index:'EVAL_GRP_ID'        ,width:10       ,align:'center' },
+							{name:'DEPT_CD'			,index:'DEPT_CD'			,width:10		,align:'center' },
+							{name:'YEAR'			,index:'YEAR'				,width:10		,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			loadComplete : function() {
+
+                var id         = J("#list").getGridParam('selarrrow');
+                var ids        = J("#list").jqGrid('getDataIDs');
+                
+			},
+			caption:"간부개인성과 평가결과"
+		}).jqGrid('hideCol', "EMPNS").jqGrid('hideCol', "DEPT_CD").jqGrid('hideCol', "OBJECTION").jqGrid('hideCol', "OBJECTION_ANS").jqGrid('hideCol', "CUR_DEPT_CD").jqGrid('hideCol', "CUR_CAST_TC").jqGrid('hideCol', "CUR_POS_TC").jqGrid('hideCol', "YEAR").jqGrid('hideCol', "CAST_TC").jqGrid('hideCol', "EVAL_GRP_ID").setGridWidth($!{jqGrid_width});
+        
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+        
+		// 이의제기 신청기간 보여주기
+		if( "T" == "$!{objectionSchedule.OBJECTION_YN}" ){
+			var startDt = "$!{CS_FORMAT.dateFormat( $!{objectionSchedule.MNG_OBJ_START_DT} )}";
+			var endDt = "$!{CS_FORMAT.dateFormat( $!{objectionSchedule.MNG_OBJ_END_DT} )}";
+			if( startDt.length > 0 && endDt.length > 0 ){
+				J("#alertDis").html("※  이의제기 신청기간 : " + startDt + " ~ " + endDt );
+			}
+		} else {
+			J("#alertDis").html("※  이의제기 신청기간이 아닙니다." ).attr("class","txt_red");
+		}
+        
+        /******************************************
+         * 년도 변경 이벤트
+         ******************************************/
+        J("#findYear").change(function() {
+            changeEvalGrpIdAction(this.value);
+            return false;
+        });
+	});
+	
+	/******************************************
+     * jqGrid 사원번호
+     ******************************************/
+    function linkEmpn(cellvalue, options, rowObject) {
+    	return '<input type="text" name="empns" value="' + cellvalue + '" class="wp50" readonly="readonly"/>';
+    }
+	
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkRpt(cellvalue, options, rowObject) { 
+		return '<a href=javascript:goModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	
+	/******************************************
+	 * jqGrid 이의제기 신청서 페이지 링크
+	 ******************************************/
+	function linkReg(cellvalue, options, rowObject) { 
+		return '<a href=javascript:goReg(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	
+	/******************************************
+	 * jqGrid 이의제기 신청서 페이지 링크
+	 ******************************************/
+	function linkAns(cellvalue, options, rowObject) { 
+		return '<a href=javascript:goAns(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}	
+    
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#empn").val(ret.EMPN);
+		J("#deptCd").val(ret.DEPT_CD);
+		//J("#castTc").val(ret.CAST_TC);
+        J("#evalGrpId").val(ret.EVAL_GRP_ID);
+		J("#year").val(ret.YEAR);
+		J("#mode").val("RPT");
+		J("#formList").attr("action", "$!{context_path}/prs/result/evalMngRpt/evalMngRptModify.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 이의제기 신청서
+	 ******************************************/
+	function goReg(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#empn").val(ret.EMPN);
+		J("#deptCd").val(ret.DEPT_CD);
+		//J("#castTc").val(ret.CAST_TC);
+        J("#evalGrpId").val(ret.EVAL_GRP_ID);
+		J("#year").val(ret.YEAR);
+		J("#mode").val("REG");
+		
+		//if ('Y' == ret.OBJECTION ) {
+			J("#formList").attr("action", "$!{context_path}/prs/result/evalMngRpt/evalMngObjectionReg.vw?type=template").submit();
+		//} else {
+		//	J.showMsgBox("이의제기 신청건이 없습니다.", null, null); 
+		//}
+	}
+	
+	/******************************************
+	 * 이의제기 답변서
+	 ******************************************/
+	function goAns(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#empn").val(ret.EMPN);
+		J("#deptCd").val(ret.DEPT_CD);
+		//J("#castTc").val(ret.CAST_TC);
+        J("#evalGrpId").val(ret.EVAL_GRP_ID);
+		J("#year").val(ret.YEAR);
+		J("#mode").val("ANS");
+		if ('Y' == ret.OBJECTION) {
+			J("#formList").attr("action", "$!{context_path}/prs/result/evalMngRpt/evalMngObjectionAns.vw?type=template").submit();
+		} else {
+			J.showMsgBox("이의제기 신청건이 없습니다.", null, null); 
+		}
+	}
+    
+    /******************************************
+     * 년도 변경 이벤트
+     ******************************************/
+    function changeEvalGrpIdAction(findYear) {
+
+        J.ajax({
+            url        : "$!{context_path}/bsc/module/commModule/evalGrpList_ajax.vw",
+            type       : "POST",
+            data       : "findYear="+findYear+"&amp;findEvalGrpType=" + "02",
+            dataType   : "xml",
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            success    : function (xml) {
+                J("#findEvalGrpId").empty();
+                
+                if(J(xml).find("items").find("item").length > 0) {
+                    $(xml).find("items").find("item").each(function() {  
+                        var evalGrpId   = $(this).find("evalGrpId").text();
+                        var evalGrpNm   = $(this).find("evalGrpNm").text();
+                        
+                        J("#findEvalGrpId").append("<option value='" + evalGrpId +"'>"+evalGrpNm+"</option>");
+                        
+                    });
+                }
+            },  
+            error : function(xhr, status, error) {
+                alert(error);
+            }
+        });
+    }
+	
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">평가결과 통지서</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/result/evalMngRpt/evalMngRptList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="평가결과 통지서 검색 조건">
+						<caption class="none">평가결과 통지서 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w180">
+            						<span>$!{YEAR}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+							#if($!{CS_LOGIN.chkAuthGrp("01")} == true || $!{CS_LOGIN.chkAuthGrp("60")} == true || $!{CS_LOGIN.chkAuthGrp("84")} == true)
+                                <!--
+                                <td class="searchBox_tit w400">
+                                    <span><label for="findEvalCastTc">직급</label></span>
+                                    <span class="searchBar" id="findEvalCastTcRadio">
+                                        $!CS_CODE.getCodeRadio("findEvalCastTc", "216", $!{searchMap.txt2html("findEvalCastTc")}, $!{searchMap.txt2html("findYear")})
+                                    </span>
+                                </td>
+                                -->
+                                <td class="searchBox_tit w300">
+                                    <span><label for="findEvalGrpId">평가군</label></span>
+                                    <span class="searchBar">
+                                        <select id="findEvalGrpId" name="findEvalGrpId" class="select w130" >
+                                            #foreach($evalGrpList in $evalGrpList)
+                                                <option value="$!{CS_HTML.txt2html($evalGrpList.EVAL_GRP_ID)}" #if($!{searchMap.txt2html("findEvalGrpId")}==$evalGrpList.EVAL_GRP_ID) selected="selected" #end)>$!{CS_HTML.txt2html($evalGrpList.EVAL_GRP_NM)}</option>
+                                            #end
+                                        </select>
+                                    </span>
+                                </td>
+                                <td class="searchBox_tit w350" style="display:none;">
+									##<input type="radio" id="findCastTc2" name="findCastTc" value="10" $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '10')} $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '')} /><label for="findCastTc2">1급</label>&nbsp;
+                                    <input type="radio" id="findCastTc2" name="findCastTc" value="10" $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '10')} /><label for="findCastTc2">1급</label>&nbsp;
+    								<input type="radio" id="findCastTc3" name="findCastTc" value="20" $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '20')} /><label for="findCastTc3">2급</label>&nbsp;
+    								<input type="radio" id="findCastTc4" name="findCastTc" value="30" $!{CS_HTML.getChecked($!{searchMap.txt2html("findCastTc")}, '30')} /><label for="findCastTc4">3급</label>&nbsp;
+    							</td>
+								<td class="searchBox_tit w200">
+            						<span><label for="findKorNm">이름 </label></span>
+										<input type="text" title="이름" name="findKorNm" id="findKorNm" value="$!{searchMap.txt2html("findKorNm")}" maxlength="10" class="inputbox w100"/>
+            						</span>
+            					</td>
+       						#else
+        						<input type="hidden" name="findEmpn" id="findEmpn" value="$!{CS_LOGIN.getSabun()}" />
+							#end
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/prs/result/evalMngRpt/evalMngRptList.vw?type=template">
+			<input type="hidden" id="mode"       	name="mode" />
+			<input type="hidden" id="year"       	name="year" />
+			<input type="hidden" id="empn"       	name="empn" />
+			<input type="hidden" id="castTc"       	name="castTc" />
+            <input type="hidden" id="evalGrpId"     name="evalGrpId" />
+			<input type="hidden" id="deptCd"       	name="deptCd" />
+			
+			$!{searchMap.makeHiddenFind()}
+			
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="간부 개인 성과 평가결과 통지서 조회결과">
+							<caption class="none">간부 개인 성과 평가결과 통지서 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l txt_blue">
+							<span id="alertDis"></span>
+						</div>
+						<div class="blockButton">
+						</div>
+					</div>
+				</div>					
+			</div>
+		</form>
+		
+	</div>
+	<div class="clear"></div>
+</div>

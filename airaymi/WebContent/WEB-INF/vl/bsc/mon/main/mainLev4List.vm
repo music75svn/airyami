@@ -1,0 +1,938 @@
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+    J(document).ready(function(){
+
+		var str = J('#formFind').serialize();
+
+		/******************************************
+		 * 조직별 KPI현황 데이터 그리드 출력
+		 ******************************************/
+		jQuery("#scDeptScorelist").jqGrid({
+			url          :"$!{context_path}/bsc/mon/main/deptScoreList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : 225,
+			colNames     :['$!{METRIC_NM}코드', '상태','$!{METRIC_NM}', '목표', '실적', '달성률', '점수', '가중치', '최종득점', '상위$!{METRIC_NM}'],
+			colModel     :[
+							{name:'METRIC_ID'     ,index:'METRIC_ID'    ,width:40    ,align:'center' },
+							{name:'STATUS'        ,index:'STATUS'       ,width:40    ,align:'center' ,formatter:linkUpdateSignal},
+							{name:'METRIC_NM'     ,index:'METRIC_NM'    ,width:100    ,align:'left'   ,formatter:linkUpdateMetric},
+							{name:'TARGET'        ,index:'TARGET'       ,width:40    ,align:'right'  },
+							{name:'ACTUAL'        ,index:'ACTUAL'       ,width:40    ,align:'right'  ,formatter:linkUpdateActual},
+							{name:'PERSENT'       ,index:'PERSENT'      ,width:40    ,align:'right'  },
+							{name:'SCORE'         ,index:'SCORE'        ,width:40    ,align:'right'  },
+							{name:'WEIGHT'        ,index:'WEIGHT'       ,width:40    ,align:'right'  },
+							{name:'EXCSCORE'      ,index:'EXCSCORE'     ,width:40    ,align:'right'  },
+							{name:'UP_METRIC_ID'  ,index:'UP_METRIC_ID' ,width:40    ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : true,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			shrinkToFit	 : false,
+			caption:"조직성과"
+		}).jqGrid('hideCol',"METRIC_ID").jqGrid('hideCol',"UP_METRIC_ID").jqGrid('hideCol',"SC_DEPT_ID").setGridWidth(360);
+
+		/******************************************
+		 * 조직별 KPI현황 비교 데이터 그리드 출력
+		 ******************************************/
+		jQuery("#scDeptScoreComplist").jqGrid({
+			url          :"$!{context_path}/bsc/mon/main/deptScoreCompList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : 225,
+			colNames     :['$!{METRIC_NM}코드', '상태','$!{METRIC_NM}', '목표', '실적', '달성률', '점수', '가중치', '최종득점', '상위$!{METRIC_NM}'],
+			colModel     :[
+							{name:'METRIC_ID'     ,index:'METRIC_ID'    ,width:40    ,align:'center' },
+							{name:'STATUS'        ,index:'STATUS'       ,width:40    ,align:'center' ,formatter:linkUpdateSignalComp},
+							{name:'METRIC_NM'     ,index:'METRIC_NM'    ,width:100    ,align:'left'   ,formatter:linkUpdateMetricComp},
+							{name:'TARGET'        ,index:'TARGET'       ,width:40    ,align:'right'  },
+							{name:'ACTUAL'        ,index:'ACTUAL'       ,width:40    ,align:'right'  ,formatter:linkUpdateActualComp},
+							{name:'PERSENT'       ,index:'PERSENT'      ,width:40    ,align:'right'  },
+							{name:'SCORE'         ,index:'SCORE'        ,width:40    ,align:'right'  },
+							{name:'WEIGHT'        ,index:'WEIGHT'       ,width:40    ,align:'right'  },
+							{name:'EXCSCORE'      ,index:'EXCSCORE'     ,width:40    ,align:'right'  },
+							{name:'UP_METRIC_ID'  ,index:'UP_METRIC_ID' ,width:40    ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : true,
+			viewrecords  : true,
+			loadonce     : false,
+			multiselect  : false,
+			cellEdit     : true,
+			shrinkToFit	 : false,
+			caption:"조직성과"
+		}).jqGrid('hideCol',"METRIC_ID").jqGrid('hideCol',"UP_METRIC_ID").jqGrid('hideCol',"SC_DEPT_ID").setGridWidth(360);
+
+		/******************************************
+		 * 공지사항
+		 ******************************************/
+		var str = J('#formPop').serialize();
+
+		jQuery("#noticeList").jqGrid({
+			url          :"$!{context_path}/bsc/system/notice/noticeList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : 225,
+			colNames     :['번호', '제목', '작성일'
+						 ],
+			colModel     :[
+							{name:'ID'                   ,index:'ID'                   ,width:40    ,align:'center' },
+                            {name:'SUBJECT'              ,index:'SUBJECT'              ,width:240   ,align:'left'    , formatter:linkNotice},
+                            {name:'CREATE_DT'            ,index:'CREATE_DT'            ,width:80    ,align:'center' },
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			cmTemplate	 : {sortable:false},
+			multiselect  : false,
+			cellEdit     : true,
+			caption:"공지사항관리"
+		}).setGridWidth(360);
+
+        /******************************************
+         * 화면 기본 디스플레이
+         ******************************************/
+
+		J("#barChart9List").css("display","none");
+		J("#barChart10List").css("display","none");
+		J("#barChart11List").css("display","none");
+		J("#barChart1List").css("display","none");
+    	J("#barChart2List").css("display","none");
+    	J("#barChart3List").css("display","none");
+		J("#barChart4List").css("display","none");
+		J("#barChart5List").css("display","none");
+    	J("#barChart6List").css("display","none");
+    	J("#barChart7List").css("display","none");
+		J("#barChart8List").css("display","none");
+
+    	J("#barChart9").attr("src", "$!{img_path}/common/dept_tab/tab_02.gif");
+    	J("#barChart10").attr("src", "$!{img_path}/common/dept_tab/tab_03.gif");
+    	J("#barChart11").attr("src", "$!{img_path}/common/dept_tab/tab_18.gif");
+    	J("#barChart1").attr("src", "$!{img_path}/common/dept_tab/tab_05.gif");
+    	J("#barChart2").attr("src", "$!{img_path}/common/dept_tab/tab_06.gif");
+    	J("#barChart3").attr("src", "$!{img_path}/common/dept_tab/tab_10.gif");
+		J("#barChart4").attr("src", "$!{img_path}/common/dept_tab/tab_07.gif");
+		J("#barChart5").attr("src", "$!{img_path}/common/dept_tab/tab_11.gif");
+    	J("#barChart6").attr("src", "$!{img_path}/common/dept_tab/tab_12.gif");
+    	J("#barChart7").attr("src", "$!{img_path}/common/dept_tab/tab_13.gif");
+		J("#barChart8").attr("src", "$!{img_path}/common/dept_tab/tab_14.gif");
+
+		if('$!{CS_LOGIN.getSc_dept_grp_id()}' == '02'){
+			J("#barChart9List").css("display","");
+			J("#barChart9").attr("src", "$!{img_path}/common/dept_tab/tab_02_on.gif");
+		}else if('$!{CS_LOGIN.getSc_dept_grp_id()}' == '03'){
+			J("#barChart10List").css("display","");
+			J("#barChart10").attr("src", "$!{img_path}/common/dept_tab/tab_03_on.gif");
+		}else if('$!{CS_LOGIN.getSc_dept_grp_id()}' == '18'){
+			J("#barChart11List").css("display","");
+			J("#barChart11").attr("src", "$!{img_path}/common/dept_tab/tab_18_on.gif");
+		}else if('$!{CS_LOGIN.getSc_dept_grp_id()}' == '05'){
+			J("#barChart1List").css("display","");
+			J("#barChart1").attr("src", "$!{img_path}/common/dept_tab/tab_05_on.gif");
+		}else if('$!{CS_LOGIN.getSc_dept_grp_id()}' == '06'){
+			J("#barChart2List").css("display","");
+			J("#barChart2").attr("src", "$!{img_path}/common/dept_tab/tab_06_on.gif");
+		}else if('$!{CS_LOGIN.getSc_dept_grp_id()}' == '10'){
+			J("#barChart3List").css("display","");
+			J("#barChart3").attr("src", "$!{img_path}/common/dept_tab/tab_10_on.gif");
+		}else if('$!{CS_LOGIN.getSc_dept_grp_id()}' == '07'){
+			J("#barChart4List").css("display","");
+			J("#barChart4").attr("src", "$!{img_path}/common/dept_tab/tab_07_on.gif");
+		}else if('$!{CS_LOGIN.getSc_dept_grp_id()}' == '11'){
+			J("#barChart5List").css("display","");
+			J("#barChart5").attr("src", "$!{img_path}/common/dept_tab/tab_11_on.gif");
+		}else if('$!{CS_LOGIN.getSc_dept_grp_id()}' == '12'){
+			J("#barChart6List").css("display","");
+			J("#barChart6").attr("src", "$!{img_path}/common/dept_tab/tab_12_on.gif");
+		}else if('$!{CS_LOGIN.getSc_dept_grp_id()}' == '13'){
+			J("#barChart7List").css("display","");
+			J("#barChart7").attr("src", "$!{img_path}/common/dept_tab/tab_13_on.gif");
+		}else if('$!{CS_LOGIN.getSc_dept_grp_id()}' == '14'){
+			J("#barChart8List").css("display","");
+			J("#barChart8").attr("src", "$!{img_path}/common/dept_tab/tab_14_on.gif");
+		}else{
+			J("#barChart9List").css("display","");
+			J("#barChart9").attr("src", "$!{img_path}/common/dept_tab/tab_02_on.gif");
+		}
+
+		J("#barChart9").click(function(){
+			tabEvent1("barChart9");
+		});
+
+		J("#barChart10").click(function(){
+			tabEvent1("barChart10");
+		});
+
+		J("#barChart11").click(function(){
+			tabEvent1("barChart11");
+		});
+
+		J("#barChart1").click(function(){
+			tabEvent1("barChart1");
+		});
+
+		J("#barChart2").click(function(){
+			tabEvent1("barChart2");
+		});
+
+		J("#barChart3").click(function(){
+			tabEvent1("barChart3");
+		});
+
+		J("#barChart4").click(function(){
+			tabEvent1("barChart4");
+		});
+
+		J("#barChart5").click(function(){
+			tabEvent1("barChart5");
+		});
+
+		J("#barChart6").click(function(){
+			tabEvent1("barChart6");
+		});
+
+		J("#barChart7").click(function(){
+			tabEvent1("barChart7");
+		});
+
+		J("#barChart8").click(function(){
+			tabEvent1("barChart8");
+		});
+
+    	/******************************************
+         * 관심지표선택 이미지 클릭 이벤트 호출
+         ******************************************/
+    	J("#userMetric").click(function(){
+    		popUserMetric();
+    	});
+
+        /******************************************
+         * FANCYBOX
+         ******************************************/
+        J("#anchor").fancybox();      //상세팝업
+
+        /******************************************
+         * LI태그 마우스 포인터 표시
+         ******************************************/
+        J("li").css("cursor","pointer");
+
+    });
+
+	/******************************************
+	 * 지표정의서
+	 ******************************************/
+	function linkUpdateMetric(cellvalue, options, rowObject) {
+		var str = cellvalue;
+
+		if(rowObject.UP_METRIC_ID != "") {
+			str = "<img src=\'$!{img_path}/tree.gif\' align='absmiddle'>" + str
+		}
+
+		return '<a href=javascript:goPopMetricDetail(' + options.rowId + ')>' + str + '<//a>';
+	}
+
+	/******************************************
+	 * 지표정의서
+	 ******************************************/
+	function linkUpdateMetricComp(cellvalue, options, rowObject) {
+		var str = cellvalue;
+
+		if(rowObject.UP_METRIC_ID != "") {
+			str = "<img src=\'$!{img_path}/tree.gif\' align='absmiddle'>" + str
+		}
+
+		return '<a href=javascript:goPopMetricDetailComp(' + options.rowId + ')>' + str + '<//a>';
+	}
+
+	/******************************************
+	 * 공지사항
+	 ******************************************/
+	function linkNotice(cellvalue, options, rowObject) {
+		var str = cellvalue;
+
+		return '<a href=javascript:goPopNoticeDetail(' + options.rowId + ')>' + str + '<//a>';
+	}
+
+	/******************************************
+	 * 공지사항 클릭 이벤트
+	 ******************************************/
+	function goPopNoticeDetail(rowId) {
+		var ret = J("#noticeList").jqGrid('getRowData',rowId);
+
+		var id = ret.ID;
+		var year = J("#findYear").val();
+		var mode = "MOD";
+
+		var param = "&amp;year=" + year +"&amp;findYear=" + year + "&amp;mode=" + mode + "&amp;id=" + id;
+
+		var url = "$!{context_path}/bsc/system/notice/noticePopup.vw?type=popup" + param;
+		openWinByName(url,'NoticeModifyPop','600','500','yes');
+	}
+
+	/******************************************
+	 * 지표정의서버튼 클릭 이벤트
+	 ******************************************/
+	function goPopMetricDetail(rowId) {
+		var ret = J("#scDeptScorelist").jqGrid('getRowData',rowId);
+
+		var scDeptId = ret.SC_DEPT_ID;
+		var metricId = ret.METRIC_ID;
+		var year = J("#findYear").val();
+		var mon = J("#findMon").val();
+		var analCycle = J(":input:radio[name=findAnalCycle]:checked").val();
+
+		var param = "&amp;year=" + year +"&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;metricId=" + metricId + "&amp;analCycle="+analCycle+ "&amp;findScDeptId="+scDeptId;
+
+		var url = "$!{context_path}/bsc/mon/metricDefine/metricDefineList.vw?type=popup" + param;
+		openWinByName(url,'MetricDefinePop','1250','650','yes');
+	}
+
+	/******************************************
+	 * 지표정의서버튼 클릭 이벤트
+	 ******************************************/
+	function goPopMetricDetailComp(rowId) {
+		var ret = J("#scDeptScoreComplist").jqGrid('getRowData',rowId);
+
+		var scDeptId = ret.SC_DEPT_ID;
+		var metricId = ret.METRIC_ID;
+		var year = J("#findYear").val();
+		var mon = J("#findMon").val();
+		var analCycle = J(":input:radio[name=findAnalCycle]:checked").val();
+
+		var param = "&amp;year=" + year +"&amp;findYear=" + year + "&amp;findMon=" + mon + "&amp;metricId=" + metricId + "&amp;analCycle="+analCycle+ "&amp;findScDeptId="+scDeptId;
+
+		var url = "$!{context_path}/bsc/mon/metricDefine/metricDefineList.vw?type=popup" + param;
+		openWinByName(url,'MetricDefinePop','1250','650','yes');
+	}
+
+	/******************************************
+	 * 실적상세
+	 ******************************************/
+	function linkUpdateActual(cellvalue, options, rowObject) {
+		return "<a href=javascript:goPopMetricActualDetail(" + options.rowId + ")>" + cellvalue+ "</a>";
+	}
+
+	/******************************************
+	 * 실적상세
+	 ******************************************/
+	function linkUpdateActualComp(cellvalue, options, rowObject) {
+		return "<a href=javascript:goPopMetricActualDetailComp(" + options.rowId + ")>" + cellvalue+ "</a>";
+	}
+
+	/*****************************************************
+	 * 실적상세 팝업
+	 *****************************************************/
+    function goPopMetricActualDetail(rowId){
+		var ret = J("#scDeptScorelist").jqGrid('getRowData',rowId);
+		var metricId = ret.METRIC_ID;
+		var year = J("#findYear").val();
+		var mon = J("#findMon").val();
+		var analCycle = J(":input:radio[name=findAnalCycle]:checked").val();
+
+		var param = "&amp;year=" + year + "&amp;findMon=" + mon + "&amp;metricId=" + metricId + "&amp;analCycle="+analCycle;
+
+		var url = "$!{context_path}/bsc/mon/metricActualDetail/popMetricActualDetailList.vw?type=popup" + param;
+		openWinByName(url,'popMetricDetail','1250','650','yes');
+    }
+
+	/*****************************************************
+	 * 실적상세 팝업
+	 *****************************************************/
+    function goPopMetricActualDetailComp(rowId){
+		var ret = J("#scDeptScoreComplist").jqGrid('getRowData',rowId);
+		var metricId = ret.METRIC_ID;
+		var year = J("#findYear").val();
+		var mon = J("#findMon").val();
+		var analCycle = J(":input:radio[name=findAnalCycle]:checked").val();
+
+		var param = "&amp;year=" + year + "&amp;findMon=" + mon + "&amp;metricId=" + metricId + "&amp;analCycle="+analCycle;
+
+		var url = "$!{context_path}/bsc/mon/metricActualDetail/popMetricActualDetailList.vw?type=popup" + param;
+		openWinByName(url,'popMetricDetail','1250','650','yes');
+    }
+
+	/******************************************
+	 * 실적상세 신호등
+	 ******************************************/
+	function linkUpdateSignal(cellvalue, options, rowObject) {
+		return "<a href=javascript:goPopMetricActualDetail(" + options.rowId + ")>" + "<img name=\'sig\'  src=\'$!{img_path}/common/ball/ball_" + cellvalue + ".gif\' >" + "</a>";
+	}
+
+	/******************************************
+	 * 실적상세 신호등
+	 ******************************************/
+	function linkUpdateSignalComp(cellvalue, options, rowObject) {
+		return "<a href=javascript:goPopMetricActualDetailComp(" + options.rowId + ")>" + "<img name=\'sig\'  src=\'$!{img_path}/common/ball/ball_" + cellvalue + ".gif\' >" + "</a>";
+	}
+
+	/******************************************
+     * 상단 TAB 마우스오버 이벤트
+     ******************************************/
+	function tabEvent1(item){
+		hiddenAllItem1(item);
+		J("#"+item+"List").css("display","");
+
+		if(item=="barChart9"){
+			J("#barChart9").attr("src", "$!{img_path}/common/dept_tab/tab_02_on.gif");
+		} else if(item=="barChart10"){
+			J("#barChart10").attr("src", "$!{img_path}/common/dept_tab/tab_03_on.gif");
+		} else if(item=="barChart11"){
+			J("#barChart11").attr("src", "$!{img_path}/common/dept_tab/tab_18_on.gif");
+		} else if(item=="barChart1"){
+			J("#barChart1").attr("src", "$!{img_path}/common/dept_tab/tab_05_on.gif");
+		} else if(item=="barChart2"){
+			J("#barChart2").attr("src", "$!{img_path}/common/dept_tab/tab_06_on.gif");
+		} else if(item=="barChart3"){
+			J("#barChart3").attr("src", "$!{img_path}/common/dept_tab/tab_10_on.gif");
+		} else if(item=="barChart4"){
+			J("#barChart4").attr("src", "$!{img_path}/common/dept_tab/tab_07_on.gif");
+		} else if(item=="barChart5"){
+			J("#barChart5").attr("src", "$!{img_path}/common/dept_tab/tab_11_on.gif");
+		} else if(item=="barChart6"){
+			J("#barChart6").attr("src", "$!{img_path}/common/dept_tab/tab_12_on.gif");
+		} else if(item=="barChart7"){
+			J("#barChart7").attr("src", "$!{img_path}/common/dept_tab/tab_13_on.gif");
+		} else if(item=="barChart8"){
+			J("#barChart8").attr("src", "$!{img_path}/common/dept_tab/tab_14_on.gif");
+		}
+	};
+
+    /******************************************
+     * 상단 TAB 마우스오버 이벤트
+     ******************************************/
+	function hiddenAllItem1(item){
+
+		if(item == "barChart9") {
+    		J("#barChart9List").css("display","");
+    		J("#barChart10List").css("display","none");
+    		J("#barChart11List").css("display","none");
+    		J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","none");
+			J("#barChart5List").css("display","none");
+			J("#barChart6List").css("display","none");
+			J("#barChart7List").css("display","none");
+			J("#barChart8List").css("display","none");
+		} else if(item == "barChart10") {
+		    J("#barChart9List").css("display","none");
+    		J("#barChart10List").css("display","");
+    		J("#barChart11List").css("display","none");
+    		J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","none");
+			J("#barChart5List").css("display","none");
+			J("#barChart6List").css("display","none");
+			J("#barChart7List").css("display","none");
+			J("#barChart8List").css("display","none");
+		} else if(item == "barChart11") {
+    		J("#barChart9List").css("display","none");
+    		J("#barChart10List").css("display","none");
+    		J("#barChart11List").css("display","");
+    		J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","none");
+			J("#barChart5List").css("display","none");
+			J("#barChart6List").css("display","none");
+			J("#barChart7List").css("display","none");
+			J("#barChart8List").css("display","none");
+		} else if(item == "barChart1") {
+			J("#barChart9List").css("display","none");
+    		J("#barChart10List").css("display","none");
+    		J("#barChart11List").css("display","none");
+    		J("#barChart1List").css("display","");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","none");
+			J("#barChart5List").css("display","none");
+			J("#barChart6List").css("display","none");
+			J("#barChart7List").css("display","none");
+			J("#barChart8List").css("display","none");
+		} else if(item == "barChart2") {
+			J("#barChart9List").css("display","none");
+    		J("#barChart10List").css("display","none");
+    		J("#barChart11List").css("display","none");
+			J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","none");
+			J("#barChart5List").css("display","none");
+			J("#barChart6List").css("display","none");
+			J("#barChart7List").css("display","none");
+			J("#barChart8List").css("display","none");
+		} else if(item == "barChart3") {
+			J("#barChart9List").css("display","none");
+    		J("#barChart10List").css("display","none");
+    		J("#barChart11List").css("display","none");
+			J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","");
+			J("#barChart4List").css("display","none");
+			J("#barChart5List").css("display","none");
+			J("#barChart6List").css("display","none");
+			J("#barChart7List").css("display","none");
+			J("#barChart8List").css("display","none");
+		} else if(item == "barChart4") {
+			J("#barChart9List").css("display","none");
+    		J("#barChart10List").css("display","none");
+    		J("#barChart11List").css("display","none");
+			J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","");
+			J("#barChart5List").css("display","none");
+			J("#barChart6List").css("display","none");
+			J("#barChart7List").css("display","none");
+			J("#barChart8List").css("display","none");
+		} else if(item == "barChart5") {
+			J("#barChart9List").css("display","none");
+    		J("#barChart10List").css("display","none");
+    		J("#barChart11List").css("display","none");
+			J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","none");
+			J("#barChart5List").css("display","");
+			J("#barChart6List").css("display","none");
+			J("#barChart7List").css("display","none");
+			J("#barChart8List").css("display","none");
+		} else if(item == "barChart6") {
+			J("#barChart9List").css("display","none");
+    		J("#barChart10List").css("display","none");
+    		J("#barChart11List").css("display","none");
+			J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","none");
+			J("#barChart5List").css("display","none");
+			J("#barChart6List").css("display","");
+			J("#barChart7List").css("display","none");
+			J("#barChart8List").css("display","none");
+		} else if(item == "barChart7") {
+			J("#barChart9List").css("display","none");
+    		J("#barChart10List").css("display","none");
+    		J("#barChart11List").css("display","none");
+			J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","none");
+			J("#barChart5List").css("display","none");
+			J("#barChart6List").css("display","none");
+			J("#barChart7List").css("display","");
+			J("#barChart8List").css("display","none");
+		} else if(item == "barChart8") {
+			J("#barChart9List").css("display","none");
+    		J("#barChart10List").css("display","none");
+    		J("#barChart11List").css("display","none");
+			J("#barChart1List").css("display","none");
+    		J("#barChart2List").css("display","none");
+    		J("#barChart3List").css("display","none");
+			J("#barChart4List").css("display","none");
+			J("#barChart5List").css("display","none");
+			J("#barChart6List").css("display","none");
+			J("#barChart7List").css("display","none");
+			J("#barChart8List").css("display","");
+		}
+
+    	J("#barChart9").attr("src", "$!{img_path}/common/dept_tab/tab_02.gif");
+    	J("#barChart10").attr("src", "$!{img_path}/common/dept_tab/tab_03.gif");
+    	J("#barChart11").attr("src", "$!{img_path}/common/dept_tab/tab_18.gif");
+    	J("#barChart1").attr("src", "$!{img_path}/common/dept_tab/tab_05.gif");
+    	J("#barChart2").attr("src", "$!{img_path}/common/dept_tab/tab_06.gif");
+    	J("#barChart3").attr("src", "$!{img_path}/common/dept_tab/tab_10.gif");
+		J("#barChart4").attr("src", "$!{img_path}/common/dept_tab/tab_07.gif");
+		J("#barChart5").attr("src", "$!{img_path}/common/dept_tab/tab_11.gif");
+    	J("#barChart6").attr("src", "$!{img_path}/common/dept_tab/tab_12.gif");
+    	J("#barChart7").attr("src", "$!{img_path}/common/dept_tab/tab_13.gif");
+		J("#barChart8").attr("src", "$!{img_path}/common/dept_tab/tab_14.gif");
+	}
+
+	/******************************************
+     * 사용자별 주요지표 선택
+     ******************************************/
+	function popUserMetric(){
+		J("#anchor").attr("href","$!{context_path}/bsc/mon/main/popUserMetric.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;callBack=setSubMetricSet");
+		J("#anchor").click();
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function goUserMetricInsert() {
+		J.showConfirmBox("저장하시겠습니까?", "insertUserMetricDo"); //insertUserMetricDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 저장처리
+	 ******************************************/
+	function insertUserMetricDo() {
+		J("#year").val(J("#findYear").val());
+		J("#mode").val("ADD_METRIC");
+
+		J("#formFind").attr("action", "$!{context_path}/bsc/mon/main/mainProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+     * 비교조직 차트 클릭시 조직성과상세 팝업
+     ******************************************/
+	function goOrgDetailPop(scDeptId){
+		J("#scDeptCompId").val(scDeptId);
+		J("#scDeptScoreComplist").setGridParam({url:"$!{context_path}/bsc/mon/main/deptScoreCompList_xml.vw?"+J("#formFind").serialize()});
+        J("#scDeptScoreComplist").trigger("reloadGrid");
+		getScDeptNm();
+	}
+
+	/******************************************
+	 * 성과조직명 가져오기
+	 ******************************************/
+	function getScDeptNm() {
+		var year = J("#findYear").val();
+		var scDeptId = J("#scDeptCompId").val();
+
+		J.ajax({
+			url        : "$!{context_path}/bsc/module/commModule/getScDeptNm_ajax.vw",
+        	type       : "POST",
+			data       : "year=" + year + "&amp;scDeptId=" + scDeptId,
+        	dataType   : "xml",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success    : function (xml) {
+				if(J(xml).find("items").find("item").length > 0) {
+					J(xml).find("items").find("item").each(function() {
+                        var scDeptNm = J(this).find("scDeptNm").text();
+						J("#scDeptCompNm").text(scDeptNm);
+                    });
+				}
+        	},
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+    	});
+	}
+
+//]]>
+</script>
+
+<!--blockContainer Start-->
+<div id="blockContainer">
+	<a id="anchor" ></a>
+	<!--blockMain Start-->
+	<div id="blockMain">
+
+        <div id="blockMainTop">
+			<!-- 조회조건 시작 -->
+    		<div class="tableTop">
+        		<!-- search S -->
+    			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/mon/main/mainLev4List.vw?type=template">
+					<input type="hidden"		id="metricIds"		name="metricIds" />
+					<input type="hidden"		id="mode"			name="mode" />
+					<input type="hidden"	    id="scDeptId"       name="scDeptId"    	value="$!{CS_LOGIN.getSc_dept_id()}"/>
+					<input type="hidden"	    id="scDeptCompId"   name="scDeptCompId" />
+					<input type="hidden"	    id="scDeptGrpId"    name="scDeptGrpId"  value="$!{CS_LOGIN.getSc_dept_grp_id()}"/>
+					<input type="hidden"	    id="upScDeptId"     name="upScDeptId"  	value="$!{CS_LOGIN.getUp_sc_dept_id()}"/>
+					<input type="hidden"		id="returnUrl"		name="returnUrl"   	value="mainLev4List"/>
+
+    				<div class="searchBox">
+        				<div><div><div>
+        				<table summary="검색조건">
+    						<caption class="none">검색조건</caption>
+    						<thead><tr><th></th></tr></thead>
+            				<tbody>
+                				<tr>
+                					<td class="searchBox_tit w250">
+    									<span>$!{YEARMON}</span>
+                						<span class="searchBar">
+                							<select id="findYear" name="findYear" class="select w80">
+                								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+                							</select>
+    										<select id="findMon" name="findMon" class="select w70">
+                								$!CS_CODE.getCodeOption("024", $!{searchMap.txt2html("findMon")})
+                							</select>
+                						</span>
+                                    </td>
+									<td class="searchBox_tit w100">
+                						<span class="searchBar">
+    										$!CS_CODE.getCodeRadio("findAnalCycle", "138", $!{searchMap.txt2html("findAnalCycle")}, "")
+                						</span>
+                					</td>
+                				</tr>
+            				</tbody>
+        				</table>
+    					<input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                        </div></div></div>
+        	        </div>
+        		</form>
+        		<!-- search E -->
+    			<div class="clear"></div>
+    		</div>
+    		<!-- 조회조건 끝-->
+
+			<h1 class="none">컨텐츠영역</h1>
+            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+				<colgroup>
+					<col width="375px" />
+					<col width="10px" />
+					<col width="375px" />
+					<col width="10px" />
+					<col width="380px" />
+				</colgroup>
+				<tbody>
+					<tr>
+						<td valign="top">
+							<div class="bodybox" style="height:300px;">
+								<div class="bodybox_titbg">
+									<div class="bodybox_tit">$!{CS_LOGIN.getSc_dept_nm()} 현황</div>
+									<div class="bodybox_contents">
+										<!-- 데이터그리드 Start -->
+                    					<div class="blockGridListTable">
+                    						<table id="scDeptScorelist" summary="조회결과">
+                    							<caption class="none">조회결과</caption>
+                    							<thead><tr><th></th></tr></thead>
+                    							<tbody><tr><td></td></tr></tbody>
+                    						</table>
+                    						<div id="pager1"></div>
+                    					</div>
+                    					<!--// 데이터그리드 End -->
+									</div>
+								</div>
+							</div>
+						</td>
+						<td>&nbsp;</td>
+						<td valign="top">
+							<div class="bodybox" style="height:300px;">
+								<div class="bodybox_titbg">
+									<div class="bodybox_tit"><span id="scDeptCompNm" class="searchBar">$!{searchMap.txt2html("scDeptCompNm")}</span> 현황</div>
+									<div class="bodybox_contents" >
+										<!-- 데이터그리드 Start -->
+                    					<div class="blockGridListTable">
+                    						<table id="scDeptScoreComplist" summary="조회결과">
+                    							<caption class="none">조회결과</caption>
+                    							<thead><tr><th></th></tr></thead>
+                    							<tbody><tr><td></td></tr></tbody>
+                    						</table>
+                    						<div id="pager2"></div>
+                    					</div>
+                    					<!--// 데이터그리드 End -->
+									</div>
+								</div>
+							</div>
+						</td>
+						<td>&nbsp;</td>
+						<td rowspan="2" valign="top">
+							<div class="bodybox" style="height:615px;width:355px;">
+								<div class="bodybox_titbg">
+									<div class="bodybox_tit">관심지표성과</div>
+									<div class="bodybox_btn" id="userMetric"><a href="javascript:popUserMetric();" class="btn01"><span>관심지표성과</span></a></div>
+									<div class="bodybox_contents" >
+									#set($colors = ["FF7200","9314FF","00D3E0","6EC200"])
+									#foreach($list in $userMetricList)
+    							    	<div id="lineChart$velocityCount"></div>
+										<script type="text/javascript" language="javascript" >
+                    					//<![CDATA[
+                    						FusionCharts.setCurrentRenderer(render);
+
+                    					#if($!{CS_STATIC.subString($list.METRIC_ID,1)}=="M")
+                                    		var myChart2 = new FusionCharts( "$!{chart_path}/MSLine.swf", "myChartId2_$!{velocityCount}", "300", "130", "0", "1" );
+                                    		myChart2.setXMLUrl("$!{context_path}/bsc/mon/main/userMetricChart_xml.vw?year=$!{year}&mon=$!{mon}&userId=$!{CS_LOGIN.getUser_id()}&scDeptId=$!{CS_LOGIN.getSc_dept_id()}&metricId=$!{CS_HTML.txt2html($list.METRIC_ID)}&color=$vcList.get($colors, $vcMath.sub($velocityCount,1))");
+                                    	#else
+                                    		var myChart2 = new FusionCharts( "$!{chart_path}/MSLine.swf", "myChartId2_$!{velocityCount}", "300", "130", "0", "1" );
+                                    		myChart2.setXMLUrl("$!{context_path}/bsc/mon/main/userGovMetricChart_xml.vw?year=$!{year}&mon=$!{mon}&userId=$!{CS_LOGIN.getUser_id()}&scDeptId=$!{CS_LOGIN.getSc_dept_id()}&metricId=$!{CS_HTML.txt2html($list.METRIC_ID)}&color=$vcList.get($colors, $vcMath.sub($velocityCount,1))");
+                                    	#end
+    										myChart2.render("lineChart$velocityCount");
+                    					//]]>
+                                    	</script>
+                                        <div style="height:8px"></div>
+									#end
+									</div>
+								</div>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3" valign="top" >
+							<div class="bodybox" style="height:300px;">
+								<div class="bodybox_titbg">
+									<div class="bodyboxlist_tit w760" style="height:42px; width:760px; overflow-x:scroll; overflow-y:hidden; ">
+										<div class="bodyboxlist_tit w760" style="width:1010px;">
+											<ul>
+												<li><img id="barChart9" src="" alt="대쉬보드9" /></li>
+												<li><img id="barChart10" src="" alt="대쉬보드10" /></li>
+												<li><img id="barChart11" src="" alt="대쉬보드11" /></li>
+												<li><img id="barChart1" src="" alt="대쉬보드1" /></li>
+												<li><img id="barChart2" src="" alt="대쉬보드2" /></li>
+												<li><img id="barChart3" src="" alt="대쉬보드3" /></li>
+												<li><img id="barChart4" src="" alt="대쉬보드4" /></li>
+												<li><img id="barChart5" src="" alt="대쉬보드5" /></li>
+												<li><img id="barChart6" src="" alt="대쉬보드6" /></li>
+												<li><img id="barChart7" src="" alt="대쉬보드7" /></li>
+												<li><img id="barChart8" src="" alt="대쉬보드8" /></li>
+											</ul>
+										</div>
+									</div>
+									<div class="bodybox_contents">
+                                        <div id="barChart9List" style="position:absolute;top:5px;left:1px;"></div>
+        									<script type="text/javascript" language="javascript" >
+                        					//<![CDATA[
+                        						FusionCharts.setCurrentRenderer(render);
+                                        		var deptChart9 = new FusionCharts("$!{chart_path}/Column3D.swf", "deptChartId9", "740", "240", "0", "1" );
+        										deptChart9.configure("ChartNoDataText", " ");
+                                        		deptChart9.setXMLUrl("$!{context_path}/bsc/mon/main/compareDeptChart_xml.vw?year=$!{findYear}&mon=$!{findMon}&analCycle=Y&amp;scDeptGrpId=02&amp;levelId=2&amp;searchType=SC_DEPT_GRP");
+        										deptChart9.render("barChart9List");
+                        					//]]>
+                                        	</script>
+										<div id="barChart10List" style="position:absolute;top:5px;left:1px;"></div>
+											<script type="text/javascript" language="javascript" >
+                        					//<![CDATA[
+                        						FusionCharts.setCurrentRenderer(render);
+                                        		var deptChart10 = new FusionCharts("$!{chart_path}/Column3D.swf", "deptChartId10", "740", "240", "0", "1" );
+        										deptChart10.configure("ChartNoDataText", " ");
+                                        		deptChart10.setXMLUrl("$!{context_path}/bsc/mon/main/compareDeptChart_xml.vw?year=$!{findYear}&mon=$!{findMon}&analCycle=Y&amp;scDeptGrpId=03&amp;levelId=2&amp;searchType=SC_DEPT_GRP");
+        										deptChart10.render("barChart10List");
+                        					//]]>
+                                        	</script>
+										<div id="barChart11List" style="position:absolute;top:5px;left:1px;"></div>
+											<script type="text/javascript" language="javascript" >
+                        					//<![CDATA[
+                        						FusionCharts.setCurrentRenderer(render);
+                                        		var deptChart11 = new FusionCharts("$!{chart_path}/Column3D.swf", "deptChartId11", "740", "240", "0", "1" );
+        										deptChart11.configure("ChartNoDataText", " ");
+                                        		deptChart11.setXMLUrl("$!{context_path}/bsc/mon/main/compareDeptChart_xml.vw?year=$!{findYear}&mon=$!{findMon}&analCycle=Y&amp;scDeptGrpId=18&amp;levelId=2&amp;searchType=SC_DEPT_GRP");
+        										deptChart11.render("barChart11List");
+                        					//]]>
+                                        	</script>
+										<div id="barChart1List" style="position:absolute;top:5px;left:1px;"></div>
+        									<script type="text/javascript" language="javascript" >
+                        					//<![CDATA[
+                        						FusionCharts.setCurrentRenderer(render);
+                                        		var deptChart1 = new FusionCharts("$!{chart_path}/Column3D.swf", "deptChartId1", "740", "240", "0", "1" );
+        										deptChart1.configure("ChartNoDataText", " ");
+                                        		deptChart1.setXMLUrl("$!{context_path}/bsc/mon/main/compareDeptChart_xml.vw?year=$!{findYear}&mon=$!{findMon}&analCycle=Y&amp;scDeptGrpId=05&amp;levelId=3&amp;searchType=SC_DEPT_GRP");
+        										deptChart1.render("barChart1List");
+                        					//]]>
+                                        	</script>
+										<div id="barChart2List" style="position:absolute;top:5px;left:1px;"></div>
+											<script type="text/javascript" language="javascript" >
+                        					//<![CDATA[
+                        						FusionCharts.setCurrentRenderer(render);
+                                        		var deptChart2 = new FusionCharts("$!{chart_path}/Column3D.swf", "deptChartId2", "740", "240", "0", "1" );
+        										deptChart2.configure("ChartNoDataText", " ");
+                                        		deptChart2.setXMLUrl("$!{context_path}/bsc/mon/main/compareDeptChart_xml.vw?year=$!{findYear}&mon=$!{findMon}&analCycle=Y&amp;scDeptGrpId=06&amp;levelId=3&amp;searchType=SC_DEPT_GRP");
+        										deptChart2.render("barChart2List");
+                        					//]]>
+                                        	</script>
+										<div id="barChart3List" style="position:absolute;top:5px;left:1px;"></div>
+											<script type="text/javascript" language="javascript" >
+                        					//<![CDATA[
+                        						FusionCharts.setCurrentRenderer(render);
+                                        		var deptChart3 = new FusionCharts("$!{chart_path}/Column3D.swf", "deptChartId3", "740", "240", "0", "1" );
+        										deptChart3.configure("ChartNoDataText", " ");
+                                        		deptChart3.setXMLUrl("$!{context_path}/bsc/mon/main/compareDeptChart_xml.vw?year=$!{findYear}&mon=$!{findMon}&analCycle=Y&amp;scDeptGrpId=10&amp;levelId=3&amp;searchType=SC_DEPT_GRP");
+        										deptChart3.render("barChart3List");
+                        					//]]>
+                                        	</script>
+										<div id="barChart4List" style="position:absolute;top:5px;left:1px;"></div>
+											<script type="text/javascript" language="javascript" >
+                        					//<![CDATA[
+                        						FusionCharts.setCurrentRenderer(render);
+                                        		var deptChart4 = new FusionCharts("$!{chart_path}/Column3D.swf", "deptChartId4", "740", "240", "0", "1" );
+                                        		deptChart4.configure("ChartNoDataText", " ");
+                                        		deptChart4.setXMLUrl("$!{context_path}/bsc/mon/main/compareDeptChart_xml.vw?year=$!{findYear}&mon=$!{findMon}&analCycle=Y&amp;scDeptGrpId=07&amp;levelId=3&amp;searchType=SC_DEPT_GRP");
+        										deptChart4.render("barChart4List");
+                        					//]]>
+                                        	</script>
+                                        <div id="barChart5List" style="position:absolute;top:5px;left:1px;"></div>
+        									<script type="text/javascript" language="javascript" >
+                        					//<![CDATA[
+                        						FusionCharts.setCurrentRenderer(render);
+                                        		var deptChart5 = new FusionCharts("$!{chart_path}/Column3D.swf", "deptChartId5", "740", "240", "0", "1" );
+        										deptChart5.configure("ChartNoDataText", " ");
+                                        		deptChart5.setXMLUrl("$!{context_path}/bsc/mon/main/compareDeptChart_xml.vw?year=$!{findYear}&mon=$!{findMon}&analCycle=Y&amp;scDeptGrpId=11&amp;levelId=2&amp;searchType=SC_DEPT_GRP");
+        										deptChart5.render("barChart5List");
+                        					//]]>
+                                        	</script>
+										<div id="barChart6List" style="position:absolute;top:5px;left:1px;"></div>
+											<script type="text/javascript" language="javascript" >
+                        					//<![CDATA[
+                        						FusionCharts.setCurrentRenderer(render);
+                                        		var deptChart6 = new FusionCharts("$!{chart_path}/Column3D.swf", "deptChartId6", "740", "240", "0", "1" );
+        										deptChart6.configure("ChartNoDataText", " ");
+                                        		deptChart6.setXMLUrl("$!{context_path}/bsc/mon/main/compareDeptChart_xml.vw?year=$!{findYear}&mon=$!{findMon}&analCycle=Y&amp;scDeptGrpId=12&amp;levelId=2&amp;searchType=SC_DEPT_GRP");
+        										deptChart6.render("barChart6List");
+                        					//]]>
+                                        	</script>
+										<div id="barChart7List" style="position:absolute;top:5px;left:1px;"></div>
+											<script type="text/javascript" language="javascript" >
+                        					//<![CDATA[
+                        						FusionCharts.setCurrentRenderer(render);
+                                        		var deptChart7 = new FusionCharts("$!{chart_path}/Column3D.swf", "deptChartId7", "740", "240", "0", "1" );
+        										deptChart7.configure("ChartNoDataText", " ");
+                                        		deptChart7.setXMLUrl("$!{context_path}/bsc/mon/main/compareDeptChart_xml.vw?year=$!{findYear}&mon=$!{findMon}&analCycle=Y&amp;scDeptGrpId=13&amp;levelId=2&amp;searchType=SC_DEPT_GRP");
+        										deptChart7.render("barChart7List");
+                        					//]]>
+                                        	</script>
+										<div id="barChart8List" style="position:absolute;top:5px;left:1px;"></div>
+											<script type="text/javascript" language="javascript" >
+                        					//<![CDATA[
+                        						FusionCharts.setCurrentRenderer(render);
+                                        		var deptChart8 = new FusionCharts("$!{chart_path}/Column3D.swf", "deptChartId8", "740", "240", "0", "1" );
+        										deptChart8.configure("ChartNoDataText", " ");
+                                        		deptChart8.setXMLUrl("$!{context_path}/bsc/mon/main/compareDeptChart_xml.vw?year=$!{findYear}&mon=$!{findMon}&analCycle=Y&amp;scDeptGrpId=14&amp;levelId=2&amp;searchType=SC_DEPT_GRP");
+        										deptChart8.render("barChart8List");
+                        					//]]>
+                                        	</script>
+									</div>
+								</div>
+							</div>
+						</td>
+						<td></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<!--//blockMain End-->
+</div>
+<form id="formPop" method="post"  action="">
+	<input type="hidden" id="mode" name="mode" value=""/>
+	<input type="hidden" id="year" name="year" value="$!{year}"/>
+	<input type="hidden" id="mon" name="mon" value="$!{mon}"/>
+	<input type="hidden" id="analCycle" name="analCycle"/>
+	<input type="hidden" id="scDeptId" name="scDeptId"/>
+	<input type="hidden" id="metricId" name="metricId"/>
+	<input type="hidden" id="popUpId" name="popUpId"/>
+	<input type="hidden" id="mainFlag" name="mainFlag" value="false"/>
+	<input type="hidden" id="findBbsId" name="findBbsId" value=""/>
+	<input type="hidden" id="bbsSeq" name="bbsSeq" value=""/>
+</form>
+

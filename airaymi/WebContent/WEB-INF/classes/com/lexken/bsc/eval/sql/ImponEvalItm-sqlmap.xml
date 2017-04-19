@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.eval.imponEvalItm">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가항목ID 채번
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IMPON_ITEM
+	==================================================================
+	-->
+	<select id="getItemCd" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT F_PGM_SERI('BSC_IMPON_ITEM','', '','','','') SEQ FROM DUAL
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	  	SELECT 
+		     T1.YEAR YEAR,
+		     T1.MON MON,
+		     T1.METRIC_GRP_ID METRIC_GRP_ID,
+		     T1.ITEM_CD ITEM_CD,
+		     T1.ITEM_NM ITEM_NM,
+		     T1.ITEM_WEIGHT WEIGHT,
+			 MAX(CASE WHEN T2.CODE_ID = 'S' THEN T3.CONTENT ELSE '' END) S,
+			 MAX(CASE WHEN T2.CODE_ID = 'A' THEN T3.CONTENT ELSE '' END) A,
+			 MAX(CASE WHEN T2.CODE_ID = 'B' THEN T3.CONTENT ELSE '' END) B,
+			 MAX(CASE WHEN T2.CODE_ID = 'C' THEN T3.CONTENT ELSE '' END) C,
+			 MAX(CASE WHEN T2.CODE_ID = 'D' THEN T3.CONTENT ELSE '' END) D,
+			 MAX(CASE WHEN T2.CODE_ID = 'E' THEN T3.CONTENT ELSE '' END) E,
+			 MAX(CASE WHEN T2.CODE_ID = 'F' THEN T3.CONTENT ELSE '' END) F,
+			 MAX(CASE WHEN T2.CODE_ID = 'G' THEN T3.CONTENT ELSE '' END) G,
+			 MAX(CASE WHEN T2.CODE_ID = 'H' THEN T3.CONTENT ELSE '' END) H,
+			 MAX(CASE WHEN T2.CODE_ID = 'I' THEN T3.CONTENT ELSE '' END) I,
+			 MAX(CASE WHEN T2.CODE_ID = 'J' THEN T3.CONTENT ELSE '' END) J,
+			 MAX(CASE WHEN T2.CODE_ID = 'K' THEN T3.CONTENT ELSE '' END) K,
+			 MAX(CASE WHEN T2.CODE_ID = 'L' THEN T3.CONTENT ELSE '' END) L,
+			 MAX(CASE WHEN T2.CODE_ID = 'M' THEN T3.CONTENT ELSE '' END) M,
+			 MAX(CASE WHEN T2.CODE_ID = 'N' THEN T3.CONTENT ELSE '' END) N,
+			 MAX(CASE WHEN T2.CODE_ID = 'O' THEN T3.CONTENT ELSE '' END) O,
+			 MAX(CASE WHEN T2.CODE_ID = 'P' THEN T3.CONTENT ELSE '' END) P,
+			 MAX(CASE WHEN T2.CODE_ID = 'Q' THEN T3.CONTENT ELSE '' END) Q,
+			 MAX(CASE WHEN T2.CODE_ID = 'R' THEN T3.CONTENT ELSE '' END) R,
+			 MAX(CASE WHEN T2.CODE_ID = 'T' THEN T3.CONTENT ELSE '' END) T,
+			 MAX(CASE WHEN T2.CODE_ID = 'U' THEN T3.CONTENT ELSE '' END) U,
+			 MAX(CASE WHEN T2.CODE_ID = 'V' THEN T3.CONTENT ELSE '' END) V,
+			 MAX(CASE WHEN T2.CODE_ID = 'W' THEN T3.CONTENT ELSE '' END) W,
+			 MAX(CASE WHEN T2.CODE_ID = 'X' THEN T3.CONTENT ELSE '' END) X,
+			 MAX(CASE WHEN T2.CODE_ID = 'Y' THEN T3.CONTENT ELSE '' END) Y,
+			 MAX(CASE WHEN T2.CODE_ID = 'Z' THEN T3.CONTENT ELSE '' END) Z
+			 <!--  
+		     <iterate property="itmList" conjunction=",">
+		     	MAX(CASE WHEN T2.CODE_ID= #itmList[]# THEN T3.CONTENT ELSE '' END) $itmList[]$
+		     </iterate>
+		      -->
+		FROM BSC_IMPON_ITEM T1 
+		      LEFT OUTER JOIN BSC_CODE T2
+		          ON T2.YEAR = #findYear#
+		          AND T2.CODE_GRP_ID = '026'
+		      LEFT OUTER JOIN BSC_IMPON_ITEM_DETAIL T3
+		          ON T1.YEAR=T3.YEAR
+		          AND T1.MON=T3.MON
+		          AND T1.METRIC_GRP_ID=T3.METRIC_GRP_ID
+		          AND T1.ITEM_CD=T3.ITEM_CD
+		          AND T2.CODE_ID=T3.GRADE            
+		WHERE T1.YEAR = #findYear#
+		AND T1.MON = #findCycle#
+		<dynamic prepend="AND">
+			<isNotEmpty property="findMetricGrpId">
+				T1.METRIC_GRP_ID = #findMetricGrpId#
+			</isNotEmpty>
+		</dynamic>
+		<dynamic prepend="AND">	
+			<isEqual property="findUseYn" compareValue="Y">
+				T1.DELETE_DT IS NULL
+			</isEqual>
+			<isNotEqual property="findUseYn" compareValue="Y">
+				T1.DELETE_DT IS NOT NULL
+			</isNotEqual>
+		</dynamic>
+		GROUP BY T1.YEAR, T1.MON, T1.METRIC_GRP_ID, T1.ITEM_CD, T1.ITEM_NM, T1.ITEM_WEIGHT
+		ORDER BY T1.YEAR, T1.MON, T1.METRIC_GRP_ID, T1.ITEM_CD
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가항목관리 코드 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->
+	<select id="getItmList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT CODE_ID
+		FROM BSC_CODE
+		WHERE CODE_GRP_ID = '026'
+		  AND YEAR = #findYear#
+		  AND DELETE_DT IS NULL
+		ORDER BY SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가항목관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT T1.ITEM_NM, T1.ITEM_WEIGHT, CASE WHEN T1.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END USE_YN FROM 
+		BSC_IMPON_ITEM T1
+		WHERE T1.YEAR = #year#
+		AND T1.MON = #cycle#
+		AND T1.METRIC_GRP_ID = #metricGrpId#
+		AND T1.ITEM_CD = #itemCd#         
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가항목관리 상세(등급 설명) 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDetailList" parameterClass="hashMap" resultClass="hashMap">
+
+	    SELECT
+	        T1.CODE_ID GRADE,
+	        T2.CONTENT 
+	    FROM
+	        BSC_CODE T1       
+	    LEFT OUTER JOIN BSC_IMPON_ITEM_DETAIL T2           
+            ON T1.YEAR = T2.YEAR
+            AND T1.CODE_ID=T2.GRADE
+	        AND T2.ITEM_CD = #itemCd#	        
+	        AND T2.MON = #cycle#
+	        AND T2.METRIC_GRP_ID = #metricGrpId#              
+	    WHERE  T1.YEAR =  #year#   
+	        AND T1.CODE_GRP_ID='026'
+	    ORDER BY T1.SORT_ORDER  		           
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가항목관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_IMPON_ITEM (YEAR, MON, METRIC_GRP_ID, ITEM_CD, ITEM_NM, ITEM_WEIGHT, CREATE_DT, DELETE_DT)
+		VALUES (#year#,
+				#cycle#, 
+				#metricGrpId#, 
+				#itemCd#, 
+				#itemNm#, 
+				#itemWeight#, 
+				SYSDATE 
+				<dynamic prepend=",">
+					<isEqual property="useYn" compareValue="Y">
+						''
+					</isEqual>
+					<isNotEqual property="useYn" compareValue="Y">
+						SYSDATE
+					</isNotEqual>
+				</dynamic>
+				)
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가항목관리(등급설명) 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertDetailData" parameterClass="hashMap">
+		INSERT INTO BSC_IMPON_ITEM_DETAIL (YEAR, MON, METRIC_GRP_ID, ITEM_CD, GRADE, CONTENT, CREATE_DT, DELETE_DT)
+		VALUES (#year#, 
+				#cycle#, 
+				#metricGrpId#, 
+				#itemCd#, 
+				#grade#, 
+				#content#, 
+				SYSDATE 
+				<dynamic prepend=",">
+					<isEqual property="useYn" compareValue="Y">
+						''
+					</isEqual>
+					<isNotEqual property="useYn" compareValue="Y">
+						SYSDATE
+					</isNotEqual>
+				</dynamic>
+				)
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가항목관리 가중치 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IMPON_ITEM
+	==================================================================
+	-->	
+	<insert id="updateWeights" parameterClass="hashMap">
+		UPDATE BSC_IMPON_ITEM
+			SET ITEM_WEIGHT = #itemWeight#
+		WHERE YEAR = #year#
+			AND MON = #cycle#
+			AND METRIC_GRP_ID = #metricGrpId#
+			AND ITEM_CD = #itemCd#
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가항목관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IMPON_ITEM
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_IMPON_ITEM
+			SET ITEM_NM = #itemNm#,
+			ITEM_WEIGHT = #itemWeight#
+			<dynamic prepend=",">
+				<isEqual property="useYn" compareValue="N">
+					DELETE_DT=SYSDATE
+				</isEqual>
+				<isEqual property="useYn" compareValue="Y">
+					DELETE_DT=''
+				</isEqual>
+			</dynamic>
+		WHERE YEAR = #year#
+			AND MON = #cycle#
+			AND METRIC_GRP_ID = #metricGrpId#
+			AND ITEM_CD = #itemCd#
+	</update>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가항목관리(등급설명) 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IMPON_ITEM_DETAIL
+	==================================================================
+	-->	
+	<update id="updateDetailData" parameterClass="hashMap">
+		UPDATE BSC_IMPON_ITEM_DETAIL
+			SET CONTENT = #content#
+		WHERE YEAR = #year#
+			AND MON = #cycle#
+			AND METRIC_GRP_ID = #metricGrpId#
+			AND ITEM_CD = #itemCd#		
+			AND GRADE = #grade#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가항목관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IMPON_ITEM
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE BSC_IMPON_ITEM
+		WHERE YEAR = #year#
+			AND MON = #cycle#
+			AND METRIC_GRP_ID = #metricGrpId#
+			AND ITEM_CD = #itemCd#		
+	</update>
+</sqlMap>
+
+
+

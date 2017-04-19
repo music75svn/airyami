@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.level.item">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_LEVEL_ITEM
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.ITEM_GRP_ID
+             , B.ITEM_GRP_NM
+             , A.ITEM_ID
+             , A.ITEM_NM
+             , A.SORT_ORDER
+             , COUNT(A.ITEM_GRP_ID) OVER(PARTITION BY A.YEAR, A.ITEM_GRP_ID ORDER BY B.SORT_ORDER) AS GROUP_CNT
+             , ROW_NUMBER() OVER(PARTITION BY A.YEAR, A.ITEM_GRP_ID ORDER BY B.SORT_ORDER, A.SORT_ORDER) AS GROUP_INDEX
+         FROM BSC_LEVEL_ITEM A
+                  INNER JOIN BSC_LEVEL_ITEM_GRP B 
+                           ON A.YEAR = B.YEAR 
+                           AND A.ITEM_GRP_ID = B.ITEM_GRP_ID 
+                           AND B.DELETE_DT IS NULL
+         WHERE A.YEAR = #findYear#
+           AND A.ITEM_GRP_ID = #findItemGrpId#
+         ORDER BY B.SORT_ORDER, A.SORT_ORDER
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목그룹 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_ITEM_GRP
+	==================================================================
+	-->
+	<select id="getItemGrpList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT ITEM_GRP_ID, ITEM_GRP_NM
+		  FROM BSC_LEVEL_ITEM_GRP
+		 WHERE YEAR = #year#
+		   AND DELETE_DT IS NULL
+		 ORDER BY SORT_ORDER
+	</select>
+		
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_ITEM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , ITEM_ID               
+			 , ITEM_GRP_ID           
+			 , ITEM_NM               
+			 , CONTENT               
+			 , GRADE_BASIS           
+			 , SORT_ORDER            
+		  FROM BSC_LEVEL_ITEM 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND ITEM_ID = #itemId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_LEVEL_ITEM
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			<!-- SELECT F_PGM_SERI('BSC_LEVEL_ITEM','','','','','') SEQ FROM DUAL -->
+			SELECT 'K'||LPAD(NVL(MAX(SUBSTR(ITEM_ID,2,6)),0)+1,6,'0') SEQ FROM BSC_LEVEL_ITEM
+		</selectKey>
+		INSERT INTO BSC_LEVEL_ITEM ( 
+			   YEAR
+			 , ITEM_ID
+			 , ITEM_GRP_ID
+			 , ITEM_NM
+			 , CONTENT
+			 , GRADE_BASIS
+			 , SORT_ORDER
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #itemGrpId#
+			 , #itemNm#
+			 , #content#
+			 , #gradeBasis#
+			 , #sortOrder#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_LEVEL_ITEM
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_LEVEL_ITEM 
+		   SET ITEM_GRP_ID            = #itemGrpId# 
+			 , ITEM_NM                = #itemNm# 
+			 , CONTENT                = #content# 
+			 , GRADE_BASIS            = #gradeBasis# 
+			 , SORT_ORDER             = #sortOrder# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND ITEM_ID = #itemId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_LEVEL_ITEM
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_LEVEL_ITEM 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND ITEM_ID = #itemId#
+	</update>
+	
+	
+</sqlMap>
+
+

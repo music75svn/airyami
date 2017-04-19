@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.unmeasure.govQuaMetric">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 비계량지표 지표명
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getGovMetricNm" parameterClass="hashMap" resultClass="hashMap">
+		SELECT GOV_METRIC_ID
+	         , GOV_METRIC_NM
+	         , EVAL_CAT_GRP_ID
+	  	  FROM GOV_METRIC
+		 WHERE YEAR = #findYear#
+	       AND GBN_ID = #findGovGubun#
+	       AND DELETE_DT IS NULL
+	     ORDER BY EVAL_CAT_GRP_ID, GOV_METRIC_ID
+<!-- 	    <isNotEmpty prepend="AND" property="insertUserId">
+			INSERT_USER_ID = #insertUserId#
+		</isNotEmpty>
+-->
+ 	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 비계량지표 권한 취득
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getInsertUserYn" resultClass="java.lang.Integer">
+		SELECT COUNT(*)
+          FROM GOV_METRIC
+         WHERE YEAR = #findYear#
+	       AND GBN_ID = #findGovGubun#
+	       AND INSERT_USER_ID = #insertUserId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 비계량지표 지표 담당자명
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getInsertUserNm" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT A.INSERT_USER_ID
+		     , B.KOR_NM AS INSERT_USER_NM
+		  FROM GOV_METRIC A
+		 INNER JOIN BSC_INSA B
+		    ON A.YEAR = B.YEAR
+		   AND A.INSERT_USER_ID = B.EMPN
+		 WHERE A.YEAR = #findYear#
+		   AND A.GBN_ID = #findGovGubun#
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 비계량지표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+	         , A.GOV_METRIC_ID
+	         , B.GOV_METRIC_NM
+	         , A.SEQ
+	         , A.GBN_ID
+	         , D.CODE_NM AS GBN_NM
+	         , A.QUA_METRIC_NM
+	         , A.INSERT_USER_ID
+	         , C.KOR_NM AS INSERT_USER_NM
+	         , F.ATTACH_FILE_NM
+	         , F.ATTACH_FILE_FNM
+	         , F.ATTACH_FILE_SUFFIX
+	         , CASE WHEN F.ATTACH_FILE_PATH IS NULL THEN F.ATTACH_FILE_PATH ELSE F_ENCRYPT(F.ATTACH_FILE_PATH,#encryptionCode#)  END ATTACH_FILE_PATH
+	         , TO_CHAR(CREATE_DT, 'YYYY.MM.DD HH24:MI') CREATE_DT   
+		  FROM GOV_QUA_METRIC A
+		  LEFT OUTER JOIN  (
+		  		   SELECT AA.YEAR
+                   		, AA.GOV_METRIC_ID 
+                   		, AA.GOV_METRIC_NM
+                   		, AA.GBN_ID
+             		 FROM GOV_METRIC AA
+            		UNION ALL
+        		   SELECT #findYear# AS YEAR
+        		 <isEqual property="findGovGubun" compareValue="01">  
+                  		, 'GGGGG01' AS GOV_METRIC_ID
+                  		, 'GGGGG01' AS GOV_METRIC_NM
+                 </isEqual>
+                 <isEqual property="findGovGubun" compareValue="02">  
+                  		, 'GGGGG02' AS GOV_METRIC_ID
+                  		, 'GGGGG02' AS GOV_METRIC_NM
+                 </isEqual>
+                  		, #findGovGubun# AS GBN_ID
+            		 FROM DUAL ) B       
+		               ON A.YEAR = B.YEAR
+		              AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+		  LEFT OUTER JOIN BSC_INSA C
+		               ON A.YEAR = C.YEAR
+		           	  AND A.INSERT_USER_ID = C.EMPN
+		  LEFT OUTER JOIN BSC_CODE D
+		               ON D.CODE_GRP_ID = '213'
+		          	  AND A.GBN_ID = D.CODE_ID
+		  LEFT OUTER JOIN GOV_QUA_METRIC_ATTACH F
+		  			   ON A.YEAR = F.YEAR
+		  			  AND A.GOV_METRIC_ID = F.GOV_METRIC_ID
+		  			  AND A.SEQ = F.SEQ
+		  			  AND F.FILE_SEQ=1
+		 WHERE A.YEAR = #findYear#
+		   AND B.GBN_ID = #findGovGubun#
+		<isNotEmpty prepend="AND" property="findGovMetricId">
+			A.GOV_METRIC_ID = #findGovMetricId#
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="findGbnId">
+			A.GBN_ID = #findGbnId#
+		</isNotEmpty>
+		<!-- <isNotEmpty prepend="AND" property="findInsertUserId">
+			B.INSERT_USER_ID = #findInsertUserId#
+		</isNotEmpty> -->
+	   ORDER BY A.YEAR, GOV_METRIC_ID, GBN_ID
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 비계량지표 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.YEAR
+             , A.GOV_METRIC_ID
+             , B.GOV_METRIC_NM
+             , A.SEQ
+             , A.GBN_ID
+             , D.CODE_NM AS GBN_NM
+             , A.QUA_METRIC_NM
+             , A.CONTENT
+             , A.INSERT_USER_ID
+             , C.KOR_NM AS INSERT_USER_NM
+          FROM GOV_QUA_METRIC A
+          LEFT OUTER JOIN GOV_METRIC B
+                       ON A.YEAR = B.YEAR
+                      AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+          LEFT OUTER JOIN BSC_INSA C
+                       ON A.YEAR = C.YEAR
+                         AND A.INSERT_USER_ID = C.EMPN
+          LEFT OUTER JOIN BSC_CODE D
+                       ON D.CODE_GRP_ID = '213'
+                        AND A.GBN_ID = D.CODE_ID
+         WHERE A.YEAR = #year#
+             AND A.GOV_METRIC_ID = #govMetricId#
+             AND A.SEQ = #seq#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 비계량지표 SEQ 취득
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getSeq" resultClass="java.lang.String">
+		SELECT NVL(MAX(SEQ)+1,1) AS SEQ
+          FROM GOV_QUA_METRIC
+         WHERE YEAR = #year#
+           AND GOV_METRIC_ID = #govMetricId#
+	</select>
+	<!--
+	==================================================================
+	  # 설명	: 비계량지표 등록
+	  #	기능	: INSERT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO GOV_QUA_METRIC
+	                 ( YEAR
+	                 , GOV_METRIC_ID
+	                 , SEQ
+	                 , GBN_ID
+	                 , QUA_METRIC_NM
+	                 , CONTENT
+	                 , INSERT_USER_ID
+	                 , CREATE_DT
+	                 ) VALUES (
+	                   #year#
+	                 , #govMetricId#
+	                 , #seq#
+	                 , #gbnId#
+	                 , #quaMetricNm#
+	                 , #content#
+	                 , #insertUserId#
+	                 , SYSDATE
+	                 )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 비계량지표 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_NOTICE
+	==================================================================
+	-->
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE GOV_QUA_METRIC
+		SET
+			   GBN_ID		 = #gbnId#,
+		       QUA_METRIC_NM = #quaMetricNm#,
+		       CONTENT       = #content#,
+		       MODIFY_DT 	 = SYSDATE
+		 WHERE YEAR          = #year#
+		   AND GOV_METRIC_ID = #govMetricId#
+		   AND SEQ = #seq#
+	</update>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 비계량지표 삭제
+	  #	기능	: DELETE
+	  #	TABLE	:
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM GOV_QUA_METRIC
+			  WHERE YEAR = #year#
+		   		AND GOV_METRIC_ID = #govMetricId#
+		   		AND SEQ = #seq#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 비계량지표 첨부파일 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_NOTICE_ATTACH
+	==================================================================
+	-->
+	<insert id="insertFileInfo" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="FILE_SEQ" >
+			SELECT NVL(MAX(FILE_SEQ)+1,1)  FROM GOV_QUA_METRIC_ATTACH WHERE YEAR = #year# AND GOV_METRIC_ID=#govMetricId# AND SEQ=#seq#
+		</selectKey>
+		INSERT INTO GOV_QUA_METRIC_ATTACH (
+		       YEAR,
+		       GOV_METRIC_ID,
+		       SEQ,
+		       FILE_SEQ,
+		       ATTACH_FILE_NM,
+		       ATTACH_FILE_FNM,
+		       ATTACH_FILE_SUFFIX,
+		       ATTACH_FILE_PATH,
+		       CREATE_DT
+           ) VALUES (
+               #year#
+	         , #govMetricId#
+	         , #seq#
+             , #FILE_SEQ#
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSufix#
+             , #attachFilePath#
+             , SYSDATE
+    	   )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 비계량지표 첨부파일 삭제
+	  #	기능	: DELETE
+	  #	TABLE	:
+	==================================================================
+	-->
+	<delete id="deleteFileInfo" parameterClass="hashMap">
+		DELETE FROM GOV_QUA_METRIC_ATTACH
+			  WHERE YEAR = #year#
+		   		AND GOV_METRIC_ID = #govMetricId#
+		   		AND SEQ = #seq#
+		   		AND FILE_SEQ = #fileSeq#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 비계량지표 첨부파일 삭제
+	  #	기능	: DELETE
+	  #	TABLE	:
+	==================================================================
+	-->
+	<delete id="deleteFile" parameterClass="hashMap">
+		DELETE FROM GOV_QUA_METRIC_ATTACH
+			  WHERE YEAR = #year#
+		   		AND GOV_METRIC_ID = #govMetricId#
+		   		AND SEQ = #seq#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 공지사항관리 첨부파일 상세 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getFileList" parameterClass="hashMap" resultClass="hashMap">
+ 		SELECT YEAR
+		     , GOV_METRIC_ID
+		     , SEQ
+	         , FILE_SEQ
+	         , ATTACH_FILE_NM
+	         , ATTACH_FILE_SUFFIX
+    	     , F_ENCRYPT(ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+         FROM GOV_QUA_METRIC_ATTACH
+        WHERE YEAR = #year#
+		  AND GOV_METRIC_ID = #govMetricId#
+		  AND SEQ = #seq#
+        ORDER BY FILE_SEQ
+	</select>
+
+</sqlMap>
+
+

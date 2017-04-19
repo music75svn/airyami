@@ -1,0 +1,46 @@
+#*************************************************************************
+* CLASS 명      : prsEmpEvalList_xml
+* 작 업 자      : 신인수
+* 작 업 일      : 2013년 7월 8일 
+* 기    능      : 직원개인평가 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      신인수     2013년 7월 8일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+    "page": "1",
+    "total": 1,
+    "records": "$listSize",
+    "rows":[
+
+#foreach($list in $list)
+    {
+        "YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+        "DEPT_CD"              : "$!{CS_HTML.txt2html($list.DEPT_CD)}", 
+        "DEPT_KOR_NM"          : "$!{CS_HTML.txt2html($list.DEPT_KOR_NM)}", 
+        "EVAL_COUNT"           : "$!{CS_HTML.txt2html($list.EVAL_COUNT)}", 
+        "EVAL_SUBMIT_YN"       : "$!{CS_HTML.txt2html($list.EVAL_SUBMIT_YN)}", 
+	#if ($!{CS_HTML.txt2html($list.EVAL_SUBMIT_YN)} == "Y")
+		"EVAL_SUBMIT_YN_NM"    : "평가완료",
+	#elseif ($!{CS_HTML.txt2html($list.EVAL_SUBMIT_YN)} == "N")
+		"EVAL_SUBMIT_YN_NM"    : "평가중",
+	#else
+		"EVAL_SUBMIT_YN_NM"    : "미평가",
+	#end
+        
+		"ASSESSOR_DEGREE"      : "$!{CS_HTML.txt2html($list.ASSESSOR_DEGREE)}",
+		"ASSESSOR_EMPN"        : "$!{CS_HTML.txt2html($list.ASSESSOR_EMPN)}",
+		"EVAL_GRP_YN"      	   : "$!{CS_HTML.txt2html($list.EVAL_GRP_YN)}"
+    }
+    #set($idx = $idx + 1)
+    #if($idx != $listSize)
+     ,
+    #end
+#end
+
+    ]
+}

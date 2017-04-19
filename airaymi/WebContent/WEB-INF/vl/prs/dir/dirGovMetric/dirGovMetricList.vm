@@ -1,0 +1,159 @@
+#*************************************************************************
+* CLASS 명      : dirGovMetricList
+* 작 업 자      : 방승현
+* 작 업 일      : 2013년 06월 26일 
+* 기    능      : 임원평가 정평지표관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     방승현      2013년 06월 26일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/prs/dir/dirGovMetric/dirGovMetricList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/prs/dir/dirGovMetric/dirGovMetricList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '사번', '이름', '직급번호', '직위번호', '직급', '직위', '정평지표개수'],
+			colModel     :[
+							{name:'YEAR'      		,index:'YEAR'      		,width:100   ,align:'center' }, 
+                            {name:'EMPN'          	,index:'EMPN'          	,width:100   ,align:'center' }, 
+                            {name:'KOR_NM'        	,index:'KOR_NM'        	,width:150   ,align:'center' }, 
+                            {name:'CAST_TC'        	,index:'CAST_TC'        ,width:150   ,align:'center' }, 
+                            {name:'POS_TC'          ,index:'POS_TC'         ,width:70    ,align:'center' }, 
+                            {name:'CAST_TC_NM'      ,index:'CAST_TC_NM'     ,width:120   ,align:'center' }, 
+                            {name:'POS_TC_NM'       ,index:'POS_TC_NM'      ,width:120   ,align:'center' }, 
+							{name:'GM_CNT'  		,index:'GM_CNT'       	,width:150   ,align:'center' ,formatter:linkDetail}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			cmTemplate: {sortable:false},
+			caption:"정평지표관리"
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"CAST_TC").jqGrid('hideCol',"POS_TC").setGridWidth($!{jqGrid_width});
+		
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+        
+	});
+
+	/******************************************
+	 * jqGrid 상세페이지 링크
+	 ******************************************/
+	function linkDetail(cellvalue, options, rowObject) { 
+		return '<a href=javascript:goModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	
+	/******************************************
+	 * 상세보기
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#empn").val(ret.EMPN);
+		J("#korNm").val(ret.KOR_NM);
+		J("#posTcNm").val(ret.POS_TC_NM);
+		J("#posTc").val(ret.POS_TC);
+		J("#mode").val("MOD");
+		J("#formList").attr("action", "$!{context_path}/prs/dir/dirGovMetric/dirGovMetricModify.vw?type=template").submit();
+	}
+    
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">정평지표관리</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/dir/dirGovMetric/dirGovMetricList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="정평지표관리검색 조건">
+						<caption class="none">정평지표관리 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+							</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/prs/dir/dirGovMetric/dirGovMetricProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"		 		name="year" />
+			<input type="hidden" id="pgmId"				name="pgmId"/>
+			<input type="hidden" id="empn"				name="empn"/>
+			<input type="hidden" id="korNm"				name="korNm"/>
+			<input type="hidden" id="posTcNm"			name="posTcNm"/>
+			<input type="hidden" id="posTc"				name="posTc"/>
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="정평지표관리 조회결과">
+							<caption class="none">정평지표관리 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+					</div>
+				</div>
+			</div>
+		</form>
+		
+	</div>
+	<div class="clear"></div>
+</div>

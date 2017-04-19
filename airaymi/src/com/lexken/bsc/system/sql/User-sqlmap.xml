@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.user">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 사용자관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+           SELECT A.USER_ID
+	            , A.USER_NM                                  
+	            , A.DEPT_ID                                  
+	            , A.DEPT_NM                            
+	            , A.JIKGUB_CD
+	            , A.JIKGUB_NM
+	            , A.POS_CD
+	            , A.POS_NM
+	            , D.CODE_NM 
+     			, COUNT(A.USER_ID) OVER(PARTITION BY A.USER_ID, A.USER_NM ORDER BY A.USER_ID) AS USER_CNT
+     			, ROW_NUMBER() OVER(PARTITION BY A.USER_ID, A.USER_NM ORDER BY A.DEPT_ID, A.USER_ID, A.POS_CD, D.CODE_NM, D.SORT_ORDER ASC) AS USER_INDEX
+     			, D.SORT_ORDER                             
+			 FROM V_ROLE_USER A                           
+     			  LEFT OUTER JOIN V_DEPTINFO B            
+         	      ON A.DEPT_ID = B.DEPT_ID                 
+          		  LEFT JOIN BSC_ADMIN C          			
+             	  ON A.USER_ID=C.USER_ID         		
+          		  LEFT JOIN BSC_CODE D         			
+             	  ON C.ADMIN_GUBUN=D.CODE_ID        	
+             	  AND D.CODE_GRP_ID='018'              
+		    WHERE 1=1
+		    
+		    <!-- 
+		    <isNotEmpty prepend="AND" property="findDeptNm">
+		        A.DEPT_NM LIKE '%' || #findDeptNm# || '%'	
+		    </isNotEmpty>
+		     -->		    
+		     
+		    <isNotEmpty prepend="AND" property="findDeptId">
+		        A.DEPT_ID = #findDeptId#
+		    </isNotEmpty>
+		    
+		   	<isNotEmpty prepend="AND" property="findUserNm">
+	            UPPER(A.USER_NM) LIKE  '%' || UPPER(#findUserNm#) ||'%'
+		   	</isNotEmpty>
+		   	            
+		    ORDER BY A.DEPT_ID, A.USER_ID, A.POS_CD, D.CODE_NM, D.SORT_ORDER ASC
+	</select>
+	
+</sqlMap>
+
+

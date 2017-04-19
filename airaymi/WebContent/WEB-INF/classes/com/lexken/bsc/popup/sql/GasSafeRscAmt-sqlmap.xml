@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.gasSafeRscAmt">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	<!-- S074D001 수탁연구용역(과세)(가스안전연구 성과) -->
+		<isEqual property="findItemCd" compareValue="S074D001">
+		SELECT SUBSTR(A.SLIP_DATE, 0, 4) AS YEAR
+		      ,SUBSTR(A.SLIP_DATE, 5, 2) AS MON
+		      ,A.DEPT_CD
+		      ,B.DEPT_NM
+		      ,A.SEMOK
+		      ,A.ACCT_CD
+		      ,A.DR_AMT
+		      ,A.CR_AMT
+		      ,A.AMT
+		      ,A.BULC_CD
+		      ,A.BULC_NM 
+		  FROM V_ABA0117M_001 A
+		LEFT OUTER JOIN BSC_DEPTINFO B
+		    ON A.DEPT_CD = B.DEPT_ID 
+		  WHERE SUBSTR(SLIP_DATE, 0, 4) = #findYear# 
+		    AND SUBSTR(SLIP_DATE, 5, 2) = #findMon#
+		    AND ACCT_CD = '51070101'
+		</isEqual>
+	<!--  S074D002 수탁연구용역(면세)(가스안전연구 성과) -->
+		<isEqual property="findItemCd" compareValue="S074D002">
+		SELECT SUBSTR(A.SLIP_DATE, 0, 4) AS YEAR
+		      ,SUBSTR(A.SLIP_DATE, 5, 2) AS MON
+		      ,A.DEPT_CD
+		      ,B.DEPT_NM
+		      ,A.SEMOK
+		      ,A.ACCT_CD
+		      ,A.DR_AMT
+		      ,A.CR_AMT
+		      ,A.AMT
+		      ,A.BULC_CD
+		      ,A.BULC_NM 
+		  FROM V_ABA0117M_001 A
+		LEFT OUTER JOIN BSC_DEPTINFO B
+		    ON A.DEPT_CD = B.DEPT_ID 
+		  WHERE SUBSTR(SLIP_DATE, 0, 4) = #findYear#
+		    AND SUBSTR(SLIP_DATE, 5, 2) = #findMon#
+		    AND ACCT_CD <![CDATA[ <> ]]> '51070101'
+		</isEqual>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 부서조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getScDeptMapping" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DEPT_ID
+		  FROM ( SELECT DEPT_ID 
+				   FROM BSC_SC_DEPT_MAPPING
+				  WHERE YEAR = #findYear# 
+				    AND SC_DEPT_ID = #findScDeptCd# ORDER BY DEPT_ID )
+		 WHERE ROWNUM = 1
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 부서조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DEPT_ID, B.DEPT_NM
+		  FROM BSC_SC_DEPT_MAPPING A
+	LEFT OUTER JOIN BSC_DEPTINFO B
+			ON A.DEPT_ID = B.DEPT_ID
+		 WHERE (YEAR, SC_DEPT_ID) IN
+		          (SELECT YEAR, SC_DEPT_ID
+		             FROM BSC_METRIC
+		            WHERE (METRIC_GRP_ID, YEAR) IN
+		                     (SELECT METRIC_GRP_ID, YEAR
+		                        FROM BSC_METRIC
+		                       WHERE YEAR = #findYear# AND METRIC_ID = #findMetricId#))
+<![CDATA[		   AND OULEVEL < 2 ]]>
+	</select>
+
+</sqlMap>
+
+

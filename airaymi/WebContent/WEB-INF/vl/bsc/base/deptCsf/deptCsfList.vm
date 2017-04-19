@@ -1,0 +1,370 @@
+#*************************************************************************
+* CLASS 명      : deptCsfList
+* 작 업 자      : 김상용
+* 작 업 일      : 2013년 7월 18일
+* 기    능      : 전략과제관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김상용      2013년 7월 18일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/base/deptCsf/deptCsfList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/base/deptCsf/deptCsfList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_r_width},
+			colNames     :['CSF코드', 'CSF명', '정렬순서'],
+			colModel     :[
+                            {name:'CSF_ID'          ,index:'CSF_ID'          ,width:70   ,align:'center' 	},
+                            {name:'CSF_NM'          ,index:'CSF_NM'          ,width:150  ,align:'left'		},
+                            {name:'SORT_ORDER'      ,index:'SORT_ORDER'      ,width:50   ,align:'center' 	,formatter:linkSortOrder}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			caption:"조직별 $!{CSF_NM}관리"
+		});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			var findYear = J("#findYear").val();
+			var oldYear = J("#oldYear").val();
+
+			// 연도가 변경되지 않는 경우 Ajax로 데이터그리드만 다시 조회하므로 formList의 searchMap.makeHiddenFind() 가 다시 생성되지 않음.
+			// formList가 submit되는 경우(신규, 수정, 삭제) 검색조건의 사용여부를  유지시켜주기 위해 설정.
+			J("#formList input[name=findUseYn]").val(J("#findUseYn").val());
+
+			if(findYear == oldYear) {
+    			goGridSearch();
+    			return false;
+			}
+
+			J("#findScDeptId").val("");
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnUpdate").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnUpdate").unbind();
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/bsc/base/deptCsf/deptCsfModify.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#icSearch").fancybox();
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+	});
+
+	/******************************************
+	 * jqGrid 관점
+	 ******************************************/
+	function linkPerspectiveId(cellvalue, options, rowObject) {
+		var str = J("#jqGridPerspectiveIdTemplate").clone();
+		var retStr = "";
+
+		// IE 8버전에서는 html()을 하면 value=""에 따옴표가 없이 넘어옴. 그래서 따옴표 없이 selected가 붙도록 replace함.
+		retStr = str.html().replace(cellvalue, cellvalue + ' selected');
+		// IE 9버전과 다른 브라우저에서는 html()을 하면 value=""에 따옴표가 그래도 넘어옴. 그래서 앞에서 replace하면 value="OO selected"가 되므로 value="OO" selected가 되도록 replace함.
+		retStr = retStr.replace('\"' + cellvalue + ' selected\"', '\"' + cellvalue + '\" selected');
+
+		return retStr;
+	}
+
+	/******************************************
+	 * jqGrid 정렬순서
+	 ******************************************/
+	function linkSortOrder(cellvalue, options, rowObject) {
+		return '<input type="text" name="sortOrders" value="' + cellvalue + '" class="wp50" maxlength="5" />';
+	}
+
+	/******************************************
+	 * 그리드 ajax 조회
+	 ******************************************/
+	function goGridSearch() {
+		J("#list").setGridParam({url:"$!{context_path}/bsc/base/deptCsf/deptCsfList_xml.vw?"+J("#formFind").serialize(), datatype:"json"});
+		J("#list").trigger("reloadGrid");
+	}
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		var ids = J("#list").jqGrid('getDataIDs');
+		
+		if(ids == ""){
+			alert("저장할 데이터가 없습니다.");
+			return false;
+		}
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 일괄 수정
+	 ******************************************/
+	function saveDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var csfIds = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			rowdata = J("#list").getRowData(ids[i]);
+			csfIds += rowdata.CSF_ID + '|';
+		}
+
+		J("#csfIds").val(csfIds);
+		J("#mode").val("BATCH");
+		J("#formList").attr("action", "$!{context_path}/bsc/base/deptCsf/deptCsfProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+
+		J("#csfId").val(ret.CSF_ID);	// List에서 선택한 전략과제를 설정.
+		J("#mode").val("MOD");
+		J("#formList").attr("action", "$!{context_path}/bsc/base/deptCsf/deptCsfModify.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 삭제
+	 ******************************************/
+	function goDelete() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("삭제할 데이터를 선택하십시요", null, null);
+		} else {
+			J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var csfIds = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					csfIds += rowdata.CSF_ID + '|';
+				}
+			});
+		}
+
+		J("#delCsfIds").val(csfIds);
+		J("#mode").val("DEL");
+		J("#formList").attr("action", "$!{context_path}/bsc/base/deptCsf/deptCsfProcess.vw?type=template").submit();
+
+		return false;
+	}
+
+	/******************************************
+	 * 조직선택 클릭이벤트
+	 ******************************************/
+	function goAction(deptId, deptNm) {
+		setDeptInfo(deptId, deptNm);
+	}
+
+	/*****************************************************
+	 * 조직선택 설정
+	 *****************************************************/
+	function setDeptInfo(scDeptId, scDeptNm) {
+		// 선택한 조직의 전략과제 list를 조회함.(그리드만 다시 조회)
+		// formFind의 변수들 설정.
+		J("#findScDeptId").val(scDeptId);			// 조직Tree에서 선택한 조직코드를 설정.
+		J("#findScDeptNm").val(J(scDeptNm).text());	// 조직Tree에서 선택한 조직명을 설정.(신규 등록시 사용함.)
+
+		// 조직트리에서 조직 선택 시 Ajax로 데이터그리드만 다시 조회하므로 formList의 searchMap.makeHiddenFind() 가 다시 생성되지 않음.
+		// formList가 submit되는 경우(신규, 수정, 삭제, 저장) 조직트리에서 선택된 조직의 정보를  유지시켜주기 위해 설정.
+		J("#formList input[name=findScDeptId]").val(J("#findScDeptId").val());
+		J("#formList input[name=findScDeptNm]").val(J("#findScDeptNm").val());
+
+		goGridSearch();
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#scDeptNm").val(J("#findScDeptNm").val());
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#formList").attr("action", "$!{context_path}/bsc/base/deptCsf/deptCsfExcel.vw?type=excel").submit();
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">조직별 $!{CSF_NM}관리</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/base/deptCsf/deptCsfList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden" 	id="oldYear"		name="oldYear"			value="$!{searchMap.txt2html("findYear")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="조직별 $!{CSF_NM}관리검색 조건">
+						<caption class="none">조직별 $!{CSF_NM}관리 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w160">
+            						<span>$!{YEAR}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w220">
+            						<span><label for="findScDeptNm">$!{SC_DEPT_NM}</label></span>
+            						<span class="searchBar">
+										<input type="text" id="findScDeptId" name="findScDeptId" value="$!{searchMap.txt2html("findScDeptId")}"/>
+										<input type="text" id="findScDeptNm" name="findScDeptNm" value="$!{searchMap.txt2html("findScDeptNm")}" class="disable" readonly="readonly"/>
+            						</span>
+            					</td>
+								<!--
+            					<td class="searchBox_tit w250">
+									<span>사용여부</span>
+            						<span class="searchBar">
+            							<select id="findUseYn" name="findUseYn" class="select w70">
+            								$!CS_CODE.getCodeOption("011", $!{searchMap.txt2html("findUseYn")})
+            							</select>
+            						</span>
+            					</td>
+								-->
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/base/deptCsf/deptCsfProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="csfIds"			name="csfIds" />
+			<input type="hidden" id="delCsfIds"		 	name="delCsfIds" />
+			<input type="hidden" id="yearNm"        	name="yearNm" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 조직트리 Start -->
+					<div class="blockGridTreeTable">
+						#parse("/WEB-INF/vl/bsc/module/commModule/commonTree.vm")
+					</div>
+
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable floatRight">
+						<table id="list" summary="조직별 $!{CSF_NM}관리 조회결과">
+							<caption class="none">조직별 $!{CSF_NM}관리 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all floatLeft">
+						<div class="blockButton" style="float:left; text-align:left; width:500px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnUpdate" value="저장" /></li>
+								<li><input type="button" id="btnInsert" value="신규" /></li>
+								<li><input type="submit" id="btnDelete" value="삭제" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>
+
+<div id="jqGridPerspectiveIdTemplate" class="none">
+	<select id="perspectiveIds" name="perspectiveIds" class="select w100" >
+		<option value="-1">없음</option>
+		#foreach($perspective in $perspectiveList)
+			<option value="$!{CS_HTML.txt2html($perspective.PERSPECTIVE_ID)}">$!{CS_HTML.txt2html($perspective.PERSPECTIVE_NM)}</option>
+		#end
+	</select>
+</div>

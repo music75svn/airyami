@@ -1,0 +1,316 @@
+#*************************************************************************
+* CLASS 명      : actualMonList
+* 작 업 자      : 박경태
+* 작 업 일      : 2012년 11월 9일
+* 기    능      : 기관장평가실적
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     박경태      2012년 11월 9일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/gov/bos/actualMon/actualMonList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/gov/bos/actualMon/actualMonList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가범주명', '기관장지표', '내평지표', 'METRIC_ID', 'SC_DEPT_ID', '최종점수', 'BOSS_METRIC_ID', 'GRP_STATUS', 'BOSS_METRIC_STATUS', 'GRP_CNT', 'GRP_NUM', 'METRIC_CNT', 'METRIC_NUM'],
+			colModel     :[
+							{name:'EVAL_CAT_GRP_NM'     ,index:'EVAL_CAT_GRP_NM'   		,width:150   ,align:'left' ,sortable:false,	cellattr:attrSetting  ,formatter:linkSignalEvalCatGrp},
+                            {name:'BOSS_METRIC_NM'      ,index:'BOSS_METRIC_NM'         ,width:150   ,align:'left' ,sortable:false,	cellattr:attrSetting2 ,formatter:linkSignalBossMetric},
+                            {name:'METRIC_NM'       	,index:'METRIC_NM'       		,width:250   ,align:'left' ,sortable:false    ,formatter:linkSignalMetric},
+							{name:'METRIC_ID'       	,index:'METRIC_ID'       		,width:250   ,align:'left' ,sortable:false },
+							{name:'SC_DEPT_ID'       	,index:'SC_DEPT_ID'       		,width:250   ,align:'left' ,sortable:false },
+                            {name:'SCORE'               ,index:'SCORE'                	,width:80   ,align:'center' ,sortable:false},
+                            {name:'BOSS_METRIC_ID'     	,index:'BOSS_METRIC_ID'     	,width:150   ,align:'center' ,sortable:false},
+                            {name:'GRP_STATUS'      	,index:'GRP_STATUS'      		,width:150   ,align:'center' ,sortable:false},
+							{name:'BOSS_METRIC_STATUS'  ,index:'BOSS_METRIC_STATUS' 	,width:150   ,align:'center' ,sortable:false},
+							{name:'GRP_CNT'      		,index:'GRP_CNT'      			,width:150   ,align:'center' ,sortable:false},
+							{name:'GRP_NUM'      		,index:'GRP_NUM'      			,width:150   ,align:'center' ,sortable:false},
+							{name:'METRIC_CNT'      	,index:'METRIC_CNT'      		,width:150   ,align:'center' ,sortable:false},
+							{name:'METRIC_NUM'      	,index:'METRIC_NUM'      		,width:150   ,align:'center' ,sortable:false}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			caption:"기관장평가실적"
+		}).jqGrid('hideCol',"BOSS_METRIC_ID").jqGrid('hideCol',"GRP_STATUS").jqGrid('hideCol',"BOSS_METRIC_STATUS").jqGrid('hideCol',"GRP_CNT").jqGrid('hideCol',"GRP_NUM").setGridWidth($!{jqGrid_width})
+		  .jqGrid('hideCol',"METRIC_CNT").jqGrid('hideCol',"METRIC_NUM").jqGrid('hideCol',"SC_DEPT_ID").jqGrid('hideCol',"METRIC_ID").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#year").val(J("#findYear").val());
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/gov/bos/actualMon/actualMonModify.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+	});
+
+	/*****************************************
+	 * 전략과제 Rowspan 설정
+	 ******************************************/
+	function attrSetting(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.GRP_NUM;
+		var rowSpan = rowObject.GRP_CNT;
+
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+
+		return result;
+	}
+
+	/*****************************************
+	 * 전략과제 Rowspan 설정
+	 ******************************************/
+	function attrSetting2(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.METRIC_NUM;
+		var rowSpan = rowObject.METRIC_CNT;
+
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+
+		return result;
+	}
+
+	/******************************************
+	 * 평가범주 신호등 링크
+	 ******************************************/
+	function linkSignalEvalCatGrp(cellvalue, options, rowObject) {
+		var retVal = "";
+		if( "" != rowObject.EVAL_CAT_GRP_NM ){
+			retVal = "<img name=\'sig\'  src=\'$!{img_path}/common/ball/ball_" + rowObject.GRP_STATUS + ".gif\' > " + cellvalue;
+		}else {
+			retVal = cellvalue;
+		}
+		return  retVal;
+	}
+
+	/******************************************
+	 * 평가범주 신호등 링크
+	 ******************************************/
+	function linkSignalBossMetric(cellvalue, options, rowObject) {
+		var retVal = "";
+		if( "" != rowObject.BOSS_METRIC_ID ){
+			retVal = "<a href=javascript:goBossMetricPop(" + options.rowId + ")><img name=\'sig\'  src=\'$!{img_path}/common/ball/ball_" + rowObject.BOSS_METRIC_STATUS + ".gif\' > " + cellvalue + '<//a>';
+		}else {
+			retVal = cellvalue;
+		}
+		return  retVal;
+	}
+
+	/******************************************
+	 * 경영평가지표 신호등 링크
+	 ******************************************/
+	function linkSignalMetric(cellvalue, options, rowObject) {
+		return  '<a href=javascript:goMetricPop(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+
+	/******************************************
+	 * 기관장 지표정의서  팝업
+	 ******************************************/
+	function goBossMetricPop(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var findYear = J("#findYear").val();
+		var findBossMetricId = ret.BOSS_METRIC_ID;
+
+		var param = "&amp;year=" + findYear + "&amp;bossMetricId=" + findBossMetricId ;
+
+		var url = "$!{context_path}/gov/bos/bosMetric/popMetricDetail.vw?type=popup" + param;
+		openWinByName(url,'popBosMetricDefine','860','650','yes');
+	}
+
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goMetricPop(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+
+		var metricId = ret.METRIC_ID;
+		var scDeptId = ret.SC_DEPT_ID;
+		var year = J("#findYear :selected").val();
+
+		var param = "&amp;year=" + year +"&amp;findYear=" + year + "&amp;metricId=" + metricId + "&amp;findScDeptId=" + scDeptId;
+
+		var url = "$!{context_path}/bsc/mon/metricDefine/metricDefineList.vw?type=popup" + param;
+		openWinByName(url,'MetricDefinePop','1250','650','yes');
+	}
+
+	/******************************************
+	 * 삭제
+	 ******************************************/
+	function goDelete() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("삭제할 데이터를 선택하십시요", null, null);
+		} else {
+			J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var bossMetricIds = "";
+		var metricIds = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					bossMetricIds += rowdata.BOSS_METRIC_ID + '|';metricIds += rowdata.METRIC_ID + '|';
+				}
+			});
+		}
+
+		J("#bossMetricIds").val(bossMetricIds);J("#metricIds").val(metricIds);
+		J("#mode").val("DEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/gov/bos/actualMon/actualMonProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear :selected").text());
+
+		J("#formList").attr("action", "$!{context_path}/gov/bos/actualMon/actualMonListExcel.vw?type=excel").submit();
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">기관장평가실적</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/gov/bos/actualMon/actualMonList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="기관장평가실적검색 조건">
+						<caption class="none">기관장평가실적 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+							</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/gov/bos/actualMon/actualMonProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"		 		name="year" />
+			<input type="hidden" id="yearNm"		 	name="yearNm" />
+			<input type="hidden" id="bossMetricIds" 	name="bossMetricIds" />
+			<input type="hidden" id="bossMetricId"  	name="bossMetricId" /><input type="hidden" id="metricIds" name="metricIds" />
+			<input type="hidden" id="metricId"  		name="metricId" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="기관장평가실적 조회결과">
+							<caption class="none">기관장평가실적 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton" style="float:left; text-align:left; width:145px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

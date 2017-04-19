@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN" "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+    
+    <package name="man" namespace="/man" extends="lexken-default">
+
+        <action name="*" method="process" class="com.lexken.framework.core.ActionFactory">
+        	<result name="mainTemplate">/WEB-INF/vl/common/template/mainTemplate.vm</result>
+        </action>
+
+    </package>
+
+</struts>

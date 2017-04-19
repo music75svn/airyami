@@ -1,0 +1,214 @@
+#*************************************************************************
+* CLASS 명      : domSafeAuthAct
+* 작 업 자      : 김기현
+* 작 업 일      : 2012년 6월 18일
+* 기    능      : 시스템항목관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김기현      2012년 6월 18일             최 초 작 업
+**************************************************************************#
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/bsc/system/domSafeAuthAct/domSafeAuthActList.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+		
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/system/domSafeAuthAct/domSafeAuthActList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['년도', '월', '부서코드', '부서명', '수입구분', '업무구분', '검사구분', '가스법구분', '대분류', '중분류', '소분류', '수입(억원)'],
+			colModel     :[
+							{name:'YEAR'  		 		,index:'YEAR'  		   	 	,width:30   ,align:'center' },
+                            {name:'MON'      			,index:'MON'      		 	,width:20   ,align:'center' },
+                            {name:'DEPT_CD' 			,index:'DEPT_CD'			,width:50   ,align:'center' },
+                            {name:'DEPT_NM'    			,index:'DEPT_NM'   			,width:40   ,align:'center' },
+                            {name:'RPT_TC_NM'     		,index:'RPT_TC_NM'			,width:40   ,align:'center' },
+                            {name:'ROLE_TC_NM'     		,index:'ROLE_TC_NM'			,width:40   ,align:'center' },
+                            {name:'INSP_KIND_TC_NM'     ,index:'INSP_KIND_TC_NM'	,width:40   ,align:'center' },
+                            {name:'LAW_TC_NM'     		,index:'LAW_TC_NM'			,width:40   ,align:'center' },
+                            {name:'STIC_LAG_TC_NM'     	,index:'STIC_LAG_TC_NM'		,width:40   ,align:'center' },
+                            {name:'STIC_MID_TC_NM'     	,index:'STIC_MID_TC_NM'		,width:40   ,align:'center' },
+                            {name:'STIC_SML_TC_NM'     	,index:'STIC_SML_TC_NM'		,width:40   ,align:'center' },
+                            {name:'REQ_AMT' 			,index:'REQ_AMT' 			,width:60   ,align:'left' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			cmTemplate   : {sortable:false},
+			loadComplete : function() {
+    							var ids = J("#list").jqGrid('getDataIDs');
+    							J("#list input:checkbox").each(function(index) {
+    								var rowdata = J("#list").getRowData(ids[index]);
+    								if(J(rowdata.ITEM_CNT).text() != 0) { //비교조건 대상 컬럼
+    									J("#list input:checkbox[name=jqg_list_" + (index+1) + "]").hide();
+    								}
+    							});
+                           },
+			caption:"시스템항목관리"
+		}).jqGrid('hideCol',"DEPT_CD").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 항목명 포커스
+		 ******************************************/
+		J("#findItemNm").select();
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#btnSearch").click(function() {
+			goSearch();
+		});
+
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcel").click(function() {
+			J("#yearNm").val(J("#findYear > option:selected").text());
+			J("#monNm").val(J("#findMon > option:selected").text());
+			J("#deptNm").val(J("#findDeptId > option:selected").text());
+			J("#itemNm").val(J("#findItemCd > option:selected").text());
+			J("#formList").attr("action", "$!{context_path}/bsc/system/domSafeAuthAct/excel.vw?type=excel").submit();
+			return false;
+		});
+		
+		
+	});
+
+//]]>
+</script>
+</head>
+<body>
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">시스템항목관리</h1>
+		<div class="tableTop">
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/system/domSafeAuthAct/domSafeAuthActList.vw?type=popup">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"    id="findMetricId"	name="findMetricId"		value="$!{searchMap.txt2html("findMetricId")}" />
+				<div class="clear h20"></div>
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="시스템항목관리검색 조건">
+						<caption class="none">시스템항목관리 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEARMON}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+										<select id="findMon" name="findMon" class="select w80">
+            								$!CS_CODE.getCodeOption("024", $!{searchMap.txt2html("findMon")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w300">
+                					<span><label for="findDeptId">부서</label></span>
+            						<span class="searchBar">
+										<select id="findDeptId" name="findDeptId" class="select w250">
+											#foreach($list in $deptList)
+                                            	<option value="$!{CS_HTML.txt2html($list.DEPT_ID)}" $searchMap.getSelected("findDeptId", "$!{CS_HTML.txt2html($list.DEPT_ID)}")>$!{CS_HTML.txt2html($list.DEPT_NM)}</option>
+                                            #end
+										</select>
+            						</span>
+                                </td>
+								<td class="searchBox_tit w270">
+                					<span><label for="findItem">항목</label></span>
+									<span class="searchBar">
+										<select id="findItemCd" name="findItemCd" class="select w200">
+											#foreach($item in $itemInfo)
+												<option value="$!{CS_HTML.txt2html($item.ITEM_CD)}" $searchMap.getSelected("findItemCd", "$!{CS_HTML.txt2html($item.ITEM_CD)}")>$!{CS_HTML.txt2html($item.CAL_TYPE_COL_NM)}</option>
+											#end
+            							</select>
+									</span>
+                                </td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/system/domSafeAuthAct/domSafeAuthActProcess.vw?type=template">
+			<input type="hidden" id="mode"       name="mode" />
+			<input type="hidden" id="yearNm"	name="yearNm" />
+			<input type="hidden" id="monNm"		name="monNm" />
+			<input type="hidden" id="deptNm"	name="deptNm" />
+			<input type="hidden" id="itemNm"	name="itemNm" />
+			$!{searchMap.makeHiddenFind()}
+
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="시스템항목관리 조회결과">
+							<caption class="none">시스템항목관리 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton " style="float:left; text-align:left; width:500px; padding:5px 0 0 0;">
+    						<div class="blockButton" style="float:left; text-align:left; width:155px;">
+    							<input id="btnExcel" type="button" align="middle" value="엑셀다운로드", alt="엑셀다운로드" />
+    						</div>
+    					</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	
+	<div class="clear"></div>
+</div>
+</body>
+</html>

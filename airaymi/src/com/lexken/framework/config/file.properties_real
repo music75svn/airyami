@@ -1,0 +1,29 @@
+FILE_ROOT_PATH=/storage
+FILE_TEMP_PATH=/storage/temp
+
+## watermark \uad00\ub828 \ucd94\uac00\uc0ac\ud56d : 09.02.17 wheel
+#watermark path
+WM_FILE_PATH=/watermark
+#watermark file name (jpg \ud615\uc2dd\uc73c\ub85c \uc774\ub984\uc744 \ud558\ub098\ub85c \uac10)
+WM_FILE_NAEM=WM.jpg
+
+## DRM XML \ud30c\uc77c\uacbd\uc6b0 (EXCEL)
+FILE_DRM_EXCEL_XML_FILE=/linkContent/drm_excel/xml
+
+# ====================================================================
+# \ub85c\uceec \uac1c\ubc1c\uc11c\ubc84  \uc801\uc6a9
+# ====================================================================
+# DRM\uad00\ub828 (REAL ROOT)
+FILE_REAL_FILE_ROOT_PATH=/attach/BSC
+FILE_WEB_ROOT_PATH=/home/bscadm/BSC_PROJECT
+FILE_BACKGROUND_ROOT_PATH=/images/flash/VBOXML
+FILE_IMG_ROOT_PATH=/images
+WEB_URL=http://10.133.20.102:8080/BSC_PROJECT
+
+# ====================================================================
+# \uc2e4\uc11c\ubc84 \uc801\uc6a9
+# ====================================================================
+# DRM\uad00\ub828 (REAL ROOT)
+#FILE_REAL_FILE_ROOT_PATH=/home/fileserver
+#WEB_URL = http://
+

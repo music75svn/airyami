@@ -1,0 +1,399 @@
+#*************************************************************************
+* CLASS 명      : evalStatusList
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 10월 25일
+* 기    능      : 평가현황
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     하윤식      2012년 10월 25일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/level/evalStatus/evalStatusList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/level/evalStatus/evalStatusList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['$!{YEAR}', '평가단 ID', '사번', '평가자', '평가조직', '직급' ,'평가단' ,'평가상태', 'EMAIL'],
+			colModel     :[
+							{name:'YEAR'                 ,index:'YEAR'                 ,width:150   ,align:'center' },
+                            {name:'EVAL_USER_GRP_ID'     ,index:'EVAL_USER_GRP_ID'     ,width:150   ,align:'center' },
+                            {name:'EVAL_USER_ID'         ,index:'EVAL_USER_ID'         ,width:150   ,align:'center' },
+							{name:'USER_NM'              ,index:'USER_NM'              ,width:120   ,align:'center' },
+                            {name:'DEPT_NM'              ,index:'DEPT_NM'              ,width:200   ,align:'center' },
+                            {name:'POS_NM'               ,index:'POS_NM'               ,width:80    ,align:'center' },
+							{name:'EVAL_USER_GRP_NM'     ,index:'EVAL_USER_GRP_NM'     ,width:150   ,align:'center' },
+                            {name:'EVAL_SUBMIT_YN_NM'    ,index:'EVAL_SUBMIT_YN_NM'    ,width:80    ,align:'center' },
+							{name:'EMAIL'                ,index:'EMAIL'                ,width:150   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			loadComplete : function() {
+								getEvalStatusInfo(); //평가군 마감정보 가져오기
+								 },
+			caption:"평가현황"
+        }).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"EVAL_USER_GRP_ID").jqGrid('hideCol',"EVAL_USER_ID").jqGrid('hideCol',"EMAIL").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//J("#formFind").attr("action", "$!{context_path}/bsc/level/evalStatus/evalStatusList.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 평가마감 버튼 클릭 이벤트
+		 ******************************************/
+		J("#bClosingY").click(function() {
+			goClose();
+			return false;
+		});
+
+		/******************************************
+		 * 평가마감취소 버튼 클릭 이벤트
+		 ******************************************/
+		J("#bClosingN").click(function() {
+			goCancle();
+			return false;
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+		/******************************************
+		 * 메일 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnMail").click(function() {
+			mailWrite();
+			return false;
+		});
+
+		/******************************************
+		 * 년도별 평가단 change 이벤트
+		 ******************************************/
+		$('#findYear').change(function(){
+			chgEvalGrp();
+		});
+
+	});
+
+	/******************************************
+	 * 년도별 평가단 조회
+	 ******************************************/
+	function chgEvalGrp(){
+		J.ajax({
+        	url      : "$!{context_path}/bsc/level/evalStatus/userGroupList_ajax.vw",
+        	cache    : false,
+        	type     : "POST",
+			data     : J("#formFind").serialize(),
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+				var xmlDoc = J.parseXML(data);
+        		J("#findEvalUserGrpId").empty();
+				J(xmlDoc).find("data").each(function() {
+					J('<option/>').attr('value', J(this).find("value").text()).text(J(this).find("text").text()).appendTo('#findEvalUserGrpId');
+				})
+			}
+    	});
+	}
+
+	/******************************************
+	 * 평가마감
+	 ******************************************/
+	function goClose() {
+	    if(J("#findEvalUserGrpId").val() == null || J("#findEvalUserGrpId").val() == ""){
+			J.showMsgBox("평가마감할 평가단을 선택하십시요", null, null);
+		} else {
+			var magamChk 	= true;
+
+
+			if(parseInt(J("#userCnt").val())>0){
+				if(J("#userCnt").val() != J("#submitCnt").val()){
+					J.showMsgBox("평가군에 평가자가 모두 제출되어야 <br>마감할 수 있습니다.", null, null);
+					magamChk 	= false;
+					return false;
+				}
+			}else{
+				J.showMsgBox("평가군에 등록된 평가자가 없어 <br>마감할 수 없습니다.", null, null);
+				magamChk 	= false;
+				return false;
+			}
+
+			if(magamChk){
+				J.showConfirmBox("선택한 평가군을 마감하시겠습니까?", "execDo"); //execDo() 콜백함수 호출
+			}
+		}
+	}
+
+	/******************************************
+	 * 평가마감 실행
+	 ******************************************/
+	function execDo(){
+		J("#year").val(J("#findYear").val());
+		J("#evalUserGrpId").val(J("#findEvalUserGrpId").val());
+		J("#closeYn").val("Y");
+		J("#mode").val("CLOSE");
+		J("#formList").attr("action", "$!{context_path}/bsc/level/evalStatus/evalStatusProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 평가마감취소
+	 ******************************************/
+	function goCancle(){
+		J("#year").val(J("#findYear").val());
+		J("#evalUserGrpId").val(J("#findEvalUserGrpId").val());
+		J("#closeYn").val("N");
+		J("#mode").val("CLOSE");
+		J("#formList").attr("action", "$!{context_path}/bsc/level/evalStatus/evalStatusProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 평가군 마감정보 가져오기
+	 ******************************************/
+	function getEvalStatusInfo() {
+		var findYear 			= J("#findYear").val();
+		var findEvalUserGrpId 	= J("#findEvalUserGrpId").val();
+
+		J.ajax({
+			url        : "$!{context_path}/bsc/level/evalStatus/evalStatusInfo_ajax.vw",
+        	type       : "POST",
+			data       : "findYear=" + findYear + "&amp;findEvalUserGrpId=" + findEvalUserGrpId,
+        	dataType   : "xml",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success    : function (xml) {
+				var evalUserGrpId = "";
+				var evalUserGrpNm = "";
+				var evalClosingYn = "";
+
+				if(J(xml).find("items").find("item").length > 0) {
+					J(xml).find("items").find("item").each(function() {
+						evalUserGrpId = J(this).find("evalUserGrpId").text();
+						evalUserGrpNm = J(this).find("evalUserGrpNm").text();
+						evalClosingYn = J(this).find("evalClosingYn").text();
+
+						J("#evalClosingYn").val(evalClosingYn);
+                    });
+				}
+				//버튼설정
+				buttonEnableSet(evalClosingYn);
+        	},
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+    	});
+	}
+
+	/******************************************
+	 * 버튼 설정
+	 ******************************************/
+	function buttonEnableSet(evalClosingYn) {
+		if(evalClosingYn=='Y'){
+			J("#bClosingY").hide(); //평가마감
+			J("#bClosingN").show(); //마감취소
+		}else if(evalClosingYn=='N'){
+		    J("#bClosingY").show(); //평가마감
+			J("#bClosingN").hide(); //마감취소
+		}
+	}
+
+	/******************************************
+	 * 메일발송 팝업
+	 ******************************************/
+	function mailWrite(){
+		var list = "";
+		var id = "";
+		var ids = "";
+		var rowdata = "";
+		var toMail = "";
+		var toName = "";
+		var toNameList = "";
+
+		list = "list";
+		id = J("#list").getGridParam('selarrrow');
+		ids = J("#list").jqGrid('getDataIDs');
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#"+ list).getRowData(ids[i]);
+					if(rowdata.EMAIL != '' && rowdata.EMAIL != null) {
+    					toMail += rowdata.EMAIL + "|";
+
+						toName += rowdata.USER_NM + "|";
+						toNameList += rowdata.USER_NM + "<" + rowdata.EMAIL + ">;";
+    				}
+				}
+			});
+		}
+
+		if(!J.gridSelectChk(list)){
+			J.showMsgBox("메일을 전송할 대상자를 선택하십시요", null, null);
+		} else {
+			openWinByName('','pop','900','430','no');
+
+			J("#toMail").val(toMail);
+    		J("#toName").val(toName);
+			J("#toNameList").val(toNameList);
+    		J("#mailForm").attr("target", "pop");
+    		J("#mailForm").attr("action", "$!{context_path}/bsc/module/commModule/popSendMail.vw?type=popup").submit();
+    	}
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear > option:selected").text());
+		J("#evalUserGrpId").val(J("#findEvalUserGrpId").val());
+		J("#evalUserGrpNm").val(J("#findEvalUserGrpId :selected").text());
+		J("#evalSubmitYn").val(J("#findEvalSubmitYn").val());
+		J("#evalSubmitYnNm").val(J("#findEvalSubmitYn :selected").text());
+		J("#formList").attr("action", "$!{context_path}/bsc/level/evalStatus/evalStatusListExcel.vw?type=excel").submit();
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">평가현황</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/level/evalStatus/evalStatusList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	        name="findHighPgmId"	  value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	        name="findSubPgmId"	      value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		        name="findPgmId"		  value="$!{searchMap.txt2html("findPgmId")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="평가현황검색 조건">
+						<caption class="none">평가현황 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+									<span><label for="findEvalUserGrpId">평가단</label></span>
+            						<span class="searchBar">
+										<select id="findEvalUserGrpId" name="findEvalUserGrpId" class="select w120">
+            							#foreach($list in $evalUserGrpList)
+                                        	<option value="$!{CS_HTML.txt2html($list.EVAL_USER_GRP_ID)}" $searchMap.getSelected("findEvalUserGrpId", "$!{CS_HTML.txt2html($list.EVAL_USER_GRP_ID)}")>$!{CS_HTML.txt2html($list.EVAL_USER_GRP_NM)}</option>
+										#end
+										</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+                					<span><label for="findEvalSubmitYn">평가상태</label></span>
+									<span class="searchBar">
+										<select id="findEvalSubmitYn" name="findEvalSubmitYn" class="select w120">
+											<option value="">전체</option>
+            								$!CS_CODE.getCodeOption("143", $!{searchMap.txt2html("findEvalSubmitYn")})
+            							</select>
+									</span>
+                                </td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/level/evalStatus/evalStatusProcess.vw?type=template">
+			<input type="hidden" id="mode"     			name="mode" />
+			<input type="hidden" id="year"		 		name="year" />
+			<input type="hidden" id="yearNm"	 		name="yearNm" />
+			<input type="hidden" id="evalUserGrpId"		name="evalUserGrpId" />
+			<input type="hidden" id="evalUserGrpNm"		name="evalUserGrpNm" />
+			<input type="hidden" id="evalSubmitYn"   	name="evalSubmitYn" />
+			<input type="hidden" id="evalSubmitYnNm"	name="evalSubmitYnNm" />
+			<input type="hidden" id="closeYn"	    	name="closeYn" />
+			<input type="hidden" id="userCnt"  			name="userCnt"   value="$!{status.USER_CNT}" />
+			<input type="hidden" id="submitCnt"  		name="submitCnt" value="$!{status.SUBMIT_CNT}" />
+
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="평가현황 조회결과">
+							<caption class="none">평가현황 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+								##<li><input type="submit" id="btnMail"   value="메일발송" /></li>
+								<li><input type="button" id="bClosingN" value="평가마감취소" />&nbsp;</li>
+								<li><input type="button" id="bClosingY" value="평가마감" />&nbsp;</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>
+
+<form id="mailForm" name="mailForm" method="post" action="$!{context_path}/bsc/module/commModule/popSendMail.vw">
+    <input type="hidden" id="toMail" 		name="toMail" />
+	<input type="hidden" id="toName" 	    name="toName" />
+    <input type="hidden" id="toNameList"    name="toNameList" />
+    <input type="hidden" id="mailSendGbn"	name="mailSendGbn" /> <!-- 메일발송 디폴트문구(공통코드:140) -->
+</form>

@@ -1,0 +1,214 @@
+#*************************************************************************
+* CLASS 명	: csfModify
+* 작 업 자		: 김민주
+* 작 업 일		: 2013년 06월 22일
+* 기    능		: CSF관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    김 민 주      2013년 06월 22일             최 초 작 업
+**************************************************************************#
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/man/man/csf/csfList.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("#sortOrder").numeric();
+		J("#sortOrder").css("ime-mode", "disabled");
+
+		/******************************************
+		 * 사용중이면서 하위코드 존재시 삭제못함
+		 ******************************************/
+		#if( $!{CS_HTML.txt2html($detail.USE_YN)} == "Y" && $!{CS_HTML.txt2html($detail.CNT)} != "0")
+			J(":input:radio[name=useYn]").attr("disabled", true);
+        #end
+	});
+
+	/******************************************
+	 * 경영목표 변경시 전략과제 변경
+	 ******************************************/
+	function chgStrategy(){
+
+		J.ajax({
+
+			url      : "$!{context_path}/man/man/csf/strategyList_ajax.vw",
+			cache    : false,
+			type     : "POST",
+			data	 : J("#form1").serialize(),
+			dataType : "html",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+			success  : function(data){
+							var xmlDoc = J.parseXML(data);
+							J("#stratId").empty();
+
+							J('<option/>').attr('value','').text("선택").appendTo('#stratId');
+
+							J(xmlDoc).find("data").each(function() {
+								J('<option/>').attr('value',J(this).find("value").text()).text(J(this).find("text").text()).appendTo('#stratId');
+							})
+					   }
+		});
+
+	}
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(!SelEmptyCheck( J("#manId").val(), "경영목표" ) ) {
+            J("#manId").focus();
+            return;
+        }
+
+        if(!SelEmptyCheck( J("#stratId").val(), "전력과제" ) ) {
+            J("#stratId").focus();
+            return;
+        }
+		if(!J.checkLength("csfNm", "CSF", 1, 150)) {
+			return;
+		}
+
+		if(!isNumber(J("#sortOrder").val())){
+			J.showMsgBox("정렬순서는 숫자만 입력가능합니다", null, "sortOrder");
+			return;
+		}
+
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/man/man/csf/csfProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>
+
+<form id="form1" name="form1" method="post" action="$!{context_path}/man/man/csf/csfProcess.vw?type=template">
+    <input type="hidden" 	id="mode"	name="mode"     value="$!{searchMap.txt2html("mode")}" />
+    <input type="hidden" 	id="year"	name="year"		value="$!{searchMap.txt2html("year")}" />
+	$!{searchMap.makeHiddenFind()}
+
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>
+                    <table summary="검색조건">
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="CSF관리 등록">
+					<caption class="none">CSF관리 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row"><span class="txt_red">(*)</span><label for="manId">경영목표</label></th>
+							<td >
+    							<select id="manId" name="manId" onchange="chgStrategy();">
+    								<option value="">선택</option>
+    								#foreach($targetList in $targetList)
+									<option value="$!{CS_HTML.txt2html($targetList.MAN_ID)}" $searchMap.getSelected("manId", "$!{CS_HTML.txt2html($targetList.MAN_ID)}")>$!{CS_HTML.txt2html($targetList.MAN_NM)}</option>
+									#end
+    							</select>
+            				</td>
+					    </tr>
+    					<tr>
+    						<th scope="row"><span class="txt_red">(*)</span><label for="stratId">전략과제</label></th>
+							<td >
+    							<select id="stratId" name="stratId">
+    								<option value="">선택</option>
+    								#foreach($strategyList in $strategyList1)
+										<option value="$!{CS_HTML.txt2html($strategyList.STRAT_ID)}" $searchMap.getSelected("stratId", "$!{CS_HTML.txt2html($strategyList.STRAT_ID)}")>$!{CS_HTML.txt2html($strategyList.STRAT_NM)}</option>
+									#end
+    							</select>
+            				</td>
+					    </tr>
+						<tr>
+    						<th scope="row"><label for="csfId">CSF코드</label></th>
+    						<td>
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.CSF_ID)}
+									<input type="hidden" id="csfId" name="csfId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.CSF_ID)}" maxlength="7" readonly="readonly"/>
+								#else
+									<input type="hidden" id="csfId" name="csfId" class="inputbox w100" maxlength="7" />
+                                    ※ 저장시 자동으로 부여됩니다.
+								#end
+							</td>
+    					</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="csfNm">CSF</label></th>
+							<td><input type="text" id="csfNm" name="csfNm" class="inputbox w900" value='$!{CS_HTML.txt2html($detail.CSF_NM)}' maxlength="150"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="sortOrder">정렬순서</label></th>
+							<td><input type="text" id="sortOrder" name="sortOrder" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.SORT_ORDER)}' maxlength="5"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="useYn0">사용여부</label></th>
+							<td>
+								$!CS_CODE.getCodeRadio("useYn", "011", $!{CS_HTML.txt2html($detail.USE_YN, 'Y')}, $!{searchMap.txt2html("year")})
+							</td>
+						</tr>
+					</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton">
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

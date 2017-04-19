@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="str.system.metricMappingMng">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: STR_METRIC_MAPPING
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경영목표 조회조건목록
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MANAGEMENT
+	==================================================================
+	-->
+	<select id="getManagement" parameterClass="hashMap" resultClass="hashMap">
+	SELECT A.YEAR
+			, A.MANAGEMENT_ID
+			, A.MANAGEMENT_NM
+			, A.SORT_ORDER
+	FROM BSC_MANAGEMENT A
+	WHERE A.YEAR = #findYear#
+	   AND A.DELETE_DT IS NULL
+	 ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 조회조건목록
+	  #	기능	: SELECT
+	  #	TABLE	: STR_STRAT_SUBJECT
+	==================================================================
+	-->
+	<select id="getStrStratSubjectList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             ,  A.STRAT_SUBJECT_ID
+             ,  A.STRAT_SUBJECT_NM
+             ,  A.SORT_ORDER
+    FROM STR_STRAT_SUBJECT A
+    WHERE A.YEAR= #findYear#
+		AND A.MANAGEMENT_ID = #findManagementId#
+		AND A.DELETE_DT IS NULL
+     ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: CSF 조회조건목록
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CSF
+	==================================================================
+	-->
+	<select id="getCsfList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             ,  A.CSF_ID
+             ,  A.CSF_NM
+             ,  A.SORT_ORDER
+    FROM BSC_CSF A
+    WHERE A.YEAR= #findYear#
+        AND A.DELETE_DT IS NULL
+        AND A.STRAT_SUBJECT_ID = #findStratSubjectId#
+     ORDER BY A.CSF_NM, A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표 조회조건목록
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->
+	<select id="getStrMetricList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR,
+               SUBJECT_METRIC_ID,
+               SUBJECT_METRIC_NM
+		  FROM STR_METRIC
+		 WHERE YEAR = #findYear#
+		   AND CSF_ID = #findCsfId#
+		   AND DELETE_DT IS NULL
+		 ORDER BY SORT_ORDER ASC
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 내평지표연계
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_MAPPING
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		         
+	SELECT A.METRIC_ID
+       , A.METRIC_NM
+       , A.SC_DEPT_ID
+       , E.MANAGEMENT_ID
+       , E.MANAGEMENT_NM
+       , F.STRAT_SUBJECT_ID
+       , F.STRAT_SUBJECT_NM
+       , G.CSF_ID
+       , G.CSF_NM
+       , C.SC_DEPT_NM
+       , A.INSERT_USER_ID
+       , D.USER_NM AS INSERT_USER_NM
+       , A.TYPE_ID
+       , F_CODE_NM ('007', A.TYPE_ID, A.YEAR) TYPE_NM
+       , A.METRIC_PROPERTY_ID
+       , F_CODE_NM ('010', A.METRIC_PROPERTY_ID, A.YEAR) METRIC_PROPERTY_NM
+    FROM BSC_METRIC A
+         INNER JOIN BSC_MANAGEMENT E
+            ON A.YEAR = E.YEAR
+         INNER JOIN STR_STRAT_SUBJECT F
+            ON E.YEAR = F.YEAR
+           AND E.MANAGEMENT_ID = F.MANAGEMENT_ID
+         INNER JOIN BSC_CSF G
+            ON F.YEAR = G.YEAR
+           AND F.STRAT_SUBJECT_ID = G.STRAT_SUBJECT_ID
+           AND G.CSF_ID = A.CSF_ID
+         INNER JOIN STR_METRIC_MAPPING B
+            ON A.YEAR = B.YEAR
+           AND A.METRIC_ID = B.METRIC_ID
+		           AND B.SUBJECT_METRIC_ID = #findSubjectMetricId# 
+		           INNER JOIN BSC_SC_DEPT C
+		           ON A.YEAR = C.YEAR
+		           AND A.SC_DEPT_ID = C.SC_DEPT_ID
+		           AND C.DELETE_DT IS NULL
+		           LEFT OUTER JOIN V_ROLE_USER D
+		           ON A.INSERT_USER_ID = D.USER_ID
+		     WHERE A.YEAR = #findYear#
+		       AND A.DELETE_DT IS NULL
+		     ORDER BY C.SORT_ORDER,A.SORT_ORDER
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getMetricDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.METRIC_ID
+		     , A.METRIC_NM
+		     , A.SC_DEPT_ID
+		     , B.SC_DEPT_NM
+		FROM BSC_METRIC A
+		     LEFT OUTER JOIN BSC_SC_DEPT B ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID AND B.DELETE_DT IS NULL
+		WHERE A.YEAR = #findYear#
+	      AND A.SC_DEPT_ID = #scDeptId#
+		  AND A.DELETE_DT IS NULL
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 연계지표매핑
+	  #	기능	: INSERT
+	  #	TABLE	: STR_METRIC_MAPPING
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO STR_METRIC_MAPPING (YEAR, SUBJECT_METRIC_ID, METRIC_ID, CREATE_DT) 
+		VALUES ( #year#, #subjectMetricId#, #metricId#, SYSDATE)
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 연계지표매핑
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_METRIC_MAPPING
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE STR_METRIC_MAPPING
+		 WHERE YEAR = #findYear#
+		   AND SUBJECT_METRIC_ID = #subjectMetricId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 연계지표매핑
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->	
+	<update id="deleteByOneData" parameterClass="hashMap">
+		DELETE STR_METRIC_MAPPING
+		 WHERE YEAR = #findYear#
+		   AND SUBJECT_METRIC_ID = #subjectMetricId#
+		   AND METRIC_ID = #metricId#
+	</update>
+	
+</sqlMap>	
+	

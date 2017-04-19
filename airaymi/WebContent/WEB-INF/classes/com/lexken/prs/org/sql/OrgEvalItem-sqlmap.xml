@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.org.orgEvalItem">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+
+		SELECT /*+ ordered */
+		       A.YEAR
+		     , A.ORG_EVAL_ITEM_ID
+		     , A.ORG_EVAL_ITEM_NM
+		     , A.EVAL_TYPE
+		     , F_CODE_NM('183', A.EVAL_TYPE, A.YEAR) AS EVAL_TYPE_NM
+		     , A.ALLOC_SCORE
+		     , (SELECT COUNT(1) FROM ORG_DEPT_EVAL_ITEM WHERE YEAR = A.YEAR AND ORG_EVAL_ITEM_ID = A.ORG_EVAL_ITEM_ID AND DELETE_DT IS NULL) COUNT
+             , REPLACE( REPLACE ( A.CONTENT, CHR(13), '' ), CHR(10), ' ' )  CONTENT
+		FROM ORG_EVAL_ITEM A
+		WHERE 1=1
+		  AND A.YEAR = #findYear#
+
+		<isEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NOT NULL
+	    </isEqual>
+
+	    <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NULL
+	    </isNotEqual>
+
+		<isNotEmpty prepend="AND" property="findOrgEvalItemNm">
+			UPPER(A.ORG_EVAL_ITEM_ID||A.ORG_EVAL_ITEM_NM) LIKE  '%' || TRIM(UPPER(#findOrgEvalItemNm#)) ||'%'
+		</isNotEmpty>
+
+		ORDER BY A.ORG_EVAL_ITEM_ID
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT /*+ ORDERED */
+		       A.YEAR
+             , A.ORG_EVAL_ITEM_ID
+             , A.ORG_EVAL_ITEM_NM
+             , A.EVAL_TYPE
+             , A.ACT_CAL_TYPE
+             , A.ALLOC_SCORE
+             , A.CONTENT
+             , CASE WHEN A.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USE_YN
+             , (SELECT COUNT(B.ORG_EVAL_ITEM_ID)
+                 FROM ORG_DEPT_EVAL_ITEM B
+                WHERE B.ORG_EVAL_ITEM_ID = A.ORG_EVAL_ITEM_ID
+                  AND B.DELETE_DT IS NULL
+                  AND ROWNUM = 1
+               ) SUB_CODE_CNT
+         FROM ORG_EVAL_ITEM A
+        WHERE A.YEAR = #year#
+          AND A.ORG_EVAL_ITEM_ID = #orgEvalItemId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 지표산식 목록 조회
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_EVAL_ITEM_COL
+	==================================================================
+	-->
+	<select id="calTypeColList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.ORG_EVAL_ITEM_ID
+             , A.CAL_TYPE_COL
+             , A.CAL_TYPE_COL_NM
+             , A.INSERT_GUBUN
+             , A.UNIT
+             , A.SOURCE_SYSTEM
+             , A.ORG_CONN_ITEM_ID AS ITEM_CD
+             , B.ORG_CONN_ITEM_NM AS ITEM_NM
+        FROM ORG_EVAL_ITEM_COL A
+             LEFT OUTER JOIN ORG_CONN_ITEM B ON A.ORG_CONN_ITEM_ID = B.ORG_CONN_ITEM_ID AND B.DELETE_DT IS NULL
+        WHERE A.ORG_EVAL_ITEM_ID = #orgEvalItemId#
+          AND A.DELETE_DT IS NULL
+        ORDER BY A.CAL_TYPE_COL ASC
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 득점산식 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CAL_TYPE
+	==================================================================
+	-->
+	<select id="scoreCalTypeList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CAL_TYPE_ID
+		     , A.CAL_TYPE_NM
+		  FROM BSC_CAL_TYPE A
+	 	 WHERE A.CAL_TYPE_GUBUN = '01'
+	 	   AND A.DELETE_DT IS NULL
+	 	 ORDER BY A.CAL_TYPE_ID
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 구간대 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_EVAL_SECTION_GRP
+	==================================================================
+	-->
+	<select id="evalSectionList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.CODE_ID AS EVAL_SECTION_ID
+             , A.CODE_NM AS EVAL_SECTION_NM
+             , B.ORG_EVAL_ITEM_ID
+             , B.FROM_VALUE
+             , B.TO_VALUE
+             , B.CONVERSION_SCORE
+             , B.FROM_VALUE         AS VIEW_VAL
+             , B.UPDOWN_GBN
+        FROM BSC_CODE A
+                 LEFT OUTER JOIN ORG_EVAL_SECTION B
+                         ON B.YEAR = #year#
+                         AND B.ORG_EVAL_ITEM_ID = #orgEvalItemId#
+                         AND A.CODE_ID = B.EVAL_SECTION_ID
+                         AND B.DELETE_DT IS NULL
+        WHERE A.CODE_GRP_ID = '020'
+          AND A.YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #year# ELSE '9999' END FROM BSC_CODE_GRP WHERE CODE_GRP_ID = '020')
+          AND A.DELETE_DT IS NULL
+        ORDER BY A.SORT_ORDER
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 평가구간대 등급 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->
+	<select id="gradeList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CODE_ID
+		     , A.CODE_NM
+		  FROM BSC_CODE A
+		 WHERE A.YEAR = #year#
+		   AND A.CODE_GRP_ID = '118'
+		 ORDER BY A.SORT_ORDER
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 채번
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_EVAL_ITEM_ID
+	==================================================================
+	-->
+	<select id="getOrgEvalItemId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT 'OR'||LPAD(NVL(MAX(TO_NUMBER(SUBSTR(ORG_EVAL_ITEM_ID,3,7))),0)+1,5,'0') ORG_EVAL_ITEM_ID
+		FROM ORG_EVAL_ITEM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: ORG_EVAL_ITEM
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO ORG_EVAL_ITEM (
+			  YEAR
+			, ORG_EVAL_ITEM_ID
+			, ORG_EVAL_ITEM_NM
+			, EVAL_TYPE
+			, ALLOC_SCORE
+			, ACT_CAL_TYPE
+			, CONTENT
+			, CREATE_DT
+			, MODIFY_DT
+			, DELETE_DT
+		   ) VALUES (
+               #year#
+             , #orgEvalItemId#
+             , #orgEvalItemNm#
+             , #evalType#
+             , #allocScore#
+             , #actCalType#
+             , #content#
+             , SYSDATE
+             , SYSDATE
+             ,
+			 <isEqual property="useYn" compareValue="Y">
+		     NULL
+		     </isEqual>
+		     <isNotEqual property="useYn" compareValue="Y">
+		     SYSDATE
+		     </isNotEqual>
+		   )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_EVAL_ITEM
+	==================================================================
+	-->
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE ORG_EVAL_ITEM
+		   SET ORG_EVAL_ITEM_NM     = #orgEvalItemNm#
+		     , EVAL_TYPE            = #evalType#
+		     , ALLOC_SCORE          = #allocScore#
+		     , ACT_CAL_TYPE         = #actCalType#
+		     , CONTENT              = #content#
+		     , MODIFY_DT            = SYSDATE
+		    <isEqual property="useYn" compareValue="N">
+            	, DELETE_DT         = SYSDATE
+		    </isEqual>
+		    <isNotEqual property="useYn" compareValue="N">
+            	, DELETE_DT         = NULL
+		    </isNotEqual>
+		WHERE YEAR = #year#
+		  AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_EVAL_ITEM
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE ORG_EVAL_ITEM
+		   SET DELETE_DT = SYSDATE
+		 WHERE YEAR = #year#
+		   AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별 세부평가항목 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM
+	==================================================================
+	-->
+	<delete id="deletesData" parameterClass="hashMap">
+		DELETE FROM ORG_DEPT_EVAL_ITEM
+		 WHERE YEAR = #year#
+		   AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+		   AND DEPT_CD = #deptCd#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별 산식실적  삭제
+	  #	기능	: DELETE
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM_COL_ACT
+	==================================================================
+	-->
+	<delete id="deleteDeptColAct" parameterClass="hashMap">
+		DELETE FROM ORG_DEPT_EVAL_ITEM_COL_ACT
+		 WHERE YEAR = #year#
+		   AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+		   AND DEPT_CD = #deptCd#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 산식항목 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_EVAL_ITEM_COL
+	==================================================================
+	-->
+	<delete id="updateCalTypeCol" parameterClass="hashMap">
+		UPDATE ORG_EVAL_ITEM_COL
+		   SET
+	    <isEqual property="useYn" compareValue="N">
+           	  DELETE_DT         = SYSDATE
+	    </isEqual>
+	    <isNotEqual property="useYn" compareValue="N">
+           	  DELETE_DT         = NULL
+	    </isNotEqual>
+		WHERE YEAR = #year#
+		  AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 구간대항목 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_EVAL_SECTION
+	==================================================================
+	-->
+	<delete id="updateEvalSection" parameterClass="hashMap">
+		UPDATE ORG_EVAL_SECTION
+		   SET
+	    <isEqual property="useYn" compareValue="N">
+           	  DELETE_DT         = SYSDATE
+	    </isEqual>
+	    <isNotEqual property="useYn" compareValue="N">
+           	  DELETE_DT         = NULL
+	    </isNotEqual>
+		WHERE YEAR = #year#
+		  AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	:  조직별 세부항목 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM
+	==================================================================
+	-->
+	<delete id="deleteDeptEvalItem" parameterClass="hashMap">
+		DELETE FROM ORG_DEPT_EVAL_ITEM
+		WHERE YEAR = #year#
+		  AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	:  조직별 산식실적  삭제
+	  #	기능	: DELETE
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM_COL_ACT
+	==================================================================
+	-->
+	<delete id="deleteDeptEvalItemColAct" parameterClass="hashMap">
+		DELETE FROM ORG_DEPT_EVAL_ITEM_COL_ACT
+		WHERE YEAR = #year#
+		  AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+	</delete>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<parameterMap id="paramMap" class="java.util.HashMap">
+		<parameter property="year" 			jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="orgEvalItemId" jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+		<parameter property="deptId" 		jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>
+	</parameterMap>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별 배포 실행
+	  #	기능	: PROCEDURES
+	  #	TABLE	:
+	==================================================================
+	-->
+	<procedure id="distributeData" parameterMap="paramMap">
+		{CALL SP_ORG_EVAL_ITEM_DISTRIBUTE(?, ?, ?)}
+	</procedure>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 산식항목 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: ORG_EVAL_ITEM_COL
+	==================================================================
+	-->
+	<delete id="deleteCalTypeCol" parameterClass="hashMap">
+		DELETE FROM ORG_EVAL_ITEM_COL
+		WHERE YEAR = #year#
+		  AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 산식 등록
+	  #	기능	: INSERT
+	  #	TABLE	: ORG_EVAL_ITEM_COL
+	==================================================================
+	-->
+	<insert id="insertCalTypeCol" parameterClass="hashMap">
+		INSERT INTO ORG_EVAL_ITEM_COL (
+               YEAR
+             , ORG_EVAL_ITEM_ID
+             , CAL_TYPE_COL
+             , CAL_TYPE_COL_NM
+             , INSERT_GUBUN
+             , UNIT
+             , SOURCE_SYSTEM
+             , ORG_CONN_ITEM_ID
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #orgEvalItemId#
+             , #calTypeCol#
+             , #calTypeColNm#
+             , #insertGubun#
+             , #unit#
+             , #sourceSystem#
+             , #itemCd#
+             , SYSDATE
+             )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 구간대항목 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: ORG_EVAL_SECTION
+	==================================================================
+	-->
+	<delete id="deleteEvalSection" parameterClass="hashMap">
+		DELETE FROM ORG_EVAL_SECTION
+		WHERE YEAR = #year#
+		  AND ORG_EVAL_ITEM_ID = #orgEvalItemId#
+	</delete>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 구간대항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: ORG_EVAL_SECTION
+	==================================================================
+	-->
+	<insert id="insertEvalSection" parameterClass="hashMap">
+		INSERT INTO ORG_EVAL_SECTION (
+               YEAR
+             , ORG_EVAL_ITEM_ID
+             , EVAL_SECTION_ID
+             , FROM_VALUE
+             , TO_VALUE
+             , CONVERSION_SCORE
+             , CREATE_DT
+             , UPDOWN_GBN
+           ) VALUES (
+               #year#
+             , #orgEvalItemId#
+             , #evalSectionId#
+             , #fromValue#
+             , #toValue#
+             , #conversionScore#
+             , SYSDATE
+             , #upDownGbn#
+               )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 사용중인 지표목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getUseDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT
+		       A.DEPT_CD
+		     , F_DEPT_FULL_NM(#findYear#, A.DEPT_CD, 'BSC_INSA_DEPT') AS DEPT_NM
+		FROM ORG_DEPT_EVAL_ITEM A
+		WHERE A.YEAR = #findYear#
+		  AND A.ORG_EVAL_ITEM_ID = #findOrgEvalItemId#
+		  AND A.DEPT_CD IN (SELECT DEPT_CD FROM BSC_INSA_DEPT WHERE YEAR = #findYear#)
+		  AND A.DELETE_DT IS NULL
+		ORDER BY A.DEPT_CD
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 세부평가항목 사용중인 지표목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getUseList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.YEAR
+             , C.ORG_EVAL_ITEM_ID
+             , C.ORG_EVAL_ITEM_NM
+             , C.EVAL_TYPE
+             , F_CODE_NM('183', C.EVAL_TYPE , C.YEAR) AS EVAL_TYPE_NM
+             , A.DEPT_CD
+             , CASE WHEN (SELECT DEPT_KOR_NM FROM BSC_INSA_DEPT WHERE DEPT_CD = B.UP_DEPT_CD AND YEAR = B.YEAR) IS NULL
+                        THEN  B.DEPT_KOR_NM
+                        ELSE   (SELECT DEPT_KOR_NM FROM BSC_INSA_DEPT WHERE DEPT_CD = B.UP_DEPT_CD AND YEAR = B.YEAR) || ' > ' || B.DEPT_KOR_NM
+               END DEPT_NM
+        FROM ORG_DEPT_EVAL_ITEM A
+				LEFT OUTER JOIN BSC_INSA_DEPT B ON A.YEAR = B.YEAR AND A.DEPT_CD = B.DEPT_CD
+				LEFT OUTER JOIN ORG_EVAL_ITEM C ON A.YEAR = C.YEAR AND A.ORG_EVAL_ITEM_ID = C.ORG_EVAL_ITEM_ID AND C.DELETE_DT IS NULL
+        WHERE A.YEAR = #findYear#
+          AND A.ORG_EVAL_ITEM_ID = #findOrgEvalItemId#
+          AND A.DEPT_CD IN (SELECT DEPT_CD FROM BSC_INSA_DEPT WHERE YEAR = #findYear#)
+          AND A.DELETE_DT IS NULL
+        ORDER BY A.YEAR, A.DEPT_CD, A.ORG_EVAL_ITEM_ID
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 조직별 지표관리 목록 엑셀다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getExcelList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT /*+ ordered */
+	            A.YEAR
+	          , A.ORG_EVAL_ITEM_ID
+	          , A.ORG_EVAL_ITEM_NM
+	          , A.CONTENT
+	          , F_CODE_NM('183', A.EVAL_TYPE, A.YEAR) AS EVAL_TYPE_NM
+			  , (SELECT COUNT(1) FROM ORG_DEPT_EVAL_ITEM WHERE YEAR = A.YEAR AND ORG_EVAL_ITEM_ID = A.ORG_EVAL_ITEM_ID AND DELETE_DT IS NULL) COUNT
+	    FROM ORG_EVAL_ITEM A
+	    WHERE A.YEAR = #findYear#
+	    <isEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NOT NULL
+	    </isEqual>
+
+	    <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+           	A.DELETE_DT IS NULL
+	    </isNotEqual>
+		<isNotEmpty prepend="AND" property="findOrgEvalItemNm">
+			UPPER(A.ORG_EVAL_ITEM_ID||A.ORG_EVAL_ITEM_NM) LIKE  '%' || TRIM(UPPER(#findOrgEvalItemNm#)) ||'%'
+		</isNotEmpty>
+		ORDER BY ORG_EVAL_ITEM_ID
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 인사조직 트리 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getDeptList1" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DEPT_CD AS CODE_ID
+			 , F_DEPT_FULL_NM(#findYear#, DEPT_CD, 'BSC_INSA_DEPT') AS CODE_NM
+             , UP_DEPT_CD  AS UP_CODE_ID
+             , UP_USER_ID
+             , USE_YN
+             , DEPT_LEVL AS LEVEL_ID
+             , DISP_ORDER
+          FROM BSC_INSA_DEPT
+         WHERE YEAR = #findYear#
+		<![CDATA[
+			AND DEPT_CD <> '0000'
+		]]>
+       START WITH UP_DEPT_CD IS NULL
+       CONNECT BY PRIOR DEPT_CD = UP_DEPT_CD
+              AND PRIOR YEAR = YEAR
+		ORDER SIBLINGS BY DEPT_CD
+
+	</select>
+
+
+
+	<!--
+	==================================================================
+	  # 설명	: 현재년도사용개수데이터 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM
+	==================================================================
+	-->
+	<delete id="DeleteLastYearUseData" parameterClass="hashMap">
+		DELETE FROM ORG_DEPT_EVAL_ITEM WHERE YEAR = #findYear#
+	</delete>
+	<!--
+	==================================================================
+	  # 설명	: 현재년도사용개수데이터 산식 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: ORG_DEPT_EVAL_ITEM
+	==================================================================
+	-->
+	<delete id="DeleteLastYearUseCalData" parameterClass="hashMap">
+		DELETE FROM ORG_DEPT_EVAL_ITEM_COL_ACT WHERE YEAR = #findYear#
+	</delete>
+	<!--
+	==================================================================
+	  # 설명	: 현재년도세부사항데이터 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: ORG_EVAL_ITEM
+	==================================================================
+	-->
+	<delete id="DeleteLastYearDetailData" parameterClass="hashMap">
+		DELETE FROM ORG_EVAL_ITEM WHERE YEAR = #findYear#
+	</delete>
+	<!--
+	==================================================================
+	  # 설명	: 현재년도세부사항산식데이터 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: ORG_EVAL_ITEM_COL
+	==================================================================
+	-->
+	<delete id="DeleteLastYearCalData" parameterClass="hashMap">
+		DELETE FROM ORG_EVAL_ITEM_COL WHERE YEAR = #findYear#
+	</delete>
+	<!--
+	==================================================================
+	  # 설명	: 현재도세부사항구간데이터 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: ORG_EVAL_SECTION
+	==================================================================
+	-->
+	<delete id="DeleteLastYearSectionData" parameterClass="hashMap">
+		DELETE FROM ORG_EVAL_SECTION WHERE YEAR = #findYear#
+	</delete>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 전년도세부사항데이터복사
+	  #	기능	: INSERT
+	  #	TABLE	: ORG_EVAL_ITEM
+	==================================================================
+	-->
+	<insert id="InsertLastYearDetailData" parameterClass="hashMap">
+		INSERT INTO ORG_EVAL_ITEM (YEAR
+		                         , ORG_EVAL_ITEM_ID
+		                         , ORG_EVAL_ITEM_NM
+		                         , EVAL_TYPE
+		                         , ALLOC_SCORE
+		                         , ACT_CAL_TYPE
+		                         , CONTENT
+		                         , CREATE_DT
+		                         , MODIFY_DT
+		                         , DELETE_DT)
+		   SELECT #findYear#
+		        , ORG_EVAL_ITEM_ID
+		        , ORG_EVAL_ITEM_NM
+		        , EVAL_TYPE
+		        , ALLOC_SCORE
+		        , ACT_CAL_TYPE
+		        , CONTENT
+		        , SYSDATE
+		        , ''
+		        , ''
+		     FROM ORG_EVAL_ITEM
+		    WHERE YEAR = #findYear# - 1
+		    AND DELETE_DT IS NULL
+			</insert>
+	<!--
+	==================================================================
+	  # 설명	: 전년도세부사항산식데이터복사
+	  #	기능	: INSERT
+	  #	TABLE	: ORG_EVAL_ITEM_COL
+	==================================================================
+	-->
+	<insert id="InsertLastYearCalData" parameterClass="hashMap">
+		INSERT INTO ORG_EVAL_ITEM_COL (YEAR
+		                             , ORG_EVAL_ITEM_ID
+		                             , CAL_TYPE_COL
+		                             , CAL_TYPE_COL_NM
+		                             , INSERT_GUBUN
+		                             , UNIT
+		                             , SOURCE_SYSTEM
+		                             , ORG_CONN_ITEM_ID
+		                             , CREATE_DT
+		                             , DELETE_DT)
+		   SELECT #findYear#
+		        , ORG_EVAL_ITEM_ID
+		        , CAL_TYPE_COL
+		        , CAL_TYPE_COL_NM
+		        , INSERT_GUBUN
+		        , UNIT
+		        , SOURCE_SYSTEM
+		        , ORG_CONN_ITEM_ID
+		        , SYSDATE
+		        , ''
+		     FROM ORG_EVAL_ITEM_COL
+		    WHERE YEAR = #findYear# - 1
+		    AND DELETE_DT IS NULL
+			</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 전년도세부사항구간데이터복사
+	  #	기능	: INSERT
+	  #	TABLE	: ORG_EVAL_SECTION
+	==================================================================
+	-->
+	<insert id="InsertLastYearSectionData" parameterClass="hashMap">
+		INSERT INTO ORG_EVAL_SECTION (YEAR
+		                            , ORG_EVAL_ITEM_ID
+		                            , EVAL_SECTION_ID
+		                            , FROM_VALUE
+		                            , TO_VALUE
+		                            , CONVERSION_SCORE
+		                            , CREATE_DT
+		                            , DELETE_DT
+		                            , UPDOWN_GBN)
+		   SELECT #findYear#
+		        , ORG_EVAL_ITEM_ID
+		        , EVAL_SECTION_ID
+		        , FROM_VALUE
+		        , TO_VALUE
+		        , CONVERSION_SCORE
+		        , SYSDATE
+		        , ''
+		        , UPDOWN_GBN
+		     FROM ORG_EVAL_SECTION
+		    WHERE YEAR = #findYear# - 1
+		    AND DELETE_DT IS NULL
+			</insert>
+</sqlMap>
+
+

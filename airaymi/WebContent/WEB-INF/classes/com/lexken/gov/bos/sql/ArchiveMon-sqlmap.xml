@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.bos.archiveMon">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BOSS_METRIC
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 기관장지표총괄표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BOSS_METRIC
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+               B.EVAL_CAT_GRP_ID,
+               B.EVAL_CAT_GRP_NM,
+               A.BOSS_METRIC_ID,
+               A.BOSS_METRIC_NM,
+               A.WEIGHT BOSS_WEIGHT,
+               C.WEIGHT GOV_WEIGHT,
+               A.EVAL_METHOD_ID,
+               F_CODE_NM('146',A.EVAL_METHOD_ID,A.YEAR) EVAL_METHOD_NM,
+               D.SC_DEPT_NM,
+               E.USER_NM AS INSERT_USER_NM,
+               COUNT(1) OVER(PARTITION BY A.EVAL_CAT_GRP_ID ) GRP_CNT ,
+               ROW_NUMBER() OVER(PARTITION BY A.EVAL_CAT_GRP_ID ORDER BY B.SORT_ORDER, B.EVAL_CAT_GRP_ID, A.SORT_ORDER, A.BOSS_METRIC_ID) GRP_NUM
+          FROM BOSS_METRIC A
+              INNER JOIN BOSS_CAT_GRP B
+              ON A.YEAR = B.YEAR
+              AND A.EVAL_CAT_GRP_ID = B.EVAL_CAT_GRP_ID
+              LEFT OUTER  JOIN GOV_METRIC C
+              ON A.YEAR = C.YEAR
+              AND A.GOV_METRIC_ID = C.GOV_METRIC_ID
+              AND C.DELETE_DT IS NULL
+              INNER JOIN BSC_SC_DEPT D
+              ON A.YEAR = D.YEAR
+              AND A.SC_DEPT_ID = D.SC_DEPT_ID
+              AND D.DELETE_DT IS NULL
+              LEFT OUTER JOIN V_ROLE_USER E
+              ON A.INSERT_USER_ID = E.USER_ID
+        WHERE A.YEAR = #findYear#
+          AND A.DELETE_DT IS NULL
+        ORDER BY B.SORT_ORDER, B.EVAL_CAT_GRP_ID, A.SORT_ORDER, A.BOSS_METRIC_ID
+          
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 기관장지표총괄표 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BOSS_METRIC
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , BOSS_METRIC_ID        
+			 , EVAL_CAT_GRP_ID       
+			 , BOSS_METRIC_NM        
+			 , GOV_METRIC_ID         
+			 , CONTENT               
+			 , GBN_ID                
+			 , DIREC_ID              
+			 , EVAL_METHOD_ID        
+			 , ACT_CAL_TYPE          
+			 , DETAIL_EVAL_SUMMARY_COMMENT
+			 , UNIT                  
+			 , SC_DEPT_ID            
+			 , INSERT_USER_ID        
+			 , BASE_VALUE            
+			 , BEST_TARGET           
+			 , LOWEST_TARGET         
+			 , STAD_CONST            
+			 , SORT_ORDER            
+			 , WEIGHT                
+			 , SIMULATION_YN         
+			 , UNMEAS_BEST_TARGET    
+			 , EVAL_SCORE            
+		  FROM BOSS_METRIC 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND BOSS_METRIC_ID = #bossMetricId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 기관장지표총괄표 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BOSS_METRIC
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('BOSS_METRIC','','','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO BOSS_METRIC ( 
+			   YEAR
+			 , BOSS_METRIC_ID
+			 , EVAL_CAT_GRP_ID
+			 , BOSS_METRIC_NM
+			 , GOV_METRIC_ID
+			 , CONTENT
+			 , GBN_ID
+			 , DIREC_ID
+			 , EVAL_METHOD_ID
+			 , ACT_CAL_TYPE
+			 , DETAIL_EVAL_SUMMARY_COMMENT
+			 , UNIT
+			 , SC_DEPT_ID
+			 , INSERT_USER_ID
+			 , BASE_VALUE
+			 , BEST_TARGET
+			 , LOWEST_TARGET
+			 , STAD_CONST
+			 , SORT_ORDER
+			 , WEIGHT
+			 , SIMULATION_YN
+			 , UNMEAS_BEST_TARGET
+			 , EVAL_SCORE
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #evalCatGrpId#
+			 , #bossMetricNm#
+			 , #govMetricId#
+			 , #content#
+			 , #gbnId#
+			 , #direcId#
+			 , #evalMethodId#
+			 , #actCalType#
+			 , #detailEvalSummaryComment#
+			 , #unit#
+			 , #scDeptId#
+			 , #insertUserId#
+			 , #baseValue#
+			 , #bestTarget#
+			 , #lowestTarget#
+			 , #stadConst#
+			 , #sortOrder#
+			 , #weight#
+			 , #simulationYn#
+			 , #unmeasBestTarget#
+			 , #evalScore#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 기관장지표총괄표 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BOSS_METRIC
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BOSS_METRIC 
+		   SET EVAL_CAT_GRP_ID        = #evalCatGrpId# 
+			 , BOSS_METRIC_NM         = #bossMetricNm# 
+			 , GOV_METRIC_ID          = #govMetricId# 
+			 , CONTENT                = #content# 
+			 , GBN_ID                 = #gbnId# 
+			 , DIREC_ID               = #direcId# 
+			 , EVAL_METHOD_ID         = #evalMethodId# 
+			 , ACT_CAL_TYPE           = #actCalType# 
+			 , DETAIL_EVAL_SUMMARY_COMMENT = #detailEvalSummaryComment# 
+			 , UNIT                   = #unit# 
+			 , SC_DEPT_ID             = #scDeptId# 
+			 , INSERT_USER_ID         = #insertUserId# 
+			 , BASE_VALUE             = #baseValue# 
+			 , BEST_TARGET            = #bestTarget# 
+			 , LOWEST_TARGET          = #lowestTarget# 
+			 , STAD_CONST             = #stadConst# 
+			 , SORT_ORDER             = #sortOrder# 
+			 , WEIGHT                 = #weight# 
+			 , SIMULATION_YN          = #simulationYn# 
+			 , UNMEAS_BEST_TARGET     = #unmeasBestTarget# 
+			 , EVAL_SCORE             = #evalScore# 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND BOSS_METRIC_ID = #bossMetricId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 기관장지표총괄표 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BOSS_METRIC
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE BOSS_METRIC 
+		   SET DELETE_DT       = SYSDATE 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND BOSS_METRIC_ID = #bossMetricId#
+	</update>
+	
+	
+</sqlMap>
+
+

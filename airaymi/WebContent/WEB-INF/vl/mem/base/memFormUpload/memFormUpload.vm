@@ -1,0 +1,173 @@
+#*************************************************************************
+* CLASS 명      : memFormUpload
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년 03월 21일 
+* 기    능      : 양식업로드  
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    유연주      2017년 03월21일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	var grdRowId = 0;
+	
+	J(document).ready(function(){
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+	});
+    
+	/******************************************
+	 * 양식업로드
+	 ******************************************/
+	function saveChk() {
+        
+		var fileChk = true;
+		var fileUpCount = 0;
+		
+		//첨부파일 확장자 체크
+		J(":file", "#form1").each(function(index, item) {
+			var fileFullName = J("input[name=" + item.name + "]").val();
+			var src = getFileExtension(fileFullName);
+
+
+			if(src.toLowerCase() != ""){
+				if (!((src.toLowerCase() == "xls") || (src.toLowerCase() == "xlsx") || (src.toLowerCase() == "ppt") || (src.toLowerCase() == "pptx")||
+					  (src.toLowerCase() == "doc") || (src.toLowerCase() == "docx") || (src.toLowerCase() == "hwp") || (src.toLowerCase() == "pdf") ||
+					  (src.toLowerCase() == "zip") || (src.toLowerCase() == "txt")  || (src.toLowerCase() == "gif") || (src.toLowerCase() == "jpg") ||
+				      (src.toLowerCase() == "png") || (src.toLowerCase() == "png")
+				    )) {
+					
+					fileChk = false;
+	    		}else{
+	    			if(item.name == "file01"){
+	    				J("input[name=file01Exist]").val("Y");
+	    			}else if(item.name == "file02"){
+	    				J("input[name=file02Exist]").val("Y");
+	    			}else if(item.name == "file03"){
+	    				J("input[name=file03Exist]").val("Y");
+	    			}
+	    			fileUpCount++;
+	    		}
+	    	}
+		});
+		
+		if(fileUpCount == 0){
+			J.showMsgBox("첨부파일을 1개 이상 선택하세요", null, null);
+    		return;
+		}
+		
+		if(fileChk == false) {
+			J.showMsgBox("허용되지 않는 파일형식입니다<br/>허용되는 파일형식 : <br/>xls, xlsx, ppt, pptx, doc, docx, hwp <br/> pdf, zip, txt", null, null);
+    		return;
+		}
+		
+		if(confirm("저장하시겠습니까?")){
+		
+			saveDo();
+		
+		}else{
+			return;
+		}
+
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/mem/base/memFormUpload/memFormUploadProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" enctype="multipart/form-data" action="$!{context_path}/mem/base/memFormUpload/memFormUploadProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="file01Exist"    name="file01Exist"    value="N" />
+	<input type="hidden"	id="file02Exist"    name="file02Exist"    value="N" />
+	<input type="hidden"	id="file03Exist"    name="file03Exist"    value="N" />
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+    		<div class="blockDetail">
+    			<table summary="업무수행평가항목 등록">
+					<caption class="none">업무수행평가항목 등록</caption>
+    				<colgroup>
+    					<col width="10%" />
+    					<col width="10%" />
+    					<col width="60%" />
+    					<col width="20%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+							<th scope="row" colspan="2"><label for="formCd01">성과기술서</label></th>
+							<td><input type="file" id="file" name="file01" class="input" size="60" /> (첨부파일 용량제한은 100M입니다)</td>
+					#foreach($fileList in $fileList)
+						#if ("$!{CS_HTML.txt2html($fileList.FORM_CD)}" == "01")
+							<td align="left">$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))} </td>
+						#end
+					#end
+						</tr>
+						<tr>
+							<th scope="row" rowspan="2"><label for="formCd02">이의신청</label></th>
+							<th scope="row"><label for="formCd02">신청</label></th>
+							<td><input type="file" id="file" name="file02" class="input" size="60" /> (첨부파일 용량제한은 100M입니다)</td>
+					#foreach($fileList in $fileList)
+						#if ("$!{CS_HTML.txt2html($fileList.FORM_CD)}" == "02")
+							<td align="left">$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))} </td>
+						#end
+					#end
+						</tr>
+						<tr>
+							<th scope="row"><label for="formCd02">재심의</label></th>
+							<td><input type="file" id="file" name="file03" class="input" size="60" value=""/> (첨부파일 용량제한은 100M입니다)</td>
+					#foreach($fileList in $fileList)
+						#if ("$!{CS_HTML.txt2html($fileList.FORM_CD)}" == "03")
+							<td align="left">$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))} </td>
+						#end
+					#end
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    	</div>
+		<div id="Table_blockContainer">
+			<div id="splitterBox">
+				<div>
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							##<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+			    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>

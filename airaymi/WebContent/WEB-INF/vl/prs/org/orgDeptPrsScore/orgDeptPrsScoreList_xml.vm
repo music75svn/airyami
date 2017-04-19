@@ -1,0 +1,51 @@
+#*************************************************************************
+* CLASS 명     : orgDeptPrsScoreList_xml
+* 작 업 자      : 박선혜
+* 작 업 일      : 2013년 6월 22일
+* 기    능      : 조직관리역량평가결과 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     박선혜      2013.06.22         최 초 작 업
+**************************************************************************#
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+	
+#foreach($list in $list)
+	{
+		"YEAR"              : "$!{CS_HTML.txt2html($list.YEAR)}",
+		"EMPN"              : "$!{CS_HTML.txt2html($list.EMPN)}",
+		"KOR_NM"            : "$!{CS_HTML.txt2html($list.KOR_NM)}",
+		"CAST_TC"           : "$!{CS_HTML.txt2html($list.CAST_TC)}",
+		"CAST_TC_NM"        : "$!{CS_HTML.txt2html($list.CAST_TC_NM)}",
+		"POS_TC"            : "$!{CS_HTML.txt2html($list.POS_TC)}",
+		"POS_TC_NM"         : "$!{CS_HTML.txt2html($list.POS_TC_NM)}",
+		"DEPT_CD"           : "$!{CS_HTML.txt2html($list.DEPT_CD)}",
+		"DEPT_NM"           : "$!{CS_HTML.txt2html($list.DEPT_NM)}",
+		"START_PCMT_DATE"   : "$!{CS_HTML.txt2html($list.START_PCMT_DATE)}",
+		"END_PCMT_DATE"     : "$!{CS_HTML.txt2html($list.END_PCMT_DATE)}",
+		"WORK_MON"          : "$!{CS_HTML.txt2html($list.WORK_MON)}",
+		"RE_MON"            : "$!{CS_HTML.txt2html($list.RE_MON)}",
+		"TOT_DEPTSCORE"     : "$!{CS_HTML.txt2html($list.TOT_DEPTSCORE)}",
+		"TOT_PRSSCORE"      : "$!{CS_HTML.txt2html($list.TOT_PRSSCORE)}",
+		"CNT"               : "$!{CS_HTML.txt2html($list.CNT)}",
+		"CNT_INDEX"         : "$!{CS_HTML.txt2html($list.CNT_INDEX)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}
+
+
+
+

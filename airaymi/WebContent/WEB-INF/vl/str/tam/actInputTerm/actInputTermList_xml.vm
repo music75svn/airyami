@@ -1,0 +1,35 @@
+#*************************************************************************
+* CLASS 명      : actInputTermList_xml
+* 작 업 자      : 박경태
+* 작 업 일      : 2012년 10월 29일 
+* 기    능      : 실적입력기간 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      박경태     2012년 10월 29일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"MON"                  : "$!{CS_HTML.txt2html($list.MON)}", 
+		"START_DT"             : "$!{CS_FORMAT.dateFormat($list.START_DT)}", 
+		"END_DT"               : "$!{CS_FORMAT.dateFormat($list.END_DT)}",
+		"MON_ID"               : "$!{CS_HTML.txt2html($list.MON)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.certificationEffort">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getScDeptMapping" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DEPT_ID
+		FROM ( SELECT DEPT_ID
+				   FROM BSC_SC_DEPT_MAPPING
+				  WHERE YEAR = #findYear#
+				    AND SC_DEPT_ID = #findScDeptCd# ORDER BY DEPT_ID )
+		WHERE ROWNUM = 1
+	</select>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getDeptInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DEPT_ID, B.DEPT_NM
+	 	FROM BSC_SC_DEPT_MAPPING A
+		LEFT OUTER JOIN BSC_DEPTINFO B
+			ON A.DEPT_ID = B.DEPT_ID
+		 WHERE (YEAR, SC_DEPT_ID) IN
+		          (SELECT YEAR, SC_DEPT_ID
+		             FROM BSC_METRIC
+		            WHERE (METRIC_GRP_ID, YEAR) IN
+		                     (SELECT METRIC_GRP_ID, YEAR
+		                        FROM BSC_METRIC
+		                       WHERE YEAR = #findYear# AND METRIC_ID = #findMetricId#)
+		            AND DELETE_DT IS NULL)
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+             AND B.INSERT_GUBUN = '01'
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계데이터 조회 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+	         , A.MON
+	         , A.DEPT_CD
+	         , B.DEPT_NM
+	         , A.RPT_TC
+	         , A.RPT_TC_NM
+	         , A.ROLE_TC
+	         , A.ROLE_TC_NM
+	         , A.INSP_KIND_TC
+	         , A.INSP_KIND_TC_NM
+	         , A.STIC_LAG_TC
+	         , A.STIC_LAG_TC_NM
+	         , A.STIC_MID_TC
+		     , A.STIC_MID_TC_NM
+		     , A.STIC_SML_TC
+		     , A.STIC_SML_TC_NM
+	         , SUM(A.REQ_AMT) AS REQ_AMT
+		  FROM TABLE(BSC_SYSTEM_KGS.F_V_GHF0221D_LIST(#findYear#, #findMon#)) A
+		  LEFT OUTER JOIN BSC_DEPTINFO B
+		    ON A.DEPT_CD = B.DEPT_ID
+		 WHERE DEPT_CD = '2300'
+		   AND ROLE_TC = '13'
+		   AND INSP_KIND_TC = '07'
+		 <isNotEmpty property="findDeptId">
+		 	<isEqual prepend="AND" property="findDeptId" compareValue="2310">
+		 		STIC_LAG_TC = '51'
+		 	</isEqual>
+		 	<isEqual prepend="AND" property="findDeptId" compareValue="2305">
+		 		STIC_LAG_TC IN ('46', '48', '52')
+		 	</isEqual>
+		 </isNotEmpty>
+		  GROUP BY A.YEAR
+	          , A.MON
+	          , A.DEPT_CD
+	          , B.DEPT_NM
+	          , A.RPT_TC
+	          , A.RPT_TC_NM
+	          , A.ROLE_TC
+	          , A.ROLE_TC_NM
+	          , A.INSP_KIND_TC
+	          , A.INSP_KIND_TC_NM
+	          , A.STIC_LAG_TC
+	          , A.STIC_LAG_TC_NM
+	          , A.STIC_MID_TC
+		      , A.STIC_MID_TC_NM
+		      , A.STIC_SML_TC
+		      , A.STIC_SML_TC_NM
+		  ORDER BY YEAR, MON, RPT_TC, STIC_LAG_TC, STIC_MID_TC
+	</select>
+
+</sqlMap>
+
+

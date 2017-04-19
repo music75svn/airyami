@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.emp.evalGrpAssessor">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 개인업적 평가자 선정 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP, BSC_INSA_PCMT, PRS_MNG_EVAL_GRP_ASSESSOR
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+       SELECT YEAR, EVAL_GRP_ID, EVAL_GRP_NM, EVAL_TYPE
+                   ,MAX(ASSESSOR1) ASSESSOR1, MAX(ASSESSOR1_NM) ASSESSOR1_NM
+                   ,MAX(ASSESSOR2) ASSESSOR2, MAX(ASSESSOR2_NM) ASSESSOR2_NM 
+                   ,MAX(ASSESSOR3) ASSESSOR3, MAX(ASSESSOR3_NM) ASSESSOR3_NM
+                   ,MAX(ASSESSOR4) ASSESSOR4, MAX(ASSESSOR4_NM) ASSESSOR4_NM
+                   ,MAX(ASSESSOR5) ASSESSOR5, MAX(ASSESSOR5_NM) ASSESSOR5_NM
+                   ,MAX(ASSESSOR6) ASSESSOR6, MAX(ASSESSOR6_NM) ASSESSOR6_NM
+                   ,MAX(SORT_ORDER) SORT_ORDER
+        FROM 
+        (       
+      		 SELECT
+                     A.YEAR
+                   , A.EVAL_GRP_ID
+                   , A.EVAL_GRP_NM
+                   , A.EVAL_TYPE
+                   , CASE WHEN H.SEQ ='1' THEN  H.ASSESSOR_EMPN  END ASSESSOR1
+                   , CASE WHEN H.SEQ ='1' THEN  H.KOR_NM         END ASSESSOR1_NM
+                   , CASE WHEN   A.EVAL_TYPE IN ('03', '04')  AND H.SEQ = '2' THEN  H.ASSESSOR_EMPN   END ASSESSOR2
+                   , CASE WHEN   A.EVAL_TYPE IN ('03', '04')  AND H.SEQ = '2' THEN  H.KOR_NM          END ASSESSOR2_NM
+                   , CASE WHEN   A.EVAL_TYPE IN ('03', '04')  AND H.SEQ = '3' THEN  H.ASSESSOR_EMPN   END ASSESSOR3
+                   , CASE WHEN   A.EVAL_TYPE IN ('03', '04')  AND H.SEQ = '3' THEN  H.KOR_NM          END ASSESSOR3_NM
+                   , CASE WHEN   A.EVAL_TYPE IN ('03', '04')  AND H.SEQ = '4' THEN  H.ASSESSOR_EMPN   END ASSESSOR4
+                   , CASE WHEN   A.EVAL_TYPE IN ('03', '04')  AND H.SEQ = '4' THEN  H.KOR_NM          END ASSESSOR4_NM
+                   , CASE WHEN   A.EVAL_TYPE IN ('03', '04')  AND H.SEQ = '5' THEN  H.ASSESSOR_EMPN   END ASSESSOR5
+                   , CASE WHEN   A.EVAL_TYPE IN ('03', '04')  AND H.SEQ = '5' THEN  H.KOR_NM          END ASSESSOR5_NM
+                   , CASE WHEN   A.EVAL_TYPE IN ('03', '04')  AND H.SEQ = '6' THEN  H.ASSESSOR_EMPN   END ASSESSOR6
+                   , CASE WHEN   A.EVAL_TYPE IN ('03', '04')  AND H.SEQ = '6' THEN  H.KOR_NM          END ASSESSOR6_NM                                
+                   , A.SORT_ORDER                             
+             FROM PRS_EVAL_GRP A
+             INNER JOIN BSC_CODE C ON A.YEAR=C.YEAR AND A.EVAL_TYPE=C.CODE_ID AND C.CODE_GRP_ID = '166'          
+             LEFT OUTER JOIN (SELECT F.*, G.KOR_NM FROM PRS_MNG_EVAL_GRP_ASSESSOR F INNER JOIN BSC_INSA G ON  F.ASSESSOR_EMPN = G.EMPN AND F.YEAR = G.YEAR) H
+             ON A.YEAR = H.YEAR
+             AND A.EVAL_GRP_ID = H.EVAL_GRP_ID 
+             AND A.YEAR = #findYear# 
+         ) D
+         GROUP BY YEAR, EVAL_GRP_ID, EVAL_GRP_NM, EVAL_TYPE
+         ORDER BY YEAR, MAX(D.SORT_ORDER) 
+            
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 개인업적 평가자 선정 평가자 상세보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_GRP_ID           
+			 , EVAL_GRP_NM           
+		  FROM PRS_EVAL_GRP 
+		 WHERE YEAR = #findYear#
+		   AND EVAL_GRP_ID = #evalGrpId#	      
+	</select>
+	
+
+<!-- 	
+	==================================================================    
+	  # 설명	: 개인업적 평가자 선정 평가자 조회 
+	  #	기능	: SELECT 
+	  #	TABLE	: PRS_MNG_EVAL_GRP_ASSESSOR , BSC_INSA
+	================================================================== 
+-->
+ 	<select id="getUseList" parameterClass="hashMap" resultClass="hashMap"> 
+	SELECT  A.YEAR 
+	           , A.EVAL_GRP_ID  
+	           , A.EMPN 
+	           , A.KOR_NM  
+	           , B.CODE_NM CAST_TC_NM 
+	           , C.CODE_NM POS_TC_NM 
+	           , D.DEPT_NM DEPT_KOR_NM 
+	           , E.DEPT_NM REAR_DEPT_KOR_NM
+	           , (SELECT SUM(F.WORK_MON) 
+                   FROM BSC_INSA_PCMT F 
+                  WHERE A.YEAR = F.YEAR 
+                    AND A.EMPN = F.EMPN 
+                  GROUP BY YEAR, EMPN) AS MON  
+               , SEQ
+	FROM (              
+	SELECT A. EVAL_GRP_ID, A.ASSESSOR_EMPN AS EMPN, A.YEAR, B.CAST_TC, B.POS_TC, B.DEPT_CD, B.KOR_NM, A.SEQ
+	 FROM PRS_MNG_EVAL_GRP_ASSESSOR A 
+	 INNER JOIN BSC_INSA B
+		 ON A.ASSESSOR_EMPN  =  B.EMPN
+		 AND A.YEAR = B.YEAR 
+	WHERE A. EVAL_GRP_ID = #evalGrpId# 
+	AND A.YEAR =  #findYear#) A
+	     LEFT OUTER JOIN BSC_CODE B 
+	                  ON A.YEAR = B.YEAR 
+	                 AND A.CAST_TC = B.CODE_ID 
+	                 AND B.CODE_GRP_ID = '170'  
+	     LEFT OUTER JOIN BSC_CODE C 
+	                  ON A.YEAR = C.YEAR 
+	                 AND A.POS_TC = C.CODE_ID 
+	                 AND C.CODE_GRP_ID = '171' 
+	     LEFT OUTER JOIN V_DEPTINFO D 
+                      ON A.DEPT_CD = D.DEPT_ID 
+         LEFT OUTER JOIN V_DEPTINFO E 
+                      ON A.DEPT_CD = E.DEPT_ID                                                                                                   
+	    WHERE A.YEAR = #findYear# 
+	      AND A.EVAL_GRP_ID  = #evalGrpId#
+	ORDER BY SEQ, EMPN 
+ 	</select>	 
+ 	
+ 	<!--
+	==================================================================   
+	  # 설명	: 간부 별도평가군 평가 맵핑 대상자 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA
+	==================================================================
+	-->
+	<select id="getInsaUseList" parameterClass="hashMap" resultClass="hashMap">
+		     SELECT #findYear# YEAR
+		     	  , I.SABUN EMPN
+                  , I.USER_NM KOR_NM
+                  , I.DEPT_CD
+                  , D.DEPT_NM DEPT_KOR_NM
+                  , I.CAST_TC
+                  , C.CODE_NM CAST_TC_NM
+                  , I.POS_CD
+                  , O.CODE_NM POS_TC_NM
+               FROM V_ROLE_USER I
+    LEFT OUTER JOIN V_DEPTINFO D
+                 ON I.DEPT_CD = D.DEPT_ID
+    LEFT OUTER JOIN BSC_CODE C
+                 ON I.CAST_TC = C.CODE_ID
+                AND C.CODE_GRP_ID = '170'
+    LEFT OUTER JOIN BSC_CODE O
+                 ON I.POS_CD = O.CODE_ID
+                AND O.CODE_GRP_ID = '171'
+              WHERE I.CAST_TC = '10'
+		<dynamic>
+			<isNotEmpty prepend="AND" property="findDeptKorNm">
+			   	   UPPER(D.DEPT_NM) LIKE '%'|| TRIM(UPPER(#findDeptKorNm#)) ||'%'	
+			</isNotEmpty>   
+			<isNotEmpty prepend="AND" property="findEmpn">
+			   	   I.SABUN = LIKE '%' || #findEmpn# || '%' 	
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="findKorNm">
+			   	   UPPER(I.USER_NM) LIKE '%'|| TRIM(UPPER(#findKorNm#)) ||'%'	
+			</isNotEmpty>
+		</dynamic>                            
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 개인업적 평가자 -평가자 1,2,3 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_MNG_EVAL_GRP_ASSESSOR
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+       INSERT INTO PRS_MNG_EVAL_GRP_ASSESSOR(YEAR, EVAL_GRP_ID, ASSESSOR_EMPN, SEQ, CREATE_DT)
+       SELECT DISTINCT YEAR, EVAL_GRP_ID, NVL(NVL(ASSESSOR3,ASSESSOR2),ASSESSOR1) ASSESSOR_EMPN, SEQ, SYSDATE
+       FROM
+       (
+	       SELECT
+                 A.YEAR
+                , A.EVAL_GRP_ID
+                , CASE WHEN   A.EVAL_TYPE IN ('01', '02', '05') AND D.SORT_ORDER ='1' THEN  D.CODE_ID 
+                           WHEN   A.EVAL_TYPE IN ('03', '04')  AND B.SORT_ORDER ='1'  THEN  B.CODE_ID
+                   END ASSESSOR1
+                , CASE WHEN   A.EVAL_TYPE IN ('01', '02', '05') THEN  NULL 
+                           WHEN   A.EVAL_TYPE IN ('03', '04')  AND B.SORT_ORDER ='2'  THEN  B.CODE_ID
+                   END ASSESSOR2
+                , CASE WHEN   A.EVAL_TYPE IN ('01', '02', '05') THEN  NULL 
+                           WHEN   A.EVAL_TYPE IN ('03', '04')  AND B.SORT_ORDER ='3'  THEN  B.CODE_ID
+                   END ASSESSOR3
+                , CASE WHEN   A.EVAL_TYPE IN ('01', '02', '05') THEN  1
+                           WHEN   A.EVAL_TYPE IN ('03', '04')  THEN  B.SORT_ORDER  
+                   END SEQ                
+             FROM PRS_EVAL_GRP A
+	             INNER JOIN BSC_CODE C ON A.YEAR=C.YEAR AND A.EVAL_TYPE=C.CODE_ID AND C.CODE_GRP_ID = '166'          
+	             INNER JOIN BSC_CODE B ON A.YEAR=B.YEAR AND B.CODE_GRP_ID = '181' 
+	             INNER JOIN BSC_CODE D ON A.YEAR=D.YEAR AND D.CODE_GRP_ID = '180'
+             WHERE A.YEAR = #findYear#
+        )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 개인업적 평가자 -평가자  1,2,3 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: PRS_MNG_EVAL_GRP_ASSESSOR
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM PRS_MNG_EVAL_GRP_ASSESSOR 
+		 WHERE YEAR = #findYear#
+		 AND   SEQ IN ('1','2','3')
+	</update>
+	
+   <!--
+	==================================================================   
+	  # 설명	: 평가군-평가자 매핑 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_MNG_EVAL_GRP_ASSESSOR
+	==================================================================
+	-->	
+	<update id="deleteAssessorData" parameterClass="hashMap">
+		DELETE FROM PRS_MNG_EVAL_GRP_ASSESSOR 
+		 WHERE YEAR = #year#
+		   AND EVAL_GRP_ID = #evalGrpId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가군-평가자 매핑 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_MNG_EVAL_GRP_ASSESSOR
+	==================================================================
+	-->	
+	<insert id="insertAssessorData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT NVL(MAX(SEQ)+1,1) FROM PRS_MNG_EVAL_GRP_ASSESSOR WHERE YEAR=#year# AND EVAL_GRP_ID=#evalGrpId#
+		</selectKey>
+		INSERT INTO PRS_MNG_EVAL_GRP_ASSESSOR ( 
+			   YEAR
+			 , EVAL_GRP_ID
+			 , ASSESSOR_EMPN
+			 , SEQ  
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #evalGrpId#
+			 , #empn#
+			 , #SEQ#  
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 권한 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<update id="deleteAdminData" parameterClass="hashMap">
+		DELETE FROM BSC_ADMIN
+         WHERE ADMIN_GUBUN='80'
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 권한 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<insert id="insertAdminData" parameterClass="hashMap">
+		INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID, DEPT_ID)
+        SELECT DISTINCT '80', A.ASSESSOR_EMPN, B.DEPT_CD  
+         FROM PRS_MNG_EVAL_GRP_ASSESSOR A 
+          INNER JOIN BSC_INSA B
+          ON A.ASSESSOR_EMPN = B.EMPN
+	</insert>	
+		
+</sqlMap>
+
+

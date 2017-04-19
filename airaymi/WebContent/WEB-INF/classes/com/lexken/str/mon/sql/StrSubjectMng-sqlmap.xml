@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="str.mon.strSubjectMng">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: STR_STRAT_SUBJECT_MAP 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제도 관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_STRAT_SUBJECT_MAP 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR, ATTACH_FILE_NM, ATTACH_FILE_FNM, 
+   			   ATTACH_FILE_SUFFIX
+   			   , F_ENCRYPT(ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+   			   , CREATE_DT
+		  FROM STR_STRAT_SUBJECT_MAP
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제도 관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_STRAT_SUBJECT_MAP 
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR, ATTACH_FILE_NM, ATTACH_FILE_FNM, 
+   			   ATTACH_FILE_SUFFIX
+   			   , F_ENCRYPT(ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+   			   , CREATE_DT
+		  FROM STR_STRAT_SUBJECT_MAP
+		 WHERE YEAR = #findYear#    
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제도 등록
+	  #	기능	: INSERT
+	  #	TABLE	: STR_STRAT_SUBJECT_MAP 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('STR_STRAT_SUBJECT_MAP ','','','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO STR_STRAT_SUBJECT_MAP  ( 
+			 ) VALUES ( 
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제도 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_STRAT_SUBJECT_MAP 
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE STR_STRAT_SUBJECT_MAP  
+		   SET 		 WHERE 1 = 1 
+		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제도 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_STRAT_SUBJECT_MAP 
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM STR_STRAT_SUBJECT_MAP  
+		 WHERE 1 = 1 
+
+	</update>
+	
+	
+</sqlMap>
+
+

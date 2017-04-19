@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.bonus.bonEmp">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 최상위 평가조직 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getTopDeptInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+				, DEPT_CD
+       			, DEPT_KOR_NM
+    	 FROM ( SELECT YEAR, DEPT_CD, DEPT_KOR_NM FROM BSC_INSA_DEPT WHERE YEAR = #findYear# ORDER BY DISP_ORDER, DEPT_CD )
+		 WHERE DEPT_CD = '0000'
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 직원성과급 왼쪽트리목록 보기(미사용은 제외)
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+              YEAR
+            , DEPT_CD
+            , DEPT_KOR_NM
+            , UP_DEPT_CD
+            , UP_USER_ID
+            , USE_YN
+            , DEPT_LEVL
+            , DISP_ORDER
+            , DEPT_GRADE
+            , DEPT_SCORE
+         FROM BSC_INSA_DEPT
+        WHERE YEAR = #findYear# 
+          AND (USE_YN = 'T' OR DEPT_CD = '0000')
+          AND DISP_ORDER NOT IN ('0010', '0015', '0020', '0025', '0030', '0035', '0050')
+        ORDER BY DISP_ORDER, DEPT_CD
+
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 직원성과급 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	SELECT     A.YEAR
+               , A.EMPN
+               , A.KOR_NM
+               , A.DEPT_CD
+               , B.DEPT_KOR_NM
+               ,    (SELECT DEPT_KOR_NM
+                       FROM BSC_INSA_DEPT
+                      WHERE YEAR = A.YEAR
+                        AND DEPT_CD = (SELECT UP_DEPT_CD
+                                         FROM BSC_INSA_DEPT
+                                        WHERE YEAR = A.YEAR
+                                          AND DEPT_CD = A.DEPT_CD))
+                 || ' '
+                 || (SELECT DEPT_KOR_NM
+                       FROM BSC_INSA_DEPT
+                      WHERE YEAR = A.YEAR
+                        AND DEPT_CD = A.DEPT_CD)
+                    DEPT_FULL_NM
+               , C.CODE_NM CAST_TC_NM
+               , C.CODE_ID CAST_TC
+               , D.CODE_NM POS_TC_NM
+               , D.CODE_ID POS_TC
+               , A.EMPM_KIND_TC
+               , (  SELECT SUM (WORK_MON)
+                      FROM BON_EMP_SET
+                     WHERE A.YEAR = YEAR
+                       AND A.EMPN = EMPN
+                  GROUP BY YEAR, EMPN)
+                    AS TOT_MON
+                , TO_CHAR(NVL((SELECT SUM(TOT_PAY) FROM BON_EMP_CONF WHERE EMPN = A.EMPN), '')) PAY
+              FROM BSC_INSA A
+                 LEFT OUTER JOIN BSC_INSA_DEPT B
+                    ON A.YEAR = B.YEAR
+                   AND A.DEPT_CD = B.DEPT_CD
+                 LEFT OUTER JOIN BSC_CODE C
+                    ON C.CODE_GRP_ID = '170'
+                   AND C.CODE_ID = A.CAST_TC
+                   AND C.YEAR = #findYear#
+                 LEFT OUTER JOIN BSC_CODE D
+                    ON D.CODE_GRP_ID = '171'
+                   AND D.CODE_ID = A.POS_TC
+                   AND D.YEAR = #findYear#
+                 LEFT OUTER JOIN BON_EMP_PAY_SET E
+                    ON A.YEAR = E.YEAR
+                     AND A.EMPN = E.EMPN
+                 LEFT OUTER JOIN BON_EMP_SET F
+                    ON A.YEAR = F.YEAR
+                   AND A.EMPN = F.EMPN
+                 LEFT OUTER JOIN BON_EMP G
+                    ON A.YEAR = G.YEAR
+                    AND A.EMPN = G.EMPN
+           WHERE A.YEAR = #findYear#
+             AND A.CAST_TC NOT IN '00'
+             AND A.DEPT_CD IN (    SELECT DEPT_CD
+                                     FROM BSC_INSA_DEPT
+                                    WHERE YEAR = #findYear#
+                               START WITH DEPT_CD = #findDeptCd#
+                               CONNECT BY PRIOR YEAR = YEAR
+                                      AND PRIOR DEPT_CD = UP_DEPT_CD)
+        GROUP BY A.YEAR
+               , A.EMPN
+               , A.KOR_NM
+               , A.DEPT_CD
+               , B.DEPT_KOR_NM
+               , B.UP_DEPT_CD
+               , C.CODE_NM
+               , C.CODE_ID
+               , D.CODE_NM
+               , D.CODE_ID
+               , A.EMPM_KIND_TC
+               , PAY
+           ORDER BY C.CODE_ID, A.KOR_NM
+	</select>
+
+<!--
+	==================================================================
+	  # 설명	: 직원성과급 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.EMPN
+             , A.SEQ
+             , B.KOR_NM
+             , C.DEPT_CD
+             , C.DEPT_KOR_NM
+             , A.PCMT_TC
+             , D.CODE_NM AS PCMT_TC_NM
+             , A.CAST_TC
+             , E.CODE_NM AS CAST_TC_NM
+             , A.POS_TC
+             , F.CODE_NM AS POS_TC_NM
+             , A.WORK_MON
+             , TO_CHAR(NVL(G.PAY, 0)) PAY
+             , H.INSIDE_REAL_RATE
+             , H.GOV_EMP_REAL_RATE
+             , L.START_PCMT_DATE
+             , L.END_PCMT_DATE
+             , (CASE
+					WHEN  A.POS_TC IN ('06', '08', '11','12','13','14','17','2A','21','23','24')
+						THEN K.CHF_RATE
+					WHEN A.CAST_TC IN ('10','20','30') AND A.POS_TC NOT IN ('06','08','11','12','13','14','17','2A','21','23','24') AND A.POS_TC NOT IN ('15','28')
+						THEN K.MNG_RATE
+					WHEN A.CAST_TC >= 40  OR A.POS_TC IN ('15','28')
+						THEN K.EMP_RATE
+				END) AS ORG_GRA_RATE
+             , TO_CHAR(NVL(I.INSIDE_PAY, 0)) INSIDE_PAY
+             , TO_CHAR(NVL(I.GOV_PAY, 0)) GOV_PAY
+		     , TO_CHAR(NVL((SELECT SUM(TOT_PAY) FROM BON_EMP_CONF WHERE EMPN = #findEmpn#), '')) TOT_PAY
+             , COUNT (*) OVER (PARTITION BY A.YEAR, a.EMPN) TOT_CNT
+    		 , ROW_NUMBER () OVER (PARTITION BY A.YEAR, A.EMPN ORDER BY A.YEAR, A.SEQ) TOT_INDEX
+          FROM BON_EMP_SET A
+               LEFT OUTER JOIN BSC_INSA B
+                  ON A.EMPN = B.EMPN
+                 AND A.YEAR = B.YEAR
+               LEFT OUTER JOIN BSC_INSA_DEPT C
+                  ON A.DEPT_CD = C.DEPT_CD
+                 AND A.YEAR = C.YEAR
+               LEFT OUTER JOIN BSC_CODE D
+                  ON A.PCMT_TC = D.CODE_ID
+                 AND D.CODE_GRP_ID = '169'
+                 AND A.YEAR = D.YEAR
+               LEFT OUTER JOIN BSC_CODE E
+                  ON A.CAST_TC = E.CODE_ID
+                 AND E.CODE_GRP_ID = '170'
+                 AND A.YEAR = E.YEAR
+               LEFT OUTER JOIN BSC_CODE F
+                  ON A.POS_TC = F.CODE_ID
+                 AND F.CODE_GRP_ID = '171'
+                 AND A.YEAR = F.YEAR
+               LEFT OUTER JOIN BON_EMP_PAY_SET G
+                  ON A.YEAR = G.YEAR
+                 AND A.EMPN = G.EMPN
+               LEFT OUTER JOIN BON_SET H
+                 ON A.YEAR = H.YEAR
+               LEFT OUTER JOIN BON_EMP_CONF I
+                 ON A.YEAR = I.YEAR
+                AND A.SEQ = I.SEQ
+                AND A.EMPN = I.EMPN
+               LEFT OUTER JOIN BSC_INSA_DEPT J
+                 ON A.YEAR = J.YEAR
+                AND A.DEPT_CD = J.DEPT_CD
+               LEFT OUTER JOIN BON_POS_GRA_SET K
+                 ON J.YEAR = K.YEAR
+                AND J.DEPT_GRADE = K.GRADE
+              INNER JOIN V_BSC_INSA_PCMT L
+				 ON A.SEQ = L.SEQ
+				AND A.YEAR = L.YEAR
+				AND A.EMPN = L.EMPN
+         WHERE A.YEAR = #findYear#
+           AND A.EMPN = #findEmpn#
+         ORDER BY L.START_PCMT_DATE
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 직원정보 엑셀다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA
+	==================================================================
+	-->
+	<select id="getBonEmpExcelList" parameterClass="hashMap" resultClass="hashMap">
+	SELECT * FROM (
+		SELECT A.EMPN
+			 , A.SEQ
+		     , B.KOR_NM
+		     , C.DEPT_CD
+		     , C.DEPT_KOR_NM
+		     , A.CAST_TC
+		     , E.CODE_NM AS CAST_TC_NM
+		     , A.POS_TC
+		     , F.CODE_NM AS POS_TC_NM
+		     , A.WORK_MON
+		     , G.PAY
+		     , H.INSIDE_REAL_RATE
+		     , H.GOV_EMP_REAL_RATE
+		     , (CASE
+		           WHEN A.POS_TC IN
+		                   ('06'
+		                  , '08'
+		                  , '11'
+		                  , '12'
+		                  , '13'
+		                  , '14'
+		                  , '17'
+		                  , '2A'
+		                  , '21'
+		                  , '23'
+		                  , '24')
+		           THEN
+		              K.CHF_RATE
+		           WHEN A.CAST_TC IN ('10', '20', '30')
+		            AND A.POS_TC NOT IN
+		                   ('06'
+		                  , '08'
+		                  , '11'
+		                  , '12'
+		                  , '13'
+		                  , '14'
+		                  , '17'
+		                  , '2A'
+		                  , '21'
+		                  , '23'
+		                  , '24')
+		            AND A.POS_TC NOT IN ('15', '28')
+		           THEN
+		              K.MNG_RATE
+		           WHEN A.CAST_TC >= 40
+		             OR  A.POS_TC IN ('15', '28')
+		           THEN
+		              K.EMP_RATE
+		        END)
+		          AS ORG_GRA_RATE
+		     , I.INSIDE_PAY
+		     , I.GOV_PAY
+		     , I.TOT_PAY
+		  FROM BON_EMP_SET A
+		       LEFT OUTER JOIN BSC_INSA B
+		          ON A.EMPN = B.EMPN
+		         AND A.YEAR = B.YEAR
+		       LEFT OUTER JOIN BSC_INSA_DEPT C
+		          ON A.DEPT_CD = C.DEPT_CD
+		         AND A.YEAR = C.YEAR
+		       LEFT OUTER JOIN BSC_CODE E
+		          ON A.CAST_TC = E.CODE_ID
+		         AND E.CODE_GRP_ID = '170'
+		         AND A.YEAR = E.YEAR
+		       LEFT OUTER JOIN BSC_CODE F
+		          ON A.POS_TC = F.CODE_ID
+		         AND F.CODE_GRP_ID = '171'
+		         AND A.YEAR = F.YEAR
+		       LEFT OUTER JOIN BON_EMP_PAY_SET G
+		          ON A.YEAR = G.YEAR
+		         AND A.EMPN = G.EMPN
+		       LEFT OUTER JOIN BON_SET H
+		          ON A.YEAR = H.YEAR
+		       LEFT OUTER JOIN BON_EMP_CONF I
+		          ON A.YEAR = I.YEAR
+		          AND A.SEQ = I.SEQ
+		         AND A.EMPN = I.EMPN
+		       LEFT OUTER JOIN BSC_INSA_DEPT J
+		          ON A.YEAR = J.YEAR
+		         AND A.DEPT_CD = J.DEPT_CD
+		       LEFT OUTER JOIN BON_POS_GRA_SET K
+		          ON J.YEAR = K.YEAR
+		         AND J.DEPT_GRADE = K.GRADE
+		 WHERE A.YEAR = #findYear#
+		   AND A.EMPN >= 700000
+		   AND A.CAST_TC NOT IN '00'
+	  ORDER BY A.EMPN, A.SEQ, A.DEPT_CD, A.CAST_TC)
+UNION ALL
+	SELECT * FROM(
+		SELECT A.EMPN
+			 , A.SEQ
+		     , B.KOR_NM
+		     , C.DEPT_CD
+		     , C.DEPT_KOR_NM
+		     , A.CAST_TC
+		     , E.CODE_NM AS CAST_TC_NM
+		     , A.POS_TC
+		     , F.CODE_NM AS POS_TC_NM
+		     , A.WORK_MON
+		     , G.PAY
+		     , H.INSIDE_REAL_RATE
+		     , H.GOV_EMP_REAL_RATE
+		     , (CASE
+		           WHEN A.POS_TC IN
+		                   ('06'
+		                  , '08'
+		                  , '11'
+		                  , '12'
+		                  , '13'
+		                  , '14'
+		                  , '17'
+		                  , '2A'
+		                  , '21'
+		                  , '23'
+		                  , '24')
+		           THEN
+		              K.CHF_RATE
+		           WHEN A.CAST_TC IN ('10', '20', '30')
+		            AND A.POS_TC NOT IN
+		                   ('06'
+		                  , '08'
+		                  , '11'
+		                  , '12'
+		                  , '13'
+		                  , '14'
+		                  , '17'
+		                  , '2A'
+		                  , '21'
+		                  , '23'
+		                  , '24')
+		            AND A.POS_TC NOT IN ('15', '28')
+		           THEN
+		              K.MNG_RATE
+		           WHEN A.CAST_TC >= 40
+		             OR  A.POS_TC IN ('15', '28')
+		           THEN
+		              K.EMP_RATE
+		        END)
+		          AS ORG_GRA_RATE
+		     , I.INSIDE_PAY
+		     , I.GOV_PAY
+		     , I.TOT_PAY
+		  FROM BON_EMP_SET A
+		       LEFT OUTER JOIN BSC_INSA B
+		          ON A.EMPN = B.EMPN
+		         AND A.YEAR = B.YEAR
+		       LEFT OUTER JOIN BSC_INSA_DEPT C
+		          ON A.DEPT_CD = C.DEPT_CD
+		         AND A.YEAR = C.YEAR
+		       LEFT OUTER JOIN BSC_CODE E
+		          ON A.CAST_TC = E.CODE_ID
+		         AND E.CODE_GRP_ID = '170'
+		         AND A.YEAR = E.YEAR
+		       LEFT OUTER JOIN BSC_CODE F
+		          ON A.POS_TC = F.CODE_ID
+		         AND F.CODE_GRP_ID = '171'
+		         AND A.YEAR = F.YEAR
+		       LEFT OUTER JOIN BON_EMP_PAY_SET G
+		          ON A.YEAR = G.YEAR
+		         AND A.EMPN = G.EMPN
+		       LEFT OUTER JOIN BON_SET H
+		          ON A.YEAR = H.YEAR
+		       LEFT OUTER JOIN BON_EMP_CONF I
+		          ON A.YEAR = I.YEAR
+		          AND A.SEQ = I.SEQ
+		         AND A.EMPN = I.EMPN
+		       LEFT OUTER JOIN BSC_INSA_DEPT J
+		          ON A.YEAR = J.YEAR
+		         AND A.DEPT_CD = J.DEPT_CD
+		       LEFT OUTER JOIN BON_POS_GRA_SET K
+		          ON J.YEAR = K.YEAR
+		         AND J.DEPT_GRADE = K.GRADE
+		 WHERE A.YEAR = #findYear#
+		   AND A.EMPN <![CDATA[<]]> 700000
+		   AND A.CAST_TC NOT IN '00'
+	  ORDER BY A.EMPN, A.SEQ, A.DEPT_CD, A.CAST_TC)
+	</select>
+
+
+	<!--
+    ==================================================================
+      # 설명  : 직원개인성과 수정
+      # 기능  : INSERT
+      # TABLE : BON_EMP_CONF
+    ==================================================================
+    -->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BON_EMP_CONF (
+			  SEQ
+			, YEAR
+			, EMPN
+			, INSIDE_PAY
+			, GOV_PAY
+			, TOT_PAY
+		) VALUES (
+			  #seq#
+		  	, #findYear#
+			, #empn#
+			, #insidePay#
+			, #govPay#
+			, #totPay#
+				)
+	</insert>
+
+	<!--
+    ==================================================================
+      # 설명    : 임원성과연봉 삭제
+      # 기능    : DELETE
+      # TABLE   : BON_DIR_CONF
+    ==================================================================
+    -->
+    <delete id="deleteData" parameterClass="hashMap">
+        DELETE FROM BON_EMP_CONF
+         WHERE YEAR				= #findYear#
+
+    </delete>
+
+</sqlMap>

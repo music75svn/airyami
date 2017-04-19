@@ -1,0 +1,144 @@
+#*************************************************************************
+* CLASS 명      : userGrpList
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 6월 6일
+* 기    능      : 사용자그룹 매핑
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     하윤식      2012년 6월 6일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/system/userGrp/userGrpList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/system/userGrp/userGrpList_xml.vw" + "?" + str,
+			datatype     :"xml",
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['사번', '성명', '조직코드', '조직'],
+			colModel     :[
+							{name:'USER_ID'              ,index:'USER_ID'              ,width:150   ,align:'center' },
+                            {name:'USER_NM'              ,index:'USER_NM'              ,width:150   ,align:'center' },
+                            {name:'DEPT_ID'              ,index:'DEPT_ID'              ,width:150   ,align:'center' },
+                            {name:'DEPT_NM'              ,index:'DEPT_NM'              ,width:150   ,align:'left' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			cmTemplate   : {sortable:true},
+			caption:"사용자그룹 매핑"
+		});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#btnSearch").click(function() {
+			goSearch();
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#mode").val("ADD");
+			J("#adminGubun").val(J("#findAdminGubun").val());
+			J("#formList").attr("action", "$!{context_path}/bsc/system/userGrp/userGrpModify.vw?type=template").submit();
+		});
+	});
+
+	/******************************************
+	 * 조회
+	 ******************************************/
+	function goSearch() {
+		J("#formFind").attr("action", "$!{context_path}/bsc/system/userGrp/userGrpList.vw?type=template").submit();
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">사용자그룹 매핑</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/system/userGrp/userGrpList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"    id="findYear"       name="findYear"         value="$!{searchMap.txt2html("findYear")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="사용자그룹 매핑검색">
+						<caption class="none">사용자그룹 매핑검색</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w400">
+            						<span>사용자그룹</span>
+            						<span class="searchBar">
+            							<select id="findAdminGubun" name="findAdminGubun" class="select w240">
+            								$!CS_CODE.getCodeOption("018", $!{searchMap.txt2html("findAdminGubun")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/system/userGrp/userGrpProcess.vw?type=template">
+			<input type="hidden" id="mode"       name="mode" />
+			<input type="hidden" id="adminGubun" name="adminGubun" />
+			$!{searchMap.makeHiddenFind()}
+
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="사용자그룹 매핑">
+							<caption class="none">사용자그룹 매핑</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l"></div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="submit" id="btnInsert" value="등록/수정" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="man.mon.contribute">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 경영목표 차트 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: V_MAN_METRIC_CONTR
+	==================================================================
+	-->
+	<select id="getManList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.YEAR
+             , A.MAN_ID
+             , A.MAN_NM
+             , A.MAN_ORDER
+             , A.MAN_WEIGHT
+             , ROUND(SUM((SELECT CUM_CONTRIBUTION
+                      FROM V_MAN_METRIC_CONTR
+                     WHERE (YEAR, ANAL_CYCLE, MAN_KPI_ID, MON) IN
+                            (SELECT YEAR, ANAL_CYCLE, MAN_KPI_ID, MAX (MON) MON
+                               FROM V_MAN_METRIC_CONTR
+                              WHERE YEAR = #year#
+                                AND ANAL_CYCLE = 'Y'
+                                AND MAN_KPI_ID = A.MAN_KPI_ID
+                              GROUP BY YEAR, ANAL_CYCLE, MAN_KPI_ID))), 5) CUM_CONTRIBUTION
+          FROM V_MAN_METRIC A
+          LEFT OUTER JOIN MAN_METRIC B
+          ON A.YEAR = B.YEAR
+          AND A.MAN_KPI_ID = B.MAN_KPI_ID
+          AND A.MAN_KPI_GRP_ID = B.MAN_KPI_GRP_ID
+         WHERE A.YEAR = #year#
+         AND B.MONITORING_YN = 'Y'
+         GROUP BY A.YEAR, A.MAN_ID, A.MAN_NM, A.MAN_ORDER, A.MAN_WEIGHT
+         ORDER BY A.MAN_ORDER, A.MAN_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 전략과제 차트 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: V_MAN_METRIC_CONTR
+	==================================================================
+	-->
+	<select id="getStrategyList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.YEAR
+             , A.MAN_ID
+             , A.MAN_NM
+             , A.STRAT_ID
+             , A.STRAT_NM
+             , A.MAN_ORDER
+             , A.STRAT_ORDER
+             , ROUND(SUM((SELECT CUM_CONTRIBUTION
+                      FROM V_MAN_METRIC_CONTR
+                     WHERE (YEAR, ANAL_CYCLE, MAN_KPI_ID, MON) IN
+                            (SELECT YEAR, ANAL_CYCLE, MAN_KPI_ID, MAX (MON) MON
+                               FROM V_MAN_METRIC_CONTR
+                              WHERE YEAR = #year#
+                                AND ANAL_CYCLE = 'Y'
+                                AND MAN_KPI_ID = A.MAN_KPI_ID
+                              GROUP BY YEAR, ANAL_CYCLE, MAN_KPI_ID))), 5) CUM_CONTRIBUTION
+		      , ROUND(SUM (
+		            (SELECT T1.MAN_WEIGHT * NVL(T1.IMPORTANCE, 1) * T2.ADJUST
+		               FROM V_MAN_METRIC_CONTR T1, MAN_METRICSCORE T2 
+		              WHERE (T1.YEAR, T1.ANAL_CYCLE, T1.MAN_KPI_ID, T1.MON) IN
+		                       (  SELECT YEAR,
+		                                 ANAL_CYCLE,
+		                                 MAN_KPI_ID,
+		                                 MAX (MON) MON
+		                            FROM V_MAN_METRIC_CONTR
+		                           WHERE YEAR = #year#
+		                                 AND ANAL_CYCLE = 'Y'
+		                                 AND MAN_KPI_ID = A.MAN_KPI_ID
+		                        GROUP BY YEAR, ANAL_CYCLE, MAN_KPI_ID)
+		                 AND T1.YEAR = T2.YEAR
+		                 AND T1.MON = T2.MON
+		                 AND T1.MAN_KPI_ID = T2.MAN_KPI_ID
+		                 AND T1.ANAL_CYCLE = T2.ANAL_CYCLE
+		            )), 5) CUM_CONTRIBUTION_TARGET
+          FROM V_MAN_METRIC A
+          LEFT OUTER JOIN MAN_METRIC B
+          ON A.YEAR = B.YEAR
+          AND A.MAN_KPI_ID = B.MAN_KPI_ID
+          AND A.MAN_KPI_GRP_ID = B.MAN_KPI_GRP_ID
+         WHERE A.YEAR = #year#
+         AND B.MONITORING_YN = 'Y'
+         <isNotEmpty prepend="AND" property="manId">
+         		A.MAN_ID = #manId#
+         </isNotEmpty>
+         GROUP BY A.YEAR, A.MAN_ID, A.MAN_NM, A.STRAT_ID, A.STRAT_NM, A.MAN_ORDER, A.STRAT_ORDER
+         ORDER BY A.MAN_ORDER, A.STRAT_ORDER, A.STRAT_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: CSF 차트 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: V_MAN_METRIC_CONTR
+	==================================================================
+	-->
+	<select id="getCsfList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT A.YEAR
+             , A.MAN_ID
+             , A.MAN_NM
+             , A.STRAT_ID
+             , A.STRAT_NM
+             , A.CSF_ID
+             , A.CSF_NM
+             , A.MAN_ORDER
+             , A.STRAT_ORDER
+             , A.CSF_ORDER
+             , ROUND(SUM((SELECT CUM_CONTRIBUTION
+                      FROM V_MAN_METRIC_CONTR
+                     WHERE (YEAR, ANAL_CYCLE, MAN_KPI_ID, MON) IN
+                            (SELECT YEAR, ANAL_CYCLE, MAN_KPI_ID, MAX (MON) MON
+                               FROM V_MAN_METRIC_CONTR
+                              WHERE YEAR = #year#
+                                AND ANAL_CYCLE = 'Y'
+                                AND MAN_KPI_ID = A.MAN_KPI_ID
+                              GROUP BY YEAR, ANAL_CYCLE, MAN_KPI_ID))), 5) CUM_CONTRIBUTION
+             , ROUND(SUM (
+		            (SELECT T1.MAN_WEIGHT * NVL (T1.IMPORTANCE, 1) * T2.ADJUST
+		               FROM V_MAN_METRIC_CONTR T1, MAN_METRICSCORE T2
+		              WHERE (T1.YEAR, T1.ANAL_CYCLE, T1.MAN_KPI_ID, T1.MON) IN
+		                       (  SELECT YEAR,
+		                                 ANAL_CYCLE,
+		                                 MAN_KPI_ID,
+		                                 MAX (MON) MON
+		                            FROM V_MAN_METRIC_CONTR
+		                           WHERE YEAR = #year#
+		                                 AND ANAL_CYCLE = 'Y'
+		                                 AND MAN_KPI_ID = A.MAN_KPI_ID
+		                        GROUP BY YEAR, ANAL_CYCLE, MAN_KPI_ID)
+		                    AND T1.YEAR = T2.YEAR
+		                    AND T1.MON = T2.MON
+		                    AND T1.MAN_KPI_ID = T2.MAN_KPI_ID
+		                    AND T1.ANAL_CYCLE = T2.ANAL_CYCLE)), 5) CUM_CONTRIBUTION_TARGET
+          FROM V_MAN_METRIC A
+          LEFT OUTER JOIN MAN_METRIC B
+          ON A.YEAR = B.YEAR
+          AND A.MAN_KPI_ID = B.MAN_KPI_ID
+          AND A.MAN_KPI_GRP_ID = B.MAN_KPI_GRP_ID
+         WHERE A.YEAR = #year#
+         AND B.MONITORING_YN = 'Y'
+         <isNotEmpty prepend="AND" property="manId">
+         		A.MAN_ID = #manId#
+         </isNotEmpty>
+         <isNotEmpty prepend="AND" property="stratId">
+         		A.STRAT_ID = #stratId#
+         </isNotEmpty>
+         GROUP BY A.YEAR, A.MAN_ID, A.MAN_NM, A.STRAT_ID, A.STRAT_NM, A.CSF_ID, A.CSF_NM, A.MAN_ORDER, A.STRAT_ORDER, A.CSF_ORDER
+         ORDER BY A.MAN_ORDER, A.STRAT_ORDER, A.CSF_ORDER, A.CSF_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 경영목표 이름 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: V_MAN_METRIC
+	==================================================================
+	-->
+	<select id="getManNm" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DISTINCT MAN_NM FROM V_MAN_METRIC WHERE YEAR = #year# AND MAN_ID = #manId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 전략과제 이름 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: V_MAN_METRIC
+	==================================================================
+	-->
+	<select id="getStratNm" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DISTINCT STRAT_NM FROM V_MAN_METRIC WHERE YEAR = #year# AND MAN_ID = #manId# AND STRAT_ID = #stratId#
+	</select>
+</sqlMap>

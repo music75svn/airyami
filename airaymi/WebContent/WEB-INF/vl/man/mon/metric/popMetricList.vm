@@ -1,0 +1,178 @@
+#*************************************************************************
+* CLASS 명      : popMetricList.vm
+* 작 업 자      : 이상민
+* 작 업 일      : 2013년 07월 05일 
+* 기    능      : 이행성과지표 정의서(팝업)
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  	--------    -----------------  -------------------------  -----------
+*  1     이상민       2013년 07월 05일      최 초 작 업
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/man/mon/metricMapping/popSubjectDetailList.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+    <script type="text/javascript" language="javascript" >
+	
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			return false;
+		});
+		
+		/******************************************
+		 * 닫기버튼 (창닫기)
+		 ******************************************/
+		J("#btnClose").click(function() {
+			self.close();
+		});
+		 
+	});
+	
+    </script>
+</head>
+<body>
+	
+<div>
+	<div class="pop_blockContainer">
+		<form id="formFind" name="formFind" method="post" action="$!{context_path}/man/mon/metricMapping/popMetricMappingList.vw?type=pop">
+			<input type="hidden"	id="findHighPgmId"			name="findHighPgmId"		value="$!{searchMap.txt2html("findHighPgmId")}" />
+			<input type="hidden" 	id="findSubPgmId"			name="findSubPgmId"			value="$!{searchMap.txt2html("findSubPgmId")}" />
+			<input type="hidden"    id="findPgmId"				name="findPgmId"			value="$!{searchMap.txt2html("findPgmId")}" />
+			<input type="hidden"    id="findSubjectId"          name="findSubjectId"        value="$!{searchMap.txt2html("findSubjectId")}" />
+		</form>
+		
+		<div class="clear h10"></div>
+		<div>
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td>
+				<table width="100%" border="0" cellpadding="0" cellspacing="0" class="popup_tit_c">
+				<tr>
+					<td class="popup_tit_l"></td>
+					<td class="popup_tit_r">KGS 2020 KPI</td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		</table>	
+		</div>
+		<div class="clear h10"></div>
+		
+		<div class="blockDetail">
+			<table summary="KGS2020KPI">
+				<caption class="none">KGS2020KPI</caption>
+				<colgroup>
+					<col width="15%" />
+					<col width="35%" />
+					<col width="15%" />
+					<col width="35%" />
+				</colgroup>
+				<tbody>
+					<tr>
+						<th scope="row">$!{YEAR}</th>
+						<td colspan="3">$!{searchMap.txt2html("findYear")} 년</td>
+					</tr>
+					<tr>
+						<th scope="row">경영목표</th>
+						<td>$!{CS_HTML.txt2html($detail.STRAT_NM)}</td>
+						<th scope="row">전략과제</th>
+						<td>$!{CS_HTML.txt2html($detail.STRAT_NM)}</td>
+					</tr>
+					<tr>
+						<th scope="row">세부과제</th>
+						<td colspan="3">$!{CS_HTML.txt2html($detail.CSF_NM)}</td>
+					</tr>
+					<tr>
+						<th scope="row">KGS2020지표</th>
+						<td colspan="3">$!{CS_HTML.txt2html($detail.MAN_KPI_NM)}</td>
+					</tr>
+					<tr>
+						<th scope="row">주기</th>
+						<td>$!{CS_HTML.txt2html($detail.CYCLE_NM)}</td>
+						<th scope="row">단위</th>
+						<td>$!{CS_HTML.txt2html($detail.UNIT_NM)}</td>
+					</tr>
+					<tr>
+						<th scope="row">득점산식 구분</th>
+						<td colspan="3">$!{CS_HTML.txt2html($detail.SCORE_CAL_TYPE_NM)}</td>
+					</tr>
+						<th scope="row">담당자</th>
+						<td>$!{CS_HTML.txt2html($detail.INSERT_USER_NM)}</td>
+						<th scope="row">담당부서</th>
+						<td>$!{CS_HTML.txt2html($detail.INSERT_DEPT_NM)}</td>
+					</tr>
+					<tr>
+						<th scope="row">승인자</th>
+						<td>$!{CS_HTML.txt2html($detail.APPROVE_USER_NM)}</td>
+						<th scope="row">승인부서</th>
+						<td>$!{CS_HTML.txt2html($detail.APPROVE_DEPT_NM)}</td>
+					</tr>
+					<tr>
+				</tbody>
+			</table>
+		</div>
+      
+      	<!-- 실적산식 -->
+			<div id="blockDetail2" class="blockDetail2">
+    			<table id="actCalTypeTB" summary="산식항목 ">
+    				<caption class="none">산식항목 </caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="65%" />
+						<col width="20%" />
+					</colgroup>
+    				<tbody>
+    					<tr>
+    						<th scope="row">$!{METRIC_NM} 산식</th>
+    						<td colspan="3" class="textLeft">$!{CS_HTML.txt2html($detail.ACT_CAL_TYPE)}</td>
+    					</tr>
+    					<tr id="actCalTypeList">
+    						<th scope="row">산식항목</th>
+    						<th scope="row">산식항목명</th>
+							<th scope="row">단위</th>
+						</tr>
+                        #foreach($list in $calTypeColList)
+						<tr>
+    						<td><span>$!{CS_HTML.txt2html($list.CAL_TYPE_COL)}</span></td>
+    						<td class="textLeft">$!{CS_HTML.txt2html($list.CAL_TYPE_COL_NM)}</td>
+							<td>$!CS_CODE.getCodeName("013", $list.UNIT, $!{searchMap.txt2html("year")})</td>
+						</tr>
+                        #end
+						<tr id="kpiActCalTypeNm">
+    						<th scope="row">$!{METRIC_NM} 산식명</th>
+							<td class="textLeft" colspan="3"><span>$!{calTypeColDesc}</span></td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		
+		<div class="blockButton_all">			
+			<div class="blockButton_l">
+				<!--input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" /-->
+				<!--input id="btnExcelDown" type="image" src="$!{img_path}/btn_print_scr.gif" align="middle" alt="화면출력" /-->
+			</div>
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnClose" value="닫기"/></li>
+    			</ul>
+    		</div>
+		</div>
+			
+	</div>
+	<div class="clear"></div>
+</div>
+
+<div id="dialog" title="확인"><p>&nbsp;</p></div>    <!-- 다이어로그 -->
+
+</body>
+</html>

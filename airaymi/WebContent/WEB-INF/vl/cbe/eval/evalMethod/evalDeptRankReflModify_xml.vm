@@ -1,0 +1,50 @@
+#*************************************************************************
+* CLASS 명      : evalMethodList_xml
+* 작 업 자      : 박경태
+* 작 업 일      : 2012년 12월 7일 
+* 기    능      : 평가환산방법 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      박경태     2012년 12월 7일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"RANK_CNT"             : "$!{CS_HTML.txt2html($list.RANK_CNT)}", 
+		"CNT_02"               : "$!{CS_HTML.txt2html($list.CNT_02)}",
+		"CNT_03"               : "$!{CS_HTML.txt2html($list.CNT_03)}",
+		"CNT_04"               : "$!{CS_HTML.txt2html($list.CNT_04)}",
+		"CNT_05"               : "$!{CS_HTML.txt2html($list.CNT_05)}",
+		"CNT_06"               : "$!{CS_HTML.txt2html($list.CNT_06)}",
+		"CNT_07"               : "$!{CS_HTML.txt2html($list.CNT_07)}",
+		"CNT_08"               : "$!{CS_HTML.txt2html($list.CNT_08)}",
+		"CNT_09"               : "$!{CS_HTML.txt2html($list.CNT_09)}",
+		"CNT_10"               : "$!{CS_HTML.txt2html($list.CNT_10)}",
+		"CNT_11"               : "$!{CS_HTML.txt2html($list.CNT_11)}",
+		"CNT_12"               : "$!{CS_HTML.txt2html($list.CNT_12)}",
+		"CNT_13"               : "$!{CS_HTML.txt2html($list.CNT_13)}",
+		"CNT_14"               : "$!{CS_HTML.txt2html($list.CNT_14)}",
+		"CNT_15"               : "$!{CS_HTML.txt2html($list.CNT_15)}",
+		"CNT_16"               : "$!{CS_HTML.txt2html($list.CNT_16)}",
+		"CNT_17"               : "$!{CS_HTML.txt2html($list.CNT_17)}",
+		"CNT_18"               : "$!{CS_HTML.txt2html($list.CNT_18)}",
+		"CNT_19"               : "$!{CS_HTML.txt2html($list.CNT_19)}",
+		"CNT_20"               : "$!{CS_HTML.txt2html($list.CNT_20)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

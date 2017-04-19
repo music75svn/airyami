@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="cbe.excep.excepStatus">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_SPE_EVAL_DEPT
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SPE_EVAL_DEPT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+               A.EVAL_DEGREE_ID,
+               A.SC_DEPT_ID,
+               A.EVAL_USER_ID,
+              (SELECT USER_NM FROM V_ROLE_USER WHERE USER_ID=A.EVAL_USER_ID) EVAL_USER_NM,
+              (SELECT EMAIL FROM V_ROLE_USER WHERE USER_ID=A.EVAL_USER_ID) EMAIL,
+               B.SC_DEPT_NM,
+              NVL(A.EVAL_SUBMIT_YN,'N') EVAL_SUBMIT_YN,
+              CASE WHEN A.EVAL_SUBMIT_YN='Y' THEN 'Y' ELSE 'N' END EVAL_SUBMIT_NM
+         FROM BSC_SPE_EVAL_DEPT A
+         INNER JOIN(
+                     SELECT YEAR,
+                            SC_DEPT_ID,
+                            SUBSTR(SYS_CONNECT_BY_PATH(SC_DEPT_NM,'>'),2, length(SYS_CONNECT_BY_PATH(SC_DEPT_NM,'>')))SC_DEPT_NM                                 
+                       FROM ( SELECT * FROM BSC_SC_DEPT WHERE YEAR = #findYear#)         
+                      WHERE DELETE_DT IS NULL                                
+                      START WITH UP_SC_DEPT_ID IS NULL                        
+                      CONNECT BY PRIOR SC_DEPT_ID = UP_SC_DEPT_ID) B ON A.YEAR=B.YEAR AND A.SC_DEPT_ID=B.SC_DEPT_ID
+         LEFT OUTER JOIN BSC_ECM_EVAL_GRADE_CONVERT_TAB C ON A.YEAR=C.YEAR AND A.EVAL_METHOD_ID=C.EVAL_METHOD_ID                    
+        WHERE A.YEAR=#findYear#
+          AND A.EVAL_DEGREE_ID=#findEvalDegreeId#
+          <isNotEmpty property="findEvalSubmitYn" prepend="AND">
+       			A.EVAL_SUBMIT_YN = #findEvalSubmitYn#
+       		</isNotEmpty>
+        ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SPE_EVAL_DEPT
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_DEGREE_ID        
+			 , SC_DEPT_ID            
+			 , EVAL_BASE_CHARGE_USER_ID
+			 , EVAL_USER_ID          
+			 , EVAL_METHOD_ID        
+			 , GRADE_ITEM_ID         
+			 , EVAL_SUBMIT_YN        
+			 , SORT_ORDER            
+		  FROM BSC_SPE_EVAL_DEPT 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND SC_DEPT_ID = #scDeptId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_SPE_EVAL_DEPT
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_SPE_STATUS ( 
+			   YEAR
+			 , EVAL_DEGREE_ID
+			 , EVAL_CLOSE_YN
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #evalDegreeId#
+			 , #evalCloseYn#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_SPE_EVAL_DEPT
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_SPE_STATUS 
+		   SET EVAL_CLOSE_YN = #evalCloseYn# 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#	
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_SPE_EVAL_DEPT
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_SPE_EVAL_DEPT 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND SC_DEPT_ID = #scDeptId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getCloseYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT EVAL_CLOSE_YN     
+		  FROM BSC_SPE_STATUS 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getFindCloseYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT EVAL_CLOSE_YN     
+		  FROM BSC_SPE_STATUS 
+		 WHERE YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #findEvalDegreeId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getCloseCheck" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT EVAL_CLOSE_YN     
+		  FROM BSC_SPE_STATUS 
+		 WHERE YEAR = #findYear#
+		   AND EVAL_DEGREE_ID = #findEvalDegreeId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가진행현황 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_USER
+	==================================================================
+	-->
+	<select id="getCloseYnDataChk" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT NVL((SELECT COUNT(1)   
+				  FROM BSC_SPE_STATUS 
+				 WHERE YEAR = #year#
+				   AND EVAL_DEGREE_ID = #evalDegreeId#	
+			   ),0) CNT
+          FROM DUAL	         
+	</select>
+	
+	
+</sqlMap>
+
+

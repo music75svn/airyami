@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="str.system.closingYear">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: STR_METRIC_CLOSING
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 년마감관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+			SELECT A.CODE_ID AS YEAR
+				 , CLOSING_YN
+			  FROM BSC_CODE A
+				   LEFT OUTER JOIN 
+				   STR_METRIC_CLOSING B
+				   ON  A.CODE_ID	= B.YEAR  				   	
+			 WHERE A.CODE_GRP_ID = '017'    					
+ 			 ORDER BY A.CODE_ID DESC
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 년마감 여부 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_CLOSING
+	==================================================================
+	-->
+	<select id="getYearClosingYn" parameterClass="hashMap" resultClass="java.lang.String">
+			SELECT NVL(MAX(CLOSING_YN), 'N') AS CLOSING_YN
+			  FROM STR_METRIC_CLOSING
+			 WHERE 1=1
+			   AND YEAR = #findYear#
+	</select>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 년마감관리 카운터 수
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<select id="getListCnt" parameterClass="hashMap" resultClass="java.lang.Integer">
+        	SELECT COUNT( YEAR ) AS CNT
+			  FROM STR_METRIC_CLOSING 
+			 WHERE YEAR = #year#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 년마감관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+			INSERT INTO STR_METRIC_CLOSING (YEAR, CLOSING_YN, CREATE_DT) 
+			VALUES ( #year#, #closingYn#, SYSDATE )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 년마감관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+			UPDATE STR_METRIC_CLOSING 
+			   SET CLOSING_YN = #closingYn#,
+			       MODIFY_DT = SYSDATE
+			 WHERE YEAR = #year#
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 년마감관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+
+	</update>
+	
+	
+</sqlMap>
+
+

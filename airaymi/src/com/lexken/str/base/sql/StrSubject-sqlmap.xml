@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="str.base.strSubject">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: STR_STRAT_SUBJECT
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_STRAT_SUBJECT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	SELECT A.YEAR
+             ,  A.STRAT_SUBJECT_ID
+             ,  A.STRAT_SUBJECT_NM
+             ,  A.CONTENT
+             ,  A.SORT_ORDER
+             ,  (SELECT COUNT(1)
+                 FROM  BSC_CSF  B
+                WHERE A.YEAR=B.YEAR
+                  AND A.STRAT_SUBJECT_ID=B.STRAT_SUBJECT_ID
+                  AND B.DELETE_DT IS NULL) CNT
+             , C.MANAGEMENT_NM
+             , C.MANAGEMENT_ID                  
+	FROM STR_STRAT_SUBJECT A
+	INNER JOIN BSC_MANAGEMENT C
+                    ON A.MANAGEMENT_ID = C.MANAGEMENT_ID
+                  AND A.YEAR = C.YEAR
+                  AND C.DELETE_DT IS NULL
+	WHERE A.YEAR=#findYear#
+			<isNotEmpty prepend="AND" property="findManagementId">
+	            C. MANAGEMENT_ID = #findManagementId#
+		   	</isNotEmpty>
+			<isNotEmpty prepend="AND" property="findStratSubjectNm">
+	            UPPER(A.STRAT_SUBJECT_NM) LIKE  '%' || TRIM(UPPER(#findStratSubjectNm#)) ||'%'
+		   	</isNotEmpty>
+		   <isEqual prepend="AND" property="findUseYn" compareValue="Y">
+       	   A.DELETE_DT IS NULL
+           </isEqual>
+           <isNotEqual prepend="AND" property="findUseYn" compareValue="Y">
+           A.DELETE_DT IS NOT NULL
+           </isNotEqual>
+        
+        ORDER BY C.SORT_ORDER, A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경영목표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MANAGEMENT
+	==================================================================
+	-->
+	<select id="getManagement" parameterClass="hashMap" resultClass="hashMap">
+	SELECT A.YEAR, A.MANAGEMENT_ID, A.MANAGEMENT_NM, A.SORT_ORDER
+	FROM BSC_MANAGEMENT A
+	WHERE A.YEAR = #findYear#
+	   AND A.DELETE_DT IS NULL
+	 ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_STRAT_SUBJECT
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , STRAT_SUBJECT_ID      
+			 , STRAT_SUBJECT_NM      
+			 , CONTENT               
+			 , SORT_ORDER
+			 , (SELECT COUNT(1)
+                FROM  BSC_CSF  B
+               WHERE A.YEAR=B.YEAR
+                  AND A.STRAT_SUBJECT_ID=B.STRAT_SUBJECT_ID
+                  AND B.DELETE_DT IS NULL) CNT
+			 , CASE WHEN DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USE_YN            
+		  FROM STR_STRAT_SUBJECT A 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND STRAT_SUBJECT_ID = #stratSubjectId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 등록
+	  #	기능	: INSERT
+	  #	TABLE	: STR_STRAT_SUBJECT
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			<!-- SELECT F_PGM_SERI('STR_STRAT_SUBJECT','','','','','') SEQ FROM DUAL -->
+			SELECT 'SSS'||LPAD(NVL(MAX(SUBSTR(STRAT_SUBJECT_ID,4,6)),0)+1,4,'0') SEQ FROM STR_STRAT_SUBJECT
+		</selectKey>
+		INSERT INTO STR_STRAT_SUBJECT ( 
+			   YEAR
+			 , STRAT_SUBJECT_ID
+			 , STRAT_SUBJECT_NM
+			 , MANAGEMENT_ID
+			 , CONTENT
+			 , SORT_ORDER
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #stratSubjectNm#
+			 , #managementId#
+			 , #content#
+			 , #sortOrder#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_STRAT_SUBJECT
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE STR_STRAT_SUBJECT 
+		   SET STRAT_SUBJECT_NM	= #stratSubjectNm# 
+		   	 ,  MANAGEMENT_ID		= #managementId#
+			 , CONTENT					= #content# 
+			 , SORT_ORDER				= #sortOrder# 
+			 , MODIFY_DT				= SYSDATE
+			 <isEqual property="useYn" compareValue="Y">
+	         , DELETE_DT = NULL
+	         </isEqual>
+	         <isEqual property="useYn" compareValue="N">
+	         , DELETE_DT = SYSDATE
+	         </isEqual>
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND STRAT_SUBJECT_ID = #stratSubjectId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_STRAT_SUBJECT
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE STR_STRAT_SUBJECT 
+		   SET DELETE_DT       = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND STRAT_SUBJECT_ID = #stratSubjectId#
+	</update>
+	
+</sqlMap>
+
+

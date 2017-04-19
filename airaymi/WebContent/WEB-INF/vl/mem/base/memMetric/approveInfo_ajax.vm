@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+#*************************************************************************
+* CLASS 명      : metricApproveStatusId_ajax.vm
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 7월 02일 
+* 기    능      : 조직별 지표승인상태 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용         비고
+* -----  ----------  -------------------  ---------------------- ---------
+*  1      하윤식       2012년 7월 17일         최 초 작 업 
+**************************************************************************# 
+
+<items>
+
+	<item>
+		<empNo>$!{CS_HTML.txt2html($status.SC_DEPT_ID)}</empNo>
+		<empNm>$!{CS_HTML.txt2html($status.SC_DEPT_NM)}</empNm>
+		<managerUserId>$!{CS_HTML.txt2html($status.EVAL_1_EMP_NO)}</managerUserId>
+		<approveStatusId>$!{CS_HTML.txt2html($status.METRIC_STATUS_ID)}</approveStatusId>
+		<approveStatusNm>$!{CS_HTML.txt2html($status.METRIC_STATUS_NM)}</approveStatusNm>
+	</item>	
+
+</items>

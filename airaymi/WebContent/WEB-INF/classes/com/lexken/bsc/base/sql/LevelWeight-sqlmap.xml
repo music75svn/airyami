@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.base.levelWeight">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+	<!--
+	==================================================================
+	  # 설명	: 구간대 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LEVEL_EVAL_SECTION
+	==================================================================
+	-->
+	<select id="evalSectionList" parameterClass="hashMap" resultClass="hashMap">
+         SELECT A.CODE_ID AS EVAL_SECTION_ID
+             , A.CODE_NM AS EVAL_SECTION_NM
+             , B.FROM_VALUE
+             , B.TO_VALUE
+             , TRIM(TO_CHAR(B.CONVERSION_SCORE,'990.99')) CONVERSION_SCORE
+        FROM BSC_CODE A
+                 LEFT OUTER JOIN BSC_LEVEL_EVAL_SECTION B
+                         ON B.YEAR = A.YEAR
+                         AND A.CODE_ID = B.EVAL_SECTION_ID
+        WHERE A.CODE_GRP_ID = '212'
+          AND A.YEAR = #findYear#
+          AND A.DELETE_DT IS NULL
+        ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 난이도 가중치 설정 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE
+	==================================================================
+	-->
+	<select id="levelList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT CODE_ID, CODE_NM, ETC1, ETC2 FROM BSC_CODE WHERE YEAR = #findYear# AND CODE_GRP_ID = '212'
+	
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 지표 구간대항목 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_LEVEL_EVAL_SECTION
+	==================================================================
+	-->
+	<delete id="deleteEvalSection" parameterClass="hashMap">
+		DELETE FROM BSC_LEVEL_EVAL_SECTION
+		WHERE YEAR = #year#
+		  
+	</delete>
+	
+	<!--
+	==================================================================
+	  # 설명	: 지표 구간대항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_LEVEL_EVAL_SECTION
+	==================================================================
+	-->
+	<insert id="insertEvalSection" parameterClass="hashMap">
+		INSERT INTO BSC_LEVEL_EVAL_SECTION (
+               YEAR
+             , EVAL_SECTION_ID
+             , FROM_VALUE
+             , TO_VALUE
+             , CONVERSION_SCORE
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #evalSectionId#
+             , #fromValue#
+             , #toValue#
+             , #conversionScore#
+             , SYSDATE
+               )
+	</insert>
+    
+</sqlMap>
+
+

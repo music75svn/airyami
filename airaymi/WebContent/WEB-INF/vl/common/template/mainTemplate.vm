@@ -1,0 +1,32 @@
+#*************************************************************************
+* CLASS 명  	: mainTemplate.vm 
+* 작 업 자  	: 하윤식
+* 작 업 일  	: 2012년 5월 25일 
+* 기    능  	: mainTemplate
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자    작     업     일      변 경 내 용            비고
+* ----  --------  -----------------  -------------------------  --------
+*   1     하윤식	 2012년 5월 25일       최 초 작 업 
+**************************************************************************#
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url =  $!{searchMap.txt2html("mainUrl")})
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+</head>
+<body>
+	<div id="wrap">
+		#parse("/WEB-INF/vl/common/template/contentHeader.vm")
+
+		<div id="wrapper">
+			#parse($main_url)
+		</div>
+		
+	</div>
+
+	<div id="dialog" title="확인"><p>&nbsp;</p></div>    <!-- 다이어로그 -->
+
+</body>
+</html>

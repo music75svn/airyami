@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.org.orgConnItem">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 연계항목 카운터 수
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_CONN_ITEM
+	==================================================================
+	-->
+	<select id="getOrgConnItemCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+        SELECT COUNT(1)
+		  FROM ORG_CONN_ITEM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 공통코드 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_CONN_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT
+              O.ORG_CONN_ITEM_ID
+            , O.ORG_CONN_ITEM_NM
+            , C.CODE_NM AS TYPE
+            , (SELECT COUNT(*)
+               FROM ORG_EVAL_ITEM_COL
+               WHERE ORG_CONN_ITEM_ID = O.ORG_CONN_ITEM_ID) CNT
+            , O.CONTENT
+            , O.CREATE_DT
+            , O.MODIFY_DT
+            , O.DELETE_DT
+        FROM ORG_CONN_ITEM O
+		LEFT OUTER JOIN BSC_CODE C
+                     ON O.TYPE = C.CODE_ID
+                    AND C.CODE_GRP_ID = '062'
+        WHERE 1 = 1
+		<dynamic>
+			<isNotEmpty prepend="AND" property="findType">
+            	TYPE = #findType#
+		    </isNotEmpty>
+			<isNotEmpty prepend="AND" property="findOrgConnItemNm">
+	            UPPER(O.ORG_CONN_ITEM_NM) LIKE  '%' || TRIM(UPPER(#findOrgConnItemNm#)) ||'%'
+		   	</isNotEmpty>
+		 	<isEqual prepend="AND" property="findUseYn" compareValue="N">
+            	O.DELETE_DT IS NOT NULL
+		    </isEqual>
+
+		    <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+            	O.DELETE_DT IS NULL
+		    </isNotEqual>
+
+	    </dynamic>
+			ORDER BY O.ORG_CONN_ITEM_ID ASC
+
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 연계항목 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_CONN_ITEM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+          SELECT
+              O.ORG_CONN_ITEM_ID
+            , O.ORG_CONN_ITEM_NM
+            , O.TYPE
+            , O.CONTENT
+            , CASE WHEN O.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END DELETE_DT
+        FROM ORG_CONN_ITEM O
+        LEFT OUTER JOIN BSC_CODE C
+                     ON O.TYPE = C.CODE_ID
+                    AND C.CODE_GRP_ID = '062'
+		    WHERE 1 = 1
+              AND O.ORG_CONN_ITEM_ID = #orgConnItemId#
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 연계항목 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_CONN_ITEM
+	==================================================================
+	-->
+	<select id="getOrgConnItemId" parameterClass="hashMap" resultClass="hashMap">
+          SELECT 'OC'||LPAD(NVL(MAX(SUBSTR(ORG_CONN_ITEM_ID,3,5)),0)+1,5,'0') ORG_CONN_ITEM_ID FROM ORG_CONN_ITEM
+	</select>	
+
+	<!--
+	==================================================================
+	  # 설명	: 연계항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: ORG_CONN_ITEM
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT 'OC'||LPAD(NVL(MAX(SUBSTR(ORG_CONN_ITEM_ID,3,5)),0)+1,5,'0') FROM ORG_CONN_ITEM
+		</selectKey>
+		INSERT INTO ORG_CONN_ITEM(
+			  ORG_CONN_ITEM_ID
+			, ORG_CONN_ITEM_NM
+			, TYPE
+			, CONTENT
+			, CREATE_DT
+		)VALUES(
+			  #orgConnItemId#
+			, #orgConnItemNm#
+			, #inType#
+			, #content#
+			, SYSDATE
+		)
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 연계항목 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_CONN_ITEM
+	==================================================================
+	-->
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE ORG_CONN_ITEM
+		   SET ORG_CONN_ITEM_NM = #orgConnItemNm#
+		     , TYPE = #inType#
+		     , CONTENT     = #content#
+		     , MODIFY_DT     = SYSDATE
+		     <isEqual property="deleteDt" compareValue="N">
+            	, DELETE_DT   = SYSDATE
+		    </isEqual>
+		    <isNotEqual property="deleteDt" compareValue="N">
+		    	, CREATE_DT   = SYSDATE
+            	, DELETE_DT   = NULL
+		    </isNotEqual>
+		WHERE ORG_CONN_ITEM_ID  = #orgConnItemId#
+	</update>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 연계항목 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: ORG_CONN_ITEM
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+	UPDATE ORG_CONN_ITEM
+	   SET DELETE_DT = SYSDATE
+	WHERE ORG_CONN_ITEM_ID = #orgConnItemId#
+	</update>
+
+
+</sqlMap>
+
+

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.org.orgDeptPrsScore">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 개인별 조직관리역량평가 결과 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: ORG_DEPT_SCORE
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT B.YEAR
+		       , B.EMPN
+		       , B.KOR_NM
+		       , B.CAST_TC
+		       , (SELECT CODE_NM FROM BSC_CODE WHERE YEAR = B.YEAR AND CODE_GRP_ID = '170' AND CODE_ID = B.CAST_TC) CAST_TC_NM
+		       , B.POS_TC
+		       , (SELECT CODE_NM FROM BSC_CODE WHERE YEAR = B.YEAR AND CODE_GRP_ID = '171' AND CODE_ID = B.POS_TC) POS_TC_NM
+		       , B.DEPT_CD
+		       , F_DEPT_FULL_NM(#findYear#, B.DEPT_CD, 'BSC_INSA_DEPT') DEPT_NM
+		       , TO_CHAR (TO_DATE (B.START_PCMT_DATE), 'YYYY/MM/DD') START_PCMT_DATE
+		       , TO_CHAR (TO_DATE (B.END_PCMT_DATE), 'YYYY/MM/DD') END_PCMT_DATE
+		       , B.WORK_MON
+		       , B.RE_MON
+		       , TRIM (TO_CHAR (SUM (A.ORG_SCORE) OVER (PARTITION BY B.YEAR, B.EMPN, B.CAST_TC, B.DEPT_CD), '990.999')) TOT_DEPTSCORE
+		       , TRIM (TO_CHAR (SUM (A.ORG_SCORE) OVER (PARTITION BY B.YEAR, B.EMPN, B.CAST_TC), '990.999')) TOT_PRSSCORE
+		       , COUNT (*) OVER (PARTITION BY B.YEAR, B.EMPN, B.CAST_TC) CNT
+		       , ROW_NUMBER () OVER (PARTITION BY B.YEAR, B.EMPN, B.CAST_TC ORDER BY B.START_PCMT_DATE) CNT_INDEX
+		    FROM PRS_MNG_BSC_SCORE A
+		       , (SELECT DISTINCT YEAR
+		                        , EMPN
+		                        , KOR_NM
+		                        , DEPT_CD
+		                        , DEPT_KOR_NM
+		                        , PCMT_TC
+		                        , CAST_TC
+		                        , POS_TC
+		                        , START_PCMT_DATE
+		                        , END_PCMT_DATE
+		                        , WORK_MON
+		                        , RE_MON
+		            FROM V_ORG_DEPT_PRS) B
+		   WHERE A.YEAR = B.YEAR
+		     AND A.DEPT_CD = B.DEPT_CD
+		     AND A.EMPN = B.EMPN
+		     AND A.CAST_TC = B.CAST_TC
+		     AND A.START_PCMT_DATE = B.START_PCMT_DATE
+		     AND A.END_PCMT_DATE = B.END_PCMT_DATE
+		     AND A.YEAR = #findYear#
+	<isNotEmpty prepend="AND" property="findDeptCd">
+		     B.DEPT_CD = #findDeptCd#
+	</isNotEmpty>	
+	<isNotEmpty prepend="AND" property="findKorNm">
+		     B.KOR_NM LIKE '%' || #findKorNm# || '%'
+	</isNotEmpty>	     
+		ORDER BY YEAR
+		       , EMPN
+		       , CAST_TC
+		       , START_PCMT_DATE
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 개인별 조직관리역량평가 등록
+	  #	기능	: INSERT
+	  #	TABLE	: ORG_DEPT_SCORE
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		MERGE INTO ORG_DEPT_SCORE AA
+		     USING (SELECT #year# AS YEAR
+        		         , #deptCd# AS DEPT_CD
+                 		 , UPPER(#grade#) AS GRADE
+                 		 , #score# AS SCORE
+              		FROM DUAL) BB
+		        ON (AA.YEAR = BB.YEAR
+        		AND AA.DEPT_CD = BB.DEPT_CD)
+		WHEN MATCHED
+		THEN
+		   UPDATE SET AA.GRADE = BB.GRADE, AA.SCORE = BB.SCORE, AA.CREATE_DT = SYSDATE
+		WHEN NOT MATCHED
+		THEN
+		   INSERT     (YEAR
+		             , DEPT_CD
+             		 , GRADE
+		             , SCORE
+		             , CREATE_DT)
+		       VALUES (BB.YEAR
+        		     , BB.DEPT_CD
+		             , BB.GRADE
+		             , BB.SCORE
+		             , SYSDATE)
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 조직트리
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getScDeptList" parameterClass="hashMap" resultClass="hashMap">
+		           SELECT A.DEPT_CD AS CODE_ID
+		                , A.DEPT_KOR_NM AS CODE_NM
+		                , A.UP_DEPT_CD AS UP_CODE_ID
+		                , LEVEL AS LEVEL_ID
+		             FROM (SELECT T.*
+		                        , NVL ( (  SELECT COUNT (1)
+		                                     FROM BSC_INSA_DEPT
+		                                    WHERE YEAR = T.YEAR
+		                                      AND UP_DEPT_CD = T.DEPT_CD
+		                                 GROUP BY YEAR, UP_DEPT_CD)
+		                             , '0')
+		                             AS CHILD_DEPT_CNT
+		                     FROM BSC_INSA_DEPT T) A
+		            WHERE A.YEAR = #findYear#
+		       START WITH A.UP_DEPT_CD IS NULL
+		       CONNECT BY PRIOR A.DEPT_CD = A.UP_DEPT_CD
+		              AND PRIOR A.YEAR = A.YEAR
+		ORDER SIBLINGS BY DISP_ORDER
+	</select>
+
+</sqlMap>
+
+

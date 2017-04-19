@@ -1,0 +1,46 @@
+#*************************************************************************
+* CLASS 명      : metricActualDetailChart_xml.vm
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 8월 31일 
+* 기    능      : 월별지표실적상세 차트 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김윤기     2012년 8월 29일            최 초 작 업
+**************************************************************************# 
+<chart palette="1" 
+	caption="" 
+	showLabels="1" 
+	showvalues="0" 
+	numberPrefix="" 
+	PYAxisName="" 
+	SYAxisName=""
+	sYAxisValuesDecimals="2" 
+	connectNullData="0" 
+	numDivLines="4"
+	formatNumberScale="0"
+	bgColor='EBEFF1,FFFFFF'
+	baseFontSize='11'
+	labelDisplay='none'
+	showLegend='1'
+	legendPosition='BOTTOM'
+	legendBorderThickness='1'
+	legendBorderAlpha='4'
+	legendShadow='1'
+	>
+    <categories>
+    #foreach($catList in $catList)
+    	<category label="$!{catList.EVAL_CAT_NM}"></category>
+	#end
+    </categories>
+    <dataset seriesName="가중치" color="AFD8F8" showValues="1">
+		#foreach($catList in $catList)
+    	<set value="$CS_HTML.txt2html($catList.WEIGHT)" />
+		#end
+    </dataset>
+    <dataset seriesName="점수" color="F6BD0F" showValues="1" >
+		#foreach($catList in $catList)
+    	<set value="$CS_HTML.txt2html($catList.SCORE)" />
+		#end
+    </dataset>
+</chart>

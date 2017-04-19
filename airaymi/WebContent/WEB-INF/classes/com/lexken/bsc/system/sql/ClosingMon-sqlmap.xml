@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.closingMon">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 월마감 관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CODE_ID AS MON 
+			 , NVL(B.CLOSING_YN, 'N') AS CLOSING_YN
+		  FROM BSC_CODE A
+			   LEFT OUTER JOIN BSC_CLOSING_MANAGE_MON B ON B.YEAR = #findYear# AND A.CODE_ID = B.MON
+		 WHERE A.CODE_GRP_ID = '024'
+		 ORDER BY A.CODE_ID ASC
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 월마감관리 카운터 수
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<select id="getKeyCnt" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(1) AS CNT
+		 FROM BSC_CLOSING_MANAGE_MON
+	    WHERE YEAR = #year#
+          AND MON = #mon#
+	</select>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 월마감 관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_CLOSING_MANAGE_MON
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_CLOSING_MANAGE_MON(
+                    YEAR
+                  , MON
+                  , CLOSING_YN
+                 ) VALUES (
+                    #year#
+                  , #mon#
+                  , #closingYn#
+                 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 월마감 관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_CLOSING_MANAGE_MON
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_CLOSING_MANAGE_MON
+     	   SET CLOSING_YN = #closingYn#
+		 WHERE YEAR = #year#
+           AND MON = #mon#
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 월마감 관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+
+	</update>
+	
+	
+</sqlMap>
+
+

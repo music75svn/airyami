@@ -1,0 +1,21 @@
+#*************************************************************************
+* CLASS 명  	: pageListInfo.vm
+* 작 업 자  	: 박재현
+* 작 업 일  	: 2009.07.15
+* 기    능  	: 페이지 리스트 조회 정보
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호        작 업 자            작     업     일                       변 경 내 용                               비고
+* ----  --------  -----------------  -------------------------  --------
+*   1          박재현		 2009.07.15			     최 초 작 업 
+**************************************************************************# 
+			<div class="boardlistInfo">
+				총건수 : <span>$!{CS_FORMAT.numberFormat($paging.getTotalRow())}</span> 
+				페이지 : <span>$!{CS_FORMAT.numberFormat($paging.getCurrentPage())}/$!{CS_FORMAT.numberFormat($paging.getLastPage())}</span>
+				<select name="rowPerPage" id="rowPerPage" title="페이징">
+					<option value="10" $!{searchMap.getSelected("rowPerPage","10")}>10개씩 보기</option>
+					<option value="20" $!{searchMap.getSelected("rowPerPage","20")}>20개씩 보기</option>
+					<option value="30" $!{searchMap.getSelected("rowPerPage","30")}>30개씩 보기</option>
+					<option value="50" $!{searchMap.getSelected("rowPerPage","50")}>50개씩 보기</option>
+					<option value="100" $!{searchMap.getSelected("rowPerPage","100")}>100개씩 보기</option>
+				</select>
+			</div>

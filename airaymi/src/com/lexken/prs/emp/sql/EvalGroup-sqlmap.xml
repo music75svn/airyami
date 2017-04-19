@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.emp.evalGroup">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EXC_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 인사조직 왼쪽트리목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_INSA_DEPT
+	==================================================================
+	-->
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+		select * from (  
+			SELECT YEAR
+		       , DEPT_CD
+		       , DEPT_KOR_NM
+		       , UP_DEPT_CD
+		       , UP_USER_ID
+		       , USE_YN
+		       , DEPT_LEVL
+		       , DISP_ORDER
+		    FROM BSC_INSA_DEPT
+		   WHERE YEAR = #findYear#
+		     AND USE_YN = 'T'
+		     AND DEPT_CD > '1090'
+		     UNION ALL
+		        SELECT YEAR
+		       , DEPT_CD
+		       , DEPT_KOR_NM
+		       , UP_DEPT_CD
+		       , UP_USER_ID
+		       , USE_YN
+		       , DEPT_LEVL
+		       , DISP_ORDER
+		    FROM BSC_INSA_DEPT
+		   WHERE YEAR = #findYear#
+		     AND DEPT_CD = '0000' )
+		ORDER BY DISP_ORDER, DEPT_CD       
+		 
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 직원평가조직별평가군 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EMP_DEPT_EVAL_GROUP
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.DEPT_CD
+             , F_DEPT_FULL_NM(#findYear#, A.DEPT_CD, 'BSC_INSA_DEPT') DEPT_KOR_NM
+             , NVL(B.EVAL_GRP_ID, '-1') EVAL_GRP_ID 
+          FROM BSC_INSA_DEPT A
+	LEFT OUTER JOIN PRS_EMP_DEPT_EVAL_GRP B
+			ON A.YEAR = B.YEAR
+		   AND A.DEPT_CD = B.DEPT_CD
+    WHERE A.DEPT_CD IN (SELECT DEPT_CD
+                               FROM BSC_INSA_DEPT
+                              WHERE YEAR = #findYear#
+                         START WITH DEPT_CD = #findDeptCd#
+                   CONNECT BY PRIOR YEAR = YEAR
+                                AND PRIOR DEPT_CD = UP_DEPT_CD)
+		  AND A.DEPT_CD > '1090'
+		  AND A.YEAR = #findYear#
+		  AND A.USE_YN = 'T'
+          AND A.DEPT_CD IN (
+                                SELECT A.DEPT_CD
+                                  FROM BSC_INSA_DEPT A
+                                  LEFT OUTER JOIN BSC_INSA_DEPT B
+                                    ON A.YEAR = B.YEAR AND A.USE_YN = B.USE_YN AND A.DEPT_CD = B.UP_DEPT_CD
+                                 WHERE A.YEAR = #findYear# AND A.USE_YN = 'T' 
+                                   AND A.DEPT_CD > '1090'
+                                 GROUP BY A.DEPT_CD
+                                HAVING COUNT(B.DEPT_CD) = 0
+                           )
+         GROUP BY A.YEAR
+                , A.DEPT_CD
+                , A.DEPT_KOR_NM
+                , B.EVAL_GRP_ID
+         ORDER BY A.DEPT_CD
+	</select>
+
+	<!--	
+	==================================================================   
+	  # 설명	: 직원평가조직별평가군 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	
+	<select id="getEvalGroupList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+             , A.EVAL_GRP_ID
+             , A.EVAL_GRP_NM
+          FROM PRS_EVAL_GRP A
+         WHERE A.YEAR = #findYear#
+           AND EVAl_TYPE IN ('06','07','08')
+           AND DELETE_DT IS NULL	      
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 직원평가조직별평가군 부서 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EMP_DEPT_EVAL_GRP
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">		
+		INSERT INTO PRS_EMP_DEPT_EVAL_GRP (
+		       YEAR
+		     ,  DEPT_CD
+		     , EVAL_GRP_ID
+		     , CREATE_DT		     
+			 ) VALUES ( 
+			   #year#
+			 , #deptCd#
+			 , #evalGrpId#
+			 , sysdate			
+			 )
+	</insert>	
+
+	<!--
+	==================================================================   
+	  # 설명	: 직원평가조직별평가군 부서 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: PRS_EMP_DEPT_EVAL_GRP
+	==================================================================
+	-->
+	<delete id="deleteData" parameterClass="hashMap">
+		DELETE FROM PRS_EMP_DEPT_EVAL_GRP 
+		 WHERE YEAR = #year#
+		 AND DEPT_CD = #deptCd#
+	</delete>
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가조직별 평가군 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: PRS_EMP_DEPT_EVAL_GRP
+	==================================================================
+	-->
+	<delete id="deleteAutoData" parameterClass="hashMap">
+		DELETE FROM PRS_EMP_DEPT_EVAL_GRP 
+		 WHERE YEAR = #year#
+	</delete>
+
+
+	<!--
+	==================================================================   
+	  # 설명	: EVAL_TYPE 존재여부
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<select id="getEvalStatus" parameterClass="hashMap" resultClass="hashMap">
+	 SELECT DECODE (SUM(EVAL_YN), '3', 'Y', 'N') AS EVAL_YN
+	   FROM (
+	       SELECT DECODE(EVAL_TYPE, '', '0', '1') AS EVAL_YN
+	         FROM PRS_EVAL_GRP
+	        WHERE YEAR = #findYear#
+	          AND EVAL_TYPE IN ('06', '07', '08')
+	          AND DELETE_DT IS NULL
+	        GROUP BY EVAL_TYPE
+	       )
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지역본부(지사)군 자동 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EMP_DEPT_EVAL_GRP
+	==================================================================
+	-->
+	<insert id="insertBranchData" parameterClass="hashMap">
+		INSERT INTO PRS_EMP_DEPT_EVAL_GRP (YEAR, DEPT_CD, EVAL_GRP_ID, CREATE_DT) 
+		SELECT A.YEAR, A.DEPT_CD, (SELECT EVAL_GRP_ID 
+									 FROM PRS_EVAL_GRP 
+									WHERE EVAL_TYPE = '08' 
+									  AND YEAR = A.YEAR
+									  AND DELETE_DT IS NULL), SYSDATE 
+		  FROM BSC_INSA_DEPT A 
+		 WHERE A.YEAR = #year# 
+		   AND A.UP_DEPT_CD IN ('6300', '6400', '6500', '6700', '7000', '7100', '7500', '7600', '7900', '8200', '8300', '8400', '8600', '9000', '6200', '6600', '6800', '7200', '7300', '7700', '8000', '8100', '8500', '8700', '8800', '8900', '9100')
+		   AND A.USE_YN = 'T'
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 본사군 자동 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EMP_DEPT_EVAL_GRP
+	==================================================================
+	-->
+	<insert id="insertHQData" parameterClass="hashMap">
+		INSERT INTO PRS_EMP_DEPT_EVAL_GRP (YEAR, DEPT_CD, EVAL_GRP_ID, CREATE_DT) 
+		SELECT A.YEAR, A.DEPT_CD, (SELECT EVAL_GRP_ID 
+									 FROM PRS_EVAL_GRP 
+									WHERE EVAL_TYPE = '06' 
+									  AND YEAR = A.YEAR
+									  AND DELETE_DT IS NULL), SYSDATE
+		  FROM BSC_INSA_DEPT A
+		 WHERE A.YEAR = #year# AND (A.UP_DEPT_CD IN ('1200', '1300', '1400', '1D00', '2200', '2300', '2400', '2600', '3100', '3F00', '3J00', '3L00') OR A.DEPT_CD IN ('1100', '1900', '2100'))
+		   AND A.USE_YN = 'T'
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 부설기관군 자동 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_EMP_DEPT_EVAL_GRP
+	==================================================================
+	-->
+	<insert id="insertAttachedData" parameterClass="hashMap">
+		INSERT INTO PRS_EMP_DEPT_EVAL_GRP (YEAR, DEPT_CD, EVAL_GRP_ID, CREATE_DT) 
+		SELECT A.YEAR, A.DEPT_CD, (SELECT EVAL_GRP_ID 
+									 FROM PRS_EVAL_GRP 
+									WHERE EVAL_TYPE = '07' 
+									  AND YEAR = A.YEAR
+									  AND DELETE_DT IS NULL), SYSDATE 
+		  FROM BSC_INSA_DEPT A 
+		 WHERE A.YEAR = #year# AND A.UP_DEPT_CD IN ('4000', '4H00', '5100', '5200')
+		   AND A.USE_YN = 'T'
+	</insert>
+
+</sqlMap>
+
+

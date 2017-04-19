@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.impon.imponComment">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_IPE_EVAL_FEED
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가의견 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_EVAL_FEED
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+               A.METRIC_GRP_ID,
+               B.METRIC_GRP_NM,
+               A.METRIC_ID AS ITEM_ID,
+               C.SC_DEPT_NM AS ITEM_NM,
+               A.SORT_ORDER,
+               D.ATTACH_FILE_NM ,
+               D.ATTACH_FILE_FNM ,
+               D.ATTACH_FILE_SUFFIX,
+               CASE WHEN D.ATTACH_FILE_PATH IS NULL THEN D.ATTACH_FILE_PATH ELSE F_ENCRYPT(D.ATTACH_FILE_PATH,#encryptionCode#)  END ATTACH_FILE_PATH
+          FROM BSC_METRIC A
+          LEFT OUTER JOIN BSC_METRIC_GRP B ON A.YEAR=B.YEAR AND A.METRIC_GRP_ID=B.METRIC_GRP_ID
+          LEFT OUTER JOIN BSC_SC_DEPT C ON A.YEAR=C.YEAR AND A.SC_DEPT_ID=C.SC_DEPT_ID
+          LEFT OUTER JOIN BSC_IPE_EVAL_FEED D ON A.YEAR=D.YEAR AND A.METRIC_GRP_ID=D.METRIC_GRP_ID AND A.METRIC_ID=D.ITEM_ID AND D.EVAL_DEGREE_ID=#findEvalDegreeId# AND D.SEQ=1
+         WHERE A.YEAR=#findYear#
+           AND A.TYPE_ID='02'
+           AND A.DELETE_DT IS NULL  
+           <isNotEmpty property="findMetricGrpId" prepend="AND">
+       			A.METRIC_GRP_ID = #findMetricGrpId#
+       	   </isNotEmpty> 
+           AND A.METRIC_GRP_ID NOT IN(
+                                      SELECT DISTINCT METRIC_GRP_ID
+                                        FROM BSC_IPE_ITEM
+                                       WHERE YEAR=#findYear#
+                                         AND EVAL_DEGREE_ID=#findEvalDegreeId#)
+          UNION ALL                                        
+         SELECT A.YEAR,
+                A.METRIC_GRP_ID,
+                B.METRIC_GRP_NM,
+                A.ITEM_ID,
+                A.ITEM_NM,
+                A.SORT_ORDER,
+                C.ATTACH_FILE_NM ,
+                C.ATTACH_FILE_FNM ,
+                C.ATTACH_FILE_SUFFIX,
+                CASE WHEN C.ATTACH_FILE_PATH IS NULL THEN C.ATTACH_FILE_PATH ELSE F_ENCRYPT(C.ATTACH_FILE_PATH,#encryptionCode#)  END ATTACH_FILE_PATH
+          FROM BSC_IPE_ITEM A
+          LEFT OUTER JOIN BSC_METRIC_GRP B ON A.YEAR=B.YEAR AND A.METRIC_GRP_ID=B.METRIC_GRP_ID
+          LEFT OUTER JOIN BSC_IPE_EVAL_FEED C ON A.YEAR=C.YEAR AND A.METRIC_GRP_ID=C.METRIC_GRP_ID AND A.ITEM_ID=C.ITEM_ID AND A.EVAL_DEGREE_ID=C.EVAL_DEGREE_ID AND C.SEQ=1
+         WHERE A.YEAR=#findYear#
+           AND A.EVAL_DEGREE_ID=#findEvalDegreeId#
+           <isNotEmpty property="findMetricGrpId" prepend="AND">
+       		   A.METRIC_GRP_ID = #findMetricGrpId#
+       	   </isNotEmpty> 
+          ORDER BY METRIC_GRP_ID, SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가의견 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_EVAL_FEED
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_DEGREE_ID        
+			 , METRIC_GRP_ID         
+			 , ITEM_ID               
+			 , SEQ                   
+			 , ITEM_GBN              
+			 , ATTACH_FILE_NM        
+			 , ATTACH_FILE_FNM       
+			 , ATTACH_FILE_SUFFIX    
+			 , ATTACH_FILE_PATH      
+		  FROM BSC_IPE_EVAL_FEED 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND ITEM_ID = #itemId#
+		   AND SEQ = #seq#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가의견 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_IPE_EVAL_FEED
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('BSC_IPE_EVAL_FEED','','','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO BSC_IPE_EVAL_FEED ( 
+			   YEAR
+			 , EVAL_DEGREE_ID
+			 , METRIC_GRP_ID
+			 , ITEM_ID
+			 , SEQ
+			 , ITEM_GBN
+			 , ATTACH_FILE_NM
+			 , ATTACH_FILE_FNM
+			 , ATTACH_FILE_SUFFIX
+			 , ATTACH_FILE_PATH
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #metricGrpId#
+			 , #itemId#
+			 , #seq#
+			 , #itemGbn#
+			 , #attachFileNm#
+			 , #attachFileFnm#
+			 , #attachFileSuffix#
+			 , #attachFilePath#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가의견 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IPE_EVAL_FEED
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_IPE_EVAL_FEED 
+		   SET ITEM_GBN               = #itemGbn# 
+			 , ATTACH_FILE_NM         = #attachFileNm# 
+			 , ATTACH_FILE_FNM        = #attachFileFnm# 
+			 , ATTACH_FILE_SUFFIX     = #attachFileSuffix# 
+			 , ATTACH_FILE_PATH       = #attachFilePath# 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND ITEM_ID = #itemId#
+		   AND SEQ = #seq#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가의견 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IPE_EVAL_FEED
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_IPE_EVAL_FEED 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND ITEM_ID = #itemId#
+		   AND SEQ = #seq#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가구분
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_ECM_EVAL_DEGREE
+	==================================================================
+	-->
+	<select id="getDetailGubun" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_DEGREE_ID        
+			 , EVAL_DEGREE_NM         
+		  FROM BSC_ECM_EVAL_DEGREE 
+		 WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표POOL
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC_GRP
+	==================================================================
+	-->
+	<select id="getDetailMetricGrp" parameterClass="hashMap" resultClass="hashMap">
+		SELECT METRIC_GRP_NM         
+		  FROM BSC_METRIC_GRP
+		 WHERE YEAR = #year#
+		   AND METRIC_GRP_ID = #metricGrpId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표POOL
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC
+	==================================================================
+	-->
+	<select id="getDetailMetric" parameterClass="hashMap" resultClass="hashMap">
+		SELECT B.SC_DEPT_NM AS ITEM_NM
+		  FROM BSC_METRIC A
+		  LEFT OUTER JOIN BSC_SC_DEPT B ON A.YEAR=B.YEAR AND A.SC_DEPT_ID=B.SC_DEPT_ID
+		 WHERE A.YEAR=#year#
+		   AND A.METRIC_GRP_ID=#metricGrpId#
+		   AND A.METRIC_ID=#itemId#
+		UNION
+		SELECT ITEM_NM
+		  FROM BSC_IPE_ITEM
+		 WHERE YEAR=#year#
+		   AND METRIC_GRP_ID=#metricGrpId#
+		   AND ITEM_ID=#itemId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 목표 파일 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_ACT_RPT_ATTACH
+	==================================================================
+	-->
+	<select id="getFileList" parameterClass="hashMap" resultClass="hashMap">
+ 		SELECT A.YEAR
+	         , A.EVAL_DEGREE_ID
+	         , A.METRIC_GRP_ID
+	         , A.ITEM_ID
+	         , A.SEQ
+	         , A.ATTACH_FILE_NM
+	         , A.ATTACH_FILE_FNM
+	         , A.ATTACH_FILE_SUFFIX
+	         , F_ENCRYPT(A.ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+         FROM BSC_IPE_EVAL_FEED A
+        WHERE A.YEAR = #year#
+		   AND A.EVAL_DEGREE_ID = #evalDegreeId#
+		   AND A.METRIC_GRP_ID = #metricGrpId#
+		   AND A.ITEM_ID = #itemId#	 
+  	</select>
+  	
+  	<!--
+	==================================================================   
+	  # 설명	: 목표 첨부파일 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_IPE_EVAL_FEED
+	==================================================================
+	-->	
+	<insert id="insertFileInfo" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT NVL(MAX(SEQ)+1,1)  FROM BSC_IPE_EVAL_FEED WHERE YEAR = #year# AND EVAL_DEGREE_ID=#evalDegreeId# AND METRIC_GRP_ID=#metricGrpId# AND ITEM_ID=#itemId#  
+		</selectKey> 
+		INSERT INTO BSC_IPE_EVAL_FEED (
+               YEAR
+             , EVAL_DEGREE_ID
+             , METRIC_GRP_ID
+             , ITEM_ID
+             , SEQ
+             , ITEM_GBN
+             , ATTACH_FILE_NM
+             , ATTACH_FILE_FNM
+             , ATTACH_FILE_SUFFIX
+             , ATTACH_FILE_PATH
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #evalDegreeId#
+             , #metricGrpId#
+             , #itemId#
+             , #SEQ#
+             , #itemGbn#
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSuffix#
+             , #attachFilePath#
+             , SYSDATE
+    	   )       
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 목표 첨부파일 삭제
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_IPE_EVAL_FEED
+	==================================================================
+	-->	
+	<delete id="deleteFileInfo" parameterClass="hashMap">
+		DELETE FROM BSC_IPE_EVAL_FEED
+		   WHERE YEAR = #year#
+		   AND EVAL_DEGREE_ID = #evalDegreeId#
+		   AND METRIC_GRP_ID = #metricGrpId#
+		   AND ITEM_ID = #itemId#
+		   AND SEQ = #seq#
+	</delete>
+	
+	
+</sqlMap>
+
+

@@ -1,0 +1,271 @@
+#*************************************************************************
+* CLASS 명      : memUserModify
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년 03월16일 
+* 기    능      : 평가대상자관리  
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    유연주      2017년 03월 16일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	var grdRowId = 0;
+	
+	J(document).ready(function(){
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/mem/base/memUser/memUserList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+        /******************************************
+         * fancy Box 팝업호출
+         ******************************************/
+        J("#empNoSearch").fancybox();
+        J("#deptSearch").fancybox();
+        J("#eval1EmpNoSearch").fancybox();
+        J("#eval2EmpNoSearch").fancybox();
+	});
+	
+    /*****************************************************
+     * 대상자 설정
+     *****************************************************/
+    function setEmpNoInfo(arguments) {
+        J("#empNo").val(arguments[0]);
+        J("#empNm").val(arguments[1]);
+        J("#deptCd").val(arguments[2]);
+        J("#deptNm").val(arguments[3]);
+        J("#posTc").val(arguments[6]);
+        J("#castTc").val(arguments[4]);
+        J.fancybox.close();
+    }
+    function setEval1EmpNoInfo(arguments) {
+        J("#eval1EmpNo").val(arguments[0]);
+        J("#eval1EmpNm").val(arguments[1]);
+        J("#eval1DeptCd").val(arguments[2]);
+        J("#eval1PosTc").val(arguments[6]);
+        J("#eval1CastTc").val(arguments[4]);
+        J.fancybox.close();
+    }
+    function setEval2EmpNoInfo(arguments) {
+        J("#eval2EmpNo").val(arguments[0]);
+        J("#eval2EmpNm").val(arguments[1]);
+        J("#eval2DeptCd").val(arguments[2]);
+        J("#eval2PosTc").val(arguments[6]);
+        J("#eval2CastTc").val(arguments[4]);
+        J.fancybox.close();
+    }
+	
+    /*****************************************************
+     * 부서선택 설정
+     *****************************************************/ 
+    function setDeptInfoPop(deptId, deptNm) {
+        deptNm = J(deptNm).text();
+        
+        J("#deptCd").val(deptId);
+        J("#deptNm").val(deptNm);
+        J.fancybox.close();
+    }
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(!J.checkLength("empNo", "평가대상자", 1, 6)) {
+			return;
+		}
+		if(!J.checkLength("deptCd", "부서", 1, 4)) {
+			return;
+		}
+		if(!J.checkLength("castTc", "직급", 1, 2)) {
+			return;
+		}
+		if(!J.checkLength("posTc", "직위", 1, 2)) {
+			return;
+		}
+		if(!J.checkLength("evalGrpId", "평가그룹", 1, 7)) {
+			return;
+		}
+		if(!J.checkLength("eval1EmpNo", "1차평가자", 1, 6)) {
+			return;
+		}
+		if(!J.checkLength("eval2EmpNo", "2차평가자", 1, 6)) {
+			return;
+		}
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/mem/base/memUser/memUserProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/mem/base/memUser/memUserProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">기준년도 <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="업무수행평가항목 등록">
+					<caption class="none">업무수행평가항목 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="80%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="empNm">평가대상자</label></th>
+    						<td>
+                                <input type="text" id="empNm" name="empNm" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.EMP_NM)}" readonly="readonly"/>
+                                <input type="hidden" id="empNo" name="empNo" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.EMP_NO)}"/>
+								#if($!{searchMap.txt2html("mode")} == "ADD")
+    								<a id="empNoSearch" href="$!{context_path}/bsc/module/commModule/popSearchUser.vw?findYear=$!{searchMap.txt2html("year")}&amp;callBack=setEmpNoInfo"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="평가대상자선택" /></a>
+								#end
+							</td>
+    					</tr>
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="deptNm">부서</label></th>
+                            <td>
+                                <input type="hidden" id="deptCd" name="deptCd" value="$!{CS_HTML.txt2html($detail.DEPT_CD)}" />
+                                <input type="text" id="deptNm" name="deptNm" class="text" value="$!{CS_HTML.txt2html($detail.DEPT_NM)}"  maxlength="20" title="소속부서 " readonly="readonly" />
+                                <a id="deptSearch" href="$!{context_path}/bsc/module/commModule/popScDeptTree1.vw?findYear=$!{searchMap.txt2html("year")}&amp;findSearchCodeId=$!{searchMap.txt2html("findScDeptId")}"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="부서검색"/></a> 
+                            </td>
+    					</tr>
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="castTc">직급</label></th>
+    						<td>
+                                <select id="castTc" name="castTc" class="select w210" >
+                                    $!CS_CODE.getCodeOption("170", $detail.CAST_TC, $!{searchMap.txt2html("year")})   
+                                </select>
+							</td>
+    					</tr>
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="posTc">직위</label></th>
+    						<td>
+                                <select id="posTc" name="posTc" class="select w210" >
+                                    $!CS_CODE.getCodeOption("171", $detail.POS_TC, $!{searchMap.txt2html("year")})   
+                                </select>
+							</td>
+    					</tr>
+						<tr>
+    						<th scope="row"><label for="evalTgtYn">평가그룹</label></th>
+    						<td>
+                                <select id="evalGrpId" name="evalGrpId" class="select w210" >
+                                    <option value="">선택</option>
+                                    #foreach($evalGrpList in $evalGrpList)
+                                        <option value="$!{CS_HTML.txt2html($evalGrpList.EVAL_GRP_ID)}" #if($detail.EVAL_GRP_ID==$evalGrpList.EVAL_GRP_ID) selected="selected" #end)>$!{CS_HTML.txt2html($evalGrpList.EVAL_GRP_NM)}</option>
+                                    #end
+                                </select>
+							</td>
+    					</tr>
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="eval1EmpNm">1차평가자</label></th>
+    						<td>
+                                <input type="text" id="eval1EmpNm" name="eval1EmpNm" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.EVAL_1_EMP_NM)}" readonly="readonly"/>
+                                <input type="hidden" id="eval1DeptCd" name="eval1DeptCd">
+                                <input type="hidden" id="eval1PosTc" name="eval1PosTc">
+                                <input type="hidden" id="eval1CastTc" name="eval1CastTc">
+                                <input type="hidden" id="eval1EmpNo" name="eval1EmpNo" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.EVAL_1_EMP_NO)}"/>
+    							<a id="eval1EmpNoSearch" href="$!{context_path}/bsc/module/commModule/popSearchUser.vw?findYear=$!{searchMap.txt2html("year")}&amp;callBack=setEval1EmpNoInfo"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="1차평가자선택" /></a>
+							</td>
+    					</tr>
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span> <label for="eval2EmpNm">2차평가자</label></th>
+    						<td>
+                                <input type="text" id="eval2EmpNm" name="eval2EmpNm" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.EVAL_2_EMP_NM)}" readonly="readonly"/>
+                                <input type="hidden" id="eval2DeptCd" name="eval2DeptCd">
+                                <input type="hidden" id="eval2PosTc" name="eval2PosTc">
+                                <input type="hidden" id="eval2CastTc" name="eval2CastTc">
+                                <input type="hidden" id="eval2EmpNo" name="eval2EmpNo" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.EVAL_2_EMP_NO)}"/>
+    							<a id="eval2EmpNoSearch" href="$!{context_path}/bsc/module/commModule/popSearchUser.vw?findYear=$!{searchMap.txt2html("year")}&amp;callBack=setEval2EmpNoInfo"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="2차평가자선택" /></a>
+							</td>
+    					</tr>
+						<tr>
+    						<th scope="row"><label for="evalTgtYn">평가대상여부</label></th>
+    						<td>
+                                <select id="evalTgtYn" name="evalTgtYn" class="select w210" >
+                                    $!CS_CODE.getCodeOption("241", $detail.EVAL_TGT_YN, $!{searchMap.txt2html("year")})   
+                                </select>
+							</td>
+    					</tr>
+						<tr>
+    						<th scope="row"><label for="evalExpRsId">평가제외사유</label></th>
+    						<td>
+                                <select id="evalExpRsId" name="evalExpRsId" class="select w210" >
+                                    $!CS_CODE.getCodeOption("242", $detail.EVAL_EXP_RS_ID, $!{searchMap.txt2html("year")})   
+                                </select>
+							</td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    	</div>
+		<div id="Table_blockContainer">
+			<div id="splitterBox">
+				<div>
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							##<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+			    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+			    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>

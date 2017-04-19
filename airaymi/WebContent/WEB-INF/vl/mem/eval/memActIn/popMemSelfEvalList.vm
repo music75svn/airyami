@@ -1,0 +1,221 @@
+#*************************************************************************
+* CLASS 명      : popMemSelfEvalList.vm
+* 작 업 자      : 유연주
+* 작 업 일      : 2017.03.23
+* 기    능      : 자기평가 관리 팝업
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     유 연 주     2017.03.23          최 초 작 업 
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/mem/eval/memActIn/popMemSelfEvalList.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+    <script type="text/javascript" language="javascript" >
+//<![CDATA[
+	var J = jQuery;
+	var grdRowId = 0;
+	
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFindPop').serialize();
+		
+		jQuery("#popList").jqGrid({
+			url          :"$!{searchMap.txt2html("context")}/mem/eval/memActIn/popMemSelfEvalList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : 250,
+			colNames     :['평가년도', '사원번호', '이름', '평가의견구분코드', '평가의견구분', '자기평가의견', '등급', 'CAL_CNT', 'CAL_NUM'],
+			colModel     :[
+							{name:'YEAR'             ,index:'YEAR'               ,width:0     ,align:'center' },
+							{name:'EMP_NO'  	     ,index:'EMP_NO'             ,width:80    ,align:'center' ,	cellattr:attrSetting },
+							{name:'EMP_NM'  	     ,index:'EMP_NM'             ,width:80    ,align:'center' ,	cellattr:attrSetting },
+							{name:'OPINION_KEY'  	 ,index:'OPINION_KEY'        ,width:0     ,align:'center' },
+							{name:'OPINION_KEY_NM'   ,index:'OPINION_KEY_NM'     ,width:100   ,align:'center' },
+							{name:'OPINION'          ,index:'OPINION'            ,width:400   ,align:'center' ,formatter:goEvalOpinion },
+							{name:'EVAL_GRADE_ID'  	 ,index:'EVAL_GRADE_ID'      ,width:100   ,align:'center' ,	cellattr:attrSetting ,formatter:goEvalGrade },
+                            {name:'CAL_CNT'          ,index:'CAL_CNT'            ,width:0     ,align:'center' },
+							{name:'CAL_NUM'          ,index:'CAL_NUM'            ,width:0     ,align:'center' }
+							
+							],
+			rowNum       : 100000,
+			autowidth    : true,
+			viewrecords  : true,
+			loadonce     : false,
+			multiselect  : false,
+			cellEdit     : false,
+			cmTemplate   : {sortable:false},
+			loadComplete : function() {
+                           },
+			caption:"자기평가 조회"
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"OPINION_KEY").jqGrid('hideCol',"CAL_CNT").jqGrid('hideCol',"CAL_NUM").setGridWidth(760);
+		
+		/******************************************
+		 * 닫기버튼 이벤트
+		 ******************************************/
+		J("#btnClose").click(function(e) {
+			self.close();
+		});
+		
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+	});
+	
+	/*****************************************
+	 * 자기평가 Rowspan 설정
+	 ******************************************/
+	function attrSetting(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.CAL_NUM;
+		var rowSpan = rowObject.CAL_CNT;
+
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+
+		return result;
+	}
+	
+	/******************************************
+     * jqGrid 평가등급
+     ******************************************/
+    function goEvalGrade(cellvalue, options, rowObject) {
+     	var str = "";
+		var ids = "evalGradeId";
+    	str += '<select id="' + ids + '" name="' + ids + '" class="select w80">';
+    #foreach($gradeList in $gradeList)
+    	if (cellvalue == "$!{CS_HTML.txt2html($gradeList.GRADE_ITEM_ID)}") {
+    		str += '	<option value="$!{CS_HTML.txt2html($gradeList.GRADE_ITEM_ID)}" selected>$!{CS_HTML.txt2html($gradeList.GRADE_ITEM_NM)}</option>';
+    	}else{
+    		str += '	<option value="$!{CS_HTML.txt2html($gradeList.GRADE_ITEM_ID)}">$!{CS_HTML.txt2html($gradeList.GRADE_ITEM_NM)}</option>';
+    	}
+    #end
+        str += '</select>';
+    	
+    	return str;
+    }
+    
+    /******************************************
+     * jqGrid 평가의견
+     ******************************************/
+    function goEvalOpinion(cellvalue, options, rowObject) {
+ 		var str = "";
+		str += "<textarea id=\"opinion\" name=\"opinion\" cols=\"59\" rows=\"5\">" + rowObject.OPINION + "</textarea>";
+		return str;
+    }
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		var ids = J("#popList").jqGrid('getDataIDs');
+		var rowdata = "";
+		
+		if(!LengthCheck(J("#formFindPop textarea[name=opinion]").eq(0).val(), "우수한점", 1, 4000 ) ) {
+            J("#formFindPop textarea[name=opinion]").eq(0).focus();
+            return false;
+    	}
+		if(!LengthCheck(J("#formFindPop textarea[name=opinion]").eq(1).val(), "미흡한점", 1, 4000 ) ) {
+            J("#formFindPop textarea[name=opinion]").eq(1).focus();
+            return false;
+    	}
+   		if(!LengthCheck(J("#formFindPop textarea[name=opinion]").eq(2).val(), "기타의견", 1, 4000 ) ) {
+            J("#formFindPop textarea[name=opinion]").eq(2).focus();
+            return false;
+    	}
+    	
+    	if(J("#formFindPop textarea[name=opinion]").eq(0).val() == "" &&
+    	   J("#formFindPop textarea[name=opinion]").eq(1).val() == "" &&
+    	   J("#formFindPop textarea[name=opinion]").eq(2).val() == ""){
+	    	   alert("우수한점, 미흡한점, 기타의견 중 반드시 1개의 사항은 등록하셔야 합니다.");
+	    	   return;
+    	}
+    	
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+	
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#formFindPop").attr("action", "$!{context_path}/mem/eval/memActIn/popMemSelfEvalProcess.vw").submit();
+	}
+//]]>
+</script>
+</head>
+<body>
+
+<form id="formFindPop" name="formFindPop" method="post">
+	<input type="hidden" id="findYear"         name="findYear"           value="$!{searchMap.txt2html("findYear")}" />
+	<input type="hidden" id="findEmpNo"        name="findEmpNo"          value="$!{searchMap.txt2html("findEmpNo")}" />
+
+    <div style="width:780px;height:300px;">
+    	<div id="popMetricGrpArea" style="margin-left:15px;">
+    		<h1 class="none">자기평가리스트</h1>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                </br>
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w350">평가년도 <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+			<div id="userData">
+    			<!-- 데이터그리드 Start -->
+    			<div class="blockGridListTable">
+    				<table id="popList" summary="자기평가 조회">
+    					<caption class="none">자기평가조회</caption>
+    					<thead><tr><th></th></tr></thead>
+    					<tbody><tr><td></td></tr></tbody>
+    				</table>
+    				<div id="pager"></div>                    
+    			</div>
+    			<!--// 데이터그리드 End -->
+			</div><br>
+			<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnClose"   value="닫기" /></li>
+			    	<li><input type="submit" id="btnInsert"  value="저장 및 평가요청" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>
+<div id="dialog" title="확인" style="display:none;"><p>&nbsp;</p></div>    <!-- 다이어로그 -->
+</body>
+</html>

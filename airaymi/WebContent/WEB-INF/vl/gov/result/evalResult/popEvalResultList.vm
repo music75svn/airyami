@@ -1,0 +1,104 @@
+#*************************************************************************
+* CLASS 명      : popEvalResultList
+* 작 업 자      : 지원길
+* 작 업 일      : 2013년 07월 03일
+* 기    능      : 공공기관비교대상
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용           비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    지원길      2013년 07월 03일             최 초 작 업
+**************************************************************************#
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($curr_url = $!{context_path} + "/gov/result/evalResult/popEvalResultList.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+	/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#form1').serialize();
+
+		jQuery("#list").jqGrid({
+
+			url          :"$!{context_path}/gov/result/evalResult/popEvalResultList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '경영지표PoolId', '공공기관', '지표명', '가중치', '점수', '순위'],
+			colModel     :[
+							{name:'YEAR'   			,index:'YEAR'  			,width:250   ,align:'center' },
+							{name:'GOV_METRIC_ID'   ,index:'GOV_METRIC_ID'  ,width:255   ,align:'center' },
+							{name:'OFFICE_NM'   	,index:'OFFICE_NM'   	,width:15    ,align:'left'	 },
+							{name:'GOV_METRIC_NM'   ,index:'GOV_METRIC_NM'  ,width:15    ,align:'left'	 },
+							{name:'WEIGHT'       	,index:'WEIGHT'         ,width:5     ,align:'center' },
+							{name:'SCORE'       	,index:'SCORE'          ,width:5     ,align:'center' },
+							{name:'RANK'       		,index:'RANK'           ,width:5     ,align:'center' }
+							],
+			rowNum		 : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : false,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			cmTemplate: {sortable:false},
+			caption:"비교항목"
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"GOV_METRIC_ID");
+
+	/******************************************
+		 * 닫기버튼 이벤트
+		 ******************************************/
+		J("#btnClose").click(function(e) {
+			self.close();
+		});
+});
+
+//]]>
+</script>
+</head>
+<body>
+	<form id="form1" name="form1" method="post">
+	    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+		<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+		<input type="hidden" 	id="index" 	 		name="index" />
+		<input type="hidden" 	id="govMetricId" 	name="govMetricId" 	  value="$!{searchMap.txt2html("govMetricId")}" />
+
+	    $!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="공공기관비교대상 조회">
+							<caption class="none">공공기관비교대상 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton">
+	                		<li><input type="button" id="btnClose"   value="닫기" /></li>
+	        		</div>
+				</div>
+			</div>
+	</form>
+</body>
+</html>

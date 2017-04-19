@@ -1,0 +1,304 @@
+#*************************************************************************
+* CLASS 명      : deptStrategyDiagMngList
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 8월 26일 
+* 기    능      : 전략체계도관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김윤기      2012년 8월 26일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/bsc/base/deptStrategyDiagMng/deptStrategyDiagMngList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/base/deptStrategyDiagMng/deptStrategyDiagMngList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['$!{PERSPECTIVE_NM}코드', 'CSF코드', 'CSF명', 'KIND', 'X1', 'Y1', '평가진행상태'],
+			colModel     :[
+							{name:'PERSPECTIVE_ID'       ,index:'PERSPECTIVE_ID'       ,width:150   ,align:'center' }, 
+                            {name:'STRATEGY_ID'          ,index:'STRATEGY_ID'          ,width:150   ,align:'center' }, 
+                            {name:'STRATEGY_NM'          ,index:'STRATEGY_NM'          ,width:150   ,align:'center' }, 
+                            {name:'KIND'                 ,index:'KIND'                 ,width:150   ,align:'center' }, 
+                            {name:'X1'                   ,index:'X1'                   ,width:150   ,align:'center' }, 
+                            {name:'Y1'                   ,index:'Y1'                   ,width:150   ,align:'center' }, 
+                            {name:'STATUS'               ,index:'STATUS'               ,width:150   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			caption:"전략체계도관리"
+		});
+        
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+        
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/bsc/base/deptStrategyDiagMng/deptStrategyDiagMngModify.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+		
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+		
+		/******************************************
+    	 * 조직선택 팝업호출
+    	 ******************************************/
+    	J("#icSearch").fancybox();
+	});
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) { 
+		return '<a href=javascript:goModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		//J("#codeGrpId").val(ret.CODE_GRP_ID);
+		J("#year").val(J("#findYear").val());
+		J("#mode").val("MOD");
+		J("#formList").attr("action", "$!{context_path}/bsc/base/deptStrategyDiagMng/deptStrategyDiagMngModify.vw?type=template").submit();
+	}
+    
+	/******************************************
+	 * 삭제
+	 ******************************************/
+	function goDelete() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("삭제할 데이터를 선택하십시요", null, null); 
+		} else {
+			J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+    
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		/*
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var codeGrpIds = "";
+        
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					codeGrpIds += rowdata.CODE_GRP_ID + '|';
+				}
+			});
+		}
+        
+		J("#codeGrpIds").val(codeGrpIds);
+		J("#mode").val("DEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/bsc/base/deptStrategyDiagMng/deptStrategyDiagMngProcess.vw?type=template").submit();
+		return false;
+		*/
+	}
+	
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#formFind").attr("action", "$!{context_path}/bsc/base/deptStrategyDiagMng/deptStrategyDiagMngListExcel.vw?type=excel").submit();
+		return false;
+	}
+	
+	/*****************************************************
+	 * 조직선택 설정
+	 *****************************************************/ 
+	function setDeptInfoPop(scDeptId, scDeptNm) {
+		scDeptNm = J(scDeptNm).text();
+		J("#findScDeptId").val(scDeptId);
+		J("#findScDeptNm").val(scDeptNm);
+		J.fancybox.close();
+	}
+
+	
+	/*****************************************************
+	 * 전략체계도 배경화면 업로드
+	 *****************************************************/
+	function bgUpload() {
+		var findYear = J("#findYear").val();
+		var findScDeptId = J("#findScDeptId").val();
+		
+		var url = "$!{context_path}/bsc/base/deptStrategyDiagMng/popAttachDeptStrategyDiagBackground.vw?type=popup&amp;findYear=" + findYear + "&amp;findScDeptId=" + findScDeptId;
+		openWinByName(url,'systemWordDic','580','240','no');
+    }
+	
+	/******************************************
+	 * 배경화면 파일삭제
+	 ******************************************/
+	function goFileDelete() {
+		J.showConfirmBox("배경을 삭제하시겠습니까?", "fileDeleteDo"); //fileDeleteDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 배경화면 파일삭제처리
+	 ******************************************/
+	function fileDeleteDo() {
+		J("#year").val(J("#findYear").val());
+		J("#scDeptId").val(J("#findScDeptId").val());
+		J("#mode").val("FILEDEL");
+		
+		J("#formList").attr("action", "$!{context_path}/bsc/base/deptStrategyDiagMng/deptStrategyDiagMngProcess.vw?type=template").submit();
+		return false;
+	}	
+	
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">전략체계도관리</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/base/deptStrategyDiagMng/deptStrategyDiagMngList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="전략체계도관리검색 조건">
+						<caption class="none">전략체계도관리 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w180">
+            						<span>$!{YEAR}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<td style="display:none;" class="searchBox_tit w300" >
+            						<span>성과조직</span>
+            						<span class="searchBar">
+        								<input type="hidden" id="findScDeptId" name="findScDeptId" value="$!{CS_STATIC.nullToDefault($!{searchMap.txt2html("findScDeptId")},${CS_LOGIN.getSc_dept_id()})}" />
+        								<input type="text" id="findScDeptNm" name="findScDeptNm" class="inputbox w170 disable" value="$!{CS_STATIC.nullToDefault($!{searchMap.txt2html("findScDeptNm")},${CS_LOGIN.getSc_dept_nm()})}" maxlength="20" readonly="readonly"/>
+        								<a id="icSearch" href="$!{context_path}/bsc/module/commModule/popScDeptTree.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;findSearchCodeId=$!{searchMap.txt2html("findScDeptId")}"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="조직검색"/></a> 
+        								<a href="javascript:cancleDept();"><img src="$!{img_path}/common/board/ic_cancel.gif" id="icCancel" class="valign_middle" alt="검색 초기화"/></a>            						
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+            						<span class="searchBar">
+        								<a id="bgUpload" href="javascript:bgUpload();"><img src="$!{img_path}/common/btn_bg_att.gif" class="valign_middle" alt="배경로딩"/></a> 
+        								<a id="bgInit" 	 href="javascript:goFileDelete();"><img src="$!{img_path}/common/btn_bg_del.gif" class="valign_middle" alt="배경삭제"/></a>            						
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/base/deptStrategyDiagMng/deptStrategyDiagMngProcess.vw?type=template">
+			<input type="hidden" id="mode"       name="mode" />
+			<input type="hidden" id="year"		 name="year" />
+			<input type="hidden" id="scDeptId"	 name="scDeptId" />
+			$!{searchMap.makeHiddenFind()}
+			<div>
+				<div>
+                    <div>
+						<script type="text/javascript" language="javascript" >
+						//<![CDATA[
+							var url = '_pPath=$!{context_path}&AdminBool=_StartegyAdmin_&requestURL=$!{context_path}/bsc/base/deptStrategyDiagMng/deptStrategyDiagMng_xml.vw?findYear=$!{searchMap.txt2html("findYear")}%26findMon=12%26findAnalCycle=Y%26metric_gbn=BSC%26findScDeptId=$!{searchMap.txt2html("findScDeptId")}%26findScDeptNm=$!{searchMap.txt2html("findScDeptNm")}%26admin_bool=_StartegyAdmin_%26gubun=0%26img_url=$!{img_path}%26context_url=$!{context_path}';
+							VBOX2Swf("StrategyMapMng","1150","570","$!{img_path}/flash/VBOX_STRATEGYMAPS.swf","strPath="+url,true);
+						//]]>
+                    	</script> 				
+                    </div>
+				</div>
+			</div>			
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<!--
+					<div class="blockGridListTable">
+						<table id="list" summary="전략체계도관리 조회결과">
+							<caption class="none">전략체계도관리 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					-->
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<!--
+						<div class="blockButton_l"><input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" /></div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnInsert" value="신규" /></li>
+								<li><input type="submit" id="btnDelete" value="삭제" /></li>
+							</ul>
+						</div>
+						-->
+					</div>
+				</div>
+			</div>
+		</form>
+		
+	</div>
+	<div class="clear"></div>
+</div>

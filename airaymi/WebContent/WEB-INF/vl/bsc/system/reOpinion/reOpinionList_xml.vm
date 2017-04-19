@@ -1,0 +1,40 @@
+#*************************************************************************
+* CLASS 명      : reOpinionList_xml
+* 작 업 자      : 현걸욱
+* 작 업 일      : 2012년 12월 31일 
+* 기    능      : 이의신청 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      현걸욱     2012년 12월 31일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"CB_ID"          	: "$!{CS_HTML.txt2html($list.CB_ID)}", 
+		"TYPE_ID"          	: "$!{CS_HTML.txt2html($list.TYPE_ID)}", 
+		"TYPE_NM"          	: "$!{CS_HTML.txt2html($list.TYPE_NM)}", 
+		"TITLE"             : "$!{CS_HTML.txt2html($list.TITLE)}", 
+		"USER_NM"           : "$!{CS_HTML.txt2html($list.USER_NM)}", 
+		"CREATE_DT"         : "$!{CS_HTML.txt2html($list.CREATE_DT)}",
+		"MODIFY_DT"         : "$!{CS_HTML.txt2html($list.MODIFY_DT)}",
+		"REPLY_STATUS"      : "$!{CS_HTML.txt2html($list.REPLY_STATUS)}",
+		"REPLY_STATUS_NM"   : "$!{CS_HTML.txt2html($list.REPLY_STATUS_NM)}",
+		"PRV_YN"   			: "$!{CS_HTML.txt2html($list.PRV_YN)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

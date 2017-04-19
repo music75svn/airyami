@@ -1,0 +1,50 @@
+#*************************************************************************
+* CLASS 명      : govQuaMetricList_xml
+* 작 업 자      : 박종호
+* 작 업 일      : 2013년 9월 5일 
+* 기    능      : 비계량지표 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      박종호     2013년 9월 5일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                   	: "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"GOV_METRIC_ID"             : "$!{CS_HTML.txt2html($list.GOV_METRIC_ID)}", 
+		"GOV_METRIC_NM"             : #if("GGGGG01" == $!{CS_HTML.txt2html($list.GOV_METRIC_NM)}) "계량 지표 공통사항",
+									  #elseif("GGGGG02" == $!{CS_HTML.txt2html($list.GOV_METRIC_NM)}) "비계량 지표 공통사항",  
+						              #else
+										"$!{CS_HTML.txt2html($list.GOV_METRIC_NM)}", 
+								      #end
+		"SEQ"                   	: "$!{CS_HTML.txt2html($list.SEQ)}", 
+		"GBN_ID"                   	: "$!{CS_HTML.txt2html($list.GBN_ID)}", 
+		"GBN_NM"                   	: "$!{CS_HTML.txt2html($list.GBN_NM)}", 
+		"QUA_METRIC_NM"             : "$!{CS_HTML.txt2html($list.QUA_METRIC_NM)}", 
+		"INSERT_USER_ID"            : "$!{CS_HTML.txt2html($list.INSERT_USER_ID)}", 
+		"INSERT_USER_NM"            : #if($!{CS_HTML.txt2html($list.INSERT_USER_ID)}=="admin") "관리자",  
+									  #else
+									  	"$!{CS_HTML.txt2html($list.INSERT_USER_NM)}",
+									  #end
+		"ATTACH_FILE_NM"       		: "$!{CS_HTML.makeFileIconFileName($list.ATTACH_FILE_SUFFIX, $list.ATTACH_FILE_NM, $list.ATTACH_FILE_PATH)}", 
+		"ATTACH_FILE_FNM"      		: "$!{CS_HTML.txt2html($list.ATTACH_FILE_FNM)}", 
+		"ATTACH_FILE_SUFFIX"   		: "$!{CS_HTML.txt2html($list.ATTACH_FILE_SUFFIX)}",
+		"CREATE_DT"   				: "$!{CS_HTML.txt2html($list.CREATE_DT)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

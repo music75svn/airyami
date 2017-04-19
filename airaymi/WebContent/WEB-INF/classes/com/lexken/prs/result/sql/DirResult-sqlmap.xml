@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.result.dirResult">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: PRS_EVAL_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 임원리더쉽평가 마감여부
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_CLOSING
+	==================================================================
+	-->
+	<select id="getResultList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT  NVL(DIR_EVAL_YN,'N') DIR_EVAL_YN, NVL(DIR_FINAL_YN,'N') DIR_FINAL_YN
+		  FROM PRS_CLOSING
+		 WHERE year = #findYear#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 임원리더쉽평가 대상자 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_DIR_EVAL_MEMBER
+	==================================================================
+	-->
+	<select id="getResultList_xml" parameterClass="hashMap" resultClass="hashMap">
+		SELECT  A.YEAR,
+			       A.EMPN,
+			       A.KOR_NM,
+			       A.DEPT_CD,
+			       A.CAST_TC,
+			       A.POS_TC,
+			       A.BSC_GRADE,
+			       A.BSC_SCORE * (SELECT ETC1 / 100 FROM BSC_CODE WHERE YEAR = A.YEAR AND CODE_GRP_ID = '193' AND CODE_ID = '03') BSC_SCORE,
+			       A.LEADERSHIP_GRADE,
+			       A.LEADERSHIP_SCORE * (SELECT ETC1 / 100 FROM BSC_CODE WHERE YEAR = A.YEAR AND CODE_GRP_ID = '193' AND CODE_ID = '01') LEADERSHIP_SCORE,
+			       A.EFF_GRADE,
+			       A.EFF_SCORE,
+			       A.DUTY_START_DT,
+			       A.DUTY_END_DT,
+			       A.RPT_CONTENT,
+			       A.RPT_SUBMIT_YN,
+			       A.FINAL_GRADE,
+			       A.FINAL_SCORE,
+			       A.FINAL_RANKING,
+			       A.CREATE_DT,
+			       A.MODIFY_DT,
+			       A.LEADERSHIP_YN,
+			       A.EVAL_YN,
+			       A.GOV_SCORE * (SELECT ETC1 / 100 FROM BSC_CODE WHERE YEAR = A.YEAR AND CODE_GRP_ID = '193' AND CODE_ID = '04') GOV_SCORE,
+			       CASE WHEN DUTY_END_DT <![CDATA[ < ]]> A.YEAR||'1231' THEN 'Y'
+                            ELSE  'N'
+                   END  as RETIRE_YN   
+          FROM PRS_DIR_EVAL_MEMBER A,
+                   PRS_CLOSING B
+         WHERE A.YEAR  = #findYear#
+            AND A.EVAL_YN = 'Y'
+            AND A.YEAR=B.YEAR
+            AND B.DIR_FINAL_YN='Y'
+           <isNotEmpty prepend="AND" property="findEmpn">
+		   		A.EMPN = #findEmpn#
+		   	</isNotEmpty>
+		   	
+        ORDER BY A.FINAL_RANKING,A.KOR_NM  
+       
+	</select>
+
+	
+				
+</sqlMap>
+
+

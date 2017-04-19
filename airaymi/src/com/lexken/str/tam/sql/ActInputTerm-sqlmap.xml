@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="str.tam.actInputTerm">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: STR_METRIC_ACTUAL_IN_TERM
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력기간 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_ACTUAL_IN_TERM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR,
+               MON,
+               START_DT,
+               END_DT
+          FROM STR_METRIC_ACTUAL_IN_TERM
+         WHERE YEAR=#findYear#
+         ORDER BY MON
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력기간 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_ACTUAL_IN_TERM
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , MON                   
+			 , START_DT              
+			 , END_DT                
+		  FROM STR_METRIC_ACTUAL_IN_TERM 
+		 WHERE YEAR = #findYear#
+		   AND MON = #mon#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력기간 등록
+	  #	기능	: INSERT
+	  #	TABLE	: STR_METRIC_ACTUAL_IN_TERM
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO STR_METRIC_ACTUAL_IN_TERM ( 
+			   YEAR
+			 , MON
+			 , START_DT
+			 , END_DT
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #mon#
+			 , #startDt#
+			 , #endDt#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력기간 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_METRIC_ACTUAL_IN_TERM
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE STR_METRIC_ACTUAL_IN_TERM 
+		   SET START_DT               = #startDt# 
+			 , END_DT                 = #endDt# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND MON = #mon#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력기간 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_METRIC_ACTUAL_IN_TERM
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM STR_METRIC_ACTUAL_IN_TERM 
+		 WHERE YEAR = #year#
+		   AND MON = #month#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 해당년 등록 여부 확인
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MAT_IN_TERM
+	==================================================================
+	-->	
+	<select id="getCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(*) CNT 
+		  FROM STR_METRIC_ACTUAL_IN_TERM
+		  WHERE YEAR = #year#
+		   AND MON = #mon#
+	</select>
+	
+	
+</sqlMap>
+
+

@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="str.base.strMetric">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경영목표 조회조건목록
+	  #	기능	: SELECT
+	  #	TABLE	: STR_STRAT_SUBJECT
+	==================================================================
+	-->
+	<select id="getManagement" parameterClass="hashMap" resultClass="hashMap">
+	SELECT A.YEAR
+			, A.MANAGEMENT_ID
+			, A.MANAGEMENT_NM
+			, A.SORT_ORDER
+	FROM BSC_MANAGEMENT A
+	WHERE A.YEAR = #findYear#
+	   AND A.DELETE_DT IS NULL
+	 ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략과제 조회조건목록
+	  #	기능	: SELECT
+	  #	TABLE	: STR_STRAT_SUBJECT
+	==================================================================
+	-->
+	<select id="getStrStratSubjectList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR,
+               STRAT_SUBJECT_ID,
+               STRAT_SUBJECT_NM
+		  FROM STR_STRAT_SUBJECT
+		 WHERE YEAR = #findYear#
+		 AND	DELETE_DT IS NULL
+		 AND MANAGEMENT_ID = #findManagementId#
+		 ORDER BY SORT_ORDER ASC
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: CSF 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CSF
+	==================================================================
+	-->
+	<select id="getCsfList" parameterClass="hashMap" resultClass="hashMap">
+	SELECT A.YEAR
+             ,  A.CSF_ID
+             ,  A.CSF_NM
+             ,  A.SORT_ORDER
+    FROM BSC_CSF A
+    WHERE A.YEAR= #findYear#
+        AND A.DELETE_DT IS NULL
+        AND A.STRAT_SUBJECT_ID = #findStratSubjectId#
+     ORDER BY A.CSF_NM, A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표 등록 CSF 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CSF
+	==================================================================
+	-->
+	<select id="getCsfList1" parameterClass="hashMap" resultClass="hashMap">
+	SELECT A.YEAR
+             ,  A.CSF_ID
+             ,  A.CSF_NM
+             ,  A.SORT_ORDER
+    FROM BSC_CSF A
+    WHERE A.YEAR= #findYear#
+        AND A.DELETE_DT IS NULL
+     ORDER BY A.CSF_NM, A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표 목록
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+				, C.STRAT_SUBJECT_ID
+				, C.STRAT_SUBJECT_NM
+				, B.CSF_ID
+				, B.CSF_NM
+				, D.MANAGEMENT_ID
+				, D.MANAGEMENT_NM
+				, A.SUBJECT_METRIC_ID
+				, A.SUBJECT_METRIC_NM
+				, A.CHARGE_DEPT_ID
+				, BSD.DEPT_NM AS CHARGE_DEPT_NM
+				, A.CHARGE_USER_ID
+				, U.USER_NM AS CHARGE_USER_NM
+				, A.CYCLE_ID
+				, F_CODE_NM('008', CYCLE_ID, A.YEAR) CYCLE_NM
+				, A.UNIT_ID
+				, F_CODE_NM('013', UNIT_ID, A.YEAR) UNIT_NM
+				, E.METRIC_NM
+				, B.SORT_ORDER
+				, C.SORT_ORDER
+                , COUNT (1) OVER (PARTITION BY A.YEAR, D.MANAGEMENT_ID) MANAGEMENT_CNT
+       			, ROW_NUMBER () OVER (PARTITION BY A.YEAR, D.MANAGEMENT_ID ORDER BY D.SORT_ORDER ASC, C.SORT_ORDER ASC, B.SORT_ORDER ASC, A.SORT_ORDER ASC, A.CHARGE_USER_ID ASC) MANAGEMENT_INDEX
+       			, COUNT (1) OVER (PARTITION BY A.YEAR, D.MANAGEMENT_ID, C.STRAT_SUBJECT_ID) STRAT_CNT
+       			, ROW_NUMBER () OVER (PARTITION BY A.YEAR, D.MANAGEMENT_ID, C.STRAT_SUBJECT_ID ORDER BY D.SORT_ORDER ASC, C.SORT_ORDER ASC, B.SORT_ORDER ASC, A.SORT_ORDER ASC, A.CHARGE_USER_ID ASC) STRAT_INDEX
+       			, COUNT (1) OVER ( PARTITION BY A.YEAR, D.MANAGEMENT_ID, C.STRAT_SUBJECT_ID, B.CSF_ID) SUB_CNT
+       			, ROW_NUMBER () OVER ( PARTITION BY A.YEAR, D.MANAGEMENT_ID, C.STRAT_SUBJECT_ID, B.CSF_ID ORDER BY D.SORT_ORDER ASC, C.SORT_ORDER ASC, B.SORT_ORDER ASC, A.SORT_ORDER ASC, A.CHARGE_USER_ID ASC) SUB_INDEX
+             FROM STR_METRIC A
+                INNER JOIN BSC_MANAGEMENT D
+                ON A.YEAR = D.YEAR
+                LEFT OUTER JOIN V_DEPTINFO BSD
+                ON A.CHARGE_DEPT_ID = BSD.DEPT_ID
+                LEFT OUTER JOIN V_ROLE_USER U
+                ON A.CHARGE_USER_ID = U.USER_ID
+                INNER JOIN BSC_CSF B
+                ON A.YEAR = B.YEAR
+                AND A.CSF_ID = B.CSF_ID
+                <isNotEmpty prepend="AND" property="findCsfId">
+                B.CSF_ID = #findCsfId#
+                </isNotEmpty>
+                INNER JOIN STR_STRAT_SUBJECT C
+                ON B.YEAR = C.YEAR
+                AND B.STRAT_SUBJECT_ID = C.STRAT_SUBJECT_ID
+                AND C.MANAGEMENT_ID = D.MANAGEMENT_ID
+                <isNotEmpty prepend="AND" property="findManagementId">
+	           	D.MANAGEMENT_ID = #findManagementId#
+		   		</isNotEmpty>
+                <isNotEmpty prepend="AND" property="findStratSubjectId">
+                C.STRAT_SUBJECT_ID = #findStratSubjectId#
+                </isNotEmpty>
+                LEFT OUTER JOIN BSC_METRIC E
+                ON A.YEAR = E.YEAR
+                AND A.METRIC_ID = E.METRIC_ID
+                AND E.DELETE_DT IS NULL
+          WHERE A.YEAR = #findYear#
+	        <isEqual prepend="AND" property="findUseYn" compareValue="Y">
+	        A.DELETE_DT IS NULL
+	        </isEqual>
+	        <isNotEqual prepend="AND" property="findUseYn" compareValue="Y">
+	        A.DELETE_DT IS NOT NULL
+	        </isNotEqual>
+	      ORDER BY  D.SORT_ORDER ASC, MANAGEMENT_INDEX, C.SORT_ORDER ASC, STRAT_INDEX, B.SORT_ORDER ASC, SUB_INDEX, A.SORT_ORDER ASC , A.CHARGE_USER_ID ASC
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표 첨부파일 목록
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_ATTACH
+	==================================================================
+	-->
+	<select id="getFileList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT SUBJECT_METRIC_ID,
+                SEQ,
+                ATTACH_FILE_NM,
+                ATTACH_FILE_FNM,
+                ATTACH_FILE_SUFFIX,
+                F_ENCRYPT(ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH 
+           FROM STR_METRIC_ATTACH
+          WHERE YEAR = #findYear#
+            AND SUBJECT_METRIC_ID = #subjectMetricId#
+          ORDER BY SEQ
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표 상세목록
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT A.SUBJECT_METRIC_ID,   
+	            A.SUBJECT_METRIC_NM,
+	            A.CSF_ID,
+	            A.CYCLE_ID,
+	            A.UNIT_ID,
+	            A.SCORE_CAL_TYPE_ID,
+	            A.METRIC_ID,
+	            B.METRIC_NM,
+	            A.CHARGE_USER_ID,
+	            C.USER_NM AS CHARGE_USER_NM,
+	            A.APPROVE_USER_ID,
+	            D.USER_NM AS APPROVE_USER_NM,
+	            A.CHARGE_DEPT_ID,
+	            E.DEPT_NM AS CHARGE_DEPT_NM,
+	            A.APPROVE_DEPT_ID,
+	            F.DEPT_NM AS APPROVE_DEPT_NM,
+	            A.SORT_ORDER,
+	            CASE WHEN A.DELETE_DT IS NULL THEN 'Y' ELSE 'N' END AS USE_YN
+  		   FROM STR_METRIC A
+	            LEFT OUTER JOIN BSC_METRIC B
+	            ON A.YEAR = B.YEAR
+	            AND A.METRIC_ID = B.METRIC_ID
+	            AND B.DELETE_DT IS NULL
+	            LEFT OUTER JOIN V_ROLE_USER C
+	            ON A.CHARGE_USER_ID = C.USER_ID
+	            LEFT OUTER JOIN V_ROLE_USER D
+	            ON A.APPROVE_USER_ID = D.USER_ID
+	            LEFT OUTER JOIN V_DEPTINFO E
+	            ON A.CHARGE_DEPT_ID = E.DEPT_ID
+	            LEFT OUTER JOIN V_DEPTINFO F
+	            ON A.APPROVE_DEPT_ID = F.DEPT_ID
+          WHERE A.YEAR = #findYear#
+            AND A.SUBJECT_METRIC_ID = #subjectMetricId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 지표코드 채번
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->
+	<select id="getMetricId" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT F_PGM_SERI('STR_METRIC',#year#,'','','','') SEQ FROM DUAL
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표등록
+	  #	기능	: INSERT
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO STR_METRIC (
+							   YEAR
+							   , SUBJECT_METRIC_ID
+							   , SUBJECT_METRIC_NM
+							   , CSF_ID
+							   , CYCLE_ID
+							   , UNIT_ID
+							   , SCORE_CAL_TYPE_ID
+							   , METRIC_ID
+							   , CHARGE_USER_ID
+							   , CHARGE_DEPT_ID
+							   , APPROVE_USER_ID
+							   , APPROVE_DEPT_ID
+							   , SORT_ORDER
+							   , CREATE_DT
+							   , DELETE_DT) 
+							VALUES ( #year#,
+									 #subjectMetricId#,
+									 #subjectMetricNm#,
+									 #csfId#,
+									 #cycleId#,
+									 #unitId#,
+									 #scoreCalTypeId#,
+									 #metricId#,
+									 #chargeUserId#,
+									 #chargeDeptId#,
+									 #approveUserId#,
+									 #approveDeptId#,
+									 #sortOrder#,
+									 SYSDATE,
+									 <isEqual property="useYn" compareValue="Y">
+								     NULL
+								     </isEqual>
+								     <isNotEqual property="useYn" compareValue="Y">
+								     SYSDATE
+								     </isNotEqual>
+									 )
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표등록
+	  #	기능	: INSERT
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->	
+	<insert id="insertTargetData" parameterClass="hashMap">
+		INSERT INTO STR_METRIC_TARGET_STATUS 
+		                             ( YEAR, SUBJECT_METRIC_ID, 
+									   TARGET_STATUS_ID, CREATE_DT) 
+									VALUES ( #year#,
+											 #subjectMetricId#,
+											 '01',
+											 SYSDATE)
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표 관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE STR_METRIC
+		   SET DELETE_DT = SYSDATE 
+		 WHERE YEAR = #findYear#
+		   AND SUBJECT_METRIC_ID = #subjectMetricId#
+	</update>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표 관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		 UPDATE STR_METRIC
+			SET SUBJECT_METRIC_NM = #subjectMetricNm#,
+			    CSF_ID        = #csfId#,
+			    CYCLE_ID          = #cycleId#,
+			    UNIT_ID           = #unitId#,
+			    SCORE_CAL_TYPE_ID = #scoreCalTypeId#,
+			    METRIC_ID         = #metricId#,
+			    CHARGE_USER_ID    = #chargeUserId#,
+			    CHARGE_DEPT_ID    = #chargeDeptId#,
+			    APPROVE_USER_ID   = #approveUserId#,
+			    APPROVE_DEPT_ID   = #approveDeptId#,
+			    SORT_ORDER        = #sortOrder#,
+			    MODIFY_DT         = SYSDATE
+			    <isEqual property="useYn" compareValue="Y">
+	         , DELETE_DT = NULL
+	         </isEqual>
+	         <isEqual property="useYn" compareValue="N">
+	         , DELETE_DT = SYSDATE
+	         </isEqual>
+		  WHERE YEAR = #findYear#
+			AND SUBJECT_METRIC_ID = #subjectMetricId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표 첨부파일 등록
+	  #	기능	: INSERT
+	  #	TABLE	: STR_METRIC_ATTACH
+	==================================================================
+	-->	
+	<insert id="insertFileInfo" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('STR_METRIC_ATTACH', #year#, #subjectMetricId#,'','','') SEQ FROM DUAL
+		</selectKey> 
+		INSERT INTO STR_METRIC_ATTACH (
+               YEAR
+             , SUBJECT_METRIC_ID
+             , SEQ
+             , ATTACH_FILE_NM
+             , ATTACH_FILE_FNM
+             , ATTACH_FILE_SUFFIX
+             , ATTACH_FILE_PATH
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #subjectMetricId#
+             , #SEQ#
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSufix#
+             , #attachFilePath#
+             , SYSDATE
+    	   )       
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표 첨부파일 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: STR_METRIC_ATTACH
+	==================================================================
+	-->	
+	<delete id="deleteFileInfo" parameterClass="hashMap">
+		DELETE FROM STR_METRIC_ATTACH
+		 WHERE YEAR = #year#
+		   AND SUBJECT_METRIC_ID = #subjectMetricId#
+		   AND SEQ = #seq#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 기존 권한 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<delete id="deleteAdmin" parameterClass="hashMap">
+		DELETE FROM BSC_ADMIN                     
+		 WHERE ADMIN_GUBUN IN ('08','09')
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표 담당자 입력 
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<insert id="insertChargeUserAdmin" parameterClass="hashMap">
+		INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID, DEPT_ID)     
+		SELECT DISTINCT '08'
+		    ,  A.CHARGE_USER_ID                    
+		    , (SELECT MAX(DEPT_ID) AS DEPT_ID 
+		         FROM V_ROLE_USER
+		        WHERE USER_ID = A.CHARGE_USER_ID)                
+		  FROM STR_METRIC A                                        
+		 WHERE A.DELETE_DT IS NULL                                
+           AND A.CHARGE_USER_ID IS NOT NULL
+	</insert>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 이행성과지표 승인자 입력
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<insert id="insertApproveUserAdmin" parameterClass="hashMap">
+		INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID, DEPT_ID)     
+		SELECT DISTINCT '09'
+		    ,  A.APPROVE_USER_ID                    
+		    , (SELECT MAX(DEPT_ID) AS DEPT_ID 
+		         FROM V_ROLE_USER
+		        WHERE USER_ID = A.APPROVE_USER_ID)                
+		  FROM STR_METRIC A                                        
+		 WHERE A.DELETE_DT IS NULL                                
+           AND A.APPROVE_USER_ID IS NOT NULL
+	</insert>
+	
+</sqlMap>	
+	

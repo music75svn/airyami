@@ -1,0 +1,45 @@
+#set($firstImage = "")
+#set($lastImage = "")
+<div class="boardnavigation">
+    <div class="pagination">
+    	## 처음/이전 버튼 표시
+#if($paging.pageNumCol.size() > 0 && $paging.prevPageRow == 0)
+		&nbsp;<a href="$!{curr_url}?beginRow=1&amp;$!{searchMap.makeUrlParamFindExceptBeginRow()}" onclick='javascript:alert("첫번째 페이지 입니다."); return false;'><img alt="처음으로 이동" src="$!{img_path}/bt_first.gif" class="vaMid"/></a>
+		&nbsp;<a href="$!{curr_url}?beginRow=1&amp;$!{searchMap.makeUrlParamFindExceptBeginRow()}" onclick='javascript:alert("첫번째 페이지 입니다."); return false;'><img alt="이전 10페이지 이동" src="$!{img_path}/bt_preview.gif" class="vaMid"/></a>	
+#end
+#if($paging.pageNumCol.size() > 0 && $paging.prevPageRow > 0)
+	#set($prevPageBlock = $paging.currentPage - $paging.pagePerPage)
+	#if($prevPageBlock < 1) #set($prevPageBlock = 1) #end
+	#set($prevPageBlock = (($prevPageBlock - 1) * $paging.rowPerPage) + 1)
+	
+		&nbsp;<a href="$!{curr_url}?beginRow=1&amp;$!{searchMap.makeUrlParamFindExceptBeginRow()}" onclick='javascript:goPage(1); return false;'><img alt="처음으로 이동" src="$!{img_path}/bt_first.gif" class="vaMid"/></a>
+		&nbsp;<a href="$!{curr_url}?beginRow=$prevPageBlock&amp;$!{searchMap.makeUrlParamFindExceptBeginRow()}" onclick='javascript:goPage($prevPageBlock); return false;'><img alt="이전 10페이지 이동" src="$!{img_path}/bt_preview.gif" class="vaMid"/></a>
+#end
+
+##page번호 표시 
+#foreach($pageNum in $paging.pageNumCol)
+	#if($pageNum == $paging.currentPage)
+			&nbsp;<strong>$!{pageNum}</strong>
+	#end
+	#if ($pageNum != $paging.currentPage)
+		#set($firstRow = ((($pageNum - 1) * $paging.rowPerPage) + 1))
+		&nbsp;<a href="$!{curr_url}?beginRow=$!{firstRow}&amp;$!{searchMap.makeUrlParamFindExceptBeginRow()}" onclick='javaScript:goPage($!{firstRow}); return false;'>$!{pageNum}</a>
+	#end
+#end
+
+## 다음/마지막 버튼 표시
+#if($paging.pageNumCol.size() > 0 && $paging.nextPageRow == 0)
+		&nbsp;<a href="$!{curr_url}?beginRow=$paging.lastPageRow&amp;$!{searchMap.makeUrlParamFindExceptBeginRow()}" onclick='javascript:alert("마지막 페이지 입니다."); return false;'><img alt="다음 10페이지 이동" src="$!{img_path}/bt_next.gif" class="vaMid"/></a>
+		&nbsp;<a href="$!{curr_url}?beginRow=$paging.lastPageRow&amp;$!{searchMap.makeUrlParamFindExceptBeginRow()}" onclick='javascript:alert("마지막 페이지 입니다."); return false;'><img alt="끝 페이지  이동" src="$!{img_path}/bt_end.gif" class="vaMid"/></a>
+		
+#end
+#if($paging.pageNumCol.size() > 0 && $paging.nextPageRow > 0)
+	#set($nextPageBlock = $paging.currentPage + $paging.pagePerPage)
+	#if($nextPageBlock > $paging.lastPage) #set($nextPageBlock = $paging.lastPage) #end  
+	#set($nextPageBlock = (($nextPageBlock - 1) * $paging.rowPerPage + 1))
+		&nbsp;<a href="$!{curr_url}?beginRow=$nextPageBlock&amp;$!{searchMap.makeUrlParamFindExceptBeginRow()}" onclick='javascript:goPage($nextPageBlock); return false;'><img alt="다음 10페이지 이동" src="$!{img_path}/bt_next.gif" class="vaMid"/></a>
+		&nbsp;<a href="$!{curr_url}?beginRow=$paging.lastPageRow&amp;$!{searchMap.makeUrlParamFindExceptBeginRow()}" onclick='javascript:goPage($paging.lastPageRow); return false;'><img alt="끝 페이지  이동" src="$!{img_path}/bt_end.gif" class="vaMid"/></a>
+#end
+    	&nbsp;
+    </div>
+</div>

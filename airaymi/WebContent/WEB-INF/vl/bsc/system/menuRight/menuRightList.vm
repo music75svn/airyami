@@ -1,0 +1,201 @@
+#*************************************************************************
+* CLASS 명      : menuRightList
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 6월 7일
+* 기    능      : 사용자 그룹별 권한
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     하윤식      2012년 6월 7일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/system/menuRight/menuRightList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/system/menuRight/menuRightList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['상위메뉴명', '메뉴코드', '메뉴', '정렬순서'],
+			colModel     :[
+							{name:'UP_PGM_NM'            ,index:'UP_PGM_NM'            ,width:150   ,align:'center' },
+                            {name:'PGM_ID'               ,index:'PGM_ID'               ,width:150   ,align:'center' },
+                            {name:'PGM_NM'               ,index:'PGM_NM'               ,width:150   ,align:'center' },
+                            {name:'SORT_ORDER'           ,index:'SORT_ORDER'           ,width:150   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			cmTemplate   : {sortable:true},
+			caption:"사용자 그룹별 권한"
+		});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * Top상위 레벨 change 이벤트
+		 ******************************************/
+		$('#findTopUpId').change(function(){
+			chgMenuLevel2();
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#mode").val("ADD");
+			J("#adminGubun").val(J("#findAdminGubun").val());
+			J("#topUpId").val(J("#findTopUpId").val());
+			J("#subId").val(J("#findSubId").val());
+			J("#formList").attr("action", "$!{context_path}/bsc/system/menuRight/menuRightModify.vw?type=template").submit();
+		});
+	});
+
+	/******************************************
+	 * Top상위 레벨 변경시 Top하위레벌 조회
+	 ******************************************/
+	function chgMenuLevel2(){
+		J.ajax({
+        	url      : "$!{context_path}/bsc/system/menuRight/menuLevel2_ajax.vw",﻿
+        	cache    : false,
+        	type     : "POST",
+			data     : J("#formFind").serialize(),
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+				var xmlDoc = J.parseXML(data);
+        		J("#findSubId").empty();
+				J('<option/>').attr('value', '').text('TOT상위하위메뉴').appendTo('#findSubId');
+				J(xmlDoc).find("data").each(function() {
+					J('<option/>').attr('value', J(this).find("value").text()).text(J(this).find("text").text()).appendTo('#findSubId');
+				})
+        	}
+    	});
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">사용자 그룹별 권한</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/system/menuRight/menuRightList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"    id="findYear"       name="findYear"         value="$!{searchMap.txt2html("findYear")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="사용자 그룹별 권한검색">
+						<caption class="none">사용자 그룹별 권한검색</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+            					<td class="searchBox_tit w270">
+                                    <span><label for="findAdminGubun">사용자그룹</label></span>
+            						<span class="searchBar">
+            							<select id="findAdminGubun" name="findAdminGubun" class="select w170">
+            								$!CS_CODE.getCodeOption("018", $!{searchMap.txt2html("findAdminGubun")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w230">
+            						<span><label for="findTopUpId">TOP상위</label></span>
+            						<span class="searchBar">
+            							<select id="findTopUpId" name="findTopUpId" class="select w130" onchange="chgMenuLevel2();">
+											#foreach($menuLevel1List in $menuLevel1List)
+                                            	<option value="$!{CS_HTML.txt2html($menuLevel1List.PGM_ID)}" $searchMap.getSelected("findTopUpId", "$!{CS_HTML.txt2html($menuLevel1List.PGM_ID)}")>$!{CS_HTML.txt2html($menuLevel1List.PGM_NM)}</option>
+                                            #end
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+                                    <span><label for="findSubId">TOP하위</label></span>
+            						<span class="searchBar">
+            							<select id="findSubId" name="findSubId" class="select w180">
+                                            <option value="">TOT상위하위메뉴</option>
+											#foreach($menuLevel2List in $menuLevel2List)
+                                            	<option value="$!{CS_HTML.txt2html($menuLevel2List.PGM_ID)}" $searchMap.getSelected("findSubId", "$!{CS_HTML.txt2html($menuLevel2List.PGM_ID)}")>$!{CS_HTML.txt2html($menuLevel2List.PGM_NM)}</option>
+                                            #end
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/system/menuRight/menuRightProcess.vw?type=template">
+			<input type="hidden"	id="mode"    	name="mode" />
+			<input type="hidden"	id="adminGubun" name="adminGubun" />
+			<input type="hidden"	id="topUpId"    name="topUpId" />
+			<input type="hidden"	id="subId"    	name="subId" />
+			$!{searchMap.makeHiddenFind()}
+
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="사용자그룹별 권한">
+							<caption class="none">사용자그룹별 권한</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l"></div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnInsert" value="등록/수정" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>
+

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+#*************************************************************************
+* CLASS 명      : userInfo_ajax.vm
+* 작 업 자      : 안요한
+* 작 업 일      : 2013년 8월 10일 
+* 기    능      : 사용자정보 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용         비고
+* -----  ----------  -------------------  ---------------------- ---------
+*  1      안요한       2013년 8월 10일         최 초 작 업 
+**************************************************************************# 
+
+<items>
+
+#foreach($list in $userList)
+	<item>
+		<userId>$!{CS_HTML.txt2html($list.EMPN)}</userId>
+		<userNm>$!{CS_HTML.txt2html($list.KOR_NM)}</userNm>
+##		<deptId>$!{CS_HTML.txt2html($list.DEPT_ID)}</deptId>
+##		<deptNm>$!{CS_HTML.txt2html($list.DEPT_NM)}</deptNm>
+	</item>	
+#end
+
+</items>

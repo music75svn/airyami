@@ -1,0 +1,39 @@
+#*************************************************************************
+* CLASS 명		: deptGovWeightList_xml
+* 작 업 자		: 안요한
+* 작 업 일		: 2013년 07월 05일 
+* 기    능		: 부서별 정평지표 책임가중치 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     안 요 한      2013년 07월 05일             최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"							: "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"SC_DEPT_NM"					: "$!{CS_HTML.txt2html($list.SC_DEPT_NM)}",
+		 
+	#foreach($govMetric in $govMetricList)
+		"$!CS_HTML.txt2html($govMetric.GOV_METRIC_ID)"	: "$!{CS_HTML.txt2html($list.get($govMetric.GOV_METRIC_ID))}",
+	#end
+		
+		"TOTAL_WEIGHT"					: "$!{CS_HTML.txt2html($list.TOTAL_WEIGHT)}",
+		"RATE"							: "$!{CS_HTML.txt2html($list.RATE)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

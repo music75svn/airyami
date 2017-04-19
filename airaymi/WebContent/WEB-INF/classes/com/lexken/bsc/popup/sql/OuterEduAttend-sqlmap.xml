@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.outerEduAttend">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템항목관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+
+        <!-- 직무위탁교육외부수강참여율 외부이수인원(S061D001) -->
+		<isEqual property="findItemCd" compareValue="S061D001">
+		SELECT
+            EDU_YY AS YEAR
+            , YY AS MON
+            , DEPT_ID
+            , DEPT_NM
+            , INSP_KIND_TC_NM
+            , LAW_TC_NM
+            , STIC_LAG_TC_NM
+            , STIC_MID_TC_NM
+            , EDU_ST_DATE
+            , EDU_END_DATE
+            , NM
+            , CO_NM
+            , CO_NO
+		FROM V_GGE0101M_001
+        WHERE YY = #findYear#
+         AND CO_NO <![CDATA[ <> ]]> '00165797'
+        </isEqual>
+
+        <!-- 직무위탁교육외부수강참여율 전체이수인원 (S061D002) -->
+		<isEqual property="findItemCd" compareValue="S061D002">
+		SELECT
+            EDU_YY AS YEAR
+            , YY AS MON
+            , DEPT_ID
+            , DEPT_NM
+            , INSP_KIND_TC_NM
+            , LAW_TC_NM
+            , STIC_LAG_TC_NM
+            , STIC_MID_TC_NM
+            , EDU_ST_DATE
+            , EDU_END_DATE
+            , NM
+            , CO_NM
+            , CO_NO
+		FROM V_GGE0101M_001
+        WHERE YY = #findYear#
+        </isEqual>
+
+
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 연계테스트 부서 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_SYSTEM_ITEM
+	==================================================================
+	-->
+
+	<select id="getDeptList" parameterClass="hashMap" resultClass="hashMap">
+
+  		SELECT A.DEPT_ID, B.DEPT_NM
+		  FROM BSC_SC_DEPT_MAPPING A
+	LEFT OUTER JOIN BSC_DEPTINFO B
+			ON A.DEPT_ID = B.DEPT_ID
+		 WHERE (YEAR, SC_DEPT_ID) IN
+		          (SELECT YEAR, SC_DEPT_ID
+		             FROM BSC_METRIC
+		            WHERE (METRIC_GRP_ID, YEAR) IN
+		                     (SELECT METRIC_GRP_ID, YEAR
+		                        FROM BSC_METRIC
+		                       WHERE YEAR = #findYear# AND METRIC_ID = #findMetricId#)
+		            AND DELETE_DT IS NULL)
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+             AND B.INSERT_GUBUN = '01'
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getScDeptMapping" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT DEPT_ID
+		  FROM ( SELECT DEPT_ID
+				   FROM BSC_SC_DEPT_MAPPING
+				  WHERE YEAR = #findYear#
+				    AND SC_DEPT_ID = #findScDeptCd# ORDER BY DEPT_ID )
+		 WHERE ROWNUM = 1
+	</select>
+
+
+
+</sqlMap>
+
+

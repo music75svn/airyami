@@ -1,0 +1,85 @@
+#*************************************************************************
+* CLASS 명      : laborCostList_xml
+* 작 업 자      : 김상용
+* 작 업 일      : 2013년 9월 6일 
+* 기    능      : 시스템 연계데이터 조회 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김상용	2013년 9월 5일        최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"SLRY_YM"			: "$!{CS_HTML.txt2html($list.SLRY_YM)}",
+		"SLRY_TC"			: "$!{CS_HTML.txt2html($list.SLRY_TC)}",
+		"EMPN"				: "$!{CS_HTML.txt2html($list.EMPN)}",
+		"KOR_NM"			: "$!{CS_HTML.txt2html($list.KOR_NM)}",
+		"DEPT_CD"			: "$!{CS_HTML.txt2html($list.DEPT_CD)}",
+		"PAY_DATE"			: "$!{CS_HTML.txt2html($list.PAY_DATE)}",
+		"CAST_TC"			: "$!{CS_HTML.txt2html($list.CAST_TC)}",
+		"DEPT_NM"			: "$!{CS_HTML.txt2html($list.DEPT_NM)}",
+		"CAST_TC_NM"		: "$!{CS_HTML.txt2html($list.CAST_TC_NM)}",
+		"SLCL_TC"			: "$!{CS_HTML.txt2html($list.SLCL_TC)}",
+		"SLRY_YM"			: "$!{CS_HTML.txt2html($list.SLRY_YM)}",
+		"SLRY_TC"			: "$!{CS_HTML.txt2html($list.SLRY_TC)}",
+		"TOT_PAY_AMT"		: "$!{CS_HTML.txt2html($list.TOT_PAY_AMT)}",
+		"DEDU_TOT_AMT"		: "$!{CS_HTML.txt2html($list.DEDU_TOT_AMT)}",
+		"REAL_PAY_AMT"		: "$!{CS_HTML.txt2html($list.REAL_PAY_AMT)}",
+		"UN_TAXT_TOT_AMT"	: "$!{CS_HTML.txt2html($list.UN_TAXT_TOT_AMT)}",
+		"E00"				: "$!{CS_HTML.txt2html($list.E00)}",
+		"E01"				: "$!{CS_HTML.txt2html($list.E01)}",
+		"E02"				: "$!{CS_HTML.txt2html($list.E02)}",
+		"E03"				: "$!{CS_HTML.txt2html($list.E03)}",
+		"E13"				: "$!{CS_HTML.txt2html($list.E13)}",
+		"E14"				: "$!{CS_HTML.txt2html($list.E14)}",
+		"E22"				: "$!{CS_HTML.txt2html($list.E22)}",
+		"E23"				: "$!{CS_HTML.txt2html($list.E23)}",
+		"E31"				: "$!{CS_HTML.txt2html($list.E31)}",
+		"E32"				: "$!{CS_HTML.txt2html($list.E32)}",
+		"E33"				: "$!{CS_HTML.txt2html($list.E33)}",
+		"E34"				: "$!{CS_HTML.txt2html($list.E34)}",
+		"E35"				: "$!{CS_HTML.txt2html($list.E35)}",
+		"E36"				: "$!{CS_HTML.txt2html($list.E36)}",
+		"E41"				: "$!{CS_HTML.txt2html($list.E41)}",
+		"E42"				: "$!{CS_HTML.txt2html($list.E42)}",
+		"E51"				: "$!{CS_HTML.txt2html($list.E51)}",
+		"E52"				: "$!{CS_HTML.txt2html($list.E52)}",
+		"E53"				: "$!{CS_HTML.txt2html($list.E53)}",
+		"E61"				: "$!{CS_HTML.txt2html($list.E61)}",
+		"E71"				: "$!{CS_HTML.txt2html($list.E71)}",
+		"E72"				: "$!{CS_HTML.txt2html($list.E72)}",
+		"E73"				: "$!{CS_HTML.txt2html($list.E73)}",
+		"E74"				: "$!{CS_HTML.txt2html($list.E74)}",
+		"E75"				: "$!{CS_HTML.txt2html($list.E75)}",
+		"E76"				: "$!{CS_HTML.txt2html($list.E76)}",
+		"E81"				: "$!{CS_HTML.txt2html($list.E81)}",
+		"E82"				: "$!{CS_HTML.txt2html($list.E82)}",
+		"E84"				: "$!{CS_HTML.txt2html($list.E84)}",
+		"E85"				: "$!{CS_HTML.txt2html($list.E85)}",
+		"E92"				: "$!{CS_HTML.txt2html($list.E92)}",
+		"E99"				: "$!{CS_HTML.txt2html($list.E99)}",
+		"SLIP_DATE"			: "$!{CS_HTML.txt2html($list.SLIP_DATE)}",
+		"INCO_AMT"			: "$!{CS_HTML.txt2html($list.INCO_AMT)}",
+		"RMK"				: "$!{CS_HTML.txt2html($list.RMK)}",
+		"ACNT_YM"			: "$!{CS_HTML.txt2html($list.ACNT_YM)}",
+		"ACCT_CD"			: "$!{CS_HTML.txt2html($list.ACCT_CD)}",
+		"ACCT_NM"			: "$!{CS_HTML.txt2html($list.ACCT_NM)}",
+		"TOTAL"				: "$!{CS_HTML.txt2html($list.TOTAL)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

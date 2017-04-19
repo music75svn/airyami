@@ -1,0 +1,147 @@
+#*************************************************************************
+* CLASS 명      : levelGradeModify
+* 작 업 자      : 현걸욱 
+* 작 업 일      : 2012년 10월 23일 
+* 기    능      : 난이도평가 평가등급관리    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    현걸욱      2012년 10월 23일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/bsc/level/levelGrade/levelGradeList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("#sortOrder").numeric();
+		J("#sortOrder").css("ime-mode", "disabled");
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+
+		if(!J.checkLength("grade", "등급코드", 1, 7)) {
+			return;
+		}
+		
+		if(!J.checkLength("gradeNm", "등급명", 1, 150)) {
+			return;
+		}
+		
+		if(!J.checkLength("sortOrder", "정렬순서", 1, 22)) {
+			return;
+		}
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/bsc/level/levelGrade/levelGradeProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/level/levelGrade/levelGradeProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">&nbsp;$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="난이도평가 평가등급관리 등록">
+					<caption class="none">난이도평가 평가등급관리 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span><label for="grade">등급코드</label></th>
+    						<td colspan="3">
+    							#if ($!{searchMap.txt2html("mode")} == "ADD")
+                                    <input type="text" id="grade" name="grade" class="inputbox w200" value='' maxlength="1"/>
+    							#else
+    								$!{CS_HTML.txt2html($detail.GRADE)}
+									<input type="hidden" id="grade" name="grade" value="$!{CS_HTML.txt2html($detail.GRADE)}" />
+    							#end
+    						</td>
+    					</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="gradeNm">등급</label></th>
+							<td><input type="text" id="gradeNm" name="gradeNm" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.GRADE_NM)}' maxlength="150"/></td>
+						</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="sortOrder">정렬순서</label></th>
+							<td><input type="text" id="sortOrder" name="sortOrder" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.SORT_ORDER)}' maxlength="22"/></td>
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

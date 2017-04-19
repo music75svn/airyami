@@ -1,0 +1,310 @@
+#*************************************************************************
+* CLASS 명      : evalMngModify
+* 작 업 자      : 김상용
+* 작 업 일      : 2013년 05월 13일 
+* 기    능      : 개인성과 평가군    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    김상용      2013년 05월 13일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/prs/mng/evalMng/evalMngList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#contentIndicator"),
+			limit:500
+		});
+		J("#content").trigger("keyup");
+
+        
+        /******************************************
+         * 날짜 클릭시 달력팝업 이벤트
+         ******************************************/
+        J("#choiceFromDt, #choiceToDt").datepicker({
+            dateFormat: 'yy.mm.dd'
+        });
+        
+        /******************************************
+         * fancy Box 팝업호출
+         ******************************************/
+        J("#evalMembEmpnSearch").fancybox();
+        J("#deptSearch").fancybox();
+        J("#managerUserSearch").fancybox();
+        
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+        
+        if(J("#evalMembEmpn").val() == "" || J("#korNm").val() == "") {
+            alert("대상자를 선택해주세요");
+            return;
+        }
+        if (J("#deptCd").val() == "" || J("#deptNm").val() == "") {
+            alert("부서를 선택해주세요");
+            return false;
+        }
+        if (J("#castTc").val() == "100" ) {
+            alert("직급을 선택해주세요");
+            return false;
+        }
+        if (J("#posTc").val() == "100" ) {
+            alert("직위을 선택해주세요");
+            return false;
+        }
+        
+        if (J("#choiceFromDt").val() != "" && J("#choiceToDt").val() != "") {
+                    
+            var fromDt = J("#choiceFromDt").val().replace(/[.]/gi, "");
+            var toDt = J("#choiceToDt").val().replace(/[.]/gi, "");
+            
+            if((toDt - fromDt) < 0) {
+                alert("근무종료일은 시작일보다 빠를 수 없습니다.");
+                return false;
+            }
+
+            J("#fromDt").val(fromDt);
+            J("#toDt").val(toDt);
+        } else {
+        
+            alert("직무수행기간을 확인하십시요.");
+            return false;
+        }
+        
+        if (J("#evalGrpId").val() == "" ) {
+            alert("평가군을 선택해주세요");
+            return false;
+        }
+        
+        if (J("#assessorGrpId").val() == "" ) {
+            alert("평가자그룹을 선택해주세요");
+            return false;
+        }
+        	
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/prs/mng/evalMng/evalMngProcess.vw?type=template").submit();
+	}
+    
+    /*****************************************************
+     * 대상자 설정
+     *****************************************************/
+    function setEvalMembEmpnInfo(arguments) {
+        J("#evalMembEmpn").val(arguments[0]);
+        J("#korNm").val(arguments[1]);
+        J("#deptCd").val(arguments[2]);
+        J("#deptNm").val(arguments[3]);
+        J("#posTc").val(arguments[6]);
+        J("#castTc").val(arguments[4]);
+        J.fancybox.close();
+    }
+    
+    
+    /*****************************************************
+     * 부서장 설정
+     *****************************************************/
+    function setManagerUserInfo(arguments) {
+        J("#managerUserId").val(arguments[0]);
+        J("#managerUserNm").val(arguments[1]);
+        J.fancybox.close();
+    }
+    
+    /*****************************************************
+     * 조직선택 설정
+     *****************************************************/ 
+    function setDeptInfoPop(deptId, deptNm) {
+        deptNm = J(deptNm).text();
+        
+        J("#deptCd").val(deptId);
+        J("#deptNm").val(deptNm);
+        J.fancybox.close();
+    }
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/prs/eval/evalGroup/evalGroupProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("year")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="평가대상자  등록">
+					<caption class="none">평가대상자 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="85%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row"><span class="txt_red">(*)</span><label for="korNm">이름</label></th>
+    						<td>
+                                <input type="text" id="korNm" name="korNm" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.KOR_NM)}" readonly="readonly"/>
+                                <input type="hidden" id="evalMembEmpn" name="evalMembEmpn" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.EVAL_MEMB_EMPN)}"/>
+                                <input type="hidden" id="evalMembEmpnSeq" name="evalMembEmpnSeq" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.EVAL_MEMB_EMPN_SEQ)}"/>
+								#if($!{searchMap.txt2html("mode")} == "ADD")
+    								<a id="evalMembEmpnSearch" href="$!{context_path}/bsc/module/commModule/popSearchUser.vw?findYear=$!{searchMap.txt2html("year")}&amp;callBack=setEvalMembEmpnInfo"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="평가대상자선택" /></a>
+								#end
+							</td>
+    					</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span><label for="deptCd">부서</label></th>
+                            <td>
+                                <input type="hidden" id="deptCd" name="deptCd" value="$!{CS_HTML.txt2html($detail.DEPT_CD)}" />
+                                <input type="text" id="deptNm" name="deptNm" class="text" value="$!{CS_HTML.txt2html($detail.DEPT_FULL_NM)}"  maxlength="20" title="소속조직 " readonly="readonly" />
+                                <a id="deptSearch" href="$!{context_path}/bsc/module/commModule/popScDeptTree1.vw?findYear=$!{searchMap.txt2html("year")}&amp;findSearchCodeId=$!{searchMap.txt2html("findDeptId")}"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="조직검색"/></a> 
+                            </td>
+						</tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="castTc">직급</label></th>
+                            <td>
+                                <select id="castTc" name="castTc" class="select w210" >
+                                    $!CS_CODE.getCodeOption("170", $detail.CAST_TC, $!{searchMap.txt2html("year")})   
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="posTc">직위</label></th>
+                            <td>
+                                <select id="posTc" name="posTc" class="select w210" >
+                                    $!CS_CODE.getCodeOption("171", $detail.POS_TC, $!{searchMap.txt2html("year")})   
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="choiceFromDt">직무수행기간</label></th>
+                            <td>
+                                <input type="hidden" id="fromDt" name="fromDt" value="$!{$detail.FROM_DT}"/>
+                                <input type="hidden" id="toDt" name="toDt" value="$!{$detail.TO_DT}"/>
+                                <input type="text" id="choiceFromDt" name="choiceFromDt" value="$!{CS_HTML.txt2html($detail.FROM_DT,100)}" readonly="readonly" class="w70" />
+                                ~
+                                <input type="text" id="choiceToDt" name="choiceToDt" value="$!{CS_HTML.txt2html($detail.TO_DT,100)}" readonly="readonly" class="w70" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="evalGrpId">평가군</label></th>
+                            <td>
+                                <select id="evalGrpId" name="evalGrpId" class="select w180" >
+                                    <option value="">선택</option>
+                                    #foreach($getEvalGrpList in $getEvalGrpList)
+                                        <option value="$!{CS_HTML.txt2html($getEvalGrpList.EVAL_GRP_ID)}" #if($detail.EVAL_GRP_ID==$getEvalGrpList.EVAL_GRP_ID) selected="selected" #end)>$!{CS_HTML.txt2html($getEvalGrpList.EVAL_GRP_NM)}</option>
+                                    #end
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="assessorGrpId">평가자그룹</label></th>
+                            <td>
+                                <select id="assessorGrpId" name="assessorGrpId" class="select w180" >
+                                    <option value="">선택</option>
+                                    $!CS_CODE.getCodeOption("220", $detail.ASSESSOR_GRP_ID, $!{searchMap.txt2html("year")})
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="managerUserId">부서장</label></th>
+                            <td>
+                                <input type="hidden" id="managerUserId" name="managerUserId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.MANAGER_USER_ID)}" />
+                                <input type="text" id="managerUserNm" name="managerUserNm" class="inputbox w140 disable" value='$!{CS_HTML.txt2html($detail.MANAGER_USER_NM)}' maxlength="20" readonly="readonly"/>
+                                <a id="managerUserSearch" href="$!{context_path}/bsc/module/commModule/popSearchUser.vw?findYear=$!{searchMap.txt2html("year")}&amp;callBack=setManagerUserInfo"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="부서장선택" /></a>
+                                <a href="javascript:J.setInit('managerUserId','managerUserNm');"><img src="$!{img_path}/common/board/ic_cancel.gif" class="valign_middle" alt="부서장선택 취소" /></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="evalYn01">간부평가대상여부</label></th>
+                            <td>
+                                <input type="radio" id="evalYn01" name="evalYn" value="Y"  #if($detail.EVAL_YN=="Y" || !$detail.EVAL_YN) checked="checked" #end/>평가 &nbsp;
+                                <input type="radio" id="evalYn02" name="evalYn" value="N"  #if($detail.EVAL_YN!="Y") checked="checked" #end/>미평가&nbsp;
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="txt_red">(*)</span><label for="prsYn01">개인업적평가여부</label></th>
+                            <td>
+                                <input type="radio" id="prsYn01" name="prsYn" value="Y"  #if($detail.PRS_YN=="Y" || !$detail.PRS_YN) checked="checked" #end/>평가 &nbsp;
+                                <input type="radio" id="prsYn02" name="prsYn" value="N"  #if($detail.PRS_YN!="Y") checked="checked" #end/>미평가&nbsp;
+                            </td>
+                        </tr>
+                        <tr style="display:none;">
+                            <th scope="row"><span class="txt_red">(*)</span><label for="orgYn01">조직역량평가여부</label></th>
+                            <td>
+                                <input type="radio" id="orgYn01" name="orgYn" value="Y"  #if($detail.ORG_YN=="Y") checked="checked" #end/>평가 &nbsp;
+                                <input type="radio" id="orgYn02" name="orgYn" value="N"  #if($detail.ORG_YN!="Y" || !$detail.ORG_YN) checked="checked" #end/>미평가&nbsp;
+                            </td>
+                        </tr>
+    				</tbody>
+    			</table>
+    		</div>
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

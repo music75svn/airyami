@@ -1,0 +1,296 @@
+#*************************************************************************
+* CLASS 명      : deptStrategyModify
+* 작 업 자      : 김상용
+* 작 업 일      : 2013년 5월 2일
+* 기    능      : 전략과제관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    김상용      2013년 5월 2일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/base/deptStrategy/deptStrategyList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			var findYear = J("#findYear").val();
+			var oldYear = J("#oldYear").val();
+
+			if(findYear != oldYear) {
+				J("#findScDeptId").val("");
+			}
+		});
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/bsc/base/deptStrategy/deptStrategyList.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+		/******************************************
+		 * 정렬순서 숫자만 입력받기
+		 ******************************************/
+		J("#sortOrder").numeric();
+		J("#sortOrder").css("ime-mode", "disabled"); //한글사용 비활성화
+
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#upStrategySearch").fancybox();    //상위전략과제 조회
+
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#indicator"),
+			limit:1000
+		});
+		J("#content").trigger("keyup");
+
+		// 전략과제 select 박스 더블클릭 처리
+		J("#strategys").dblclick(function(e) {
+			e.preventDefault();
+			moveItems(true);
+		});
+
+		// 전략과제 select 박스 더블클릭 처리
+		J("#deptStrategies").dblclick(function(e) {
+			e.preventDefault();
+			moveItems(false);
+		});
+
+		//오른쪽 이동 버튼 클릭 처리
+		J("#allToLeft").click(function(e) {
+			e.preventDefault();
+			moveItems(false);
+		});
+
+		//왼쪽 이동 버튼 클릭 처리
+		J("#allToRight").click(function(e) {
+			e.preventDefault();
+			moveItems(true);
+		});
+	});
+
+	function moveItems(isAdd) {
+		var from = null;
+		var to = null;
+
+		if (isAdd) {
+			if( J("#strategys option").length == 0) {
+				J.showMsgBox("이동할 데이터가 없습니다.", null, null);
+	    		return;
+	    	}
+
+	    	if(J("#strategys option:selected").length == 0) {
+				J.showMsgBox("이동할 데이터를 선택하십시오.", null, null);
+	    		return;
+	    	}
+			from = $("#strategys");
+			to = $("#deptStrategies");
+		} else {
+			if( J("#deptStrategies option").length == 0) {
+				J.showMsgBox("이동할 데이터가 없습니다.", null, null);
+	    		return;
+	    	}
+
+	    	if(J("#deptStrategies option:selected").length == 0) {
+				J.showMsgBox("이동할 데이터를 선택하십시오.", null, null);
+	    		return;
+	    	}
+			to = $("#strategys");
+			from = $("#deptStrategies");
+		}
+
+		var options = new Array();
+
+		from.find("option:selected").each(function () {
+			options.push($(this));
+			$(this).remove();
+		});
+
+		for (var i = 0; i < options.length; i++) {
+			to.append(options[i]);
+		}
+	}
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+
+		var strategyIds = "";
+		var deptStrategies = "";
+
+		J("#strategys option").each(function() {
+        	strategyIds += J(this).val() + '|';
+    	});
+
+		J("#strategyIds").val(strategyIds);
+
+		if(J("deptStrategies").val() != ""){
+			J("#deptStrategies option").each(function() {
+	            deptStrategies += J(this).val() + '|';
+	        });
+
+			J("#deptStrategiesIds").val(deptStrategies);
+		}
+
+		J("#form1").attr("action", "$!{context_path}/bsc/base/deptStrategy/deptStrategyProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 조직선택 클릭이벤트
+	 ******************************************/
+	function goAction(deptId, deptNm) {
+		setDeptInfo(deptId, deptNm);
+	}
+
+	/*****************************************************
+	 * Left 조직트리에서 조직선택 설정
+	 *****************************************************/
+	function setDeptInfo(scDeptId, scDeptNm) {
+		// 선택한 조직의 전략과제 list를 조회함.
+		// formFind의 변수들 설정.
+		J("#findScDeptId").val(scDeptId);			// 조직Tree에서 선택한 조직코드를 설정.
+		J("#findScDeptNm").val(J(scDeptNm).text());	// 조직Tree에서 선택한 조직명을 설정.(신규 등록시 사용함.)
+
+		J("#formFind").attr("action", "$!{context_path}/bsc/base/deptStrategy/deptStrategyList.vw?type=template").submit();
+	}
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+			<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/base/deptStrategy/deptStrategyList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden" 	id="findScDeptId"	name="findScDeptId"		value="$!{searchMap.txt2html("findScDeptId")}" />
+				<input type="hidden" 	id="findScDeptNm"	name="findScDeptNm"		value="$!{searchMap.txt2html("findScDeptNm")}" />
+				<input type="hidden" 	id="oldYear"		name="oldYear"			value="$!{searchMap.txt2html("findYear")}" />
+				<input type="hidden" 	id="findYear"		name="findYear"			value="$!{searchMap.txt2html("findYear")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="조직별 $!{STRATEGY_NM} 관리 검색 조건">
+						<caption class="none">조직별 $!{STRATEGY_NM} 관리 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+#*
+								<td class="searchBox_tit w250">
+            						<span>$!{YEAR}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w250">
+									<span>사용여부</span>
+            						<span class="searchBar">
+            							<select id="findUseYn" name="findUseYn" class="select w70">
+            								$!CS_CODE.getCodeOption("011", $!{searchMap.txt2html("findUseYn")})
+            							</select>
+            						</span>
+            					</td>
+*#
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+            				</tr>
+        				</tbody>
+    				</table>
+##                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+	<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/base/deptStrategy/deptStrategyProcess.vw?type=template">
+		<input type="hidden" id="mode"				name="mode"					value="$!{searchMap.txt2html("mode")}" />
+		<input type="hidden" id="strategyIds"		name="strategyIds"			value="" />
+		<input type="hidden" id="deptStrategiesIds"	name="deptStrategiesIds"	value="" />
+        $!{searchMap.makeHiddenFind()}
+
+		<!-- 조직트리 Start -->
+		<div class="blockGridTreeTable">
+			#parse("/WEB-INF/vl/bsc/module/commModule/commonTree.vm")
+		</div>
+
+		<div style="width:440px; height:30px;float:left; margin-left:10px;">
+			전략과제
+        </div>
+		<div style="width:420px; height:30px;float:right; ">
+			전략과제
+        </div>
+		<!-- 전략과제 -->
+		<div class="blockGridTreeTable"style="width:420px;height:350px; margin-left:10px;">
+            <select multiple size=10 id="strategys" name="strategys" class="select" style="width:100%;height:100%;">
+        		#foreach($strategy in $strategyList)
+        			<option value="$!{CS_HTML.txt2html($strategy.STRATEGY_ID)}">$!{CS_HTML.txt2html($strategy.STRATEGY_NM)}</option>
+        		#end
+        	</select>
+		</div>
+		<div class="blockGridTreeTable" style="width:50px;height:350px; margin-left:1px;">
+			<ul>
+				<li style="width:5%; padding-top:140px; margin-left:10px;" class="valign_middle;" >
+					<input type="image" id="allToLeft" src="$!{img_path}/common/btn_arrow1up.gif" alt="왼쪽으로 전체 이동" /><br/><br/>
+					<input type="image" id="allToRight" src="$!{img_path}/common/btn_arrow2up.gif" alt="오른쪽으로 전체 이동" />
+				</li>
+			</ul>
+		</div>
+		<!-- 전략과제 -->
+		<div class="blockGridTreeTable" style="width:420px; height:350px; float:right;">
+			<select multiple size=10 id="deptStrategies" name="deptStrategies" class="select" style="width:100%;height:100%;">
+        		#foreach($deptStrategy in $deptStrategyList)
+        			<option value="$!{CS_HTML.txt2html($deptStrategy.STRATEGY_ID)}">$!{CS_HTML.txt2html($deptStrategy.STRATEGY_NM)}</option>
+        		#end
+        	</select>
+		</div>
+		<div class="blockButton" style="margin-top:10px;">
+			<ul>
+				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+				<li><input type="submit" id="btnInsert" value="저장"    /></li>
+			</ul>
+		</div>
+	</form>
+	</div>
+	<div class="clear"></div>
+</div>
+

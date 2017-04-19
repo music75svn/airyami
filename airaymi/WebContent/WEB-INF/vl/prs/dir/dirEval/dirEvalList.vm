@@ -1,0 +1,387 @@
+#*************************************************************************
+* CLASS 명      : dirEvalList
+* 작 업 자      : 방승현
+* 작 업 일      : 2013년 06월 25일 
+* 기    능      : 임원평가 리더십 평가
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  -----------  -----------------  -------------------------  --------
+*  1       방승현      2013년 06월 25일         최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/prs/dir/dirEval/dirEvalList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/prs/dir/dirEval/dirEvalList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_r_width},
+			colNames     :['년도', '사번','사원번호', '이름', '평가확정여부', '대상여부', '부서코드', '직급코드', '직급', '직위코드', '직위', '근무기간', '상반기', '하반기', '평점'],
+			colModel     :[
+							{name:'YEAR'				,index:'YEAR'				,width:70		,align:'center'},
+							{name:'EMPN'				,index:'EMPN'				,width:70		,align:'center'},
+							{name:'EMPNS'				,index:'EMPNS'				,width:70		,align:'center' , formatter:linkEmpn},
+							{name:'KOR_NM'				,index:'KOR_NM'				,width:70		,align:'center'},
+							{name:'LEADERSHIP_YN'		,index:'LEADERSHIP_YN'		,width:70		,align:'center'},
+							{name:'EVAL_YN'				,index:'EVAL_YN'			,width:70		,align:'center'},
+							{name:'DEPT_CD'				,index:'DEPT_CD'			,width:70		,align:'center'},
+							{name:'CAST_TC'				,index:'CAST_TC'			,width:70		,align:'center'},
+							{name:'CAST_NM'				,index:'CAST_NM'			,width:70		,align:'center'},
+							{name:'POS_TC'				,index:'POS_TC'				,width:70		,align:'center'		,formatter:linkPosTc},
+							{name:'POS_NM'				,index:'POS_NM'				,width:70		,align:'center'},
+							{name:'DUTY_DT'				,index:'DUTY_START_DT'		,width:70		,align:'center'},
+							{name:'LEADERSHIP_1ST'		,index:'LEADERSHIP_1ST'		,width:50		,align:'center'		,formatter:fncScore1st},
+							{name:'LEADERSHIP_2ND'		,index:'LEADERSHIP_2ND'		,width:50		,align:'center'		,formatter:fncScore2nd},
+							{name:'LEADERSHIP_SCORE'	,index:'LEADERSHIP_SCORE'	,width:50		,align:'center'		}##,formatter:fncScore}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : false,
+			multiselect  : false,
+			cellEdit     : true,
+			cmTemplate: {sortable:false},
+			loadComplete : function() {
+
+                var id         = J("#list").getGridParam('selarrrow');
+                var ids        = J("#list").jqGrid('getDataIDs');
+                
+                /******************************************
+		         * 초기값 설정
+		         ******************************************/
+				#if("N" == "$!{leadershipYn.DIR_LEADERSHIP_YN}")
+					J("#btnleadership").val("확정");
+					J("#leadershipYn").val("Y");
+					
+					for (var i = 0; i < ids.length; i++) {
+						J("input[name='leadershipScore1st']").eq(i).attr('disabled', false);
+						J("input[name='leadershipScore2nd']").eq(i).attr('disabled', false);
+					}
+				#else
+					J("#btnleadership").val("확정취소");
+					J("#leadershipYn").val("N");
+					
+					for (var i = 0; i < ids.length; i++) {
+						J("input[name='leadershipScore1st']").eq(i).attr('disabled', true);
+						J("input[name='leadershipScore2nd']").eq(i).attr('disabled', true);
+					}
+				#end
+				
+				for (var i = 0; i < ids.length; i++) {
+					J("input[name='leadershipScore1st']").eq(i).numeric({allow:"."});
+					J("input[name='leadershipScore1st']").eq(i).css("ime-mode", "disabled"); //한글사용 비활성화
+					J("input[name='leadershipScore2nd']").eq(i).numeric({allow:"."});
+					J("input[name='leadershipScore2nd']").eq(i).css("ime-mode", "disabled"); //한글사용 비활성화
+				}
+			},
+			caption:"임원리더십평가"
+		}).jqGrid('hideCol', "YEAR").jqGrid('hideCol', "EMPNS").jqGrid('hideCol', "LEADERSHIP_YN").jqGrid('hideCol', "EVAL_YN").jqGrid('hideCol', "DEPT_CD").jqGrid('hideCol', "CAST_TC").jqGrid('hideCol', "POS_TC").setGridWidth($!{jqGrid_width});
+        
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+		
+		/******************************************
+         * 저장
+         ******************************************/
+        J("#btnInsert").click(function(e) {
+            e.preventDefault();
+            J("#mode").val("MOD");
+            
+            if(J("#leadershipYn").val()=="N") {
+            	alert("확정되어 저장 할 수 없습니다.");
+            } else {
+            	saveChk();
+            }
+        });
+
+		/******************************************
+         * 확정
+         ******************************************/        
+        J("#btnleadership").click(function(e) {
+            e.preventDefault();
+            J("#mode").val("CON");
+            
+            var ids = J("#list").jqGrid('getDataIDs');
+		
+			for (var i = 0; i < ids.length; i++) {
+	            var score1 = J("input[name='leadershipScore1st']").eq(i).val();
+	            var score2 = J("input[name='leadershipScore2nd']").eq(i).val();
+	            
+	            if(score1 == "" && score2 == "") {
+	            	alert("상/하반기 평가점수가 모두 입력되지 않으면 확정 할 수 없습니다.");
+	            	return false;
+	            } 
+	        }
+	 	    saveChk();
+        });
+	});
+	
+	/******************************************
+     * 사원번호
+     ******************************************/
+    function linkEmpn(cellvalue, options, rowObject) {
+    	var reStr = "";
+    	reStr += '<input type="hidden" name="empn" value="' + cellvalue + '" class="wp50" maxlength="6" />';
+    	return reStr;
+    }
+
+	/******************************************
+     * 직위
+     ******************************************/
+    function linkPosTc(cellvalue, options, rowObject) {
+    	var reStr = "";
+    	reStr += '<input type="hidden" name="posTc" value="' + cellvalue + '" class="wp50" maxlength="5" />';
+    	return reStr;
+    }
+    
+	/******************************************
+     * 상반기 리더십평가 점수
+     ******************************************/
+    function fncScore1st(cellvalue, options, rowObject) {
+    	var reStr = "";
+    	reStr += '<input type="text" name="leadershipScore1st" value="' + cellvalue + '" class="inputbox textRight wp50" maxlength="6" onBlur="scoreAvg();"/>';
+    	return reStr;
+    }
+	
+	/******************************************
+     * 하반기 리더십평가 점수
+     ******************************************/
+    function fncScore2nd(cellvalue, options, rowObject) {
+    	var reStr = "";
+    	reStr += '<input type="text" name="leadershipScore2nd" value="' + cellvalue + '" class="inputbox textRight wp50" maxlength="6" onBlur="scoreAvg();"/>';
+    	return reStr;
+    }
+	
+	/******************************************
+     * 평점
+     *****************************************
+    function fncScore(cellvalue, options, rowObject) {
+    	var reStr = '<input type="hidden" name="empn" value="' + rowObject.EMPN + '" />';
+    	reStr += '<input type="hidden" name="leadershipScore" value="' + cellvalue + '" class="wp50" readonly="readonly" />';
+    	return reStr;
+    }*/
+    
+    /******************************************
+	 * 계산실행
+	 ******************************************/
+	function scoreAvg(cellvalue, options, rowObject) {
+		var avg_score = 0;
+		var temp_score = 0;
+		var MAX_SCORE = 100;
+		var score1st = "";
+		var score2nd = "";
+		
+		var ids = J("#list").jqGrid('getDataIDs');
+		
+		for (var i = 0; i < ids.length; i++) {
+			var cnt = 0;
+
+			if (J("input[name='leadershipScore1st']").eq(i).val() != "") {
+				score1st = J("input[name='leadershipScore1st']").eq(i).val();
+				cnt++;
+			} else {
+				score1st = 0;
+			}
+			
+			if (J("input[name='leadershipScore2nd']").eq(i).val() != "") {
+				score2nd = J("input[name='leadershipScore2nd']").eq(i).val();
+				cnt++;
+			} else {
+				score2nd = 0;
+			}
+			
+			if (score1st == 0 && score2nd == 0 ) {
+				J("#list").jqGrid('setCell', ids[i], "LEADERSHIP_SCORE", null);
+			} else if(score1st == "" && score2nd == "") {
+				J("#list").jqGrid('setCell', ids[i], "LEADERSHIP_SCORE", null);
+			} else {
+##				avg_score = Math.round((parseFloat(score1st) + parseFloat(score2nd)) / cnt, 1);
+				avg_score = (parseFloat(score1st) + parseFloat(score2nd)) / cnt;
+				J("#list").jqGrid('setCell', ids[i], "LEADERSHIP_SCORE", avg_score.toFixed(3));
+			}
+		}
+	}
+	
+	/******************************************
+     * 필수입력 체크
+     ******************************************/
+    function saveChk() {
+		var ids	= J("#list").jqGrid('getDataIDs');
+		
+		for (var i = 0; i < ids.length; i++) {
+			rowdata = J("#list").getRowData(ids[i]);
+			var val = rowdata.LEADERSHIP_SCORE;
+			var score1 = J("input[name='leadershipScore1st']").eq(i).val();
+			var score2 = J("input[name='leadershipScore2nd']").eq(i).val();
+			
+			/*
+			if (val == "") {
+				alert("평가점수 확인 하십시요.");
+				J("input[name='leadershipScore']").eq(i).focus();
+				return false;
+			}
+			*/
+			
+			if(isNaN(val) == true) {
+				alert("점수확인 하십시요.");
+				J("input[name='leadershipScore']").eq(i).focus();
+				return false;
+			}
+			
+			if(score1 > 100 || 0 > score1) {
+				alert("평가점수(상반기)는 100 초과, 0 미만 점수는 줄 수 없습니다.");
+				J("input[name='leadershipScore1st']").eq(i).focus();
+				return false;
+			}
+
+			if(score2 > 100 || 0 > score2) {
+				alert("평가점수(하반기)는 100 초과, 0 미만 점수는 줄 수 없습니다.");
+				J("input[name='leadershipScore2nd']").eq(i).focus();
+				return false;
+			}
+			
+			if(val > 100 || 0 > val) {
+				alert("평가점수는 100 초과, 0 미만 점수는 줄 수 없습니다.");
+				J("input[name='leadershipScore']").eq(i).focus();
+				return false;
+			}
+		}
+		
+		if(J("#mode").val() == "MOD") {
+			J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+		}else if( J("#mode").val() == "CON") {
+			if( J("#leadershipYn").val() == "Y" ) {
+				J.showConfirmBox("저장 및 확정 하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+			}else {
+				J.showConfirmBox("확정취소 하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+			}
+		}
+		
+    }
+
+    /******************************************
+     * 저장
+     ******************************************/
+    function saveDo() {
+    	var ids	= J("#list").jqGrid('getDataIDs');
+    	var leadershipScore = "";
+    	
+    	for (var i = 0; i < ids.length; i++) {
+			J("input[name='leadershipScore1st']").eq(i).attr('disabled', false);
+			J("input[name='leadershipScore2nd']").eq(i).attr('disabled', false);
+			
+			rowdata = J("#list").getRowData(ids[i]);
+			leadershipScore += rowdata.LEADERSHIP_SCORE + '|';
+		}
+		//alert(leadershipScore);
+        J("#leadershipScores").val(leadershipScore);
+        J("#year").val(J("#findYear").val());
+        J("#formList").attr("action", "$!{context_path}/prs/dir/dirEval/dirEvalProcess.vw?type=template").submit();
+
+        return false;
+
+    }
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">평가대상자</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/dir/dirEval/dirEvalList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"	id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="임원평가대상자 검색 조건">
+						<caption class="none">임원평가대상자 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w200">
+            						<span>$!{YEAR}</span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            					<td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/prs/dir/dirEval/dirEvalProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"       		name="year" />
+			<input type="hidden" id="leadershipYn"  	name="leadershipYn" />
+			<input type="hidden" id="leadershipScores"  name="leadershipScores" />
+			
+			$!{searchMap.makeHiddenFind()}
+			
+			<div id="splitterBox">
+				<div>
+						
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="평가대상자 조회결과">
+							<caption class="none">평가대상자 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					
+					<div class="blockButton_all floatLeft">
+						<div class="blockButton">
+                            <ul>
+                            	#if ( $!{leadershipYn.DIR_LEADERSHIP_YN} == "N")
+                                	<li><input type="button" id="btnInsert"	value="저장" /></li>
+                                #end
+                                <li><input type="button" id="btnleadership"	value="" /></li>
+                            </ul>
+                        </div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+	</div>
+	<div class="clear"></div>
+</div>

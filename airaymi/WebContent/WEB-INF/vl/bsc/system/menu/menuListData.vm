@@ -1,0 +1,349 @@
+#*************************************************************************
+* CLASS 명      : menuListData
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012년 6월 6일 
+* 기    능      : 메뉴관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     하윤식      2012년 6월 6일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/bsc/system/menu/menuList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		$("input", ".blockButton" ).button(); //버튼 ui 적용
+		
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#indicator"),
+			limit:500
+		});
+		J("#content").trigger("keyup");
+		
+		J("#contentU").checkbyte({
+			indicator:J("#indicatorU"),
+			limit:500
+		});
+		J("#contentU").trigger("keyup");
+		
+		/******************************************
+		 * 메뉴 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+		
+		/******************************************
+		 * 메뉴 수정버튼 이벤트
+		 ******************************************/
+		J("#btnUpdate").click(function(e) {
+			e.preventDefault();
+			saveChk2();
+		});
+		
+		/******************************************
+		 * 메뉴 삭제버튼 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function(e) {
+			e.preventDefault();
+			deleteChk();
+		});
+		
+		/******************************************
+		 * 권한설정 저장버튼 이벤트
+		 ******************************************/
+		J("#btnAdminInsert").click(function(e) {
+			e.preventDefault();
+			saveAdminDo();
+		});
+		
+		/******************************************
+		 * 메뉴 정렬순서 저장버튼 이벤트
+		 ******************************************/
+		J("#btnSortUpdate").click(function(e) {
+			e.preventDefault();
+			saveSortDo();
+		});
+		
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("input[name=sortOrders]").numeric(); //숫자만 입력받기
+		J("input[name=sortOrders]").css("ime-mode", "disabled"); //한글사용 비활성화
+		
+	});
+    
+//]]>
+</script>
+ 
+<!-- 메뉴등록 테이블 -->
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+	<tbody>
+		
+		#if("03" != $!{CS_HTML.txt2html($detail.LEVEL_ID)})
+		<tr>
+			<td>
+				<form id="formIns" name="formIns" method="post" action="$!{context_path}/bsc/system/menu/menuProcess.vw?type=template">
+					<input type="hidden" id="mode"		name="mode"		value="ADD" />
+					<input type="hidden" id="upPgmId"	name="upPgmId"	value="$!{searchMap.txt2html("pgmId")}" />
+					<input type="hidden" id="pgmIdIns"	name="pgmId"	value="$!{searchMap.txt2html("pgmId")}" />
+					<input type="hidden" name="topPgmId" value="$!{CS_HTML.txt2html($detail.TOP_PGM_ID)}" />
+					<input type="hidden" name="subPgmId" value="$!{CS_HTML.txt2html($detail.SUB_PGM_ID)}" />
+					<input type="hidden"    id="findYear"       name="findYear"         value="$!{searchMap.txt2html("findYear")}" />
+					
+    				<div class="">
+    					<span class="txt_red">$!{CS_HTML.txt2html($detail.PGM_NM)}</span> 메뉴하위에 추가
+    				</div>
+    				<div class="blockDetail">
+    					<table summary="메뉴등록">
+        				<caption class="none">메뉴등록</caption>
+    						<colgroup>
+            					<col width="15%" />
+            					<col width="85%" />
+    						</colgroup>
+            				<tbody>
+            					<tr>
+            						<th scope="row">메뉴코드</label></th>
+            						<td> ※ 저장시 자동으로 부여됩니다.</td>
+            					</tr>
+            					<tr>
+            						<th scope="row"><label for="pgmNm">메뉴</label></th>
+            						<td><input type="text" id="pgmNm" name="pgmNm" class="inputbox w200" value="" maxlength="20"/></td>
+            					</tr>
+            					<tr>
+            						<th scope="row"><label for="levelId">메뉴레벨</label></th>
+            						<td>
+										
+										#set ($menuLevel = "01")
+										
+										#if("01" == $!{CS_HTML.txt2html($detail.LEVEL_ID)})
+											#set ($menuLevel = "02")	
+										#elseif("02" == $!{CS_HTML.txt2html($detail.LEVEL_ID)})
+											#set ($menuLevel = "03")
+										#elseif("03" == $!{CS_HTML.txt2html($detail.LEVEL_ID)})
+											#set ($menuLevel = "04")
+										#end
+										
+										$!CS_CODE.getCodeName("060", $!{menuLevel})
+										<input type="hidden" id="levelId" name="levelId" class="inputbox w200" value="$!{menuLevel}" maxlength="2"/>
+									</td>
+            					</tr>
+    							<tr>
+            						<th scope="row"><label for="url">URL</label></th>
+            						<td><input type="text" id="url" name="url" class="inputbox wp98" value='' maxlength="200"/></td>
+            					</tr>
+								<tr>
+            						<th scope="row"><label for="param">PARAM</label></th>
+            						<td><input type="text" id="param" name="param" class="inputbox wp98" value='' maxlength="200"/></td>
+            					</tr>
+    							<tr>
+            						<th scope="row"><label for="content">비고</label></th>
+            						<td>
+    									<textarea id="content" name="content" class="tabletext" title="비고" cols="10" rows="2"></textarea>
+    									<span id="indicator">0</span>/500byte
+    								</td>
+            					</tr>
+            				</tbody>
+            			</table>
+    					<div class="blockButton_all">			
+    						<div class="blockButton_l"></div>
+    						<div class="blockButton">			
+    							<ul>
+    								<li><input type="button" id="btnInsert" value="저장" /></li>
+    							</ul>
+    						</div>
+    					</div>
+    				</div>
+				</form>
+			</td>
+		</tr>
+		#end
+		
+		<tr>
+			<td>
+				<form id="formMod" name="formMod" method="post" action="$!{context_path}/bsc/system/menu/menuProcess.vw?type=template">
+					<input type="hidden" id="modeMod"	name="mode"		value="MOD" />
+					<input type="hidden" id="upPgmId"	name="upPgmId"	value="$!{CS_HTML.txt2html($detail.UP_PGM_ID)}" />
+					<input type="hidden" id="pgmIdMod"	name="pgmId"	value="$!{searchMap.txt2html("pgmId")}" />
+					<input type="hidden" name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+					<input type="hidden" name="findSubPgmId"	value="$!{searchMap.txt2html("findSubPgmId")}" />
+					<input type="hidden" name="topPgmId"		value="$!{CS_HTML.txt2html($detail.TOP_PGM_ID)}" />
+					<input type="hidden" name="subPgmId"		value="$!{CS_HTML.txt2html($detail.SUB_PGM_ID)}" />
+					<input type="hidden"    id="findYear"       name="findYear"         value="$!{searchMap.txt2html("findYear")}" />
+				
+    				<div class="">
+    					<span class="txt_red">$!{CS_HTML.txt2html($detail.PGM_NM)}</span> 메뉴수정
+    				</div>
+    				<div class="blockDetail">
+    					<table summary="메뉴등록">
+        				<caption class="none">메뉴등록</caption>
+    						<colgroup>
+            					<col width="15%" />
+            					<col width="85%" />
+    						</colgroup>
+            				<tbody>
+            					<tr>
+            						<th scope="row"><label for="pgmIdU">메뉴코드</label></th>
+            						<td>
+										$!{CS_HTML.txt2html($detail.PGM_ID)}
+										<input type="hidden" id="pgmIdU" name="pgmIdU"	value="$!{CS_HTML.txt2html($detail.PGM_ID)}" />
+									</td>
+            					</tr>
+            					<tr>
+            						<th scope="row"><label for="pgmNmU">메뉴</label></th>
+            						<td><input type="text" id="pgmNmU" name="pgmNmU" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.PGM_NM)}' maxlength="30"/></td>
+            					</tr>
+            					<tr>
+            						<th scope="row"><label for="levelIdU">메뉴레벨</label></th>
+            						<td>
+										$!CS_CODE.getCodeName("060", $!{CS_HTML.txt2html($detail.LEVEL_ID)})
+										<input type="hidden" id="levelIdU" name="levelIdU" class="inputbox w200" value='$!{CS_HTML.txt2html($detail.LEVEL_ID)}' maxlength="2"/>
+									</td>
+            					</tr>
+    							<tr>
+            						<th scope="row"><label for="urlU">URL</label></th>
+            						<td><input type="text" id="urlU" name="urlU" class="inputbox wp98" value='$!{CS_HTML.txt2html($detail.URL)}' maxlength="200" /></td>
+            					</tr>
+								<tr>
+            						<th scope="row"><label for="param">PARAM</label></th>
+            						<td><input type="text" id="param" name="param" class="inputbox wp98" value='$!{CS_HTML.txt2html($detail.PARAM)}' maxlength="200"/></td>
+            					</tr>
+    							<tr>
+            						<th scope="row"><label for="contentU">비고</label></th>
+            						<td>
+    									<textarea id="contentU" name="contentU" class="tabletext" title="비고" cols="10" rows="2">$!{CS_HTML.txt2html($detail.CONTENT)}</textarea>
+    									<span id="indicatorU">0</span>/500byte
+    								</td>
+            					</tr>
+            				</tbody>
+            			</table>
+						<div class="blockButton_all">			
+    						<div class="blockButton_l"></div>
+    						<div class="blockButton">			
+    							<ul>
+    								<li><input type="button" id="btnUpdate" value="수정" /></li>
+									<li><input type="button" id="btnDelete" value="삭제" /></li>
+    							</ul>
+    						</div>
+    					</div>
+    				</div>
+				</form>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<form id="formAdmin" name="formAdmin" method="post" action="$!{context_path}/bsc/system/menu/menuProcess.vw?type=template">
+					<input type="hidden" id="modeAdmin"	name="mode"		value="ADMIN_MOD" />
+					<input type="hidden" id="pgmId"		name="pgmId"	value="$!{CS_HTML.txt2html($detail.PGM_ID)}" />
+					<input type="hidden" name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+					<input type="hidden" name="findSubPgmId"	value="$!{searchMap.txt2html("findSubPgmId")}" />
+					<input type="hidden" name="topPgmId"		value="$!{CS_HTML.txt2html($detail.TOP_PGM_ID)}" />
+					<input type="hidden" name="subPgmId"		value="$!{CS_HTML.txt2html($detail.SUB_PGM_ID)}" />
+					<input type="hidden"    id="findYear"       name="findYear"         value="$!{searchMap.txt2html("findYear")}" />
+					
+    				<div class="">
+    					<span class="txt_red">$!{CS_HTML.txt2html($detail.PGM_NM)}</span> 권한설정
+    				</div>
+    				<div class="blockDetail">
+    					<!--blockListTable Start-->
+    					<div class="blockListTable">					
+    						<table summary="권한설정">
+    							<caption class="none">권한설정</caption>
+    							<thead>
+    								<tr>
+    								    <th scope="col" width="50%" class="textCenter">그룹</th>
+    									<th scope="col" width="50%" class="textCenter">권한</th>
+    								</tr>
+    							</thead>
+    							<tbody>
+									#set ($iCount = 0)
+    								#foreach($adminList in $adminList)
+    									<tr class="row1">
+    										<td class="textCenter">$!{CS_HTML.txt2html($adminList.ADMIN_GUBUN_NM)}</td>
+                                        	<td class="textCenter">
+    											<input type="checkbox" id="adminGubun$!{iCount}" name="adminGubuns" value="$!{adminList.ADMIN_GUBUN}" #if($adminList.PGM_ID) checked="checked" #else "" #end />
+    										</td>   
+    									</tr>
+									#set ($iCount = $iCount + 1)
+    								#end
+    							</tbody>
+    						</table>
+    						<div class="blockButton_all">			
+        						<div class="blockButton_l"></div>
+        						<div class="blockButton">
+        							<ul>
+        								<li><input type="button" id="btnAdminInsert" value="저장" /></li>
+        							</ul>
+        						</div>
+        					</div>
+    					</div>
+    					<!--//blockListTable End-->	
+    				</div>
+                </form>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<form id="formSort" name="formSort" method="post" action="$!{context_path}/bsc/system/menu/menuProcess.vw?type=template">
+					<input type="hidden" id="modeSort"	name="mode"		value="SORT_MOD" />
+					<input type="hidden" id="pgmIdSort"	name="pgmId"	value="$!{CS_HTML.txt2html($detail.PGM_ID)}" />
+					<input type="hidden" name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+					<input type="hidden" name="findSubPgmId"	value="$!{searchMap.txt2html("findSubPgmId")}" />
+					<input type="hidden" name="topPgmId"		value="$!{CS_HTML.txt2html($detail.TOP_PGM_ID)}" />
+					<input type="hidden" name="subPgmId"		value="$!{CS_HTML.txt2html($detail.SUB_PGM_ID)}" />
+					<input type="hidden"    id="findYear"       name="findYear"         value="$!{searchMap.txt2html("findYear")}" />
+					
+    				<div class="">
+    					<span class="txt_red">$!{CS_HTML.txt2html($detail.PGM_NM)}</span> 동일레벨 정렬순서조정
+    				</div>
+    				<div class="blockDetail">
+    					<!--blockListTable Start-->
+    					<div class="blockListTable">					
+    						<table summary="정렬순서조정">
+    							<caption class="none">정렬순서조정</caption>
+    							<thead>
+    								<tr>
+    								    <th scope="col" width="30%" class="textCenter">메뉴코드</th>
+    									<th scope="col" width="40%" class="textCenter">메뉴</th>
+										<th scope="col" width="30%" class="textCenter">정렬순서</th>
+    								</tr>
+    							</thead>
+    							<tbody>
+    								#foreach($menuSortList in $menuSortList)
+    									<tr class="row1">
+    										<td class="textCenter">
+    											<input type="hidden" name="pgmIds"	value="$!{CS_HTML.txt2html($menuSortList.PGM_ID)}" />
+    											$!{CS_HTML.txt2html($menuSortList.PGM_ID)}
+    										</td>
+                                        	<td class="textCenter">$!{CS_HTML.txt2html($menuSortList.PGM_NM)}</td>
+											<td class="textCenter"><input type="text" name="sortOrders" class="inputbox wp90" value="$!{CS_HTML.txt2html($menuSortList.SORT_ORDER)}" /></td>
+    									</tr>
+    								#end
+    							</tbody>
+    						</table>
+							
+    						<div class="blockButton_all">			
+        						<div class="blockButton_l"></div>
+        						<div class="blockButton">
+        							<ul>
+        								<li><input type="button" id="btnSortUpdate" value="저장" /></li>
+        							</ul>
+        						</div>
+        					</div>
+    					</div>
+    					<!--//blockListTable End-->	
+    				</div>
+				</form>
+			</td>
+		</tr>
+	</tbody>
+</table>
+								 

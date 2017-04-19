@@ -1,0 +1,327 @@
+#*************************************************************************
+* CLASS 명      : levelMappingModify
+* 작 업 자      : 현걸욱 
+* 작 업 일      : 2012년 10월 23일 
+* 기    능      : 난이도평가 평가단/지표 매핑관리    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    현걸욱      2012년 10월 23일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#findLinked").val(J("#linked").val());
+			J("#form1").attr("action", "$!{context_path}/bsc/level/levelMapping/levelMappingList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form1").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+    	 * 사용자전체 이동 이벤트
+    	 ******************************************/
+		J("#allToLeft").click(function() {
+			//moveAll('left');
+			del();
+		});
+		
+		J("#allToRight").click(function() {
+			//moveAll('right');
+			add();
+		});		
+		
+		J("#source").dblclick(function(){
+			add();
+		});
+		
+		J("#target").bind("dblclick",function(){
+			del();
+		});
+		
+		/*
+		J("select[multiple]").each(function(){
+		});
+		*/
+		
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		
+		var metricIds = "";
+	
+		J("#target option").each(function() {  
+                	
+			metricIds += J(this).val() + '|'; 
+                	
+        });
+
+		J("#metricIds").val(metricIds);
+		J("#mode").val("MOD");
+		J("#form1").attr("action", "$!{context_path}/bsc/level/levelMapping/levelMappingProcess.vw?type=template").submit();
+	}
+	
+	/******************************************
+	 * 조직선택 이벤트
+	 ******************************************/
+	function goClickAction(scDeptId, scDeptNm) {
+		J.ajax({
+        	url      : "$!{context_path}/bsc/module/commModule/commMetricList_ajax.vw",
+        	type     : "GET", 
+			data     : "findScDeptId=" + scDeptId + "&amp;findYear=" + J("#year").val(), 
+        	dataType : "xml",
+			contentType : "application/xml",
+        	success  : function (xml) {
+				J("#source").empty();
+				if(J(xml).find("items").find("item").length > 0) {
+					J(xml).find("items").find("item").each(function() {  
+                    	var metricId = $(this).find("metricId").text();  
+                    	var metricNm = $(this).find("metricNm").text();
+						var scDeptId  = $(this).find("scDeptId").text();
+						var scDeptNm = $(this).find("scDeptNm").text();
+                    	
+						J("#source").append("<option value=\""+metricId+"\">"+metricNm+" "+"("+scDeptNm+")</option>");
+
+                    });
+				}  
+        	},  
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+    	});
+	}
+	
+	/******************************************
+	 * 조직선택 이벤트(더블클릭) dummy 
+	 ******************************************/
+	function goDblClickAction(deptId, deptNm) {
+		//dummy
+	}
+	
+	function sourceSelectedItem(selected_id) {
+	
+		var isCheck = false;
+		
+		J("#target option").each(function() {  
+                	
+				var userId = J(this).val();  
+				if(userId == selected_id) isCheck = true;
+                	
+        });
+		
+    	return isCheck;
+		
+    }
+    
+    function targetSelectedItem(selected_id) {
+	
+		var isCheck = false;
+		
+		J("#source option").each(function() {  
+                	
+				var userId = J(this).val();  
+				if(userId == selected_id) isCheck = true;
+                	
+        });
+		
+    	return isCheck;
+		
+    }
+    
+    function add() {
+	
+		if( J("#source option").length == 0) {
+			J.showMsgBox("이동할 데이터가 없습니다.", null, null);
+    		return;
+    	}
+    
+    	if(J("#source option:selected").length == 0) {
+			J.showMsgBox("이동할 데이터를 선택하십시오.", null, null);
+    		return;
+    	}
+		
+		J("#source option:selected").each(function() {  
+                	
+			var temp_text = J(this).text();
+			var temp_value = J(this).val();
+			
+			if(sourceSelectedItem(temp_value) == false) {
+				J("#target").append("<option value=\""+temp_value+"\">"+temp_text+"</option>");
+			} else{
+				J.showMsgBox("선택 하신 Data는 이미 선택 되어 있습니다.", null, null);
+			}
+			J(this).remove();
+                	
+        });
+		
+    }
+
+    function del() {
+		
+		if( J("#target option").length == 0) {
+			J.showMsgBox("이동할 데이터가 없습니다.", null, null);
+    		return;
+    	}
+    
+    	if(J("#target option:selected").length == 0) {
+			J.showMsgBox("이동할 데이터를 선택하십시오.", null, null);
+    		return;
+    	}
+		
+		J("#target option:selected").each(function() {  
+                	
+			var temp_text = J(this).text();
+			var temp_value = J(this).val();
+			
+			if(targetSelectedItem(temp_value) == false) {
+				J("#source").append("<option value=\""+temp_value+"\">"+temp_text+"</option>");
+			} 
+
+			J(this).remove();
+			
+        });
+    }
+	
+//]]>
+</script>    
+ 
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/level/levelMapping/levelMappingModify.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="난이도평가 평가단 관리검색 조건">
+						<caption class="none">난이도평가 평가단 관리 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							$!{searchMap.txt2html("findYear")} 년
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+            						<span><label for="evalUserGrpNm">평가단</label></span>
+            						<span class="searchBar">
+            							$!{searchMap.txt2html("evalUserGrpNm")} 
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		<div class="blockDetail2">
+			<table width="100%" cellspacing="0" cellpadding="0" border="1">
+				<tbody>
+					<tr>
+						<td style="width:5%;"  valign="top">&nbsp;</td>
+						<td style="width:25%;" valign="top">
+							<div style="height:378px;overflow:auto;">
+							#parse("/WEB-INF/vl/bsc/module/commModule/commonTree.vm")  <!-- 조직트리 -->
+							</div>
+						</td>
+						<td style="width:5%;"  valign="top">&nbsp;</td>
+						<td style="width:30%;" valign="top">
+							<!--
+							<div id="source" style="border:1px solid #d2d2d2; height:370px;overflow:auto; overflow-x:hidden; background:#fff url($!{img_path}/common/div_back.gif) repeat-x 0 100%; ">
+                                <ol id="sourceCatagory" class="selectable">
+                                </ol>
+                            </div>
+							-->
+							<div>
+							<select id="source" style="align:center; border:1px solid #d2d2d2; padding-top:5px; width:330px; height:375px;overflow:auto; overflow-x:hidden; background:#fff url($!{img_path}/common/div_back.gif) repeat-x 0 100%; " multiple="multiple">
+							</select>
+							</div>
+						</td>
+						<td style="width:5%;" valign="top" class="valign_middle">
+							<input type="image" id="allToLeft" src="$!{img_path}/common/btn_arrow1up.gif" alt="왼으로 전체 이동" /><br/><br/>
+							<input type="image" id="allToRight" src="$!{img_path}/common/btn_arrow2up.gif" alt="오른쪽으로 전체 이동" />
+						</td>
+						<td valign="top">
+							<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/level/levelMapping/levelMappingProcess.vw?type=template">
+								<input type="hidden" id="mode"			name="mode"			value="$!{searchMap.txt2html("mode")}" />
+								<input type="hidden" id="linked"    	name="linked" 		value="$!{searchMap.txt2html("linked")}" />
+								<input type="hidden" id="year"			name="year"			value="$!{searchMap.txt2html("findYear")}" />
+								<input type="hidden" id="adminGubun"	name="adminGubun"	value="$!{searchMap.txt2html("adminGubun")}" />
+								<input type="hidden" id="metricIds"     name="metricIds" /> 
+								<input type="hidden" id="evalUserGrpId" name="evalUserGrpId" value="$!{searchMap.txt2html("evalUserGrpId")}"/> 
+								$!{searchMap.makeHiddenFind()}
+        						<div>	
+								<select id="target" style="align:center; border:1px solid #d2d2d2; padding-top:5px; width:330px; height:375px;overflow:auto; overflow-x:hidden; background:#fff url($!{img_path}/common/div_back.gif) repeat-x 0 100%; " multiple="multiple">
+									#foreach($list in $metricList)
+										<option value="$!{CS_HTML.txt2html($list.METRIC_ID)}">$!{CS_HTML.txt2html($list.METRIC_NM)} ($!{CS_HTML.txt2html($list.SC_DEPT_NM)})</option> 
+									#end
+								</select>
+								</div>
+								<!--
+								<div id="target" style="border:1px solid #d2d2d2; height:370px; overflow-x:hidden;  background:#fff url($!{img_path}/common/div_back.gif) repeat-x 0 100%;">
+                                    <ol class="selectable">
+										#foreach($list in $userList)
+											<li class="ui-widget-content" style="background: url($!{img_path}/common/li_back.gif) no-repeat 0 0;"><input type="hidden" name="deptIds" value="$!{CS_HTML.txt2html($list.DEPT_ID)}"/><input type="hidden" name="userIds" value="$!{CS_HTML.txt2html($list.USER_ID)}"/>$!{CS_HTML.txt2html($list.POS_NM)} $!{CS_HTML.txt2html($list.USER_NM)}</li>
+										#end
+									</ol>
+                                </div>
+								-->
+                            </form>
+						</td>
+					</tr>
+                </tbody>
+			</table>	
+		</div>
+		<div class="blockButton_all">			
+			<div class="blockButton_l"></div>
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+    			</ul>
+    		</div>	
+		</div>
+	</div>
+	<div class="clear"></div>
+</div>

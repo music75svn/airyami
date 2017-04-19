@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.dir.dirGovMetric">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 정평지표관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		 SELECT DISTINCT A.YEAR
+		      , A.EMPN
+		      , A.KOR_NM
+		      , A.CAST_TC
+		      , A.DEPT_CD
+		      , B.POS_TC
+		      , NVL((SELECT
+		            COUNT(GOV_METRIC_ID)                  
+		        FROM
+		            PRS_DIR_GOV_METRIC                 
+		        WHERE
+		            YEAR = A.YEAR                   
+		            AND EMPN = A.EMPN AND POS_TC = B.POS_TC),'0') AS GM_CNT
+		   FROM PRS_DIR_EVAL_MEMBER A
+		      , V_PRS_RE_MON B
+		  WHERE A.YEAR = #findYear# 
+		    AND A.YEAR = B.YEAR
+		    AND A.EMPN = B.EMPN
+		    AND A.EVAL_YN = 'Y'
+		  ORDER BY A.DEPT_CD, A.EMPN, B.POS_TC 
+     
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 정평지표관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getDetailList" parameterClass="hashMap" resultClass="hashMap">
+	
+			SELECT A.YEAR,
+	               B.EVAL_CAT_GRP_NM,
+	               C.EVAL_CAT_NM,
+	               A.GOV_METRIC_ID,
+	               A.GOV_METRIC_NM, 
+	               F_CODE_NM('007', A.GBN_ID, A.YEAR) AS GBN_NM,
+	               DECODE(D.GOV_METRIC_ID, NULL, 'N', 'Y') SELECTED                 
+	          FROM GOV_METRIC A
+	    INNER JOIN GOV_EVAL_CAT_GRP B
+	            ON A.YEAR = B.YEAR 
+	           AND A.EVAL_CAT_GRP_ID = B.EVAL_CAT_GRP_ID
+	    INNER JOIN GOV_EVAL_CAT C
+	            ON A.YEAR = C.YEAR 
+	           AND A.EVAL_CAT_ID = C.EVAL_CAT_ID
+   LEFT OUTER JOIN PRS_DIR_GOV_METRIC D
+	            ON A.YEAR = D.YEAR
+	           AND A.GOV_METRIC_ID = D.GOV_METRIC_ID
+	           AND D.EMPN = #findEmpn#
+	           AND D.POS_TC = #findPosTc#
+	         WHERE A.YEAR = #findYear#                                   
+	           AND A.DELETE_DT IS NULL
+	         START WITH A.UP_METRIC_ID IS NULL
+	    CONNECT BY PRIOR A.YEAR = A.YEAR 
+	       	   AND PRIOR A.GOV_METRIC_ID = A.UP_METRIC_ID
+			 ORDER SIBLINGS BY B.SORT_ORDER, C.SORT_ORDER, A.SORT_ORDER
+	
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 임원 정평지표 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->	
+	<delete id="deleteDGMData" parameterClass="hashMap">
+		DELETE FROM PRS_DIR_GOV_METRIC
+        WHERE YEAR = #year#
+          AND EMPN = #empn#
+          AND POS_TC = #posTc#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 임원 정평지표관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO PRS_DIR_GOV_METRIC ( 
+			   YEAR
+             , EMPN
+             , GOV_METRIC_ID
+             , POS_TC
+             , CREATE_DT
+             ) VALUES(
+               #findYear#
+             , #empn#
+        <isNotEmpty property="govMetricId">
+             , #govMetricId#
+        </isNotEmpty>
+        <isEmpty property="govMetricId">
+        	 , null
+        </isEmpty>
+        	 , #posTc#
+             , SYSDATE
+             )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 정평지표관리 엑셀변환
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getExcelList" parameterClass="hashMap" resultClass="hashMap">
+	
+		SELECT A.YEAR,
+               B.EVAL_CAT_GRP_NM,
+               C.EVAL_CAT_NM,
+               A.GOV_METRIC_NM               
+          FROM GOV_METRIC A
+         INNER JOIN GOV_EVAL_CAT_GRP B
+            ON A.YEAR = B.YEAR AND A.EVAL_CAT_GRP_ID = B.EVAL_CAT_GRP_ID
+         INNER JOIN GOV_EVAL_CAT C
+            ON A.YEAR = C.YEAR AND A.EVAL_CAT_ID = C.EVAL_CAT_ID
+          LEFT OUTER JOIN PRS_DIR_GOV_METRIC D
+            ON A.YEAR = D.YEAR
+           AND A.GOV_METRIC_ID = D.GOV_METRIC_ID
+         WHERE A.YEAR = #findYear#
+           AND D.EMPN = #empn#                                   
+           AND A.DELETE_DT IS NULL
+         START WITH A.UP_METRIC_ID IS NULL
+       CONNECT BY PRIOR A.YEAR = A.YEAR AND PRIOR A.GOV_METRIC_ID = A.UP_METRIC_ID
+		 ORDER SIBLINGS BY B.SORT_ORDER, C.SORT_ORDER, A.SORT_ORDER
+	
+	</select>
+
+</sqlMap>
+
+

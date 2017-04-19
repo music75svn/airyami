@@ -1,0 +1,33 @@
+#*************************************************************************
+* CLASS 명      : systemLoginMorDailyModify_xml
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 6월 20일
+* 기    능      : 시스템사용현황(일별) json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김윤기     2012년 6월 20일            최 초 작 업
+**************************************************************************#
+#set($listSize = $!{CS_HTML.txt2html($detail.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($detail in $detail)
+	{
+		"USER_NM"                  : "$!{CS_HTML.txt2html($detail.USER_NM)}",
+		"SC_DEPT_NM"               : "$!{CS_HTML.txt2html($detail.SC_DEPT_NM)}",
+		"TIME"                     : "$!{CS_HTML.txt2html($detail.TIME)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

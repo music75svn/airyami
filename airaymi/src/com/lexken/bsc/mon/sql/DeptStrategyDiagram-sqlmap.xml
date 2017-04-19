@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.mon.deptStrategyDiagram">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 전략체계도 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT METRIC_ID
+		     , METRIC_NM
+		     , WEIGHT
+		     , TO_CHAR(TARGET) AS TARGET
+		     , TO_CHAR(ACTUAL) AS ACTUAL
+		     , TO_CHAR(SCORE) AS SCORE
+		     , STATUS
+		  FROM BSC_METRICSCORE
+		 WHERE YEAR = #findYear#
+		   AND MON = #findMon#
+		   AND ANAL_CYCLE = #findAnalCycle#
+		   AND SC_DEPT_ID = #findScDeptId#
+		   AND STRATEGY_ID = 'S002041'
+		   AND DISPLAY_GBN = 'T'
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략체계도 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+           
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략체계도 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 전략체계도 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 전략체계도 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+
+	</update>
+	
+	
+</sqlMap>
+
+

@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.mngCon.planConApprove">
+
+    <!--
+    ==================================================================   
+      # 설명    : typeAlias 선언
+      #    기능    : SETTING
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <typeAlias alias="hashMap"             type="java.util.HashMap" />
+     
+     
+     <!--
+    ==================================================================   
+      # 설명    : 성과계획서 확인리스트 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getEvalList" parameterClass="hashMap" resultClass="hashMap">
+         SELECT A.YEAR
+			 , A.EVAL_MEMB_EMPN
+			 , A.EVAL_MEMB_EMPN_SEQ
+			 , A.KOR_NM
+			 , A.DEPT_CD
+			 , F_DEPT_FULL_NM(A.YEAR,A.DEPT_CD,'BSC_INSA_DEPT') DEPT_FULL_NM
+			 , A.CAST_TC
+			 , A.POS_TC
+			 , F_CODE_NM('170', A.CAST_TC , A.YEAR) CAST_TC_NM 
+             , F_CODE_NM('171', A.POS_TC , A.YEAR) POS_TC_NM 
+			 , A.EVAL_YN
+			 , A.EVAL_GRP_ID
+			 , NVL(B.PLAN_STATUS_ID, '06') AS PLAN_STATUS_ID
+			 , CASE WHEN B.PLAN_STATUS_ID IS NULL THEN '미입력' ELSE  F_CODE_NM('217', B.PLAN_STATUS_ID , B.YEAR)  END PLAN_STATUS_NM
+			 , A.PLAN_YN
+			 , B1.ASSESSOR_EMPN AS APPROVE_USER_ID   
+             , C1.KOR_NM       AS APPROVE_USER_NM
+		FROM V_CON_MNG_MEMBER A
+		 LEFT OUTER JOIN CON_MNG_PLAN B ON A.YEAR = B.YEAR AND A.EVAL_MEMB_EMPN = B.EVAL_MEMB_EMPN AND A.EVAL_MEMB_EMPN_SEQ = B.EVAL_MEMB_EMPN_SEQ
+		  LEFT OUTER JOIN (
+        SELECT A.YEAR
+                     , A.DEPT_CD
+                     <![CDATA[
+                     , (SELECT EMPN FROM BSC_INSA WHERE YEAR = A.YEAR AND ROWNUM = '1' 
+                     AND DEPT_CD = A.DEPT_CD AND POS_TC IN ('12', '21', '22', '2C', '31', '32', '34', '39') 
+                     AND EMPN IN (SELECT EMPN FROM BSC_INSA_PCMT WHERE YEAR = #findYear#
+                     AND END_PCMT_DATE = #findYear# ||'1231' and pcmt_tc <> '34')) ASSESSOR_EMPN
+                     ]]>
+                  FROM BSC_INSA_DEPT A
+                 WHERE A.DEPT_CD IN (SELECT DEPT_CD
+                                       FROM BSC_INSA_DEPT
+                                      WHERE YEAR = #findYear#
+                                 START WITH DEPT_CD = '0000'
+                           CONNECT BY PRIOR YEAR = YEAR
+                                        AND PRIOR DEPT_CD = UP_DEPT_CD)
+                   AND A.DEPT_CD > '1090'
+                   AND A.DEPT_CD IN (
+                                        SELECT A.DEPT_CD
+                                          FROM BSC_INSA_DEPT A
+                                          LEFT OUTER JOIN BSC_INSA_DEPT B
+                                            ON A.YEAR = B.YEAR AND A.USE_YN = B.USE_YN AND A.DEPT_CD = B.UP_DEPT_CD
+                                         WHERE A.YEAR = #findYear#
+                                           AND A.DEPT_CD > '1090'
+                                         GROUP BY A.DEPT_CD
+                                        HAVING COUNT(B.DEPT_CD) = 0
+                                   )
+                   AND A.YEAR = #findYear#
+              ORDER BY A.DEPT_CD
+              ) B1 ON A.YEAR = B1.YEAR  and A.DEPT_CD = B1.DEPT_CD
+               LEFT OUTER JOIN BSC_INSA C1 ON B1.YEAR = C1.YEAR AND B1.ASSESSOR_EMPN = C1.EMPN
+		WHERE A.YEAR= #findYear#
+		  AND A.EVAL_YN ='Y'
+		  <!-- AND A.PLAN_YN ='Y'  -->
+	    <isNotEqual prepend="AND" property="findDeptCd" compareValue="0000">
+              A.DEPT_CD IN (SELECT DEPT_CD
+						   FROM BSC_INSA_DEPT
+						  WHERE YEAR = #findYear#
+					 START WITH DEPT_CD = #findDeptCd#
+			   CONNECT BY PRIOR YEAR = YEAR
+							AND PRIOR DEPT_CD = UP_DEPT_CD)
+        </isNotEqual>
+		<isNotEmpty property="findPlanStatusId" >
+		<isEqual prepend="AND" property="findPlanStatusId" compareValue="06">
+		  B.PLAN_STATUS_ID IS NULL
+		</isEqual>
+		<isNotEqual prepend="AND" property="findPlanStatusId" compareValue="06">
+	      B.PLAN_STATUS_ID = #findPlanStatusId#
+	    </isNotEqual>
+		</isNotEmpty>
+		<isNotEqual prepend="AND" property="isAdmin" compareValue="Y">
+            B1.ASSESSOR_EMPN = #loginUserId#
+        </isNotEqual>
+		  ORDER BY A.KOR_NM, A.EVAL_MEMB_EMPN, A.EVAL_MEMB_EMPN_SEQ   
+    </select>
+
+    <!--
+    ==================================================================   
+      # 설명    : 반려사유조회
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getReturnList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT   RETURN_REASON ,
+        		 EVAL_MEMB_EMPN   ,
+        		 EVAL_MEMB_EMPN_SEQ  ,
+        		 APPROVE_USER_ID,
+       			 PLAN_STATUS_ID  
+       	 FROM  CON_MNG_PLAN
+          WHERE  YEAR				   = #findYear#
+		  AND  EVAL_MEMB_EMPN      = #evalMembEmpns#
+		  AND  EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeqs#        
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 성과계획서 확인자 등록
+      #    기능    : UPDATE
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <update id="planConApproveData" parameterClass="hashMap">
+       UPDATE CON_MNG_PLAN SET ( 
+				 APPROVE_USER_ID
+				,APPROVE_USER_NM
+				,APPROVE_DEPT_CD
+				,APPROVE_DEPT_NM
+				,APPROVE_CAST_TC
+				,APPROVE_CAST_NM
+				,APPROVE_POS_TC
+				,APPROVE_POS_NM
+				,APPROVE_DT
+				,PLAN_STATUS_ID
+				,MODIFY_ID
+				,MODIFY_DT
+				) = (
+		 SELECT  A.USER_ID 
+               , A.USER_NM
+               , A.DEPT_CD
+               , A.DEPT_NM
+               , A.CAST_TC
+               , A.CAST_TC_NM 
+               , A.POS_CD
+               , A.POS_NM 
+               , SYSDATE AS APPROVE_DT
+               , #planStatusId# AS PLAN_STATUS_ID
+               , A.USER_ID AS MODIFY_ID
+               , SYSDATE AS MODIFY_DT
+          FROM V_ROLE_USER A
+         WHERE  A.USER_ID  = #userId#
+                )
+        WHERE  YEAR				   = #findYear#
+		  AND  EVAL_MEMB_EMPN      = #evalMembEmpn#
+		  AND  EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#
+    </update>
+    
+     <!--
+    ==================================================================   
+      # 설명    : 반려사유 등록
+      #    기능    : UPDATE
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <update id="updateData" parameterClass="hashMap">
+        UPDATE CON_MNG_PLAN		
+          SET  PLAN_STATUS_ID 	   = #planStatusId# 
+            ,  RETURN_REASON 	   = #returnCause#
+            <isEqual property="finalApprove" compareValue="Y">
+            ,  FINAL_APPROVE_DT    = SYSDATE
+            </isEqual>
+          	,  MODIFY_ID 		   = #userId#
+			,  MODIFY_DT		   = SYSDATE
+        WHERE  YEAR				   = #findYear#
+		  AND  EVAL_MEMB_EMPN      = #evalMembEmpn#
+		  AND  EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#
+    </update>  
+      
+      
+      <!--
+    ==================================================================   
+      # 설명    : 성과계획서 이력 히스토리 등록
+      #    기능    : INSERT
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <insert id="insertHistoryData" parameterClass="hashMap">
+        <selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+            SELECT NVL(MAX(SEQ)+1,1) AS SEQ
+			  FROM CON_MNG_PLAN_HISTORY
+			 WHERE YEAR      		   = #findYear#
+			  AND  EVAL_MEMB_EMPN      = #evalMembEmpn#
+			  AND  EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#
+        </selectKey>
+        INSERT INTO CON_MNG_PLAN_HISTORY  (
+                            YEAR
+                        , EVAL_MEMB_EMPN
+                        , EVAL_MEMB_EMPN_SEQ
+                        , SEQ
+                        , APPROVE_USER_ID
+                        , APPROVE_USER_NM
+                        , APPROVE_DEPT_CD
+                        , APPROVE_DEPT_NM
+                        , APPROVE_CAST_TC
+                        , APPROVE_CAST_NM
+                        , APPROVE_POS_TC
+                        , APPROVE_POS_NM
+                        , PLAN_STATUS_ID
+                        , FINAL_APPROVE_DT
+                        , APPROVE_DT
+                        , CREATE_ID
+                        , CREATE_DT
+                        ) 
+                  SELECT  #findYear#, #evalMembEmpn# , #evalMembEmpnSeq# , #SEQ#
+ 						, A.USER_ID 
+		                , A.USER_NM
+		                , A.DEPT_CD
+		                , A.DEPT_NM
+		                , A.CAST_TC
+		                , A.CAST_TC_NM 
+		                , A.POS_CD
+		                , A.POS_NM  , #planStatusId# AS PLAN_STATUS_ID
+               			, B.FINAL_APPROVE_DT , B.APPROVE_DT , A.USER_ID AS CREATE_ID
+                        , SYSDATE AS CREATE_DT
+         			 FROM V_ROLE_USER A
+         			 LEFT OUTER JOIN CON_MNG_PLAN B
+         			 ON A.USER_ID = B.APPROVE_USER_ID AND A.DEPT_CD = B.APPROVE_DEPT_CD 
+         			AND B.EVAL_MEMB_EMPN = #evalMembEmpn# AND B.EVAL_MEMB_EMPN_SEQ = #evalMembEmpnSeq# 
+			     WHERE  A.USER_ID  = #approveUserId#
+           
+    </insert>    
+    
+    
+     <!--
+    ==================================================================   
+      # 설명    : 성과계획서 목표 히스토리등록
+      #    기능    : INSERT
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <insert id="insertTargetHistoryData" parameterClass="hashMap">
+        <selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+            SELECT NVL(MAX(SEQ)+1,1) AS SEQ
+			  FROM CON_MNG_TARGET_HISTORY
+			 WHERE YEAR       		= #findYear#
+			  AND  EVAL_MEMB_EMPN   = #evalMembEmpn#
+			  AND  EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#
+        </selectKey>
+         INSERT INTO CON_MNG_TARGET_HISTORY  (
+					 YEAR
+					,EVAL_MEMB_EMPN
+					,EVAL_MEMB_EMPN_SEQ
+					,TARGET_ID
+					,SEQ
+					,TARGET_NM
+					,DIRECTION_CD
+					,METRIC_NM
+					,UNIT
+                   <!--  ,TARGET_BASIS -->
+					,TARGET_VALUE
+					,Q1_TARGET_VALUE
+					,Q2_TARGET_VALUE
+					,Q3_TARGET_VALUE
+					,Q4_TARGET_VALUE
+					,CONTENT
+					,CREATE_ID
+					,CREATE_DT)
+  			  SELECT A.YEAR , A.EVAL_MEMB_EMPN , A.EVAL_MEMB_EMPN_SEQ, A.TARGET_ID , #SEQ#,
+         			 A.TARGET_NM  , A.DIRECTION_CD , A.METRIC_NM , A.UNIT , <!-- A.TARGET_BASIS, --> A.TARGET_VALUE ,
+       				 A.Q1_TARGET_VALUE , A.Q2_TARGET_VALUE , A.Q3_TARGET_VALUE , A.Q4_TARGET_VALUE  ,
+        			 A.CONTENT, #userId#, SYSDATE  
+   			 FROM CON_MNG_TARGET A    
+           WHERE  YEAR			   = #findYear#
+		  AND  EVAL_MEMB_EMPN      = #evalMembEmpn#
+		  AND  EVAL_MEMB_EMPN_SEQ  = #evalMembEmpnSeq#
+    </insert>    
+    
+</sqlMap>
+
+

@@ -1,0 +1,303 @@
+#*************************************************************************
+* CLASS 명      : totLaborCostIncRateList
+* 작 업 자      : 김기현
+* 작 업 일      : 2012년 8월 12일 
+* 기    능      : 시스템 연계데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김기현      2012년 8월 12일             최 초 작 업
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/bsc/popup/totLaborCostIncRate/totLaborCostIncRateList.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/popup/totLaborCostIncRate/totLaborCostIncRateList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+	##S069D001    기본급(총인건비인상률)
+	#if ($searchMap.get("findItemCd") == "S069D001")
+			colNames     :['지급년월', '사번', '이름', '부서', '직급', '기본연봉', '호봉급', '직무급', '안전급', '합계'],
+			colModel     :[
+                            {name:'SLRY_YM'			,index:'SLRY_YM'		,width:80   	,align:'center' }, 
+                            {name:'EMPN'         	,index:'EMPN'        	,width:70   	,align:'center' },
+							{name:'KOR_NM'    		,index:'KOR_NM'   		,width:80   	,align:'center' }, 
+							{name:'DEPT_NM'		 	,index:'DEPT_NM'		,width:150    	,align:'center' },
+                            {name:'CAST_TC_NM'    	,index:'CAST_TC_NM' 	,width:50    	,align:'center' }, 
+                            {name:'E00'        		,index:'E00'      		,width:100    	,align:'center' }, 
+                            {name:'E01'     		,index:'E01'     		,width:100   	,align:'center' },
+							{name:'E02'     		,index:'E02'	     	,width:100   	,align:'center' },
+							{name:'E03'     		,index:'E03'	     	,width:100   	,align:'center' },
+							{name:'TOTAL'			,index:'TOTAL'			,width:100   	,align:'center' }
+							],
+	## S069D002    제수당(총인건비인상률)
+	#elseif ($searchMap.get("findItemCd") == "S069D002")
+			colNames     :['지급년월', '사번', '이름', '부서', '직급', '연차수당', '근속수당', '시간외수당', '야간근무수당', '휴일근무수당', '기술수당', '연구수당', 
+							'감사수당', '전산수당', '강사수당', '출납수당', '파견수당', '주임수당', '가족수당', '기타수당', '특수업무수당', '정산금(지급)', '합계'],
+			colModel     :[
+                            {name:'SLRY_YM'			,index:'SLRY_YM'		,width:80   	,align:'center' }, 
+                            {name:'EMPN'         	,index:'EMPN'        	,width:70   	,align:'center' },
+							{name:'KOR_NM'    		,index:'KOR_NM'   		,width:80   	,align:'center' }, 
+							{name:'DEPT_NM'		 	,index:'DEPT_NM'		,width:150    	,align:'center' },
+                            {name:'CAST_TC_NM'    	,index:'CAST_TC_NM' 	,width:50    	,align:'center' }, 
+                            {name:'E41'        		,index:'E41'      		,width:100    	,align:'center' }, 
+                            {name:'E42'     		,index:'E42'     		,width:100   	,align:'center' },
+							{name:'E51'     		,index:'E51'	     	,width:100   	,align:'center' },
+							{name:'E52'     		,index:'E52'	     	,width:100   	,align:'center' },
+							{name:'E53'        		,index:'E53'      		,width:100    	,align:'center' }, 
+                            {name:'E61'     		,index:'E61'     		,width:100   	,align:'center' },
+							{name:'E71'     		,index:'E71'	     	,width:100   	,align:'center' },
+							{name:'E72'     		,index:'E72'	     	,width:100   	,align:'center' },
+							{name:'E73'        		,index:'E73'      		,width:100    	,align:'center' }, 
+                            {name:'E74'     		,index:'E74'     		,width:100   	,align:'center' },
+							{name:'E75'     		,index:'E75'	     	,width:100   	,align:'center' },
+							{name:'E76'     		,index:'E76'	     	,width:100   	,align:'center' },
+							{name:'E81'        		,index:'E81'      		,width:100    	,align:'center' }, 
+                            {name:'E82'     		,index:'E82'     		,width:100   	,align:'center' },
+							{name:'E84'     		,index:'E84'	     	,width:100   	,align:'center' },
+							{name:'E85'     		,index:'E85'	     	,width:100   	,align:'center' },
+							{name:'E99'     		,index:'E99'	     	,width:100   	,align:'center' },
+							{name:'TOTAL'			,index:'TOTAL'			,width:100   	,align:'center' }
+							],
+	## S069D003    성과연봉(총인건비인상률)
+	#elseif ($searchMap.get("findItemCd") == "S069D003")
+			colNames     :['지급년월', '사번', '이름', '부서', '직급', '성과연봉'],
+			colModel     :[
+                            {name:'SLRY_YM'			,index:'SLRY_YM'		,width:80   	,align:'center' }, 
+                            {name:'EMPN'         	,index:'EMPN'        	,width:70   	,align:'center' },
+							{name:'KOR_NM'    		,index:'KOR_NM'   		,width:80   	,align:'center' }, 
+							{name:'DEPT_NM'		 	,index:'DEPT_NM'		,width:150    	,align:'center' },
+                            {name:'CAST_TC_NM'    	,index:'CAST_TC_NM' 	,width:50    	,align:'center' }, 
+                            {name:'E13'        		,index:'E13'      		,width:100    	,align:'center' }
+							],
+	## S069D004    교통보조비(총인건비인상률)
+	#elseif ($searchMap.get("findItemCd") == "S069D004")
+			colNames     :['전표일자', '사번', '이름', '부서', '금액', '비고'],
+			colModel     :[
+                            {name:'SLIP_DATE'		,index:'SLIP_DATE'		,width:80   	,align:'center' }, 
+                            {name:'EMPN'         	,index:'EMPN'        	,width:70   	,align:'center' },
+							{name:'KOR_NM'    		,index:'KOR_NM'   		,width:80   	,align:'center' }, 
+							{name:'DEPT_NM'		 	,index:'DEPT_NM'		,width:150    	,align:'center' },
+                            {name:'INCO_AMT'    	,index:'INCO_AMT' 		,width:50    	,align:'center' }, 
+                            {name:'RMK'        		,index:'RMK'      		,width:200    	,align:'left' }
+							],
+	## S069D005    자가운전보조금(총인건비인상률)
+	#elseif ($searchMap.get("findItemCd") == "S069D005")
+			colNames     :['전표일자', '사번', '이름', '부서', '금액', '비고'],
+			colModel     :[
+                            {name:'SLIP_DATE'		,index:'SLIP_DATE'		,width:80   	,align:'center' }, 
+                            {name:'EMPN'         	,index:'EMPN'        	,width:70   	,align:'center' },
+							{name:'KOR_NM'    		,index:'KOR_NM'   		,width:80   	,align:'center' }, 
+							{name:'DEPT_NM'		 	,index:'DEPT_NM'		,width:150    	,align:'center' },
+                            {name:'INCO_AMT'    	,index:'INCO_AMT' 		,width:50    	,align:'center' }, 
+                            {name:'RMK'        		,index:'RMK'      		,width:200    	,align:'left' }
+							],
+	## S069D006    자기계발비(총인건비인상률)
+	#elseif ($searchMap.get("findItemCd") == "S069D006")
+			colNames     :['전표일자', '사번', '이름', '부서', '금액', '비고'],
+			colModel     :[
+                            {name:'SLIP_DATE'		,index:'SLIP_DATE'		,width:80   	,align:'center' }, 
+                            {name:'EMPN'         	,index:'EMPN'        	,width:70   	,align:'center' },
+							{name:'KOR_NM'    		,index:'KOR_NM'   		,width:80   	,align:'center' }, 
+							{name:'DEPT_NM'		 	,index:'DEPT_NM'		,width:150    	,align:'center' },
+                            {name:'INCO_AMT'    	,index:'INCO_AMT' 		,width:50    	,align:'center' }, 
+                            {name:'RMK'        		,index:'RMK'      		,width:200    	,align:'left' }
+							],
+	## S069D007    통신비(총인건비인상률)
+	#elseif ($searchMap.get("findItemCd") == "S069D007")
+			colNames     :['전표일자', '사번', '이름', '부서', '금액', '비고'],
+			colModel     :[
+                            {name:'SLIP_DATE'		,index:'SLIP_DATE'		,width:80   	,align:'center' }, 
+                            {name:'EMPN'         	,index:'EMPN'        	,width:70   	,align:'center' },
+							{name:'KOR_NM'    		,index:'KOR_NM'   		,width:80   	,align:'center' }, 
+							{name:'DEPT_NM'		 	,index:'DEPT_NM'		,width:150    	,align:'center' },
+                            {name:'INCO_AMT'    	,index:'INCO_AMT' 		,width:50    	,align:'center' }, 
+                            {name:'RMK'        		,index:'RMK'      		,width:200    	,align:'left' }
+							],
+	## S069D008    특별근로대가(총인건비인상률)
+	#elseif ($searchMap.get("findItemCd") == "S069D008")
+			colNames     :['전표일자', '사번', '이름', '부서', '금액', '비고'],
+			colModel     :[
+                            {name:'SLIP_DATE'		,index:'SLIP_DATE'		,width:80   	,align:'center' }, 
+                            {name:'EMPN'         	,index:'EMPN'        	,width:70   	,align:'center' },
+							{name:'KOR_NM'    		,index:'KOR_NM'   		,width:80   	,align:'center' }, 
+							{name:'DEPT_NM'		 	,index:'DEPT_NM'		,width:150    	,align:'center' },
+                            {name:'INCO_AMT'    	,index:'INCO_AMT' 		,width:50    	,align:'center' }, 
+                            {name:'RMK'        		,index:'RMK'      		,width:200    	,align:'left' }
+							],
+	## S069D009    중식보조비(총인건비인상률)
+	#elseif ($searchMap.get("findItemCd") == "S069D009")
+			colNames     :['지급년월', '사번', '이름', '부서', '직급', '중식보조비'],
+			colModel     :[
+                            {name:'SLRY_YM'			,index:'SLRY_YM'		,width:80   	,align:'center' }, 
+                            {name:'EMPN'         	,index:'EMPN'        	,width:70   	,align:'center' },
+							{name:'KOR_NM'    		,index:'KOR_NM'   		,width:80   	,align:'center' }, 
+							{name:'DEPT_NM'		 	,index:'DEPT_NM'		,width:150    	,align:'center' },
+                            {name:'CAST_TC_NM'    	,index:'CAST_TC_NM' 	,width:50    	,align:'center' }, 
+                            {name:'E92'        		,index:'E92'      		,width:100    	,align:'center' }
+							],
+	## S069D010    학자금(총인건비인상률)
+	#elseif ($searchMap.get("findItemCd") == "S069D010")
+			colNames     :['전표일자', '사번', '이름', '부서', '금액', '비고'],
+			colModel     :[
+                            {name:'SLIP_DATE'		,index:'SLIP_DATE'		,width:80   	,align:'center' }, 
+                            {name:'EMPN'         	,index:'EMPN'        	,width:70   	,align:'center' },
+							{name:'KOR_NM'    		,index:'KOR_NM'   		,width:80   	,align:'center' }, 
+							{name:'DEPT_NM'		 	,index:'DEPT_NM'		,width:150    	,align:'center' },
+                            {name:'INCO_AMT'    	,index:'INCO_AMT' 		,width:50    	,align:'center' }, 
+                            {name:'RMK'        		,index:'RMK'      		,width:200    	,align:'left' }
+							],
+	#end
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cmTemplate	 : {sortable:false},
+			cellEdit     : true,
+			caption:"시스템 연계데이터 조회"
+		}).setGridWidth($!{jqGrid_width});
+        
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcel").click(function() {
+			J("#yearNm").val(J("#findYear > option:selected").text());
+			J("#monNm").val(J("#findMon > option:selected").text());
+			J("#deptNm").val(J("#findDeptId > option:selected").text());
+			J("#itemNm").val(J("#findItemCd > option:selected").text());
+			J("#formList").attr("action", "$!{context_path}/bsc/popup/totLaborCostIncRate/excel.vw?type=excel").submit();
+			return false;
+		});
+				
+
+	});
+	
+
+//]]>
+</script>
+</head>
+<body>
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">시스템 연계데이터 조회</h1>
+		<div class="tableTop">
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/popup/totLaborCostIncRate/totLaborCostIncRateList.vw?type=popup">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"    id="findMetricId"	name="findMetricId"		value="$!{searchMap.txt2html("findMetricId")}" />
+				<div class="clear h20"></div>
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="시스템 연계데이터 조회검색 조건">
+						<caption class="none">시스템 연계데이터 조회 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w280">
+            						<span><label for="findYear">평가년도</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            							<select id="findMon" name="findMon" class="select w70">
+            								$!CS_CODE.getCodeOption("024", $!{searchMap.txt2html("findMon")})
+            							</select>
+            					
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w270">
+                					<span><label for="findDeptId">평가부서</label></span>
+									<span class="searchBar">
+										<select id="findDeptId" name="findDeptId" class="select w200">
+											#foreach($list in $deptInfo)
+												<option value="$!{CS_HTML.txt2html($list.DEPT_ID)}" $searchMap.getSelected("findDeptId", "$!{CS_HTML.txt2html($list.DEPT_ID)}")>$!{CS_HTML.txt2html($list.DEPT_NM)}</option>
+											#end
+            							</select>
+									</span>
+                                </td>
+            					<td class="searchBox_tit w270">
+                					<span><label for="findItem">항목</label></span>
+									<span class="searchBar">
+										<select id="findItemCd" name="findItemCd" class="select w200">
+											#foreach($item in $itemInfo)
+												<option value="$!{CS_HTML.txt2html($item.ITEM_CD)}" $searchMap.getSelected("findItemCd", "$!{CS_HTML.txt2html($item.ITEM_CD)}")>$!{CS_HTML.txt2html($item.CAL_TYPE_COL_NM)}</option>
+											#end
+            							</select>
+									</span>
+                                </td>  
+            				</tr>
+        				</tbody>
+        				<div class="blockButton " style="position:absolute;right:10px; width:150px;float:right; align:middle;padding: 0 10px 0 0;" >
+                    		<input id="btnExcel" type="button" align="middle" value="엑셀다운로드", alt="엑셀다운로드" />
+                    	</div>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" alt="검색" style="position:absolute;right:120px;"/> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<a id="anchor" ></a>
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/popup/totLaborCostIncRate/timelyAccountingProcess.vw?type=template">
+			<input type="hidden" id="mode"       name="mode" />
+			<input type="hidden" id="yearNm"	name="yearNm" />
+			<input type="hidden" id="monNm"		name="monNm" />
+			<input type="hidden" id="deptNm"	name="deptNm" />
+			<input type="hidden" id="itemNm"	name="itemNm" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="시스템 연계데이터 조회 조회결과">
+							<caption class="none">시스템 연계데이터 조회 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+				</div>
+			</div>
+		</form>
+		
+	</div>
+	
+	<div class="clear"></div>
+</div>
+</body>
+</html>
+

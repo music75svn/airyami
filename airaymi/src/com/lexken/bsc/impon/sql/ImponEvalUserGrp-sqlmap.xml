@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.impon.imponEvalUserGrp">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_IPE_EVAL_USER_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_EVAL_USER_GRP
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT G.YEAR
+		     , G.EVAL_USER_GRP_ID, G.EVAL_USER_GRP_NM
+		     , G.WEIGHT
+		     , G.DEVIA_YN
+		     , NULL AS DEVIA_YN_NM
+		     , G.EVAL_USER_GRP_GBN_ID
+		     , C.CODE_NM AS EVAL_USER_GRP_GBN_NM
+		     , NVL( U.EVAL_USER_CNT, 0) AS EVAL_USER_CNT
+		     , G.SORT_ORDER
+		  FROM BSC_IPE_EVAL_USER_GRP G
+		       LEFT OUTER JOIN
+		       (SELECT YEAR, EVAL_USER_GRP_ID
+		             , COUNT( EVAL_USER_ID ) AS EVAL_USER_CNT
+		          FROM BSC_IPE_EVAL_USER 
+		         WHERE 1=1
+		           AND YEAR = #findYear#
+		         GROUP BY YEAR, EVAL_USER_GRP_ID
+		       ) U
+		       ON G.YEAR = U.YEAR
+		      AND G.EVAL_USER_GRP_ID = U.EVAL_USER_GRP_ID
+		       LEFT OUTER JOIN
+		       (SELECT CODE_ID, CODE_NM
+		          FROM BSC_CODE               
+		         WHERE 1=1                        
+		           AND CODE_GRP_ID = '150'
+		           AND YEAR IN (SELECT CASE YEAR_YN WHEN 'Y' THEN #findYear# ELSE '9999' END 
+		                          FROM BSC_CODE_GRP 
+		                         WHERE CODE_GRP_ID = '150')    
+		           AND DELETE_DT IS NULL  
+		       ) C
+		       ON G.EVAL_USER_GRP_GBN_ID = C.CODE_ID
+		 WHERE 1=1
+		   AND G.YEAR = #findYear#
+		 ORDER BY G.SORT_ORDER NULLS LAST, G.EVAL_USER_GRP_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_IPE_EVAL_USER_GRP
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , EVAL_USER_GRP_ID      
+			 , EVAL_USER_GRP_NM      
+			 , WEIGHT                
+			 , DEVIA_YN              
+			 , EVAL_USER_GRP_GBN_ID  
+			 , SORT_ORDER            
+		  FROM BSC_IPE_EVAL_USER_GRP 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#	      
+	</select>
+	
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 사용자그룹 매핑 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT
+               A.EVAL_USER_ID USER_ID
+             , B.USER_NM
+             , B.DEPT_ID
+             , C.DEPT_F_NM DEPT_NM 
+             , B.JIKGUB_CD
+             , B.JIKGUB_NM
+             , B.POS_CD
+             , B.POS_NM   
+          FROM BSC_IPE_EVAL_USER A        
+               LEFT OUTER JOIN V_ROLE_USER B ON A.EVAL_USER_ID = B.USER_ID         
+               LEFT OUTER JOIN V_DEPTINFO C ON B.DEPT_ID = C.DEPT_ID   
+         WHERE A.YEAR =#year# 
+         AND A.EVAL_USER_GRP_ID = #evalUserGrpId#
+         ORDER BY B.USER_NM
+   </select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_IPE_EVAL_USER_GRP
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('BSC_IPE_EVAL_USER_GRP',#year#,'','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO BSC_IPE_EVAL_USER_GRP ( 
+			   YEAR
+			 , EVAL_USER_GRP_ID
+			 , EVAL_USER_GRP_NM
+			 , WEIGHT
+			 , DEVIA_YN
+			 , EVAL_USER_GRP_GBN_ID
+			 , SORT_ORDER
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #evalUserGrpNm#
+			 , #weight#
+			 , #deviaYn#
+			 , #evalUserGrpGbnId#
+			 , #sortOrder#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IPE_EVAL_USER_GRP
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_IPE_EVAL_USER_GRP 
+		   SET EVAL_USER_GRP_NM       = #evalUserGrpNm# 
+			 , WEIGHT                 = #weight# 
+			 , DEVIA_YN               = #deviaYn# 
+			 , EVAL_USER_GRP_GBN_ID   = #evalUserGrpGbnId# 
+			 , SORT_ORDER             = #sortOrder# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IPE_EVAL_USER_GRP
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_IPE_EVAL_USER_GRP 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#
+	</update>
+	
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가단-평가자 매핑 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_IPE_EVAL_USER
+	==================================================================
+	-->	
+	<update id="deleteUserData" parameterClass="hashMap">
+		DELETE FROM BSC_IPE_EVAL_USER 
+		 WHERE YEAR = #year#
+		   AND EVAL_USER_GRP_ID = #evalUserGrpId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가단-평가자 매핑 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_IPE_EVAL_USER
+	==================================================================
+	-->	
+	<insert id="insertUserData" parameterClass="hashMap">
+		INSERT INTO BSC_IPE_EVAL_USER ( 
+			   YEAR
+			 , EVAL_USER_GRP_ID
+			 , EVAL_USER_ID
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #evalUserGrpId#
+			 , #evalUserId#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 권한 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<update id="deleteAdminData" parameterClass="hashMap">
+		DELETE FROM BSC_ADMIN
+         WHERE ADMIN_GUBUN='41'
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가단-평가자 매핑 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_ADMIN
+	==================================================================
+	-->	
+	<insert id="insertAdminData" parameterClass="hashMap">
+		INSERT INTO BSC_ADMIN (ADMIN_GUBUN, USER_ID)
+        SELECT DISTINCT '41', EVAL_USER_ID
+          FROM BSC_IPE_EVAL_USER
+	</insert>
+	
+	
+</sqlMap>
+
+

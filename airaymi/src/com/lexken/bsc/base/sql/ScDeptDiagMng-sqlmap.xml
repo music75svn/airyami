@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.base.scDeptDiagMng">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+	<!--
+	==================================================================   
+	  # 설명	: 조직성과도관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	SELECT * FROM (
+		SELECT A.YEAR
+		     , A.SC_DEPT_ID
+		     , A.SC_DEPT_NM
+		     , A.UP_SC_DEPT_ID
+		     , A.LEVEL_ID
+		     , A.SC_DEPT_GRP_ID
+		     , E.CODE_NM AS SC_DEPT_GRP_NM
+		     , A.DEPT_KIND
+		     , F.CODE_NM AS DEPT_KIND_NM
+		     , B.DW_DEPT_X_POS AS SUB_DEPT_X_POS
+		     , B.DW_DEPT_Y_POS AS SUB_DEPT_Y_POS
+		     , ROUND(C.SCORE, 3) SCORE
+		     , C.STATUS
+		     , D.CODE_NM AS STATUS_NM
+		  FROM (SELECT     A.YEAR
+		                 , A.SC_DEPT_ID
+		                 , A.SC_DEPT_NM
+		                 , A.UP_SC_DEPT_ID
+		                 , LEVEL AS LEVEL_ID
+		                 , A.SC_DEPT_GRP_ID
+		                 , A.DEPT_KIND
+		              FROM BSC_SC_DEPT A
+		             WHERE A.YEAR = #findYear#
+		               AND (A.DIAGRAM_GUBUN = #findDiagramGubun# OR A.SC_DEPT_GRP_ID = '01')	
+		               AND A.DELETE_DT IS NULL
+		<!--        START WITH A.SC_DEPT_ID = #findScDeptId#  -->
+		            START WITH A.SC_DEPT_ID = 'D000001'
+		        CONNECT BY PRIOR A.YEAR = A.YEAR
+		               AND PRIOR A.SC_DEPT_ID = A.UP_SC_DEPT_ID
+		          ORDER SIBLINGS BY A.SORT_ORDER) A
+		       LEFT OUTER JOIN BSC_SC_DEPT_ORG_CHART B ON A.YEAR = B.YEAR
+						                             AND A.SC_DEPT_ID = B.DW_DEPT_ID
+						                             AND B.DIAGRAM_GUBUN = #findDiagramGubun#
+						                             <!-- AND B.SC_DEPT_ID = #findScDeptId# -->
+						                             AND B.SC_DEPT_ID = 'D000001'
+		       LEFT OUTER JOIN BSC_DEPTSCORE C ON C.YEAR = B.YEAR
+											     AND A.SC_DEPT_ID = C.SC_DEPT_ID
+											     AND C.MON = #findMon#
+											     AND C.ANAL_CYCLE = #findAnalCycle#
+		       LEFT OUTER JOIN BSC_CODE D ON C.YEAR = D.YEAR
+		                                AND C.STATUS = D.CODE_ID
+		                                AND D.CODE_GRP_ID = '021'
+		       LEFT OUTER JOIN BSC_CODE E ON A.YEAR = E.YEAR
+		                                AND A.SC_DEPT_GRP_ID = E.CODE_ID
+		                                AND E.CODE_GRP_ID = '003'
+		       LEFT OUTER JOIN BSC_CODE F ON F.YEAR = '9999'
+		                                AND A.DEPT_KIND = F.CODE_ID
+		                                AND F.CODE_GRP_ID = '025'
+			   LEFT OUTER JOIN  BSC_SC_DEPT G
+	           ON A.YEAR = G.YEAR
+	           <!-- AND G.SC_DEPT_ID = #findScDeptId# -->                                                  
+	           AND G.SC_DEPT_ID = 'D000001'
+	           )
+			WHERE 1=1
+		<isEqual prepend="AND" property="findDiagramGubun" compareValue="02">
+			<![CDATA[ 
+				SC_DEPT_ID <> 'D000001'
+			]]>
+		</isEqual>
+	</select>
+	<!--
+	==================================================================   
+	  # 설명	: 조직성과도관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+           
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직성과도관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_SC_DEPT_ORG_CHART
+		            (YEAR
+		           , SC_DEPT_ID
+		           , DW_DEPT_ID
+		           , DW_DEPT_X_POS
+		           , DW_DEPT_Y_POS
+		           , CREATE_DT
+		           , DIAGRAM_GUBUN
+		            )
+		     VALUES (#findYear#
+		           , #findScDeptId#
+		           , #dwDeptId#
+		           , #subDeptXPos#
+		           , #subDeptYPos#
+		           , SYSDATE
+		           , #findDiagramGubun#
+		            )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직성과도관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_SC_DEPT_ORG_CHART
+		   SET DW_DEPT_X_POS = #subDeptXPos#
+		     , DW_DEPT_Y_POS = #subDeptYPos#
+		 WHERE YEAR = #findYear#
+		   AND SC_DEPT_ID = #findScDeptId#
+		   AND DW_DEPT_ID = #dwDeptId#
+	</update>	
+
+	<!--
+	==================================================================   
+	  # 설명	: 조직성과도관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_SC_DEPT_ORG_CHART
+		      WHERE YEAR = #findYear#
+		        AND SC_DEPT_ID = #findScDeptId#
+		        AND DIAGRAM_GUBUN = #findDiagramGubun#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직성과도 조직도 데이터
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDiagram" parameterClass="hashMap" resultClass="hashMap">
+		
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 조직성과도 신호등 데이터
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getSignal" parameterClass="hashMap" resultClass="hashMap">
+	  SELECT A.CODE_ID,
+	         B.FROM_VALUE,
+	         B.TO_VALUE,
+	         A.CODE_NM,
+	         REPLACE(B.COLOR, '##', '0x') AS COLOR
+	    FROM    BSC_CODE A
+	         LEFT OUTER JOIN
+	            BSC_COMMON_STATUS B
+	         ON A.CODE_ID = B.STATUS_ID AND B.YEAR = A.YEAR
+	   WHERE     A.CODE_GRP_ID = '021'
+	         AND A.DELETE_DT IS NULL
+	         AND A.YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #findYear# ELSE '9999' END
+	                         FROM BSC_CODE_GRP
+	                        WHERE CODE_GRP_ID = '021')
+	ORDER BY A.SORT_ORDER, A.CODE_ID		    
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 조직성과도관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList2" parameterClass="hashMap" resultClass="hashMap">
+	SELECT YEAR
+          , SC_DEPT_ID
+          , SC_DEPT_NM
+          , UP_SC_DEPT_ID
+          , SC_DEPT_GRP_ID
+          , SC_dEPT_GRP_NM
+          , DEPT_KIND
+          , SUB_DEPT_X_POS - 260 AS SUB_DEPT_X_POS
+          <!-- 
+          , CASE WHEN SUB_DEPT_X_POS <![CDATA[>]]> KGS_DEPT_X_POS THEN SUB_DEPT_X_POS - ((SUB_DEPT_X_POS - KGS_DEPT_X_POS) * ) - 270
+                     WHEN SUB_DEPT_X_POS <![CDATA[<]]> KGS_DEPT_X_POS THEN SUB_DEPT_X_POS + ((KGS_DEPT_X_POS - SUB_DEPT_X_POS) * 0.05)  - 270
+                     WHEN SUB_DEPT_X_POS = KGS_DEPT_X_POS THEN SUB_DEPT_X_POS - 270 END AS SUB_DEPT_X_POS
+           -->
+          , CASE WHEN SUB_DEPT_Y_POS <![CDATA[>]]> KGS_DEPT_Y_POS THEN SUB_DEPT_Y_POS - ((SUB_DEPT_Y_POS - KGS_DEPT_Y_POS) * 0.35)  - 110
+                     WHEN SUB_DEPT_Y_POS <![CDATA[<]]> KGS_DEPT_Y_POS THEN SUB_DEPT_Y_POS + ((KGS_DEPT_Y_POS - SUB_DEPT_Y_POS) * 0.35)  - 110
+                     WHEN SUB_DEPT_X_POS = KGS_DEPT_X_POS THEN SUB_DEPT_Y_POS - 110 END AS SUB_DEPT_Y_POS
+          <!-- , SUB_DEPT_X_POS
+          , SUB_DEPT_Y_POS
+          -->
+          , KGS_DEPT_X_POS
+          , KGS_DEPT_Y_POS
+          , SCORE
+          , STATUS
+          , STATUS_NM 
+	  FROM (
+		SELECT A.YEAR
+		     , A.SC_DEPT_ID
+		     , A.SC_DEPT_NM
+		     , A.UP_SC_DEPT_ID
+		     , A.LEVEL_ID
+		     , A.SC_DEPT_GRP_ID
+		     , E.CODE_NM AS SC_DEPT_GRP_NM
+		     , A.DEPT_KIND
+		     , F.CODE_NM AS DEPT_KIND_NM
+		     , B.DW_DEPT_X_POS AS SUB_DEPT_X_POS
+		     , B.DW_DEPT_Y_POS AS SUB_DEPT_Y_POS
+		     , (SELECT DW_DEPT_X_POS FROM BSC_SC_DEPT_ORG_CHART 
+                                                     WHERE DIAGRAM_GUBUN = #findDiagramGubun#
+												     AND SC_DEPT_ID = 'D000001'
+                                                     AND YEAR = #findYear#
+                                                     <isEqual prepend="AND" property="findDiagramGubun" compareValue="02">
+														<![CDATA[ 
+															DW_DEPT_ID = 'D006378'
+														]]>
+													</isEqual>
+													<isNotEqual prepend="AND" property="findDiagramGubun" compareValue="02">
+														<![CDATA[ 
+															DW_DEPT_ID = 'D000001'
+														]]>
+													</isNotEqual>) AS KGS_DEPT_X_POS
+             , (SELECT DW_DEPT_Y_POS FROM BSC_SC_DEPT_ORG_CHART 
+                                                     WHERE DIAGRAM_GUBUN = #findDiagramGubun#
+                                                     AND SC_DEPT_ID = 'D000001'
+                                                     AND YEAR = #findYear#
+                                                     <isEqual prepend="AND" property="findDiagramGubun" compareValue="02">
+														<![CDATA[ 
+															DW_DEPT_ID = 'D006378'
+														]]>
+													</isEqual>
+													<isNotEqual prepend="AND" property="findDiagramGubun" compareValue="02">
+														<![CDATA[ 
+															DW_DEPT_ID = 'D000001'
+														]]>
+													</isNotEqual>) AS KGS_DEPT_Y_POS
+		     , ROUND(C.SCORE, 3) SCORE
+		     , C.STATUS
+		     , D.CODE_NM AS STATUS_NM
+		  FROM (SELECT     A.YEAR
+		                 , A.SC_DEPT_ID
+		                 , A.SC_DEPT_NM
+		                 , A.UP_SC_DEPT_ID
+		                 , LEVEL AS LEVEL_ID
+		                 , A.SC_DEPT_GRP_ID
+		                 , A.DEPT_KIND
+		              FROM BSC_SC_DEPT A
+		             WHERE A.YEAR = #findYear#
+		               AND (A.DIAGRAM_GUBUN = #findDiagramGubun# OR A.SC_DEPT_GRP_ID = '01')	
+		               AND A.DELETE_DT IS NULL
+		<!--        START WITH A.SC_DEPT_ID = #findScDeptId#  -->
+		            START WITH A.SC_DEPT_ID = 'D000001'
+		        CONNECT BY PRIOR A.YEAR = A.YEAR
+		               AND PRIOR A.SC_DEPT_ID = A.UP_SC_DEPT_ID
+		          ORDER SIBLINGS BY A.SORT_ORDER) A
+		       LEFT OUTER JOIN BSC_SC_DEPT_ORG_CHART B ON A.YEAR = B.YEAR
+						                             AND A.SC_DEPT_ID = B.DW_DEPT_ID
+						                             AND B.DIAGRAM_GUBUN = #findDiagramGubun#
+						                             <!-- AND B.SC_DEPT_ID = #findScDeptId# -->
+						                             AND B.SC_DEPT_ID = 'D000001'
+		       LEFT OUTER JOIN BSC_DEPTSCORE C ON C.YEAR = B.YEAR
+											     AND A.SC_DEPT_ID = C.SC_DEPT_ID
+											     AND C.MON = #findMon#
+											     AND C.ANAL_CYCLE = #findAnalCycle#
+		       LEFT OUTER JOIN BSC_CODE D ON C.YEAR = D.YEAR
+		                                AND C.STATUS = D.CODE_ID
+		                                AND D.CODE_GRP_ID = '021'
+		       LEFT OUTER JOIN BSC_CODE E ON A.YEAR = E.YEAR
+		                                AND A.SC_DEPT_GRP_ID = E.CODE_ID
+		                                AND E.CODE_GRP_ID = '003'
+		       LEFT OUTER JOIN BSC_CODE F ON F.YEAR = '9999'
+		                                AND A.DEPT_KIND = F.CODE_ID
+		                                AND F.CODE_GRP_ID = '025'
+			   LEFT OUTER JOIN  BSC_SC_DEPT G
+	           ON A.YEAR = G.YEAR
+	           <!-- AND G.SC_DEPT_ID = #findScDeptId# -->                                                  
+	           AND G.SC_DEPT_ID = 'D000001'
+	           )
+			WHERE 1=1
+			  AND LEVEL_ID <![CDATA[<]]> 4
+		<isEqual prepend="AND" property="findDiagramGubun" compareValue="02">
+			<![CDATA[ 
+				SC_DEPT_ID <> 'D000001'
+			]]>
+		</isEqual>
+	</select>
+	
+</sqlMap>
+
+

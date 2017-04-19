@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.popup.researchResultImproveSys">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	
+	<!--
+	==================================================================
+	  # 설명	: 메인에서 넘어온 부서조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_DEPTINFO
+	==================================================================
+	-->
+	<select id="getDept" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DEPT_ID
+          FROM BSC_DEPTINFO A
+          LEFT OUTER JOIN BSC_SC_DEPT_MAPPING B
+          ON A.DEPT_ID = B.DEPT_ID
+          WHERE B.YEAR = #findYear#
+          <isNotEmpty prepend="AND" property="findScDeptCd">
+          	B.SC_DEPT_ID = #findScDeptCd#
+          </isNotEmpty>
+          <isEmpty prepend="AND" property="findScDeptCd">
+            B.DEPT_ID = #findDeptId#
+          </isEmpty>
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 시스템 연계 제도개선 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDeptInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DEPT_ID
+             , A.DEPT_NM
+          FROM BSC_DEPTINFO A
+            WHERE A.DEPT_ID IN (SELECT DISTINCT EXEC_DEPT_CD
+                               FROM V_GDA0160D_001
+                              WHERE SUBSTR (CJGT_END_DATE, 0, 4) = #findYear#                     
+                                AND CJGT_END_DATE IS NOT NULL 
+                                AND EXEC_DEPT_CD IS NOT NULL)
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 시스템 연계 현장기술지원 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDeptTechInfo" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.DEPT_ID
+             , A.DEPT_NM
+    	  FROM BSC_DEPTINFO A
+   		 WHERE A.DEPT_ID IN (SELECT DISTINCT AID_DEPT
+					           FROM V_GDA0162M_001
+					          WHERE SUBSTR (AID_ST_DATE, 0, 4) = #findYear#                       
+					            AND AID_ST_DATE IS NOT NULL 
+					            AND AID_DEPT IS NOT NULL)
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 시스템 연계항목 정보를 가져옴
+	  #	기능	: SELECT
+	  #	TABLE	:
+	==================================================================
+	-->
+	<select id="getItem" remapResults="true" parameterClass="hashMap" resultClass="hashMap">
+          SELECT A.ITEM_CD, B.CAL_TYPE_COL_NM
+            FROM BSC_SYSTEM_ITEM A
+               , BSC_CAL_TYPE_COL B
+           WHERE A.YEAR = #findYear#
+             AND A.YEAR = B.YEAR
+             AND A.ITEM_CD = B.ITEM_CD
+             AND B.METRIC_ID = #findMetricId#
+           ORDER BY B.CAL_TYPE_COL_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 시스템 연계데이터 조회 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+    	SELECT SUBSTR(CJGT_END_DATE, 0, 4) YEAR
+	         , SUBSTR(CJGT_END_DATE, 5, 2) MON
+	         , A.REQ_SER
+	         , A.EXEC_DEPT_CD
+	         , B.DEPT_NM
+	         , A.CJGT_TC
+	         , A.CJGT_SER
+	         , A.CJGT_YN
+	         , A.CJGT_TY
+	         , CASE
+		          WHEN A.CJGT_TY = '01' THEN 5
+		          WHEN A.CJGT_TY = '03' THEN 3
+		          WHEN A.CJGT_TY IN ('02', '04') THEN 5
+		       END
+		          SCORE
+	         , A.CJGT_EMPN_MN
+	         , TO_CHAR(TO_DATE(A.CJGT_ST_DATE), 'YYYY-MM-DD') CJGT_ST_DATE
+	         , TO_CHAR(TO_DATE(A.CJGT_END_DATE), 'YYYY-MM-DD') CJGT_END_DATE
+	         , A.CJGT_CNTN
+	         , A.CJGT_RS_TY
+	         , A.CJGT_RS_EMPN
+	         , A.CJGT_RS_ST_DATE
+	         , A.CJGT_RS_END_DATE
+	         , A.CONE_RS_CNTN
+	         , A.APRV_TC
+	         , A.APRV_DATE
+	         , A.SUBJ_NO
+	         , A.SUBJ_NM
+	         , A.FILE_NAME4
+	         , A.FILE_NAME5
+	         , A.CJGT_EMPN_MN_NM
+	         , A.CJGT_RS_EMPN_NM
+	         , A.REIN_GEMPN
+	         , A.APLY_MASK
+	         , A.REG_MN_ID
+	         , A.LAST_CHNG_MN_ID
+		  FROM V_GDA0160D_001 A
+	      LEFT OUTER JOIN BSC_DEPTINFO B
+	    	ON A.EXEC_DEPT_CD = B.DEPT_ID
+		 WHERE A.CJGT_END_DATE IS NOT NULL
+	       AND A.CJGT_TY IS NOT NULL
+	       AND A.CJGT_TY NOT IN ('05')
+	     <isNotEmpty prepend="AND" property="findYear">
+	     	SUBSTR(CJGT_END_DATE, 0, 4) = #findYear#
+	     </isNotEmpty>
+	     <isNotEmpty prepend="AND" property="findDeptId">
+		 	A.EXEC_DEPT_CD  = #findDeptId#
+		 </isNotEmpty>
+		 ORDER BY YEAR
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 시스템 연계데이터 조회 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getTechList" parameterClass="hashMap" resultClass="hashMap">
+    	SELECT SUBSTR(A.AID_ST_DATE, 0, 4 ) YEAR 
+			 , SUBSTR(A.AID_ST_DATE, 5, 2) MON
+	         , A.SP_AID_SER
+	         , A.REG_NO
+	         , A.AID_NM
+	         , A.AID_TC
+	         , A.RQST_DEPT_CD
+	         , C.DEPT_NM AS RQST_DEPT_NM
+	         , A.RQST_EMPN
+	         , A.AID_DEPT
+	         , A.AID_DEPT_NM
+	         , B.DEPT_NM
+	         , TO_CHAR(TO_DATE(A.AID_ST_DATE), 'YYYY-MM-DD') AID_ST_DATE
+          	 , TO_CHAR(TO_DATE(A.AID_END_DATE), 'YYYY-MM-DD') AID_END_DATE
+	         , A.AID_HOUR
+	         ,  CASE
+	              WHEN AID_TC = '03'
+	              THEN
+	                 CASE
+	                    WHEN A.AID_HOUR <![CDATA[ < ]]> 8 THEN 0.5 * 2
+	                    WHEN A.AID_HOUR BETWEEN 8 AND 39 THEN 1 * 2
+	                    WHEN A.AID_HOUR >= 40 THEN 2 * 2
+	                 END
+	              ELSE
+	                 CASE
+	                    WHEN A.AID_HOUR <![CDATA[ < ]]> 8 THEN 0.5
+	                    WHEN A.AID_HOUR BETWEEN 8 AND 39 THEN 1
+	                    WHEN A.AID_HOUR >= 40 THEN 2
+	                 END
+	           END
+	              SCORE
+	         , A.AID_RSRC_EMPN
+	         , A.AID_MARK
+	         , A.REQ_SER
+	         , A.REVI_CNTN
+	         , A.APRV_TC
+	         , A.APRV_DATE
+	         , A.SUBJ_NM
+	         , A.APLY_MASK
+	         , A.SUBJ_NO
+	         , A.REG_NO_MAX
+	         , A.ANNE_SEQ
+	         , A.ANNE_SEQ_NM
+	         , A.OUTS_AID_NM
+	         , A.REG_MN_ID
+		  FROM V_GDA0162M_001 A
+		  LEFT OUTER JOIN BSC_DEPTINFO B
+		    ON A.AID_DEPT = B.DEPT_ID
+		  LEFT OUTER JOIN BSC_DEPTINFO C
+    		ON A.RQST_DEPT_CD = C.DEPT_ID
+		 WHERE SUBSTR(A.AID_ST_DATE, 0, 4)  = #findYear#
+	<!-- <isNotEmpty prepend="AND" property="findMon">
+		 	SUBSTR(A.AID_ST_DATE, 5, 2)  = #findMon#
+		 </isNotEmpty>
+	 -->
+		 <isNotEmpty prepend="AND" property="findDeptId">
+		 	A.AID_DEPT  = #findDeptId#
+		 </isNotEmpty>
+		   AND A.AID_ST_DATE IS NOT NULL
+		   AND A.AID_DEPT IS NOT NULL
+		   AND A.AID_HOUR IS NOT NULL
+		 ORDER BY A.AID_ST_DATE
+	</select>
+	
+</sqlMap>
+
+

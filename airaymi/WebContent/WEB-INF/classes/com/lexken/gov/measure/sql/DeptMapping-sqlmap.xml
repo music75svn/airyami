@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.measure.deptMapping">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 내평조직매핑 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.SC_DEPT_ID
+		     , B.SC_DEPT_NM
+		     , B.SC_DEPT_GRP_ID
+		     , F_CODE_NM('003', B.SC_DEPT_GRP_ID, A.YEAR) AS SC_DEPT_GRP_NM
+		FROM GOV_SC_DEPT_MAPPING A
+		     LEFT OUTER JOIN BSC_SC_DEPT B ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID
+		WHERE A.YEAR = #findYear#
+		  AND B.DELETE_DT IS NULL
+		ORDER BY B.SC_DEPT_GRP_ID, B.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 내평조직매핑 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		       
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 매핑 등록 여부 확인
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_SC_DEPT_MAPPING
+	==================================================================
+	-->	
+	<select id="getMappingCount" parameterClass="hashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(1) 
+		  FROM GOV_SC_DEPT_MAPPING
+ 	     WHERE YEAR = #year#
+           AND SC_DEPT_ID = #scDeptId#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 내평조직매핑 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO GOV_SC_DEPT_MAPPING (
+				YEAR
+              , SC_DEPT_ID
+              , CREATE_DT
+              ) VALUES (
+                #year#
+              , #scDeptId#
+              , SYSDATE
+              )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 내평조직매핑 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		 
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 내평조직매핑 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM GOV_SC_DEPT_MAPPING 
+		 WHERE 1 = 1 
+           AND YEAR = #year#
+           AND SC_DEPT_ID = #scDeptId#
+	</update>
+	
+	
+</sqlMap>
+
+

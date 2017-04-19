@@ -1,0 +1,186 @@
+#*************************************************************************
+* CLASS 명      : memJobEvalModify
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년 03월 10일 
+* 기    능      : 업무수행평가항목관리  
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    유연주      2017년 03월 10일             최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	var grdRowId = 0;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 비고 byte 체크
+		 ******************************************/
+		J("#content").checkbyte({
+			indicator:J("#contentIndicator"),
+			limit:500
+		});
+		J("#content").trigger("keyup");
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#form1").attr("action", "$!{context_path}/mem/base/memJobEval/memJobEvalList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * 정렬순서 숫자만 입력
+		 ******************************************/
+		J("#sortOrder").numeric();
+		J("#sortOrder").css("ime-mode", "disabled");
+		
+		/******************************************
+		 * 가중치 숫자만 입력
+		 ******************************************/
+		//J("#weight").numeric({allow:"."});
+		//J("#weight").css("ime-mode", "disabled");
+	});
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		if(!J.checkLength("jobEvalItemNm", "평가항목명", 1, 200)) {
+			return;
+		}
+		/*
+		if(!J.checkLength("weight", "가중치", 1, 5)) {
+			return;
+		}*/
+		if(!J.checkLength("content", "설명", 0, 4000)) {
+			return;
+		}
+		if(!J.checkLength("sortOrder", "정렬순서", 0, 5)) {
+			return;
+		}
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/mem/base/memJobEval/memJobEvalProcess.vw?type=template").submit();
+	}
+
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" action="$!{context_path}/mem/base/memJobEval/memJobEvalProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           value="$!{searchMap.txt2html("year")}" />
+	
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">기준년도 <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail">
+    			<table summary="업무수행평가항목 등록">
+					<caption class="none">업무수행평가항목 등록</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="80%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row"><label for="jobEvalItemId">평가항목코드</label></th>
+    						<td>
+								#if($!{searchMap.txt2html("mode")} == "MOD")
+									$!{CS_HTML.txt2html($detail.JOB_EVAL_ITEM_ID)}
+									<input type="hidden" id="jobEvalItemId" name="jobEvalItemId" class="inputbox w100" value="$!{CS_HTML.txt2html($detail.JOB_EVAL_ITEM_ID)}" maxlength="7" readonly="readonly"/>
+								#else
+									<input type="hidden" id="jobEvalItemId" name="jobEvalItemId" class="inputbox w100" maxlength="7" />
+									※ 저장시 자동으로 부여됩니다.
+								#end
+							</td>
+    					</tr>
+						<tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="jobEvalItemNm">평가항목명</label></th>
+							<td><input type="text" id="jobEvalItemNm" name="jobEvalItemNm" class="inputbox w270" value='$!{CS_HTML.txt2html($detail.JOB_EVAL_ITEM_NM)}' maxlength="40"/></td>
+						</tr>
+						<!--tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="jobEvalItemNm">가중치</label></th>
+							<td><input type="text" id="weight" name="weight" class="inputbox w170" value='$!{CS_HTML.txt2html($detail.WEIGHT)}' maxlength="5"/></td>
+						</tr//-->
+						<tr>
+							<th scope="row"><label for="content">설명</label></th>
+							<td>
+								<textarea id="content" name="content" class="tabletext" title="설명" cols="" rows="3">$!{CS_HTML.txt2html($detail.CONTENT)}</textarea>
+								<span id="contentIndicator">0</span>/4000byte
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"> <label for="sortOrder">정렬순서</label></th>
+							<td><input type="text" id="sortOrder" name="sortOrder" class="inputbox w170" value='$!{CS_HTML.txt2html($detail.SORT_ORDER)}' maxlength="5"/></td>
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    	</div>
+		<div id="Table_blockContainer">
+			<div id="splitterBox">
+				<div>
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							##<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+			    				<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+			    				<li><input type="submit" id="btnInsert" value="저장" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>

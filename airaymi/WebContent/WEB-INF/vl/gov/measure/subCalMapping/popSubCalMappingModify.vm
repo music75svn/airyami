@@ -1,0 +1,106 @@
+#*************************************************************************
+* CLASS 명   : popMetricMappingModify.vm
+* 작 업 자      : 현걸욱
+* 작 업 일      : 2012.11.01
+* 기    능      : 부서별지표검색
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     하 윤 식      2012.11.01          최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    	
+		/******************************************
+		 * 입력완료 버튼 이벤트
+		 ******************************************/
+		J("#btnCalInsert").click(function(e) {
+			setCalInfo();
+		});
+		
+		try {
+			$("input", ".blockButton" ).button(); //버튼 ui 적용
+		} catch(err) { }
+	});
+	
+	/******************************************
+	 * 연계지표매핑
+	 ******************************************/
+	function setCalInfo() {
+		var subCalIds = "";
+		var govMetricId = "";
+		var actCalTypeColId = "";
+		
+		govMetricId = "$!{searchMap.txt2html("govMetricId")}";
+		actCalTypeColId = "$!{searchMap.txt2html("actCalTypeColId")}";
+		
+		J("input:checked").each(function() {  
+                	
+			subCalIds += J(this).val() + '|'; 
+                	
+        });
+		
+		setCalMapping(govMetricId,actCalTypeColId,subCalIds);
+		
+		J.fancybox.close();
+	}
+	
+//]]>
+</script>
+ 
+<div style="width:650px;height:400px;">
+	<div id="Table_blockContainer_w600">
+		<div class="tableTop">
+            <!-- 검색 테이블 Start -->
+            <div class="searchBox">
+            <div><div><div>   
+                <table summary="검색조건">        
+                    <caption class="none">검색조건</caption>
+                    <thead><tr><th></th><th></th></tr></thead>
+                    <tbody>
+                        <tr>
+							<td class="searchBox_tit w120">평가년도 <span class="searchBar">$!{searchMap.txt2html("year")}년</span></td>
+							<td class="searchBox_tit w450">평가요소명 <span class="searchBar">$!{CS_HTML.txt2html($actCalTypeColNm)}</span></td>
+						</tr>
+                    </tbody>
+                </table>
+            </div></div></div>
+            </div>
+            <!--// 검색 테이블 End -->
+            <div class="clear"></div>
+        </div>
+		<div class="blockDetail h300" style="height:300px;overflow:auto;">
+			<table summary="정평계량 세부요소관리 등록">
+				<caption class="none">정평계량 세부요소관리 등록</caption>
+				<colgroup>
+					<col width="10%" />
+					<col width="90%" />
+				</colgroup>
+				<tbody>
+					#foreach($subList in $subCalList)
+        			<tr>
+						<td align="center">
+        					<input type="checkbox" name="subCalId" value="$!{CS_HTML.txt2html($subList.SUB_CAL_ID)}" #if($!{CS_HTML.txt2html($subList.CHECKED)} == "Y") checked="checked" #end />
+        				</td>
+						<td>
+							$!{CS_HTML.txt2html($subList.SUB_CAL_NM)}
+        				</td>
+        			</tr>
+        			#end
+				</tbody>
+			</table>
+		</div>
+		<div class="blockButton"> 
+			<ul>
+				<li><input type="button" id="btnCalInsert" value="입력완료" /></li>
+			</ul>
+		</div>	
+	</div>
+	<div class="clear"></div>
+</div>
+

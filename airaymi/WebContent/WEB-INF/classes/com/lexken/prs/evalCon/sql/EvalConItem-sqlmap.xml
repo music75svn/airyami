@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="prs.evalCon.evalConItem">
+
+    <!--
+    ==================================================================   
+      # 설명    : typeAlias 선언
+      #    기능    : SETTING
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <typeAlias alias="hashMap"             type="java.util.HashMap" />
+     
+
+    <!--
+    ==================================================================   
+      # 설명    : 직원개인기여도평가 평가항목 목록 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT 	  YEAR
+				, EVAL_GBN
+				, F_CODE_NM('226',EVAL_GBN,YEAR ) AS EVAL_GBN_NM
+				, EVAL_ITEM_ID
+				, EVAL_ITEM_NM
+				, WEIGHT
+				, SORT_ORDER
+		FROM CON_EVAL_ITEM
+		WHERE YEAR= #findYear#
+		ORDER BY SORT_ORDER, EVAL_GBN
+    </select>
+    
+    <!--
+	==================================================================   
+	  # 설명	:직원개인기여도평가 가중치 합계 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getEvalWeight" parameterClass="hashMap" resultClass="java.lang.String">
+		 SELECT NVL(SUM(WEIGHT), 0) AS WEIGHT_SUM
+	      FROM CON_EVAL_ITEM A
+	     WHERE A.YEAR 				= #findYear#  
+   	   	   AND A.DELETE_DT IS NULL
+	</select>
+    
+    <!--
+	==================================================================   
+	  # 설명	:직원개인기여도평가 구분 카운트 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: EVAL_ITEM
+	==================================================================
+	-->
+	<select id="getGbnCount" parameterClass="hashMap" resultClass="java.lang.String">
+		 SELECT COUNT(EVAL_GBN) 
+	      FROM CON_EVAL_ITEM
+	     WHERE YEAR 				= #findYear#
+	       AND EVAL_GBN 			= '02' <!--구분: 업무성과 --> 
+	</select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 직원개인기여도평가 평가항목 상세 보기
+      #    기능    : SELECT
+      #    TABLE    : 
+    ==================================================================
+    -->
+    <select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+        SELECT 	  YEAR
+				, EVAL_GBN
+				, EVAL_ITEM_ID
+				, EVAL_ITEM_NM
+				, WEIGHT
+				, CONTENT
+				, SORT_ORDER
+		FROM CON_EVAL_ITEM
+		WHERE YEAR		 = #findYear#  
+		AND EVAL_ITEM_ID = #evalItemId#      
+    </select>
+    
+    <!--
+    ==================================================================   
+      # 설명    : 직원개인기여도평가 평가항목 등록
+      #    기능    : INSERT
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <insert id="insertData" parameterClass="hashMap">
+       <selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+        SELECT 'EC'||LPAD(NVL(MAX(TO_NUMBER(SUBSTR(EVAL_ITEM_ID,3,5))),0)+1,5,'0') FROM CON_EVAL_ITEM WHERE YEAR=#findYear#
+		</selectKey>
+		INSERT INTO CON_EVAL_ITEM ( 
+			   YEAR
+				, EVAL_ITEM_ID
+				, EVAL_ITEM_NM
+				, EVAL_GBN
+				, WEIGHT
+				, CONTENT
+				, CREATE_DT
+				, SORT_ORDER
+			 ) VALUES ( 
+			   #findYear#
+			 , #SEQ#
+			 , #evalItemNm#
+			 , #evalGbn#
+			 , #weight#
+			 , #content#
+			 , SYSDATE
+			 , #sortOrder#
+			 )
+    </insert>    
+    
+    <!--
+    ==================================================================   
+      # 설명    : 직원개인기여도평가 평가항목 수정
+      #    기능    : UPDATE
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <update id="updateData" parameterClass="hashMap">
+        UPDATE CON_EVAL_ITEM
+           SET EVAL_ITEM_NM	   = #evalItemNm#
+			 , EVAL_GBN		   = #evalGbn#
+			 , WEIGHT		   = #weight#
+			 , CONTENT		   = #content#
+			 , MODIFY_DT       = SYSDATE 
+			 , SORT_ORDER      = #sortOrder#
+		 WHERE YEAR 		   = #findYear#
+		   AND EVAL_ITEM_ID    = #evalItemId#
+    </update>    
+    
+
+    <!--
+    ==================================================================   
+      # 설명    : 직원개인기여도평가 평가항목 삭제
+      #    기능    : UPDATE
+      #    TABLE    : 
+    ==================================================================
+    -->    
+    <update id="deleteData" parameterClass="hashMap">
+       DELETE FROM CON_EVAL_ITEM 
+		 WHERE YEAR 				= #findYear#
+		   AND EVAL_ITEM_ID 		= #evalItemId#
+    </update>
+    
+    
+    <!--
+	==================================================================   
+	  # 설명	: 평가항목 정렬수정
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="orderData" parameterClass="hashMap">
+		UPDATE CON_EVAL_ITEM SET                   
+		       SORT_ORDER   		= #sortOrder# 
+		    ,  WEIGHT 				= #weight# 
+		 WHERE EVAL_ITEM_ID 		= #evalItemId# 
+		   AND YEAR 				= #findYear#
+	</update>
+    
+    
+</sqlMap>
+
+

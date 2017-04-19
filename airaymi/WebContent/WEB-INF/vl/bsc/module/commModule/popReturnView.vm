@@ -1,0 +1,51 @@
+#*************************************************************************
+* CLASS 명      : popReturnInput.vm
+* 작 업 자      : 하윤식
+* 작 업 일      : 2012.07.17
+* 기    능      : 지표반려 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     하 윤 식      2012.07.17          최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+	
+		/******************************************
+		 * 입력완료 버튼 이벤트
+		 ******************************************/
+		J("#btnCompleate").click(function(e) {
+			e.preventDefault();
+			J("#returnCause").val(J("#returnCausePop").val());
+			J.fancybox.close();
+			statusDo();
+		});
+		
+	});
+
+//]]>
+</script>
+
+<form id="formFindPop" name="formFindPop" method="post" action="$!{searchMap.txt2html("context")}/bsc/module/commModule/popReturnView.vw?type=template">
+	<input type="hidden" id="findYear" name="findYear" value="$!{searchMap.txt2html("findYear")}" />
+	
+    <div style="width:410px;height:230px;" >
+    	<div id="popMetricArea">
+    		<h1 class="none">반려사유조회</h1>
+    		<div id="userData" style="width:370px;height:200px;">
+				
+				#foreach($list in $list)
+    				반려자 : $!{CS_HTML.txt2html($list.USER_NM)}, 반려시간 : $!{CS_HTML.txt2html($list.CREATE_DT)}
+    				<textarea id="returnCausePop" name="returnCausePop" class="tabletext" title="반려사유" cols="5" rows="12" readonly="readonly">$!{CS_HTML.txt2html($list.RETURN_CAUSE)}</textarea>
+					<br /><br />
+				#end
+				
+    		</div>
+    	</div>
+    </div>
+</form>

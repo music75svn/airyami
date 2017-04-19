@@ -1,0 +1,235 @@
+#*************************************************************************
+* CLASS 명      : dirGovMetricModifyList
+* 작 업 자      : 방승현
+* 작 업 일      : 2013년 6월 27일
+* 기    능      : 임원평가 정평지표관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     방승현      2013년 6월 27일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/prs/dir/dirGovMetric/dirGovMetricList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/prs/dir/dirGovMetric/dirGovMetricModify_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['선택', '평가년도', '평가범주', '평가부문', '정부경영평가 지표번호','정부경영평가 지표','지표유형', '등록여부'],
+			colModel     :[
+							{name:'CHK'					,index:'CHK'					,width:30	 ,align:'center',formatter:linkCheck},
+                            {name:'YEAR'       			,index:'YEAR'       			,width:150   ,align:'center' },
+                            {name:'EVAL_CAT_GRP_NM'     ,index:'EVAL_CAT_GRP_NM'       	,width:150   ,align:'left' },
+                            {name:'EVAL_CAT_NM'       	,index:'EVAL_CAT_NM'       		,width:150   ,align:'left' },
+                            {name:'GOV_METRIC_ID'       ,index:'GOV_METRIC_ID'			,width:150   ,align:'center' },
+                            {name:'GOV_METRIC_NM'       ,index:'GOV_METRIC_NM'       	,width:150   ,align:'left' },
+                            {name:'GBN_NM'       		,index:'GBN_NM'       			,width:150   ,align:'left' },
+                            {name:'SELECTED'       		,index:'SELECTED'       		,width:150   ,align:'left' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			cmTemplate	 : {sortable:false},
+			loadComplete : function() {
+								var id         = J("#list").getGridParam('selarrrow');
+                				var ids        = J("#list").jqGrid('getDataIDs');
+
+    							J("#list input:checkbox").each(function(index) {
+    								var rowdata = J("#list").getRowData(ids[index]);
+									if(rowdata.SELECTED != 'N') { //비교조건 대상 컬럼
+										J("input[name='chk'][value=" + rowdata.GOV_METRIC_ID + "]").attr("checked", "checked");
+    								}
+								});
+
+                           },
+			caption:"정평지표관리"
+		}).jqGrid('hideCol', "YEAR").jqGrid('hideCol', "GOV_METRIC_ID").jqGrid('hideCol', "SELECTED").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+
+		});
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#formList").attr("action", "$!{context_path}/prs/dir/dirGovMetric/dirGovMetricList.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			goInsert();
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcel").click(function() {
+			excelDownload();
+			return false;
+		});
+	});
+
+	/******************************************
+     * jqGrid Check 박스
+     ******************************************/
+    function linkCheck(cellvalue, options, rowObject) {
+    	return '<input type="checkbox" name="chk" value="' + cellvalue + '" class="wp50"/>';
+    }
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function goInsert() {
+		J.showConfirmBox("저장하시겠습니까?", "insertDo"); //insertDo() 콜백함수 호출
+	}
+
+	/******************************************
+	 * 저장처리
+	 ******************************************/
+	function insertDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+
+		J("#year").val(J("#findYear").val());
+		J("#empn").val(J("#findEmpn").val());
+		J("#govMetricId").val(J("#findGovMetric").val());
+		J("#mode").val("ADD");
+
+		J("#formList").attr("action", "$!{context_path}/prs/dir/dirGovMetric/dirGovMetricProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#formList").attr("action", "$!{context_path}/prs/dir/dirGovMetric/dirGovMetricListExcel.vw?type=excel").submit();
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">정평지표 상세</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/prs/dir/dirGovMetric/dirGovMetricModify.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden" 	id="findEmpn"		name="findEmpn" 		value="$!{searchMap.txt2html("empn")}" />
+				<input type="hidden" 	id="findKorNm"		name="findKorNm" 		value="$!{searchMap.txt2html("korNm")}" />
+				<input type="hidden" 	id="findPosTcNm"	name="findPosTcNm" 		value="$!{searchMap.txt2html("posTcNm")}" />
+				<input type="hidden" 	id="findPosTc"		name="findPosTc" 		value="$!{searchMap.txt2html("posTc")}" />
+				<input type="hidden" 	id="findYear"		name="findYear" 		value="$!{searchMap.txt2html("findYear")}" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="정평지표 검색 조건">
+						<caption class="none">정평지표 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR} : </label></span>
+            							$!CS_CODE.getCodeName("017", $!{searchMap.txt2html("findYear")})
+            						</span>
+            					</td>
+								<td class="searchBox_tit w250">
+									이름 :
+            						$!{searchMap.txt2html("korNm")}
+            					</td>
+								<td class="searchBox_tit w250">
+									직위 :
+            						$!{searchMap.txt2html("posTcNm")}
+            					</td>
+							</tr>
+        				</tbody>
+    				</table>
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/prs/dir/dirGovMetric/dirGovMetricProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"		 		name="year" />
+			<input type="hidden" id="govMetricIds" 		name="govMetricIds" />
+			<input type="hidden" id="govMetricId"  		name="govMetricId" />
+			<input type="hidden" id="empn"				name="empn"  		value="$!{searchMap.txt2html("empn")}"/>
+			<input type="hidden" id="korNm"				name="korNm" 		value="$!{searchMap.txt2html("korNm")}" />
+			<input type="hidden" id="posTcNm"			name="posTcNm" 		value="$!{searchMap.txt2html("posTcNm")}" />
+			<input type="hidden" id="posTc"				name="posTc" 		value="$!{searchMap.txt2html("posTc")}" />
+
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="정평지표 조회결과">
+							<caption class="none">정평지표 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton " style="float:left; text-align:left; width:500px; padding:5px 0 0 0;">
+    						<div class="blockButton" style="float:left; text-align:left; width:155px;">
+    							<input id="btnExcel" type="button" align="middle" value="엑셀변환", alt="엑셀변환" />
+    						</div>
+    					</div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+    							<li><input type="button" id="btnInsert" value="저장" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<a id="anchor"></a>
+	<div class="clear"></div>
+</div>

@@ -1,0 +1,244 @@
+#*************************************************************************
+* CLASS 명      : activityList
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 7월 30일
+* 기    능      : Activity관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김윤기      2012년 7월 30일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/base/activity/activityList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/base/activity/activityList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['$!{SC_DEPT_NM} 코드', '$!{STRATEGY_NM} 코드', '$!{STRATEGY_NM}', '$!{METRIC_NM} ID', '$!{METRIC_NM}', '목표', '가중치', '주기', '$!{ACTIVITY_NM} 실행계획'],
+			colModel     :[
+                            {name:'SC_DEPT_ID'           ,index:'SC_DEPT_ID'           ,width:150   ,align:'left'   },
+                            {name:'STRATEGY_ID'          ,index:'STRATEGY_ID'          ,width:150   ,align:'left'   },
+                            {name:'STRATEGY_NM'          ,index:'STRATEGY_NM'          ,width:130   ,align:'left'   },
+							{name:'METRIC_ID'            ,index:'METRIC_ID'            ,width:150   ,align:'left'   },
+                            {name:'METRIC_NM'            ,index:'METRIC_NM'            ,width:180   ,align:'left'   },
+                            {name:'TARGET_Y'             ,index:'TARGET_Y'             ,width:90    ,align:'center' },
+                            {name:'WEIGHT'               ,index:'WEIGHT'               ,width:90    ,align:'center' },
+                            {name:'EVAL_CYCLE_NM'        ,index:'EVAL_CYCLE_NM'        ,width:90    ,align:'center' },
+                            {name:'PLAN_CNT'             ,index:'PLAN_CNT'             ,width:100   ,align:'center', formatter:linkUpdate }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			cmTemplate	 : {sortable:true},
+			caption:"Activity관리"
+		}).jqGrid('hideCol',"METRIC_ID").jqGrid('hideCol',"SC_DEPT_ID").jqGrid('hideCol',"STRATEGY_ID").setGridWidth($!{jqGrid_width});;
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+		/******************************************
+    	 * 조직선택 팝업호출
+    	 ******************************************/
+    	J("#icSearch").fancybox();
+	});
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) {
+		return '<a href=javascript:goModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		//J("#codeGrpId").val(ret.CODE_GRP_ID);
+		J("#year").val(J("#findYear").val());
+		J("#scDeptId").val(J("#findScDeptId").val());
+		J("#scDeptNm").val(J("#findScDeptNm").val());
+		J("#metricId").val(ret.METRIC_ID);
+		J("#metricNm").val(ret.METRIC_NM);
+		J("#formList").attr("action", "$!{context_path}/bsc/base/activity/activityDetailList.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		/*
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var codeGrpIds = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					codeGrpIds += rowdata.CODE_GRP_ID + '|';
+				}
+			});
+		}
+
+		J("#codeGrpIds").val(codeGrpIds);
+		J("#mode").val("DEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/bsc/base/activity/activityProcess.vw?type=template").submit();
+		return false;
+		*/
+	}
+
+	/*****************************************************
+	 * 조직선택 설정
+	 *****************************************************/
+	function setDeptInfoPop(scDeptId, scDeptNm) {
+		scDeptNm = J(scDeptNm).text();
+		J("#findScDeptId").val(scDeptId);
+		J("#findScDeptNm").val(scDeptNm);
+		J.fancybox.close();
+	}
+
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#yearNm").val(J("#findYear :selected").text());
+		J("#bscMetricGbnNm").val(J("#bscMetricGbn :selected").text());
+		J("#formFind").attr("action", "$!{context_path}/bsc/base/activity/activityListExcel.vw?type=excel").submit();
+		J("#formFind").attr("action", "$!{context_path}/bsc/base/activity/activityList.vw?type=template");
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">Activity관리</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/base/activity/activityList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden" 	id="yearNm"	 		name="yearNm" />
+				<input type="hidden" 	id="bscMetricGbnNm"	name="bscMetricGbnNm" />
+
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="$!{ACTIVITY_NM}관리검색 조건">
+						<caption class="none">$!{ACTIVITY_NM}관리 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+    							<td class="searchBox_tit w150">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+    							<td class="searchBox_tit w300">
+            						<span><label for="findScDeptId">$!{SC_DEPT_NM}</label></span>
+            						<span class="searchBar">
+        								<input type="hidden" id="findScDeptId" name="findScDeptId" value="${CS_STATIC.nullToDefault($!{searchMap.txt2html("findScDeptId")},${CS_LOGIN.getSc_dept_id()})}" />
+        								<input type="text" id="findScDeptNm" name="findScDeptNm" class="inputbox w170" value="$!{CS_STATIC.nullToDefault($!{searchMap.txt2html("findScDeptNm")},$!{CS_LOGIN.getSc_dept_nm()})}" maxlength="20" title="findScDeptNm"  readonly="readonly" />
+        								<a id="icSearch" href="$!{context_path}/bsc/module/commModule/popScDeptTree.vw?findYear=$!{searchMap.txt2html("findYear")}&amp;findSearchCodeId=$!{searchMap.txt2html("findScDeptId")}"><img src="$!{img_path}/common/board/ic_search.gif" class="valign_middle" alt="조직검색"/></a>
+        								<!--a href="javascript:cancleDept();"><img src="$!{img_path}/common/board/ic_cancel.gif" id="icCancel" class="valign_middle" alt="검색 초기화"/></a-->
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w250">
+    								<span><label for="bscMetricGbn">$!{METRIC_NM} 유형</label></span>
+            						<span class="searchBar">
+            							<select id="bscMetricGbn" name="bscMetricGbn" class="select w100">
+                                            <option value="" $!{CS_HTML.getSelected("",$!{searchMap.txt2html("bscMetricGbn")})}>전체</option>
+                                            <option value="01" $!{CS_HTML.getSelected("01",$!{searchMap.txt2html("bscMetricGbn")})}>평가</option>
+                                            <option value="02" $!{CS_HTML.getSelected("02",$!{searchMap.txt2html("bscMetricGbn")})}>관리</option>
+            							</select>
+            						</span>
+            					</td>
+
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/base/activity/activityProcess.vw?type=template">
+			<input type="hidden" id="mode"       name="mode" />
+			<input type="hidden" id="year"		 name="year" />
+			<input type="hidden" id="scDeptId"	 name="scDeptId" />
+			<input type="hidden" id="scDeptNm"	 name="scDeptNm" />
+			<input type="hidden" id="metricId"	 name="metricId" />
+			<input type="hidden" id="metricNm"	 name="metricNm" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="$!{ACTIVITY_NM}관리 조회결과">
+							<caption class="none">$!{ACTIVITY_NM}관리 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton" style="float:left; text-align:left; width:500px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀변환" alt="엑셀다운로드" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="clear"></div>
+</div>

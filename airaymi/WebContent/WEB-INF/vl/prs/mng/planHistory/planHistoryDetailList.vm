@@ -1,0 +1,125 @@
+#*************************************************************************
+* CLASS 명      : planHistoryDetailList
+* 작 업 자      : 김효은
+* 작 업 일      : 2013년 12월 10일 
+* 기    능      : 성과계획서(팝업)
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김효은      2013년 12월 10일             최 초 작 업
+**************************************************************************# 
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+    var J = jQuery;
+    J(document).ready(function(){
+	   
+	   try {
+			$("input", ".blockButton" ).button(); //버튼 ui 적용
+		} catch(err) { }
+		
+		/******************************************
+    	 * 돌아가기 이벤트
+    	 ******************************************/
+    	J("#btnBack1").click(function(e) {
+    		goBack();
+			
+    	});
+    });
+	
+//]]>
+</script>
+
+  $!{searchMap.makeHiddenFind()}
+  <div class="blockDetail">
+        <table summary="성과계획서 관리 등록">
+            <caption class="none">성과계획서 관리 등록</caption>
+            <colgroup>
+                <col width="10%" />
+                <col width="20%" />
+                <col width="10%" />
+                <col width="20%" />
+                <col width="10%" />
+                <col width="30%" />
+            </colgroup>
+            <tbody>
+				<tr>
+                    <th scope="row"><label for="findYear">평가년도</label></th>
+                    <td><span>$!{CS_HTML.txt2html($membersTable.YEAR)}년</span></td>
+                    <th scope="row"><label for="korNm">이름</label></th>
+                    <td><span>$!{CS_HTML.txt2html($membersTable.KOR_NM)}</span></td>
+                    <th scope="row"><label for="deptKorNm">부서명</label></th>
+                    <td><span>$!{CS_HTML.txt2html($membersTable.DEPT_KOR_NM)}</span></td>
+                </tr>
+				<tr>
+                    <th scope="row"><label for="posTcNm">직위</label></th>
+                    <td><span>$!{CS_HTML.txt2html($membersTable.POS_TC_NM)}</span></td>
+                    <th scope="row"><label for="castTcNm">직급</label></th>
+                    <td><span>$!{CS_HTML.txt2html($membersTable.CAST_TC_NM)}</span></td>
+                    <th scope="row"><label for="fromDt">직무수행기간</label></th>
+                    <td><span>$!{CS_HTML.txt2html($membersTable.FROM_DT,100)} ~ $!{CS_HTML.txt2html($membersTable.TO_DT,100)}</span></td>
+                </tr>
+				<tr>
+                    <th scope="row"><label for="approveUserNm">확인자</label></th>
+                    <td><span>$!{CS_HTML.txt2html($membersTable.APPROVE_USER_NM)}</span></td>
+                    <th scope="row"><label for="planStatusNm">계약서상태</label></th>
+                    <td><span>$!{CS_HTML.txt2html($membersTable.PLAN_STATUS_NM)}</span></td>
+                    <th scope="row"><label for="finalApproveDt">최종확인일</label></th>
+                    <td><span>$!{CS_HTML.txt2html($membersTable.FINAL_APPROVE_DT)}
+					</span></td>
+                </tr>
+            </tbody>
+        </table>
+     </div>
+
+ <div class="blockDetail">
+        <table summary="성과계획서 관리 등록">
+            <caption class="none">성과계획서 관리 등록</caption>
+            <colgroup>
+                <col width="15%" />
+                <col width="20%" />
+                <col width="20%" />
+                <col width="5%" />
+                <col width="15%" />
+                <col width="5%" />
+                <col width="5%" />
+                <col width="5%" />
+                <col width="5%" />
+                <col width="5%" />
+            </colgroup>
+            <tbody>
+				<tr><th scope="row" rowspan="2" class="textCenter"><label for="findYear">설정방향</label></th>
+                    <th scope="row" rowspan="2" class="textCenter"><label for="korNm">성과목표</label></th>
+                    <th scope="row" rowspan="2" class="textCenter"><label for="deptKorNm">성과지표</label></th>
+                    <th scope="row" rowspan="2" class="textCenter"><label for="deptKorNm">목표량</label></th>
+                    <th scope="row" rowspan="2" class="textCenter"><label for="deptKorNm">목표량 설정근거</label></th>
+                    <th scope="row" rowspan="2" class="textCenter"><label for="deptKorNm">단위</label></th>
+                    <th scope="row" colspan="4" class="textCenter"><label for="deptKorNm">안정계획(누계)</label></th>
+                </tr>
+				<tr>
+                    <th scope="row" class="textCenter"><label for="deptKorNm">1분기</label></th>
+                    <th scope="row" class="textCenter"><label for="deptKorNm">2분기</label></th>
+                    <th scope="row" class="textCenter"><label for="deptKorNm">3분기</label></th>
+                    <th scope="row" class="textCenter"><label for="deptKorNm">4분기</label></th>
+                </tr>
+					#foreach($planList in $planList)
+				<tr>
+                    <td><span>$!{CS_HTML.txt2html($planList.DIRECTION_NM)}</span></td>
+                    <td><span>$!{CS_HTML.txt2html($planList.TARGET_NM)}</span></td>
+                    <td><span>$!{CS_HTML.txt2html($planList.METRIC_NM)}</span></td>
+                    <td><span>$!{CS_HTML.txt2html($planList.TARGET_VALUE)}</span></td>
+                    <td><span>$!{CS_HTML.txt2htmlbr2_forList($planList.TARGET_BASIS)}</span></td>
+                    <td><span>$!{CS_HTML.txt2html($planList.UNIT_NM)}</span></td>
+                    <td><span>$!{CS_HTML.txt2html($planList.Q1_TARGET_VALUE)}</span></td>
+                    <td><span>$!{CS_HTML.txt2html($planList.Q2_TARGET_VALUE)}</span></td>
+                    <td><span>$!{CS_HTML.txt2html($planList.Q3_TARGET_VALUE)}</span></td>
+                    <td><span>$!{CS_HTML.txt2html($planList.Q4_TARGET_VALUE)}</span></td>
+                </tr>
+					#end
+			  </table>
+     </div>
+	 <div class="blockButton"> 
+    	<ul>
+    		<li><input type="button" id="btnBack1" name="btnBack1"  value="돌아가기" /></li>
+    	</ul>
+    </div>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+#*************************************************************************
+* CLASS 명      : mappingMetricInfo_ajax.vm
+* 작 업 자      : 현걸욱
+* 작 업 일      : 2012년 11월 01일 
+* 기    능      : 연계지표 상세조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용         비고
+* -----  ----------  -------------------  ---------------------- ---------
+*  1      현걸욱       2012년 11월 01일         최 초 작 업 
+**************************************************************************# 
+
+<items>
+
+#foreach($list in $mappingMetricList)
+	<item>
+		<metricId>$!{CS_HTML.txt2html($list.METRIC_ID)}</metricId>
+		<metricNm>$!{CS_HTML.txt2html($list.METRIC_NM)}</metricNm>
+		<scDeptId>$!{CS_HTML.txt2html($list.SC_DEPT_ID)}</scDeptId>
+		<scDeptNm>$!{CS_HTML.txt2html($list.SC_DEPT_NM)}</scDeptNm>
+	</item>	
+#end
+
+</items>

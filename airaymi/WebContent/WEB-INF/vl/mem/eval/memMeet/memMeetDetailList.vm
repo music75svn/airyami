@@ -1,0 +1,246 @@
+#*************************************************************************
+* CLASS 명      : memMeetDetailList
+* 작 업 자      : 유연주
+* 작 업 일      : 2017년03월 10일
+* 기    능      : 중간면담상세
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     유연주      2017년03월 10일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/mem/eval/memMeet/memMeetDetailList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/mem/eval/memMeet/memMeetDetailList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['기준년도', '순번', '요청일자', '면담일자', '면담자사번', '면담자', '면담상태코드', '면담상태', '종합의견'],
+			colModel     :[
+							{name:'YEAR'                 ,index:'YEAR'                 ,width:0     ,align:'center' },
+                            {name:'SEQ'                  ,index:'SEQ'                  ,width:30    ,align:'center' },
+                            {name:'REQ_DT'               ,index:'REQ_DT'               ,width:60    ,align:'center' ,formatter:linkUpdate},
+							{name:'MEET_DT'              ,index:'MEET_DT'              ,width:60    ,align:'center' },
+                            {name:'EMP_NO'               ,index:'EMP_NO'               ,width:0     ,align:'center' },
+							{name:'EVAL_1_EMP_NM'        ,index:'EVAL_1_EMP_NM'        ,width:60    ,align:'center' },
+							{name:'MEET_STATE'           ,index:'MEET_STATE'           ,width:0     ,align:'center' },
+							{name:'MEET_STATE_NM'        ,index:'MEET_STATE_NM'        ,width:60    ,align:'center' },
+                            {name:'TOT_OPINION'          ,index:'TOT_OPINION'          ,width:400   ,align:'left'   }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			##cmTemplate   : {sortable:false},
+			loadComplete : function() {
+                           },
+			caption:"중간면담상세"
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"SEQ").jqGrid('hideCol',"EMP_NO").jqGrid('hideCol',"MEET_STATE").jqGrid('hideCol',"CAL_CNT").jqGrid('hideCol',"CAL_NUM").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+		#if($!{searchMap.txt2html("mode")} == "SEARCH")
+			J("#formList").attr("action", "$!{context_path}/mem/eval/memMeet/memMeetSearchList.vw?type=template").submit();
+		#else
+			J("#formList").attr("action", "$!{context_path}/mem/eval/memMeet/memMeetList.vw?type=template").submit();
+		#end
+		});
+
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+
+	});
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) {
+		return '<a href=javascript:goModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+
+		J("#seq").val(ret.SEQ);
+		J("#viewMeetDt").val(ret.MEET_DT);
+		J("#meetStateNm").val(ret.MEET_STATE_NM);
+		J("#formList").attr("action", "$!{context_path}/mem/eval/memMeet/memMeetDetailModify.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 삭제
+	 ******************************************/
+	function goDelete() {
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("삭제할 데이터를 선택하십시요", null, null);
+		} else {
+    		if(J("#findUseYn").val() == 'N'){
+    			J.showMsgBox("이미 삭제된  중간면담입니다.", null, null);
+    			return;
+    		}else{
+				J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+			}
+		}
+	}
+
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var seqs = "";
+
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					seqs += rowdata.SEQ_TMP + '|';
+				}
+			});
+		}
+
+		J("#seqs").val(seqs);
+		J("#mode").val("DEL");
+		J("#formList").attr("action", "$!{context_path}/mem/eval/memMeet/memMeetDetailProcess.vw?type=template").submit();
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">중간면담</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/mem/eval/memMeet/memMeetDetailList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"      name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"       name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"          name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"    id="year"       		name="year"             value="$!{searchMap.txt2html("year")}"/>
+				<input type="hidden"    id="empNo"  	        name="empNo"            value="$!{searchMap.txt2html("empNo")}"/>
+				<input type="hidden"    id="empNm"  	        name="empNm"            value="$!{searchMap.txt2html("empNm")}"/>
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="중간면담검색 조건">
+						<caption class="none">중간면담 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w150">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							$!{searchMap.txt2html("year")}년
+            						</span>
+            					</td>
+								<td class="searchBox_tit w150">
+            						<span><label for="empNm">평가대상자</label></span>
+            						<span class="searchBar">
+            							$!{searchMap.txt2html("empNm")}
+            						</span>
+            					</td>
+								<td class="searchBox_tit w150">
+            						<span><label for="findUseYn">삭제여부</label></span>
+            						<span class="searchBar">
+            							<select id="findUseYn" name="findUseYn" class="select w80">
+            								$!CS_CODE.getCodeOption("011", $!{searchMap.txt2html("findUseYn")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/mem/eval/memMeet/memMeetProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode"             value="$!{searchMap.txt2html("mode")}"/>
+			<input type="hidden" id="year"       		name="year"             value="$!{searchMap.txt2html("year")}"/>
+			<input type="hidden" id="yearNm"     		name="yearNm" />
+			<input type="hidden" id="seqs" 		        name="seqs" />
+			<input type="hidden" id="seq" 		        name="seq" />
+			<input type="hidden" id="viewMeetDt" 		name="viewMeetDt" />
+			<input type="hidden" id="meetStateNm" 		name="meetStateNm" />
+			<input type="hidden" id="empNo"  	        name="empNo"            value="$!{searchMap.txt2html("empNo")}"/>
+			<input type="hidden" id="empNm"  	        name="empNm"            value="$!{searchMap.txt2html("empNm")}"/>
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="중간면담 조회결과">
+							<caption class="none">중간면담 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							##<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnBack"   value="돌아가기" /></li>
+							#if($!{searchMap.txt2html("mode")} != "SEARCH")
+								<li><input type="submit" id="btnDelete" value="삭제" /></li>
+							#end
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="clear"></div>
+</div>

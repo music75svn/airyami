@@ -1,0 +1,368 @@
+#*************************************************************************
+* CLASS 명      : activityModify
+* 작 업 자      : 김윤기 
+* 작 업 일      : 2012년 7월 30일 
+* 기    능      : Activity관리    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    김윤기      2012년 7월 30일           최 초 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#initiativeId").val("");
+			J("#form1").attr("action", "$!{context_path}/bsc/base/activity/activityDetailList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+        
+		/******************************************
+		 * 상세계획 byte 체크
+		 ******************************************/
+		J("#planDesc").checkbyte({
+			indicator:J("#indicator"),
+			limit:3500
+		});
+		J("#planDesc").trigger("keyup");		
+		
+		/******************************************
+		 * 일정 활성화 기본 체크
+		 ******************************************/
+		 
+        #if($!{CS_HTML.txt2html($detail.PLAN_START_DT2)}!="")
+			J("#checkPlan2").attr("checked", "checked");
+		#else
+			J("#planStartDt2").attr("disabled","disabled");
+			J("#planEndDt2").attr("disabled","disabled");
+		#end
+	
+        #if($!{CS_HTML.txt2html($detail.PLAN_START_DT3)}!="")
+			J("#checkPlan3").attr("checked", "checked");
+		#else
+			J("#planStartDt3").attr("disabled","disabled");
+			J("#planEndDt3").attr("disabled","disabled");
+		#end
+	
+        #if($!{CS_HTML.txt2html($detail.PLAN_START_DT4)}!="")
+			J("#checkPlan4").attr("checked", "checked");
+		#else
+			J("#planStartDt4").attr("disabled","disabled");
+			J("#planEndDt4").attr("disabled","disabled");
+		#end
+	
+        #if($!{CS_HTML.txt2html($detail.PLAN_START_DT5)}!="")
+			J("#checkPlan5").attr("checked", "checked");
+		#else
+			J("#planStartDt5").attr("disabled","disabled");
+			J("#planEndDt5").attr("disabled","disabled");
+		#end
+	
+        #if($!{CS_HTML.txt2html($detail.PLAN_START_DT6)}!="")
+			J("#checkPlan6").attr("checked", "checked");
+		#else
+			J("#planStartDt6").attr("disabled","disabled");
+			J("#planEndDt6").attr("disabled","disabled");
+		#end
+		
+		
+		/******************************************
+		 * 일정 활성화 체크
+		 ******************************************/
+		J("#checkPlan2").change(function(){
+            if(J("#checkPlan2").is(":checked")){
+    			J("#planStartDt2").removeAttr("disabled");
+    			J("#planEndDt2").removeAttr("disabled");
+    		}else{
+    			J("#planStartDt2").attr("disabled","disabled");
+    			J("#planEndDt2").attr("disabled","disabled");
+    		}
+		});
+
+		
+		J("#checkPlan3").change(function(){
+            if(J("#checkPlan3").is(":checked")){
+    			J("#planStartDt3").removeAttr("disabled");
+    			J("#planEndDt3").removeAttr("disabled");
+    		}else{
+    			J("#planStartDt3").attr("disabled","disabled");
+    			J("#planEndDt3").attr("disabled","disabled");
+    		}
+		});
+
+		
+		J("#checkPlan4").change(function(){
+            if(J("#checkPlan4").is(":checked")){
+    			J("#planStartDt4").removeAttr("disabled");
+    			J("#planEndDt4").removeAttr("disabled");
+    		}else{
+    			J("#planStartDt4").attr("disabled","disabled");
+    			J("#planEndDt4").attr("disabled","disabled");
+    		}
+		});
+
+		
+		J("#checkPlan5").change(function(){
+            if(J("#checkPlan5").is(":checked")){
+    			J("#planStartDt5").removeAttr("disabled");
+    			J("#planEndDt5").removeAttr("disabled");
+    		}else{
+    			J("#planStartDt5").attr("disabled","disabled");
+    			J("#planEndDt5").attr("disabled","disabled");
+    		}
+		});
+
+		
+		J("#checkPlan6").change(function(){
+            if(J("#checkPlan6").is(":checked")){
+    			J("#planStartDt6").removeAttr("disabled");
+    			J("#planEndDt6").removeAttr("disabled");
+    		}else{
+    			J("#planStartDt6").attr("disabled","disabled");
+    			J("#planEndDt6").attr("disabled","disabled");
+    		}
+		});
+		
+	});
+
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		var fileChk = true;
+		
+		//첨부파일 확장자 체크
+		J(":file", "#form1").each(function(index, item) {
+			var fileFullName = J("input[name=" + item.name + "]").val();
+			var src = getFileExtension(fileFullName);
+			
+			if (!((src.toLowerCase() == "xls") || (src.toLowerCase() == "xlsx") || (src.toLowerCase() == "ppt") || (src.toLowerCase() == "pptx")||
+				  (src.toLowerCase() == "doc") || (src.toLowerCase() == "docx") || (src.toLowerCase() == "hwp") || (src.toLowerCase() == "pdf") ||
+				  (src.toLowerCase() == "zip") || (src.toLowerCase() == "txt")  || (src.toLowerCase() == "gif") || (src.toLowerCase() == "jpg") ||
+			      (src.toLowerCase() == "png") || (src.toLowerCase() == "png")
+			    )) {
+			
+				fileChk = false;
+    		}
+		});
+		
+		if(fileChk == false) {
+			J.showMsgBox("허용되지 않는 파일형식입니다<br/>허용되는 파일형식 : <br/>xls, xlsx, ppt, pptx, doc, docx, hwp <br/> pdf, zip, txt, gif, jpg, png, jpeg", null, null);
+    		return;
+		}
+		
+		if(!J.checkLength("initiativeNm", "실행계획", 1, 150)) {
+			return;
+		}
+		
+		if((J("#planStartDt").val() >J("#planEndDt").val() ) || 
+		   (J("#planStartDt2").val()>J("#planEndDt2").val()) ||
+		   (J("#planStartDt3").val()>J("#planEndDt3").val()) ||
+		   (J("#planStartDt4").val()>J("#planEndDt4").val()) ||
+		   (J("#planStartDt5").val()>J("#planEndDt5").val()) ||
+		   (J("#planStartDt6").val()>J("#planEndDt6").val()) 		   
+		){
+			J.showMsgBox("시작 종료 월을 확인해 주십시요", null, "yearYn1");
+			return;
+		}
+		
+		if(!J.checkLength("product", "산출물", 1, 80)) {
+			return;
+		}
+ 		
+		document.charset='utf-8';
+		
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#form1").attr("action", "$!{context_path}/bsc/base/activity/activityProcess.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 파일추가
+	 ******************************************/
+	var fileIndex = 0;
+	
+	function fileAttachAdd() {
+		J("#fileAttach").append("<li id=\"fileRow" + fileIndex + "\"><input type=\"file\" name=\"file" + fileIndex + "\" class=\"input\" size=\"70\" /> <input type=\"button\" value=\"삭제\" onclick=\"deleteRow(" + fileIndex + ")\" class=\"input\" size=\"70\"></li>");
+		fileIndex++;
+	}
+	
+	function deleteRow(fileIndex)	{
+    	J("#fileRow" + fileIndex).remove();
+    }
+//]]>
+</script>    
+ 
+<form id="form1" name="form1" method="post" enctype="multipart/form-data" action="$!{context_path}/bsc/base/activity/activityProcess.vw?type=template">
+    <input type="hidden" id="mode"		 	name="mode"			value="$!{searchMap.txt2html("mode")}"/>
+	<input type="hidden" id="year"		 	name="year" 		value="$!{searchMap.txt2html("year")}"/>
+	<input type="hidden" id="scDeptId"	 	name="scDeptId" 	value="$!{searchMap.txt2html("scDeptId")}"/>
+	<input type="hidden" id="scDeptNm"	 	name="scDeptNm" 	value="$!{searchMap.txt2html("scDeptNm")}"/>
+	<input type="hidden" id="metricId"	 	name="metricId" 	value="$!{searchMap.txt2html("metricId")}"/>
+	<input type="hidden" id="metricNm"	 	name="metricNm" 	value="$!{searchMap.txt2html("metricNm")}"/>
+	<input type="hidden" id="initiativeId"	name="initiativeId" value="$!{searchMap.txt2html("initiativeId")}"/>
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+    		<div class="tableTop">
+    			#parse("/WEB-INF/vl/common/template/tabs.vm")
+    			<div class="clear"></div>
+    		</div>
+    		<div class="blockDetail">
+    			<table summary="ACTIVITY관리 등록/수정">
+					<caption class="none">ACTIVITY관리 등록/수정</caption>
+    				<colgroup>
+    					<col width="15%" />
+    					<col width="35%" />
+    					<col width="15%" />
+    					<col width="35%" />
+    				</colgroup>
+    				<tbody>
+    					<tr>
+                            <th scope="row"><span class="txt_red">(*)</span> <label for="initiativeNm">Activity실행계획</label></th>
+                            <td colspan="3">
+                            	<input type="text" id="initiativeNm" name="initiativeNm" class="inputbox w900" value='$!{CS_HTML.txt2html($detail.INITIATIVE_NM)}'/>
+                            </td>
+                        </tr>
+    					<tr>
+                            <th scope="row"><label for="upInitiativeId">상위 Activity</label></th>
+                            <td colspan="3">
+								<select id="upInitiativeId" name="upInitiativeId" class="select w600">
+									<option value="">전체</option>
+    								#foreach($initiativeList in $initiativeList)
+    									<option value="$!{CS_HTML.txt2html($initiativeList.INITIATIVE_ID)}" $!{CS_HTML.getSelected($!{CS_HTML.txt2html($initiativeList.INITIATIVE_ID)}, $!{CS_HTML.txt2html($detail.UP_INITIATIVE_ID)})}> $!{CS_HTML.txt2html($initiativeList.INITIATIVE_NM)}</option>
+									#end
+                                </select>
+                            </td>
+                        </tr>
+    					<tr>
+                            <th scope="row"><label for="">일정1</label></th>
+                            <td>
+    							<select id="planStartDt" name="planStartDt" class="select">
+									$!CS_CODE.getCodeOption("024", $!{CS_HTML.txt2html($detail.PLAN_START_DT)})
+                                </select> ~
+    							<select id="planEndDt" name="planEndDt" class="select">
+									$!CS_CODE.getCodeOption("024", $!{CS_HTML.txt2html($detail.PLAN_END_DT)})
+                                </select> 								
+                            </td>
+                            <th scope="row"><input type="checkbox" id="checkPlan2" name="checkPlan2"/><label for="checkPlan2">일정2</label></th>
+                            <td>
+    							<select id="planStartDt2" name="planStartDt2" class="select">
+									$!CS_CODE.getCodeOption("024", $!{CS_HTML.txt2html($detail.PLAN_START_DT2)})
+                                </select> ~
+    							<select id="planEndDt2" name="planEndDt2" class="select">
+									$!CS_CODE.getCodeOption("024", $!{CS_HTML.txt2html($detail.PLAN_END_DT2)})
+                                </select>								
+                            </td>
+                        </tr>
+    					<tr>
+                            <th scope="row"><input type="checkbox" id="checkPlan3"  name="checkPlan3"/><label for="checkPlan3">일정3</label></th>
+                            <td>
+    							<select id="planStartDt3" name="planStartDt3" class="select">
+									$!CS_CODE.getCodeOption("024", $!{CS_HTML.txt2html($detail.PLAN_START_DT3)})
+                                </select> ~
+    							<select id="planEndDt3" name="planEndDt3" class="select">
+									$!CS_CODE.getCodeOption("024", $!{CS_HTML.txt2html($detail.PLAN_END_DT3)})
+                                </select> 								
+                            </td>
+                            <th scope="row"><input type="checkbox" id="checkPlan4"  name="checkPlan4"/><label for="checkPlan4">일정4</label></th>
+                            <td>
+    							<select id="planStartDt4" name="planStartDt4" class="select">
+									$!CS_CODE.getCodeOption("024", $!{CS_HTML.txt2html($detail.PLAN_START_DT4)})
+                                </select> ~
+    							<select id="planEndDt4" name="planEndDt4" class="select">
+									$!CS_CODE.getCodeOption("024", $!{CS_HTML.txt2html($detail.PLAN_END_DT4)})
+                                </select> 								
+                            </td>
+                        </tr>
+    					<tr>
+                            <th scope="row"><input type="checkbox" id="checkPlan5" name="checkPlan5"/><label for="checkPlan5">일정5</label></th>
+                            <td>
+    							<select id="planStartDt5" name="planStartDt5" class="select">
+									$!CS_CODE.getCodeOption("024", $!{CS_HTML.txt2html($detail.PLAN_START_DT5)})
+                                </select> ~
+    							<select id="planEndDt5" name="planEndDt5" class="select">
+									$!CS_CODE.getCodeOption("024", $!{CS_HTML.txt2html($detail.PLAN_END_DT5)})
+                                </select> 								
+                            </td>
+                            <th scope="row"><input type="checkbox" id="checkPlan6"  name="checkPlan6"/><label for="checkPlan6">일정6</label></th>
+                            <td>
+    							<select id="planStartDt6" name="planStartDt6" class="select">
+									$!CS_CODE.getCodeOption("024", $!{CS_HTML.txt2html($detail.PLAN_START_DT6)})
+                                </select> ~
+    							<select id="planEndDt6" name="planEndDt6" class="select">
+									$!CS_CODE.getCodeOption("024", $!{CS_HTML.txt2html($detail.PLAN_END_DT6)})
+                                </select> 								
+                            </td>
+                        </tr>
+                        <tr>
+							<th scope="row"><label for="planDesc">Activity상세계획</label></th>
+							<td colspan="3">
+    							<textarea id="planDesc" name="planDesc" class="tabletext" title="비고" cols="" rows="10">$!{CS_HTML.txt2html($detail.PLAN_DESC)}</textarea>
+								<span id="indicator">0</span>/35000byte							
+							</td>
+						</tr>
+                        <tr>
+							<th scope="row"><span class="txt_red">(*)</span> <label for="product">산출물</label></th>
+							<td colspan="3">
+								<input type="text" id="product" name="product" class="inputbox w900" value='$!{CS_HTML.txt2html($detail.PRODUCT)}'/>
+							</td>
+						</tr>
+                        <tr>
+							<th scope="row"><label for="attach">첨부파일</label></th>
+							<td colspan="3">
+								#foreach($fileList in $fileList)
+									$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))} 
+									&nbsp;&nbsp;<input type="checkbox" name="delAttachFiles" id="delAttachFile$!{fileList.get("SEQ")}" value="$!{fileList.get("SEQ")}" />&nbsp;<label for="delAttachFile$!{fileList.get("SEQ")}">첨부파일 삭제</label> <br/>
+								#end
+								<br/>
+								<a href="javascript:fileAttachAdd();"><img src="$!{img_path}/common/btn_file.gif" class="valign_middle" alt="파일추가" /></a>&nbsp;(첨부파일 용량제한은 100M입니다)<br/>
+								<div>
+									<ul id="fileAttach">
+									</ul>
+								</div>
+							</td>
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>			
+			
+    		<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnBack"   value="돌아가기"/></li>
+    				<li><input type="button" id="btnInsert" value="저장"/></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>

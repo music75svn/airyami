@@ -1,0 +1,59 @@
+#*************************************************************************
+* CLASS 명      : govActualMngList_xml
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 11월 8일
+* 기    능      : 계량실적입력 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      정철수     2012년 11월 8일            최 초 작 업
+**************************************************************************#
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 		: "$!{CS_HTML.txt2html($list.YEAR)}",
+		"GOV_METRIC_ID"        		: "$!{CS_HTML.txt2html($list.GOV_METRIC_ID)}",
+		"GOV_METRIC_NM"        		: "$!{CS_HTML.txt2html($list.GOV_METRIC_NM)}",
+		"ITEM_CD"        			: "$!{CS_HTML.txt2html($list.ITEM_CD)}",
+		"ACT_CAL_TYPE_COL_ID"  		: "$!{CS_HTML.txt2html($list.ACT_CAL_TYPE_COL_ID)}",
+		"ACT_CAL_TYPE_COL_NM"  		: "$!{CS_HTML.txt2html($list.ACT_CAL_TYPE_COL_NM)}",
+		"CAL_TYPE_UNIT_ID"     		: "$!{CS_HTML.txt2html($list.CAL_TYPE_UNIT_ID)}",
+		"CAL_TYPE_UNIT_NM"     		: "$!{CS_HTML.txt2html($list.CAL_TYPE_UNIT_NM)}",
+		"MON01" 					: "$!{CS_HTML.txt2html($list.MON01)}",
+		"MON02" 					: "$!{CS_HTML.txt2html($list.MON02)}",
+		"MON03" 					: "$!{CS_HTML.txt2html($list.MON03)}",
+		"MON04" 					: "$!{CS_HTML.txt2html($list.MON04)}",
+		"MON05" 					: "$!{CS_HTML.txt2html($list.MON05)}",
+		"MON06"					 	: "$!{CS_HTML.txt2html($list.MON06)}",
+		"MON07" 					: "$!{CS_HTML.txt2html($list.MON07)}",
+		"MON08" 					: "$!{CS_HTML.txt2html($list.MON08)}",
+		"MON09" 					: "$!{CS_HTML.txt2html($list.MON09)}",
+		"MON10" 					: "$!{CS_HTML.txt2html($list.MON10)}",
+		"MON11" 					: "$!{CS_HTML.txt2html($list.MON11)}",
+		"MON12" 					: "$!{CS_HTML.txt2html($list.MON12)}",
+		"SC_DEPT_ID"           		: "$!{CS_HTML.txt2html($list.SC_DEPT_ID)}",
+		"METRIC_ID"           		: "$!{CS_HTML.txt2html($list.METRIC_ID)}",
+		"RESTRICTED"           		: "$!{CS_HTML.txt2html($list.RESTRICTED)}",
+		"URL"           			: "$!{CS_HTML.txt2html($list.URL)}",
+		"SC_DEPT_NM"          	 	: "$!{CS_HTML.txt2html($list.SC_DEPT_NM)}",
+		"INSERT_USER_ID"       		: "$!{CS_HTML.txt2html($list.INSERT_USER_ID)}",
+		"INSERT_USER_NM"       		: "$!{CS_HTML.txt2html($list.INSERT_USER_NM)}",
+		"GM_CNT"       		   		: "$!{CS_HTML.txt2html($list.GM_CNT)}",
+		"GM_INDEX"     		   		: "$!{CS_HTML.txt2html($list.GM_INDEX)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

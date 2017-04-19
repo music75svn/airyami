@@ -1,0 +1,439 @@
+#*************************************************************************
+* CLASS 명		: strMetricList
+* 작 업 자		: 안요한
+* 작 업 일		: 2013년 05월 06일 
+* 기    능			: 이행성과지표조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     안 요 한      2013년 05월 06일             최 초 작 업
+**************************************************************************# 
+#set($curr_url = $!{context_path} + "/str/base/strMetric/strMetricList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+	
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/str/base/strMetric/strMetricList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :[ '경영목표', '전략과제', 'CSF', 'KGS2020KPI', '담당부서', '담당자', '주기', '단위', '내부평가지표', 'MANAGEMENT_CNT', 'MANAGEMENT_INDEX', 'STRAT_CNT', 'STRAT_INDEX', 'SUB_CNT', 'SUB_INDEX', 'STRAT_SUBJECT_ID', 'CSF_ID', '경영목표ID', 'SUBJECT_METRIC_ID'],
+			colModel     :[
+							{name:'MANAGEMENT_NM'		,index:'MANAGEMENT_NM'		,width:150	,align:'left'			,sortable:false,  cellattr: attr1Setting}, 
+							{name:'STRAT_SUBJECT_NM'		,index:'STRAT_SUBJECT_NM'		,width:150	,align:'left'			,sortable:false,  cellattr: attr2Setting}, 
+                            {name:'CSF_NM'						,index:'CSF_NM'						,width:220	,align:'left'			,sortable:false,  cellattr: attr3Setting}, 
+                            {name:'SUBJECT_METRIC_NM'		,index:'SUBJECT_METRIC_NM'		,width:150	,align:'left'			,sortable:false,  formatter:linkUpdate}, 
+                            {name:'CHARGE_DEPT_NM'		,index:'CHARGE_DEPT_NM'			,width:100	,align:'left'			,sortable:false}, 
+                            {name:'CHARGE_USER_NM'		,index:'CHARGE_USER_NM'			,width:70		,align:'center'		,sortable:false}, 
+                            {name:'CYCLE_NM'					,index:'CYCLE_NM'					,width:50		,align:'center'		,sortable:false},
+							{name:'UNIT_NM'					,index:'UNIT_NM'					,width:50		,align:'center'		,sortable:false},
+							{name:'METRIC_NM'				,index:'METRIC_NM'					,width:150	,align:'left'			,sortable:false},
+							{name:'MANAGEMENT_CNT'		,index:'MANAGEMENT_CNT'		,width:150	,align:'center'		,sortable:false},
+							{name:'MANAGEMENT_INDEX'	,index:'MANAGEMENT_INDEX'	,width:150	,align:'center'		,sortable:false},
+							{name:'STRAT_CNT'					,index:'STRAT_CNT'					,width:150	,align:'center'		,sortable:false},
+							{name:'STRAT_INDEX'				,index:'STRAT_INDEX'				,width:150	,align:'center'		,sortable:false},
+							{name:'SUB_CNT'					,index:'SUB_CNT'						,width:150	,align:'center'		,sortable:false},
+							{name:'SUB_INDEX'					,index:'SUB_INDEX'					,width:150	,align:'center'		,sortable:false},
+							{name:'STRAT_SUBJECT_ID'		,index:'STRAT_SUBJECT_ID'			,width:150	,align:'center'		,sortable:false},
+							{name:'CSF_ID'						,index:'CSF_ID'						,width:150	,align:'center'		,sortable:false},
+							{name:'MANAGEMENT_ID'			,index:'MANAGEMENT_ID'			,width:150	,align:'center'		,sortable:false},
+							{name:'SUBJECT_METRIC_ID'		,index:'SUBJECT_METRIC_ID'		,width:150	,align:'center'		,sortable:false}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			caption:"전략방향"
+		}).jqGrid('hideCol',"STRAT_CNT").jqGrid('hideCol',"STRAT_INDEX").jqGrid('hideCol',"SUB_CNT").jqGrid('hideCol',"SUB_INDEX")
+		  .jqGrid('hideCol',"STRAT_SUBJECT_ID").jqGrid('hideCol',"CSF_ID").jqGrid('hideCol',"SUBJECT_METRIC_ID").jqGrid('hideCol',"METRIC_NM").jqGrid('hideCol',"MANAGEMENT_ID").jqGrid('hideCol',"MANAGEMENT_CNT").jqGrid('hideCol',"MANAGEMENT_INDEX").setGridWidth($!{jqGrid_width});
+		
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+        
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#year").val(J("#findYear").val());
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/str/base/strMetric/strMetricModify.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+		
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+	});
+	
+	/*****************************************
+	 * 데이터 Rowspan 설정
+	 ******************************************/
+	function attr1Setting(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.MANAGEMENT_INDEX;
+		var rowSpan = rowObject.MANAGEMENT_CNT;
+		
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+		
+		return result;     
+	}
+
+	/*****************************************
+	 * 데이터 Rowspan 설정
+	 ******************************************/
+	function attr2Setting(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.STRAT_INDEX;
+		var rowSpan = rowObject.STRAT_CNT;
+		
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+		
+		return result;     
+	} 
+	
+	/*****************************************
+	 * 데이터 Rowspan 설정
+	 ******************************************/
+	function attr3Setting(rowId, val, rowObject, cm) {
+		var result;
+		var index = rowObject.SUB_INDEX;
+		var rowSpan = rowObject.SUB_CNT;
+		
+		if(index == 1) {
+			result = ' rowspan="' + rowSpan + '"';
+		} else {
+			result = ' style="display:none"';
+		}
+		
+		return result;     
+	} 
+	
+	/******************************************
+	 * 년도변경시 경영목표 변경
+	 ******************************************/
+	
+	function chgManagement(){
+	
+		J.ajax({
+        	url      : "$!{context_path}/str/base/strMetric/managementList_ajax.vw",﻿
+        	cache    : false,
+        	type     : "POST",
+			data     : J("#formFind").serialize(),
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+				var xmlDoc = J.parseXML(data);
+        		J("#findManagementId").empty();
+				
+				J('<option/>').attr('value','').text("전체").appendTo('#findManagementId');
+				
+				J(xmlDoc).find("data").each(function() {
+					J('<option/>').attr('value', J(this).find("value").text()).text(J(this).find("text").text()).appendTo('#findManagementId');
+				})
+        	}
+    	});
+		
+		<!--세부목표도 초기화-->
+		chgStratSubject();
+		//chgCsf();
+		
+	}
+	
+	/******************************************
+	 * 경영목표변경시 전략과제 변경
+	 ******************************************/
+	
+	function chgStratSubject(){
+	
+		J.ajax({
+        	url      : "$!{context_path}/str/base/strMetric/stratSubjectList_ajax.vw",﻿
+        	cache    : false,
+        	type     : "POST",
+			data     : J("#formFind").serialize(),
+        	dataType : "html",
+        	contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success  : function (data) {
+				var xmlDoc = J.parseXML(data);
+        		J("#findStratSubjectId").empty();
+				
+				J('<option/>').attr('value','').text("전체").appendTo('#findStratSubjectId');
+				
+				J(xmlDoc).find("data").each(function() {
+					J('<option/>').attr('value', J(this).find("value").text()).text(J(this).find("text").text()).appendTo('#findStratSubjectId');
+				})
+				
+				<!--세부목표도 초기화-->
+				chgCsf();
+        	}
+    	});
+	}
+	
+	/******************************************
+	 * 전략과제 변경시 CSF 변경
+	 ******************************************/
+	
+	function chgCsf(){
+	
+		J.ajax({
+		
+			url      : "$!{context_path}/str/base/strMetric/csfList_ajax.vw",
+			cache    : false,
+			type     : "POST",
+			data	 : J("#formFind").serialize(),
+			dataType : "html",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+			success  : function(data){
+							var xmlDoc = J.parseXML(data);
+							J("#findCsfId").empty();
+							
+							J('<option/>').attr('value','').text("전체").appendTo('#findCsfId');
+							
+							J(xmlDoc).find("data").each(function() {
+								J('<option/>').attr('value',J(this).find("value").text()).text(J(this).find("text").text()).appendTo('#findCsfId');
+							})
+					   }
+		});
+	
+	}
+	
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) { 
+		return '<a href=javascript:goModify(' + options.rowId + ')>' + cellvalue + '<//a>';
+	}
+	
+	/******************************************
+	 * 수정
+	 ******************************************/
+	function goModify(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#csfId").val(ret.CSF_ID);
+		J("#subjectMetricId").val(ret.SUBJECT_METRIC_ID);
+		J("#managementId").val(ret.MANAGEMENT_ID);
+		J("#year").val(J("#findYear").val());
+		J("#mode").val("MOD");
+		J("#formList").attr("action", "$!{context_path}/str/base/strMetric/strMetricModify.vw?type=template").submit();
+	}
+    
+	/******************************************
+	 * 삭제
+	 ******************************************/
+	function goDelete() {
+	
+		if(J("#findUseYn").val() == 'N'){
+			J.showMsgBox("이미 삭제된  이행성과지표 입니다.", null, null);
+			return;
+		}
+	
+		if(!J.gridSelectChk("list")){
+			J.showMsgBox("삭제할 데이터를 선택하십시요", null, null); 
+		} else {
+			J.showConfirmBox("삭제하시겠습니까?", "deleteDo"); //deleteDo() 콜백함수 호출
+		}
+	}
+    
+	/******************************************
+	 * 삭제처리
+	 ******************************************/
+	function deleteDo() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var subjectMetricIds = "";
+        
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					subjectMetricIds += rowdata.SUBJECT_METRIC_ID + '|';
+				}
+			});
+		}
+        
+		J("#subjectMetricIds").val(subjectMetricIds);
+		J("#mode").val("DEL");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/str/base/strMetric/strMetricProcess.vw?type=template").submit();
+		return false;
+	}
+	
+	/******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#findStratSubjectNm").val(J("#findStratSubjectId :selected").text());
+		J("#findSubjectNm").val(J("#findSubjectId :selected").text());
+		J("#findUseYnNm").val(J("#findUseYn :selected").text());
+		J("#formFind").attr("action", "$!{context_path}/str/base/strMetric/strMetricListExcel.vw?type=excel").submit();
+		J("#formFind").attr("action", "$!{context_path}/str/base/strMetric/strMetricList.vw?type=template");
+		return false;
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">전략방향</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/str/base/strMetric/strMetricList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				
+				<input type="hidden"    id="findStratSubjectNm"		name="findStratSubjectNm"    />
+				<input type="hidden"    id="findSubjectNm"			name="findSubjectNm"		 />
+				<input type="hidden"    id="findUseYnNm"			name="findUseYnNm"			 />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="이행성과지표 조회조건">
+						<caption class="none">이행성과지표 조회 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w150">
+            						<span><label for="findYear">평가년도</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w70" onchange="chgManagement();" >
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w270">
+            						<span><label for="findManagementId">경영목표</label></span>
+            						<span class="searchBar">
+            							<select id="findManagementId" name="findManagementId" class="select w170" onchange="chgStratSubject();">
+            								<option value="">전체</option>
+            								#foreach($managementList in $managementList)
+												<option value="$!{CS_HTML.txt2html($managementList.MANAGEMENT_ID)}" $searchMap.getSelected("findManagementId", "$!{CS_HTML.txt2html($managementList.MANAGEMENT_ID)}")>$!{CS_HTML.txt2html($managementList.MANAGEMENT_NM)}</option>
+											#end
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w210">
+            						<span><label for="findStratSubjectId">전략과제</label></span>
+            						<span class="searchBar">
+            							<select id="findStratSubjectId" name="findStratSubjectId" class="select w130"  onchange="chgCsf();" >
+											<option value=''>전체</option>
+            								#foreach($stratList in $stratSubjectList)
+												<option value="$!{CS_HTML.txt2html($stratList.STRAT_SUBJECT_ID)}" $searchMap.getSelected("findStratSubjectId", "$!{CS_HTML.txt2html($stratList.STRAT_SUBJECT_ID)}")>$!{CS_HTML.txt2html($stratList.STRAT_SUBJECT_NM)}</option>
+											#end	
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w200">
+            						<span><label for="findCsfId">CSF</label></span>
+            						<span class="searchBar">
+            							<select id="findCsfId" name="findCsfId" class="select w150" >
+											<option value=''>전체</option>
+            								#foreach($csfList in $csfList)
+												<option value="$!{CS_HTML.txt2html($csfList.CSF_ID)}" $searchMap.getSelected("findCsfId", "$!{CS_HTML.txt2html($csfList.CSF_ID)}")>$!{CS_HTML.txt2html($csfList.CSF_NM)}</option>
+											#end		
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit">
+            						<span><label for="findUseYn">사용여부</label></span>
+            						<span class="searchBar">
+            							<select id="findUseYn" name="findUseYn" class="select w70">
+            								$!CS_CODE.getCodeOption("011", $!{searchMap.txt2html("findUseYn")})
+            							</select>
+            						</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" /> 
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/str/base/strMetric/strMetricProcess.vw?type=template">
+			<input type="hidden" id="mode"       			name="mode" />
+			<input type="hidden" id="year"		 			name="year" />
+			<input type="hidden" id="subjectMetricIds"	name="subjectMetricIds" />
+			<input type="hidden" id="subjectMetricId"		name="subjectMetricId" />
+			<input type="hidden" id="csfId"					name="csfId" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="이행성과지표 조회결과">
+							<caption class="none">이행성과지표 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l">
+							<input id="btnExcelDown" type="image" src="$!{img_path}/btn_excel.gif" align="middle" alt="엑셀다운로드" />
+						</div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnInsert" value="신규" /></li>
+								<li><input type="submit" id="btnDelete" value="삭제" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+	</div>
+	<div class="clear"></div>
+</div>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.dept.deptGovStd">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 년도별 지표사용여부 체크하기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getMeticCount" parameterClass="hashMap" resultClass="hashMap">
+		SELECT COUNT(GOV_METRIC_ID) CNT
+		  FROM GOV_METRIC
+		 WHERE YEAR = #findYear#
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 경평지표를 가져온다.
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getGovMetricList" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT B.YEAR,
+                   (SELECT EVAL_CAT_GRP_NM FROM GOV_EVAL_CAT_GRP WHERE YEAR = C.YEAR AND EVAL_CAT_GRP_ID = C.EVAL_CAT_GRP_ID) EVAL_CAT_GRP_NM,
+                   (SELECT EVAL_CAT_NM FROM GOV_EVAL_CAT WHERE YEAR = C.YEAR AND EVAL_CAT_ID = C.EVAL_CAT_ID) EVAL_CAT_NM,
+			       B.GOV_METRIC_ID,
+			       B.GOV_METRIC_NM,
+			       A.ACHIEVEMENT,
+			       A.IMPROVEMENT,
+			       A.SCORE,
+			       B.GBN_ID,
+			       F_CODE_NM('007', B.GBN_ID,A.YEAR) GBN_NM
+			  FROM BSC_DEPT_GOV_STD A, GOV_METRIC B, GOV_METRIC_GRP C
+			 WHERE B.YEAR =#findYear#
+			       AND A.YEAR(+) = B.YEAR
+			       AND A.GOV_METRIC_ID(+) = B.GOV_METRIC_ID
+			       AND B.DELETE_DT IS NULL
+			       AND B.YEAR = C.YEAR
+			       AND B.GOV_METRIC_GRP_ID = C.GOV_METRIC_GRP_ID
+			       AND C.DELETE_DT IS NULL
+			 ORDER BY  B.GBN_ID, B.GOV_METRIC_NM
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 가중치 조회
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.SC_DEPT_NM, A.SC_DEPT_ID, B.*,  C.TOTAL_WEIGHT, C.RATE
+		  FROM BSC_SC_DEPT A
+		  LEFT OUTER JOIN (
+		                    SELECT B_YEAR, B_SC_DEPT_ID,
+		<iterate property="govMetricIds" conjunction=",">
+				     	 			MAX($govMetricIds[]$) $govMetricIds[]$
+		</iterate>
+		                      FROM (
+		                     SELECT YEAR AS B_YEAR, SC_DEPT_ID AS B_SC_DEPT_ID ,
+		<iterate property="govMetricIds" conjunction=",">
+									DECODE(GOV_METRIC_ID, '$govMetricIds[]$', SCORE, NULL) $govMetricIds[]$
+		</iterate>						
+		                       FROM BSC_DEPT_GOV_SCORE
+		                      WHERE YEAR = #findYear#
+		                            )
+		                      GROUP BY B_YEAR, B_SC_DEPT_ID
+		                 ) B
+		    ON A.YEAR = B.B_YEAR AND A.SC_DEPT_ID = B.B_SC_DEPT_ID
+		  LEFT OUTER JOIN BSC_DEPT_GOV_RATE C                     
+			ON A.YEAR = C.YEAR
+		   AND A.SC_DEPT_ID = C.SC_DEPT_ID   		          
+		 WHERE A.YEAR = #findYear#
+		   AND GOV_REF_YN = 'Y'
+		   AND DELETE_DT IS NULL
+		   AND LEVEL_ID > '1' 
+		 ORDER BY A.SORT_ORDER
+	</select>
+	
+
+
+<!--
+	==================================================================   
+	  # 설명	: 파라미터 맵
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->		
+	<parameterMap id="paramMap" class="java.util.HashMap">
+		<parameter property="year" 			jdbcType="VARCHAR"  javaType="java.lang.String" mode="IN"/>	
+	</parameterMap>			
+	
+	<!--
+	==================================================================   
+	  # 설명	: 성과급 실행
+	  #	기능	: PROCEDURES
+	  #	TABLE	: 
+	==================================================================
+	-->		
+	<procedure id="callDeptGovStd" parameterMap="paramMap">  
+		{CALL SP_GOV_DEPT_STD(?)}
+	</procedure>
+	
+	
+</sqlMap>
+
+

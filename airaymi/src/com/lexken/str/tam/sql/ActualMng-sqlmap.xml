@@ -1,0 +1,672 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="str.tam.actualMng">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: STR_METRIC_ACTUAL
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력/승인 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_ACTUAL
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+      SELECT LV AS TYPE
+              , CASE WHEN LV = 1 THEN '실적' 
+                     WHEN LV = 2 THEN '목표'
+                     WHEN LV = 3 THEN '점수'
+                END TYPE_NM
+              , TO_CHAR(MAX(MON01)) MON01, TO_CHAR(MAX(MON02)) MON02, TO_CHAR(MAX(MON03)) MON03
+              , TO_CHAR(MAX(MON04)) MON04, TO_CHAR(MAX(MON05)) MON05, TO_CHAR(MAX(MON06)) MON06
+              , TO_CHAR(MAX(MON07)) MON07, TO_CHAR(MAX(MON08)) MON08, TO_CHAR(MAX(MON09)) MON09
+              , TO_CHAR(MAX(MON10)) MON10, TO_CHAR(MAX(MON11)) MON11, TO_CHAR(MAX(MON12)) MON12
+              FROM(       
+	               SELECT LV,
+                          CASE WHEN LV = 1 AND MON = '01' THEN ACTUAL
+                                   WHEN LV = 2 AND MON = '01' THEN TARGET
+                                   WHEN LV = 3 AND MON = '01' THEN GOAL_RATE END MON01,
+                          CASE WHEN LV = 1 AND MON = '02' THEN ACTUAL
+                                   WHEN LV = 2 AND MON = '02' THEN TARGET
+                                   WHEN LV = 3 AND MON = '02' THEN GOAL_RATE END MON02,
+                          CASE WHEN LV = 1 AND MON = '03' THEN ACTUAL
+                                   WHEN LV = 2 AND MON = '03' THEN TARGET
+                                   WHEN LV = 3 AND MON = '03' THEN GOAL_RATE END MON03,
+                          CASE WHEN LV = 1 AND MON = '04' THEN ACTUAL
+                                   WHEN LV = 2 AND MON = '04' THEN TARGET
+                                   WHEN LV = 3 AND MON = '04' THEN GOAL_RATE END MON04,
+                          CASE WHEN LV = 1 AND MON = '05' THEN ACTUAL
+                                   WHEN LV = 2 AND MON = '05' THEN TARGET
+                                   WHEN LV = 3 AND MON = '05' THEN GOAL_RATE END MON05,
+                          CASE WHEN LV = 1 AND MON = '06' THEN ACTUAL
+                                   WHEN LV = 2 AND MON = '06' THEN TARGET
+                                   WHEN LV = 3 AND MON = '06' THEN GOAL_RATE END MON06,
+                          CASE WHEN LV = 1 AND MON = '07' THEN ACTUAL
+                                   WHEN LV = 2 AND MON = '07' THEN TARGET
+                                   WHEN LV = 3 AND MON = '07' THEN GOAL_RATE END MON07,
+                          CASE WHEN LV = 1 AND MON = '08' THEN ACTUAL
+                                   WHEN LV = 2 AND MON = '08' THEN TARGET
+                                   WHEN LV = 3 AND MON = '08' THEN GOAL_RATE END MON08,
+                          CASE WHEN LV = 1 AND MON = '09' THEN ACTUAL
+                                   WHEN LV = 2 AND MON = '09' THEN TARGET
+                                   WHEN LV = 3 AND MON = '09' THEN GOAL_RATE END MON09,
+                          CASE WHEN LV = 1 AND MON = '10' THEN ACTUAL
+                                   WHEN LV = 2 AND MON = '10' THEN TARGET
+                                   WHEN LV = 3 AND MON = '10' THEN GOAL_RATE END MON10,
+                          CASE WHEN LV = 1 AND MON = '11' THEN ACTUAL
+                                   WHEN LV = 2 AND MON = '11' THEN TARGET
+                                   WHEN LV = 3 AND MON = '11' THEN GOAL_RATE END MON11,
+                          CASE WHEN LV = 1 AND MON = '12' THEN ACTUAL
+                                   WHEN LV = 2 AND MON = '12' THEN TARGET
+                                   WHEN LV = 3 AND MON = '12' THEN GOAL_RATE END MON12                                                                                                                                          
+	            FROM(                
+                     SELECT A.CODE_ID AS MON, 
+                            C.ACTUAL,
+                            B.TARGET,
+                            D.GOAL_RATE
+                       FROM BSC_CODE A
+                        LEFT OUTER JOIN STR_METRIC_TARGET B ON B.YEAR = #findYear#  AND A.CODE_ID = B.MON AND B.SUBJECT_METRIC_ID = #subjectMetricId#
+                        LEFT OUTER JOIN STR_METRIC_ACTUAL C ON C.YEAR = #findYear#  AND A.CODE_ID = C.MON AND C.SUBJECT_METRIC_ID = #subjectMetricId#
+                        LEFT OUTER JOIN STR_METRIC_SCORE D ON D.YEAR = #findYear#  AND A.CODE_ID = D.MON AND D.SUBJECT_METRIC_ID = #subjectMetricId#
+                     WHERE A.CODE_GRP_ID = '024'
+                          AND A.DELETE_DT IS NULL
+                    ) LEFT OUTER JOIN ( SELECT LEVEL LV FROM DUAL CONNECT BY LEVEL <![CDATA[ <= ]]> 3) ON 1=1
+                 )
+        GROUP BY LV
+        ORDER BY LV
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적 입력자 조회
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->
+	<select id="getInsertUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CHARGE_USER_ID, B.USER_NM AS CHARGE_USER_NM
+          FROM STR_METRIC A
+          LEFT OUTER JOIN V_ROLE_USER B ON A.CHARGE_USER_ID = B.USER_ID
+          INNER JOIN STR_METRIC_TARGET T ON A.YEAR=T.YEAR AND A.SUBJECT_METRIC_ID=T.SUBJECT_METRIC_ID AND T.MON= #findMon# AND T.TARGET IS NOT NULL
+         WHERE A.YEAR = #findYear#
+           AND A.DELETE_DT IS NULL
+           AND A.METRIC_ID IS NULL
+           AND A.CHARGE_USER_ID IS NOT NULL
+           AND B.USER_NM IS NOT NULL
+         GROUP BY A.CHARGE_USER_ID, B.USER_NM
+         ORDER BY B.USER_NM ASC
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적 승인자 조회
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->
+	<select id="getApproveUserList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.APPROVE_USER_ID, B.USER_NM AS APPROVE_USER_NM
+          FROM STR_METRIC A
+          LEFT OUTER JOIN V_ROLE_USER B ON A.APPROVE_USER_ID = B.USER_ID
+          INNER JOIN STR_METRIC_TARGET T ON A.YEAR=T.YEAR AND A.SUBJECT_METRIC_ID=T.SUBJECT_METRIC_ID AND T.MON= #findMon# AND T.TARGET IS NOT NULL
+         WHERE A.YEAR = #findYear#
+           AND A.DELETE_DT IS NULL 
+           AND A.METRIC_ID IS NULL
+           AND A.APPROVE_USER_ID IS NOT NULL
+           AND B.USER_NM IS NOT NULL
+         GROUP BY A.APPROVE_USER_ID, B.USER_NM
+         ORDER BY B.USER_NM ASC
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력기한 여부 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_ACTUAL_IN_TERM
+	==================================================================
+	-->
+	<select id="getActualInputTermYn" parameterClass="hashMap" resultClass="java.lang.String">
+		SELECT CASE WHEN MAX(YEAR) IS NULL THEN 'N'
+		            WHEN MAX(YEAR) IS NOT NULL THEN 'Y'
+		       END IS_INPUT_TERM 
+		  FROM STR_METRIC_ACTUAL_IN_TERM        
+		 WHERE YEAR = #findYear# 
+           AND MON = #findMon#                      
+           AND START_DT <![CDATA[ <= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')    
+           AND END_DT   <![CDATA[ >= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')    
+    </select>
+    
+    <!--
+	==================================================================   
+	  # 설명	: 목표입력 트리 경영목표 데이터 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MANAGEMENT
+	==================================================================
+	-->
+	<select id="getInsertManagementTree" parameterClass="hashMap" resultClass="hashMap">
+ SELECT A.MANAGEMENT_ID, A.MANAGEMENT_NM, '1' AS PARAM
+  FROM BSC_MANAGEMENT A
+       INNER JOIN STR_STRAT_SUBJECT B
+          ON A.YEAR = B.YEAR
+         AND A.MANAGEMENT_ID = B.MANAGEMENT_ID
+         AND B.DELETE_DT IS NULL
+       INNER JOIN BSC_CSF C
+          ON B.YEAR = C.YEAR
+         AND B.STRAT_SUBJECT_ID = C.STRAT_SUBJECT_ID
+         AND C.DELETE_DT IS NULL
+       INNER JOIN STR_METRIC D
+          ON C.YEAR = D.YEAR
+         AND C.CSF_ID = D.CSF_ID
+         AND D.DELETE_DT IS NULL
+         AND D.METRIC_ID IS NULL
+       LEFT OUTER JOIN STR_METRIC_ACTUAL E
+          ON D.YEAR = E.YEAR
+         AND D.SUBJECT_METRIC_ID = E.SUBJECT_METRIC_ID
+         WHERE A.YEAR=#findYear#
+	       AND D.CHARGE_USER_ID = #findInsertUserId#
+	         <isNotEmpty prepend="AND" property="findActualStatusId">
+				NVL(E.ACTUAL_STATUS_ID, '01')  = #findActualStatusId#
+			  </isNotEmpty>
+         GROUP BY  A.MANAGEMENT_ID, A.MANAGEMENT_NM, A.SORT_ORDER
+         ORDER BY A.SORT_ORDER
+	</select> 
+    
+    <!--
+	==================================================================   
+	  # 설명	: 목표입력 트리 전략과제 데이터 조회
+	  #	기능	: SELECT
+	  #	TABLE	: STR_STRAT_SUBJECT
+	==================================================================
+	-->
+	<select id="getInsertStrStratSubjectTree" parameterClass="hashMap" resultClass="hashMap">
+ SELECT B.STRAT_SUBJECT_ID, B.STRAT_SUBJECT_NM, B.MANAGEMENT_ID, '2' AS PARAM
+  FROM STR_STRAT_SUBJECT B
+       INNER JOIN BSC_CSF C
+          ON B.YEAR = C.YEAR
+         AND B.STRAT_SUBJECT_ID = C.STRAT_SUBJECT_ID
+         AND C.DELETE_DT IS NULL
+       INNER JOIN STR_METRIC D
+          ON C.YEAR = D.YEAR
+         AND C.CSF_ID = D.CSF_ID
+         AND D.DELETE_DT IS NULL
+         AND D.METRIC_ID IS NULL
+       LEFT OUTER JOIN STR_METRIC_ACTUAL E
+          ON D.YEAR = E.YEAR
+         AND D.SUBJECT_METRIC_ID = E.SUBJECT_METRIC_ID 
+    	  WHERE B.YEAR=#findYear#
+	       AND D.CHARGE_USER_ID = #findInsertUserId#
+	         <isNotEmpty prepend="AND" property="findActualStatusId">
+				NVL(E.ACTUAL_STATUS_ID, '01')  = #findActualStatusId#
+			  </isNotEmpty>
+         GROUP BY  B.STRAT_SUBJECT_ID, B.STRAT_SUBJECT_NM,B.MANAGEMENT_ID, B.SORT_ORDER
+         ORDER BY B.SORT_ORDER
+	</select>
+    
+    <!--
+	==================================================================   
+	  # 설명	: 실적입력 트리 CSF 데이터 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CSF
+	==================================================================
+	-->
+	<select id="getInsertSubjectTree" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CSF_ID,
+               A.CSF_NM,
+               STRAT_SUBJECT_ID,
+               '3' AS PARAM
+          FROM BSC_CSF A
+         INNER JOIN STR_METRIC B ON A.YEAR=B.YEAR AND A.CSF_ID=B.CSF_ID AND B.DELETE_DT IS NULL AND B.METRIC_ID IS NULL
+          LEFT OUTER JOIN STR_METRIC_ACTUAL C ON B.YEAR=C.YEAR AND B.SUBJECT_METRIC_ID=C.SUBJECT_METRIC_ID AND C.MON = #findMon#      
+         WHERE A.YEAR=#findYear#
+	       AND B.CHARGE_USER_ID = #findInsertUserId#
+	         <isNotEmpty prepend="AND" property="findActualStatusId">
+				NVL(C.ACTUAL_STATUS_ID, '01')  = #findActualStatusId#
+			  </isNotEmpty>
+         GROUP BY  A.CSF_ID, A.CSF_NM, A.STRAT_SUBJECT_ID,A.SORT_ORDER
+         ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력 트리 지표 데이터 조회
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->
+	<select id="getInsertMetricTree" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.SUBJECT_METRIC_ID
+		     , A.SUBJECT_METRIC_NM
+		     , A.CSF_ID
+		     , '4' AS PARAM
+		     , NVL(B.ACTUAL_STATUS_ID, '01') AS ACTUAL_STATUS_ID
+		     , (SELECT ETC1 
+                  FROM BSC_CODE                                                                                                               
+                 WHERE YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #findYear# ELSE '9999' END FROM BSC_CODE_GRP WHERE CODE_GRP_ID = '015')                       
+                   AND CODE_GRP_ID = '015' AND CODE_ID =  NVL(B.ACTUAL_STATUS_ID, '01') AND DELETE_DT IS NULL) AS ACTUAL_STATUS_NM
+		FROM STR_METRIC A
+		LEFT OUTER JOIN STR_METRIC_ACTUAL B ON A.YEAR=B.YEAR AND A.SUBJECT_METRIC_ID=B.SUBJECT_METRIC_ID AND B.MON = #findMon#        
+		WHERE A.YEAR = #findYear#
+		  AND A.CHARGE_USER_ID = #findInsertUserId#
+		  AND A.DELETE_DT IS NULL
+		  AND A.METRIC_ID IS NULL
+		  <isNotEmpty prepend="AND" property="findActualStatusId">
+			NVL(B.ACTUAL_STATUS_ID, '01')  = #findActualStatusId#
+		  </isNotEmpty>
+		 ORDER BY A.CSF_ID, A.SUBJECT_METRIC_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 목표입력 트리 경영목표 데이터 조회
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MANAGEMENT
+	==================================================================
+	-->
+	<select id="getApproveManagementTree" parameterClass="hashMap" resultClass="hashMap">
+ SELECT A.MANAGEMENT_ID, A.MANAGEMENT_NM, '1' AS PARAM
+  FROM BSC_MANAGEMENT A
+       INNER JOIN STR_STRAT_SUBJECT B
+          ON A.YEAR = B.YEAR
+         AND A.MANAGEMENT_ID = B.MANAGEMENT_ID
+         AND B.DELETE_DT IS NULL
+       INNER JOIN BSC_CSF C
+          ON B.YEAR = C.YEAR
+         AND B.STRAT_SUBJECT_ID = C.STRAT_SUBJECT_ID
+         AND C.DELETE_DT IS NULL
+       INNER JOIN STR_METRIC D
+          ON C.YEAR = D.YEAR
+         AND C.CSF_ID = D.CSF_ID
+         AND D.DELETE_DT IS NULL
+         AND D.METRIC_ID IS NULL
+       LEFT OUTER JOIN STR_METRIC_ACTUAL E
+          ON D.YEAR = E.YEAR
+         AND D.SUBJECT_METRIC_ID = E.SUBJECT_METRIC_ID
+		WHERE A.YEAR=#findYear#
+	       AND D.APPROVE_USER_ID = #findApproveUserId#
+	         <isNotEmpty prepend="AND" property="findActualStatusId">
+				NVL(E.ACTUAL_STATUS_ID, '01')  = #findActualStatusId#
+			  </isNotEmpty>
+         GROUP BY  A.MANAGEMENT_ID, A.MANAGEMENT_NM, A.SORT_ORDER
+         ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 목표입력 트리 전략과제 데이터 조회
+	  #	기능	: SELECT
+	  #	TABLE	: STR_STRAT_SUBJECT
+	==================================================================
+	-->
+	<select id="getApproveStrStartTree" parameterClass="hashMap" resultClass="hashMap">
+ SELECT B.STRAT_SUBJECT_ID, B.STRAT_SUBJECT_NM, B.MANAGEMENT_ID, '2' AS PARAM
+  FROM STR_STRAT_SUBJECT B
+       INNER JOIN BSC_CSF C
+          ON B.YEAR = C.YEAR
+         AND B.STRAT_SUBJECT_ID = C.STRAT_SUBJECT_ID
+         AND C.DELETE_DT IS NULL
+       INNER JOIN STR_METRIC D
+          ON C.YEAR = D.YEAR
+         AND C.CSF_ID = D.CSF_ID
+         AND D.DELETE_DT IS NULL
+         AND D.METRIC_ID IS NULL
+       LEFT OUTER JOIN STR_METRIC_TARGET_STATUS E
+          ON D.YEAR = E.YEAR
+         AND D.SUBJECT_METRIC_ID = E.SUBJECT_METRIC_ID
+         WHERE B.YEAR=#findYear#
+	       AND D.APPROVE_USER_ID = #findApproveUserId#
+	         <isNotEmpty prepend="AND" property="findActualStatusId">
+				NVL(E.ACTUAL_STATUS_ID, '01')  = #findActualStatusId#
+			  </isNotEmpty>
+         GROUP BY  B.STRAT_SUBJECT_ID, B.STRAT_SUBJECT_NM, B.MANAGEMENT_ID, B.SORT_ORDER
+         ORDER BY B.SORT_ORDER
+	</select> 
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력 트리 CSF 데이터 조회
+	  #	기능	: SELECT
+	  #	TABLE	: STR_SUBJECT
+	==================================================================
+	-->
+	<select id="getApproveSubjectTree" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CSF_ID,
+               A.CSF_NM,
+               A.STRAT_SUBJECT_ID,
+               '3' AS PARAM
+          FROM BSC_CSF A
+         INNER JOIN STR_METRIC B ON A.YEAR=B.YEAR AND A.CSF_ID=B.CSF_ID AND B.DELETE_DT IS NULL AND B.METRIC_ID IS NULL
+          LEFT OUTER JOIN STR_METRIC_ACTUAL C ON B.YEAR=C.YEAR AND B.SUBJECT_METRIC_ID=C.SUBJECT_METRIC_ID AND C.MON = #findMon#  
+         WHERE A.YEAR=#findYear#
+	       AND B.APPROVE_USER_ID = #findApproveUserId#
+	         <isNotEmpty prepend="AND" property="findActualStatusId">
+				NVL(C.ACTUAL_STATUS_ID, '01')  = #findActualStatusId#
+			  </isNotEmpty>
+         GROUP BY  A.CSF_ID, A.CSF_NM, A.STRAT_SUBJECT_ID ,A.SORT_ORDER
+         ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력 트리 지표 데이터 조회
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC
+	==================================================================
+	-->
+	<select id="getApproveMetricTree" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.SUBJECT_METRIC_ID
+		     , A.SUBJECT_METRIC_NM
+		     , A.CSF_ID
+		     , '4' AS PARAM
+		     , NVL(B.ACTUAL_STATUS_ID, '01') AS TARGET_STATUS_ID
+		     , (SELECT ETC1 
+                  FROM BSC_CODE                                                                                                               
+                 WHERE YEAR = (SELECT CASE YEAR_YN WHEN 'Y' THEN #findYear# ELSE '9999' END FROM BSC_CODE_GRP WHERE CODE_GRP_ID = '015')                       
+                   AND CODE_GRP_ID = '015' AND CODE_ID =  NVL(B.ACTUAL_STATUS_ID, '01') AND DELETE_DT IS NULL) AS ACTUAL_STATUS_NM
+		FROM STR_METRIC A
+		LEFT OUTER JOIN STR_METRIC_ACTUAL B ON A.YEAR=B.YEAR AND A.SUBJECT_METRIC_ID=B.SUBJECT_METRIC_ID AND B.MON = #findMon#        
+		WHERE A.YEAR = #findYear#
+		  AND A.APPROVE_USER_ID = #findApproveUserId#
+		  AND A.DELETE_DT IS NULL
+		  AND A.METRIC_ID IS NULL
+		  <isNotEmpty prepend="AND" property="findActualStatusId">
+			NVL(B.ACTUAL_STATUS_ID, '01')  = #findActualStatusId#
+		  </isNotEmpty>
+		 ORDER BY A.CSF_ID, A.SUBJECT_METRIC_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적 입력상태 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_ACTUAL
+	==================================================================
+	-->
+	<select id="getActualStatusId" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.CYCLE_ID,
+               F_CODE_NM('008', A.CYCLE_ID, A.YEAR) CYCLE_NM,
+               NVL(B.ACTUAL_STATUS_ID,'01') ACTUAL_STATUS_ID,
+               B.ACTUAL_BASE
+          FROM STR_METRIC A
+          LEFT OUTER JOIN STR_METRIC_ACTUAL B ON A.YEAR=B.YEAR AND A.SUBJECT_METRIC_ID=B.SUBJECT_METRIC_ID AND B.MON=#mon#
+         WHERE A.YEAR=#year#
+           AND A.SUBJECT_METRIC_ID=#subjectMetricId#              
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적 첨부파일 등록
+	  #	기능	: INSERT
+	  #	TABLE	: STR_METRIC_ACTUAL_ATTACH
+	==================================================================
+	-->	
+	<insert id="insertFileInfo" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT NVL(MAX(SEQ)+1,1) FROM STR_METRIC_ACTUAL_ATTACH WHERE YEAR=#year# AND SUBJECT_METRIC_ID=#subjectMetricId#
+		</selectKey> 
+		INSERT INTO STR_METRIC_ACTUAL_ATTACH (
+               YEAR
+             , MON  
+             , SUBJECT_METRIC_ID
+             , SEQ
+             , ATTACH_FILE_NM
+             , ATTACH_FILE_FNM
+             , ATTACH_FILE_SUFFIX
+             , ATTACH_FILE_PATH
+             , CREATE_DT
+           ) VALUES (
+               #year#
+             , #mon#  
+             , #subjectMetricId#
+             , #SEQ#
+             , #attachFileNm#
+             , #attachFileFnm#
+             , #attachFileSuffix#
+             , #attachFilePath#
+             , SYSDATE
+    	   )       
+	</insert>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적 파일 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_ACTUAL_ATTACH
+	==================================================================
+	-->
+	<select id="getFileList" parameterClass="hashMap" resultClass="hashMap">
+ 		SELECT A.YEAR
+ 		     , A.MON 
+	         , A.SUBJECT_METRIC_ID
+	         , A.SEQ
+	         , A.ATTACH_FILE_NM
+	         , A.ATTACH_FILE_FNM
+	         , A.ATTACH_FILE_SUFFIX
+	         , F_ENCRYPT(A.ATTACH_FILE_PATH, #encryptionCode#) ATTACH_FILE_PATH
+         FROM STR_METRIC_ACTUAL_ATTACH A
+        WHERE A.YEAR = #year#
+          AND A.MON = #mon#
+          AND A.SUBJECT_METRIC_ID = #subjectMetricId#
+        ORDER BY A.SEQ
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력/승인 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_ACTUAL
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , MON                   
+			 , SUBJECT_METRIC_ID     
+			 , ACTUAL                
+			 , ACTUAL_BASE           
+			 , INSERT_USER_ID        
+			 , APPROVE_USER_ID       
+			 , APPROVE_DT            
+			 , RETURN_DT             
+			 , RETURN_REASON         
+			 , ACTUAL_STATUS_ID      
+		  FROM STR_METRIC_ACTUAL 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND MON = #mon#
+		   AND SUBJECT_METRIC_ID = #subjectMetricId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력/승인 등록
+	  #	기능	: INSERT
+	  #	TABLE	: STR_METRIC_ACTUAL
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO STR_METRIC_ACTUAL ( 
+			   YEAR
+			 , MON
+			 , SUBJECT_METRIC_ID
+			 , ACTUAL
+			 , ACTUAL_BASE
+			 , INSERT_USER_ID
+			 , ACTUAL_STATUS_ID
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #mon#
+			 , #subjectMetricId#
+			 , #actual#
+			 , #actualBase#
+			 , #insertUserId#
+			 , #actualStatusId#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력/승인 점수 등록
+	  #	기능	: INSERT
+	  #	TABLE	: STR_METRIC_SCORE
+	==================================================================
+	-->	
+	<insert id="insertScoreData" parameterClass="hashMap">
+		INSERT INTO STR_METRIC_SCORE(YEAR, MON, SUBJECT_METRIC_ID, TARGET, ACTUAL, GOAL_RATE, CREATE_DT)
+        SELECT YEAR,
+               MON,
+               SUBJECT_METRIC_ID,
+               TARGET,
+               ACTUAL, 
+               F_MAX(CASE WHEN SCORE_CAL_TYPE_ID='01' THEN CASE WHEN NVL(TARGET, 0) = 0 THEN 0 ELSE ROUND((ACTUAL/TARGET)*100) END
+                          WHEN SCORE_CAL_TYPE_ID='02' THEN CASE WHEN NVL(ACTUAL, 0) = 0 THEN 0 ELSE ROUND((TARGET/ACTUAL)*100) END 
+                     END ,100) 
+               AS GOAL_RATE,
+               SYSDATE
+        FROM (                 
+                 SELECT A.YEAR,
+                        B.MON,
+                        A.SUBJECT_METRIC_ID,
+                        A.SCORE_CAL_TYPE_ID, 
+                        C.ACTUAL,
+                        B.TARGET
+                   FROM STR_METRIC A
+                   LEFT OUTER JOIN STR_METRIC_TARGET B ON A.YEAR=B.YEAR AND A.SUBJECT_METRIC_ID=B.SUBJECT_METRIC_ID AND B.MON=#mon#
+                   LEFT OUTER JOIN STR_METRIC_ACTUAL C ON A.YEAR=C.YEAR AND A.SUBJECT_METRIC_ID=C.SUBJECT_METRIC_ID AND C.MON=#mon#
+                  WHERE A.YEAR=#year#
+                 AND A.SUBJECT_METRIC_ID=#subjectMetricId#
+             )     
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력/승인 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_METRIC_ACTUAL
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE STR_METRIC_ACTUAL 
+		   SET ACTUAL                 = #actual# 
+			 , ACTUAL_BASE            = #actualBase# 
+			 , INSERT_USER_ID         = #insertUserId# 
+			 , APPROVE_USER_ID        = #approveUserId# 
+			 , APPROVE_DT             = #approveDt# 
+			 , RETURN_DT              = #returnDt# 
+			 , RETURN_REASON          = #returnReason# 
+			 , ACTUAL_STATUS_ID       = #actualStatusId# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND MON = #mon#
+		   AND SUBJECT_METRIC_ID = #subjectMetricId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력/승인 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_METRIC_ACTUAL
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM STR_METRIC_ACTUAL 
+		 WHERE YEAR = #year#
+		   AND MON = #mon#
+		   AND SUBJECT_METRIC_ID = #subjectMetricId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적입력/승인 점수 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_METRIC_SCORE
+	==================================================================
+	-->	
+	<update id="deleteScoreData" parameterClass="hashMap">
+		DELETE FROM STR_METRIC_SCORE 
+		 WHERE YEAR = #year#
+		   AND MON = #mon#
+		   AND SUBJECT_METRIC_ID = #subjectMetricId#
+	</update>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적 첨부파일 삭제
+	  #	기능	: INSERT
+	  #	TABLE	: STR_METRIC_ACTUAL_ATTACH
+	==================================================================
+	-->	
+	<delete id="deleteFileInfo" parameterClass="hashMap">
+		DELETE FROM STR_METRIC_ACTUAL_ATTACH
+		 WHERE YEAR = #year#
+		   AND MON = #mon# 
+		   AND SUBJECT_METRIC_ID = #subjectMetricId#
+		   AND SEQ = #seq#
+	</delete>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적상태 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_METRIC_ACTUAL
+	==================================================================
+	-->	
+	<update id="updateStatusData" parameterClass="hashMap">
+		UPDATE STR_METRIC_ACTUAL
+		   SET ACTUAL_STATUS_ID = #actualStatusId# 
+		     , MODIFY_DT        = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND MON = #mon#
+           AND SUBJECT_METRIC_ID = #subjectMetricId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적상태 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: STR_METRIC_ACTUAL
+	==================================================================
+	-->	
+	<update id="updateReturnStatusData" parameterClass="hashMap">
+		UPDATE STR_METRIC_ACTUAL
+		   SET ACTUAL_STATUS_ID = #actualStatusId# 
+		     , MODIFY_DT        = SYSDATE 
+		     , RETURN_REASON    = #returnReason#  
+		     , RETURN_DT        = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND MON = #mon#
+           AND SUBJECT_METRIC_ID = #subjectMetricId#
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 실적반려 사유 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: STR_METRIC_ACTUAL
+	==================================================================
+	-->
+	<select id="getReturnReason" parameterClass="hashMap" resultClass="java.lang.String">
+        SELECT RETURN_REASON
+          FROM STR_METRIC_ACTUAL
+		 WHERE YEAR = #year#
+		   AND MON = #mon# 
+           AND SUBJECT_METRIC_ID = #subjectMetricId#
+	</select>	
+	
+</sqlMap>
+
+

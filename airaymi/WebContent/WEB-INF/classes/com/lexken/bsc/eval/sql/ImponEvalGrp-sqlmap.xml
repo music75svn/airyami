@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.eval.imponEvalGrp">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단관리 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+	  SELECT T1.YEAR,
+       T1.MON,
+       T3.DEPT_ID,
+       T3.DEPT_NM,
+       T1.METRIC_GRP_ID,
+       T1.EVAL_EMP_ID,
+       T2.USER_NM EVAL_EMP_NM,
+       T2.JIKGUB_CD JIKGUB_CD,
+       T2.JIKGUB_NM JIKGUB_NM,       
+       T1.WEIGHT
+	  FROM BSC_IMPON_APPRAISER T1 INNER JOIN V_ROLE_USER T2
+	    	ON T1.EVAL_EMP_ID=T2.SABUN
+	  INNER JOIN V_DEPTINFO T3
+	    	ON T2.DEPT_ID=T3.DEPT_ID
+	  WHERE T1.YEAR = #findYear#
+	  AND T1.MON = #findCycle#
+	  AND T1.METRIC_GRP_ID = #findMetricGrpId#
+	  ORDER BY T3.DEPT_ID
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단관리 지표그룹 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_METRIC_GRP
+	==================================================================
+	-->
+	<select id="getMetricGrpList" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT METRIC_GRP_ID, METRIC_GRP_NM
+		    FROM BSC_METRIC_GRP
+		   WHERE YEAR = #findYear# AND DELETE_DT IS NULL AND TYPE_ID = '02'
+		ORDER BY METRIC_GRP_NM
+	</select>
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가실시 평가주기 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getEvalCycle" parameterClass="hashMap" resultClass="hashMap">
+		SELECT CODE_ID FROM BSC_CODE T1
+		INNER JOIN BSC_CODE_GRP T2
+		    ON T2.CODE_GRP_ID=T1.CODE_GRP_ID  
+		WHERE 1=1
+		AND YEAR=
+		CASE WHEN T2.YEAR_YN='Y' THEN
+		    #findYear#
+		ELSE 
+		    '9999'
+		END
+		AND T1.CODE_GRP_ID='134'
+		ORDER BY SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가 평가 진행정보(상태, 기간) 가져오기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getEvalable" parameterClass="hashMap" resultClass="hashMap">
+		  SELECT STATUS, CASE WHEN SYSDATE <![CDATA[>]]>= START_DT AND SYSDATE <![CDATA[<]]>=END_DT  THEN 'Y' ELSE 'N' END IN_TERM
+		  FROM BSC_IMPON_IN_TERM
+		  WHERE YEAR = #findYear# AND MON = #findCycle#
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 사용자그룹 매핑 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getUserList" parameterClass="hashMap" resultClass="hashMap">
+        SELECT
+               A.EVAL_EMP_ID USER_ID
+             , A.WEIGHT
+             , B.USER_NM
+             , B.DEPT_ID
+             , C.DEPT_F_NM DEPT_NM 
+             , B.JIKGUB_CD
+             , B.JIKGUB_NM
+             , B.POS_CD
+             , B.POS_NM   
+          FROM BSC_IMPON_APPRAISER A        
+               INNER JOIN V_ROLE_USER B ON A.EVAL_EMP_ID = B.USER_ID         
+               INNER JOIN V_DEPTINFO C ON B.DEPT_ID = C.DEPT_ID   
+         WHERE A.YEAR =#year# 
+         AND A.MON =#cycle#
+         AND A.METRIC_GRP_ID = #metricGrpId#
+         ORDER BY B.USER_NM
+   </select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단관리 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: 
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+           
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단관리 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO BSC_IMPON_APPRAISER (YEAR, MON, EVAL_EMP_ID, METRIC_GRP_ID, WEIGHT, CREATE_DT, DELETE_DT)
+		     VALUES (#year#, #cycle#, #userId#, #metricGrpId#, #weight#, SYSDATE, '')
+	</insert>	
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단관리 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE BSC_IMPON_APPRAISER 
+		WHERE YEAR = #year# 
+		AND MON = #cycle# 
+		AND METRIC_GRP_ID = #metricGrpId#
+	</update>
+		
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단 평가 진행상태 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_IMPON_STATUS
+	==================================================================
+	-->	
+	<insert id="insertStatus" parameterClass="hashMap">
+		INSERT INTO BSC_IMPON_STATUS (YEAR, MON, EVAL_EMP_ID, END_YN, CREATE_DT, DELETE_DT)
+		     VALUES (#year#, #cycle#, #userId#, 'N', SYSDATE, '')
+	</insert>	
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단 평가 진행상태 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="deleteStatus" parameterClass="hashMap">
+		DELETE BSC_IMPON_STATUS
+		WHERE YEAR = #year# 
+		AND MON = #cycle# 
+		AND EVAL_EMP_ID = #userId#
+		AND DELETE_DT IS NULL 
+	</update>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단 가중치 등록
+	  #	기능	: INSERT
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<insert id="updateWeights" parameterClass="hashMap">
+		UPDATE BSC_IMPON_APPRAISER 
+		SET WEIGHT = #weight#
+		WHERE YEAR = #year# 
+		AND MON = #cycle# 
+		AND METRIC_GRP_ID = #metricGrpId#
+		AND EVAL_EMP_ID = #userId#
+		AND DELETE_DT IS NULL		 
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단관리 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: 
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		
+	</update>	
+
+	<!--
+	==================================================================   
+	  # 설명	: 비계량평가단관리 목록 엑셀다운로드
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_CODE_GRP
+	==================================================================
+	-->
+	<select id="getExcelList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT T1.YEAR,
+		            T2.MON,
+		            T1.METRIC_GRP_ID, 
+		            T1.METRIC_GRP_NM,
+		            COUNT(1) OVER (PARTITION BY T1.METRIC_GRP_ID) CNT,             
+		            T4.DEPT_ID,
+		            T4.DEPT_NM,
+		            COUNT(1) OVER (PARTITION BY T1.METRIC_GRP_ID, T4.DEPT_ID) CNT2,
+		            T2.EVAL_EMP_ID,
+		            T2.EVAL_EMP_ID,
+		            T3.USER_NM EVAL_EMP_NM,
+		            T3.JIKGUB_CD JIKGUB_CD,
+		            T3.JIKGUB_NM JIKGUB_NM,
+		            T2.WEIGHT 
+		FROM BSC_METRIC_GRP T1 
+		    LEFT OUTER JOIN BSC_IMPON_APPRAISER T2
+		        ON T1.YEAR=T2.YEAR
+		        AND T1.METRIC_GRP_ID=T2.METRIC_GRP_ID
+		        AND T2.MON = #findCycle#
+		    INNER JOIN
+		        V_ROLE_USER T3       
+		            ON T2.EVAL_EMP_ID=T3.SABUN
+		    INNER JOIN
+		        V_DEPTINFO T4       
+		            ON T3.DEPT_ID=T4.DEPT_ID                                 
+		WHERE T1.YEAR = #findYear#
+		AND T1.TYPE_ID='02'
+		AND T1.DELETE_DT IS NULL
+		ORDER BY T1.METRIC_GRP_ID		
+		  
+	</select>
+</sqlMap>
+
+

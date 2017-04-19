@@ -1,0 +1,216 @@
+#*************************************************************************
+* CLASS 명      : userList
+* 작 업 자      : 안요한
+* 작 업 일      : 2013년 8월 10일
+* 기    능      : 사용자 리스트
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    안요한      2013년 8월 10일             최 초 작 업
+**************************************************************************#
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+<head >
+#parse("/WEB-INF/vl/common/template/head.vm")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveDo();
+		});
+
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+
+		/******************************************
+		 * 클릭이벤트
+		 ******************************************/
+
+		// 사용자 select 박스 더블클릭 처리
+		J("#users").dblclick(function(e) {
+			e.preventDefault();
+			moveItems(true);
+		});
+
+		// 받는사람 select 박스 더블클릭 처리
+		J("#receives").dblclick(function(e) {
+			e.preventDefault();
+			moveItems(false);
+		});
+
+		//오른쪽 이동 버튼 클릭 처리
+		J("#allToLeft").click(function(e) {
+			e.preventDefault();
+			moveItems(false);
+		});
+
+		//왼쪽 이동 버튼 클릭 처리
+		J("#allToRight").click(function(e) {
+			e.preventDefault();
+			moveItems(true);
+		});
+	});
+
+	function moveItems(isAdd) {
+		var from = null;
+		var to = null;
+
+		if (isAdd) {
+			if( J("#users option").length == 0) {
+				J.showMsgBox("이동할 데이터가 없습니다.", null, null);
+	    		return;
+	    	}
+
+	    	if(J("#users option:selected").length == 0) {
+				J.showMsgBox("이동할 데이터를 선택하십시오.", null, null);
+	    		return;
+	    	}
+			from = $("#users");
+			to = $("#receives");
+		} else {
+			if( J("#receives option").length == 0) {
+				J.showMsgBox("이동할 데이터가 없습니다.", null, null);
+	    		return;
+	    	}
+
+	    	if(J("#receives option:selected").length == 0) {
+				J.showMsgBox("이동할 데이터를 선택하십시오.", null, null);
+	    		return;
+	    	}
+			to = $("#users");
+			from = $("#receives");
+		}
+
+		var options = new Array();
+
+		from.find("option:selected").each(function () {
+			options.push($(this));
+			$(this).remove();
+		});
+
+		for (var i = 0; i < options.length; i++) {
+			to.append(options[i]);
+		}
+	}
+
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+
+		var receiveIds = "";
+		var receiveNms = "";
+
+		if(J("receives").val() != ""){
+			J("#receives option").each(function() {
+	            receiveIds += J(this).val() + ',';
+	            receiveNms += J(this).text() + ',';
+	        });
+
+		}
+		
+		opener.document.getElementById("recipientId").value = receiveIds;
+		opener.document.getElementById("recipientNm").value = receiveNms;
+		
+		self.close();
+
+	}
+
+	/******************************************
+	 * 조직선택 클릭이벤트
+	 ******************************************/
+	function goAction(deptId, deptNm) {
+		
+		var year = J("#year").val();
+		
+		if("" != deptId) findUserNm = "";
+		
+		J.ajax({
+			url        : "$!{searchMap.txt2html("context")}/bsc/message/message/userInfo_ajax.vw",
+        	type       : "POST",
+			data       : "findYear=" + year + "&amp;findDeptCd=" + deptId,
+        	dataType   : "xml",
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        	success    : function (xml) {
+				J("#users").empty();
+				
+				if(J(xml).find("items").find("item").length > 0) {
+					$(xml).find("items").find("item").each(function() {  
+                    	var userId   = $(this).find("userId").text();
+                    	var userNm   = $(this).find("userNm").text();
+						
+						J("#users").append("<option value='" + userId +"' title='" + userNm + "'>" + userNm + "</option>");
+                    });
+				}
+        	},  
+			error : function(xhr, status, error) {
+				alert(error);
+			}
+    	});
+	}
+	
+//]]>
+</script>
+</head>
+<body>
+<div style="width:1000;">
+	<div style="padding:10px 10px">
+	<form id="form1" name="form1" method="post" action="$!{context_path}/bsc/message/message/userList.vw?type=template">
+		<input type="hidden" id="mode"		name="mode"		value="$!{searchMap.txt2html("mode")}" />
+		<input type="hidden" id="year"		name="year"		value="$!{searchMap.txt2html("findYear")}" />
+        $!{searchMap.makeHiddenFind()}
+
+		<!-- 조직트리 Start -->
+		<div class="blockGridTreeTable">
+			#parse("/WEB-INF/vl/bsc/module/commModule/commonTree.vm")
+		</div>
+
+		<div style="width:400px; height:30px; float:left; margin-left:10px;">
+			<span class="strong">대상자</span>
+        </div>
+		<div style="width:320px; height:30px; float:right; ">
+			<span class="strong">받는 사람</span>
+        </div>
+		<!-- 대상자 -->
+		<div class="blockGridTreeTable" style="width:330px;height:350px; margin-left:10px;">
+            <select multiple size=10 id="users" name="users" class="select" style="width:100%;height:100%;">
+        	</select>
+		</div>
+		<div class="blockGridTreeTable" style="width:60px;height:350px; margin-left:1px;">
+			<ul>
+				<li style="width:5%; padding-top:140px; margin-left:10px;" class="valign_middle;" >
+					<input type="image" id="allToLeft" src="$!{img_path}/common/btn_arrow1up.gif" alt="왼쪽으로 전체 이동" /><br/><br/>
+					<input type="image" id="allToRight" src="$!{img_path}/common/btn_arrow2up.gif" alt="오른쪽으로 전체 이동" />
+				</li>
+			</ul>
+		</div>
+		<!-- 받는 사람 -->
+		<div class="blockGridTreeTable" style="width:330px; height:350px; float:left;">
+			<select multiple size=10 id="receives" name="receives" class="select" style="width:100%;height:100%;">
+        	</select>
+		</div>
+		<div class="blockButton_all">
+		<div class="blockButton" style="margin-top:10px; ">
+			<ul>
+				<li><input type="button" id="btnInsert" value="확인"/></li>
+			</ul>
+		</div>
+		</div>
+	</form>
+	<div class="clear"></div>
+	</div>
+</div>
+</body>
+</html>

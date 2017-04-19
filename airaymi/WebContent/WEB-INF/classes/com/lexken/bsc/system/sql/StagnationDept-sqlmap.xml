@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.stagnationDept">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 부진 부서 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_STAGNATION_DEPT
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.SC_DEPT_ID, B.SC_DEPT_NM, A.USE_YN
+		  FROM PRS_MNG_STAGNATION_DEPT A
+		       LEFT OUTER JOIN BSC_SC_DEPT B
+		          ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID
+		       WHERE A.YEAR = #findYear#
+		 <isEqual prepend="AND" property="findUseYn" compareValue="N">
+            	A.DELETE_DT IS NOT NULL
+		 </isEqual>
+
+		 <isNotEqual prepend="AND" property="findUseYn" compareValue="N">
+            	A.DELETE_DT IS NULL
+		 </isNotEqual>
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 부진부서 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: PRS_MNG_STAGNATION_DEPT
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.SC_DEPT_ID, A.USE_YN, B.SC_DEPT_NM
+		  FROM PRS_MNG_STAGNATION_DEPT A
+		       LEFT OUTER JOIN BSC_SC_DEPT B
+		          ON A.YEAR = B.YEAR AND A.SC_DEPT_ID = B.SC_DEPT_ID
+		       WHERE A.YEAR = #findYear#
+		 AND A.SC_DEPT_ID = #scDeptId#
+	</select>
+
+
+
+	<!--
+	==================================================================
+	  # 설명	: 부진부서 등록
+	  #	기능	: INSERT
+	  #	TABLE	: PRS_MNG_STAGNATION_DEPT
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		INSERT INTO PRS_MNG_STAGNATION_DEPT (YEAR
+		                                   , SC_DEPT_ID
+		                                   , USE_YN
+		                                   , CREATE_DT
+		                                   , DELETE_DT)
+		     VALUES (#findYear#
+		           , #scDeptId#
+		           , #useYn#
+		           , SYSDATE
+		           , '')
+
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 부진부서 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: PRS_MNG_STAGNATION_DEPT
+	==================================================================
+	-->
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE PRS_MNG_STAGNATION_DEPT
+		            SET YEAR = #findYear#
+		                , SC_DEPT_ID = #scDeptId#
+		                , USE_YN = #useYn#
+		            <isEqual property="useYn" compareValue="Y">
+		                , CREATE_DT   = SYSDATE
+		                , DELETE_DT   = NULL
+		            </isEqual>
+		            <isNotEqual property="useYn" compareValue="Y">
+		            	, DELETE_DT = SYSDATE
+		            </isNotEqual>
+		WHERE YEAR = #findYear#
+		  AND SC_DEPT_ID = #scDeptOldId#
+	</update>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 부진부서 삭제
+	  #	기능	: DELETE
+	  #	TABLE	: PRS_MNG_STAGNATION_DEPT
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE PRS_MNG_STAGNATION_DEPT
+		        SET DELETE_DT = SYSDATE
+		        	, USE_YN = 'N'
+		WHERE YEAR = #findYear#
+		AND SC_DEPT_ID = #scDeptId#
+	</update>
+
+
+</sqlMap>
+
+

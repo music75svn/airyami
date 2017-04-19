@@ -1,0 +1,43 @@
+#*************************************************************************
+* CLASS 명      : evalUserGrpMappingEvalItemMappingList_xml
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 11월 30일 
+* 기    능      : 평가단별 지표/항목 매핑 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      정철수     2012년 11월 30일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"EVAL_DEGREE_ID"       : "$!{CS_HTML.txt2html($list.EVAL_DEGREE_ID)}",
+		"EVAL_USER_GRP_ID"     : "$!{CS_HTML.txt2html($list.EVAL_USER_GRP_ID)}", 
+		"METRIC_GRP_ID"        : "$!{CS_HTML.txt2html($list.METRIC_GRP_ID)}", 
+		"METRIC_GRP_NM"        : "$!{CS_HTML.txt2html($list.METRIC_GRP_NM)}", 
+		"EVAL_GBN"             : "$!{CS_HTML.txt2html($list.EVAL_GBN)}",
+		"ITEM_ID"         	   : "$!{CS_HTML.txt2html($list.ITEM_ID)}", 
+		"ITEM_NM"         	   : "$!{CS_HTML.txt2html($list.ITEM_NM)}", 
+		"IS_EVAL_YN"      	   : "$!{CS_HTML.txt2html($list.IS_EVAL_YN)}",
+		"ROW_CNT"      		   : "$!{CS_HTML.txt2html($list.ROW_CNT)}",
+		"ROW_IDX"       	   : "$!{CS_HTML.txt2html($list.ROW_IDX)}",
+		"SEQ"                  : "$!{CS_HTML.txt2html($list.SEQ)}",
+		"SORT_ORDER"       	   : "$!{CS_HTML.txt2html($list.SORT_ORDER)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

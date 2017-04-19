@@ -1,0 +1,371 @@
+#*************************************************************************
+* CLASS 명	: intEvalResultList
+* 작 업 자	: 안요한
+* 작 업 일	: 2013년 08월 20일
+* 기    능	: 내부평가결과
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  2      안 요 한      2013년 08월 20일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/dept/intEvalResult/intEvalResultList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/dept/intEvalResult/intEvalResultList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가년도', '부서코드', '부서', '부서이름',  '연말평가<br/>점수', '점수1', '연말평가<br/>반영비율','연말평가<br/>가중점수','정부평가<br/>점수', '정평점수1', '정부평가<br/>반영비율','정부평가<br/>가중점수','가감점', '최종점수', '등급'],
+			colModel     :[
+							{name:'YEAR'			,index:'YEAR'				,width:150   ,align:'center' },
+                            {name:'SC_DEPT_ID'		,index:'SC_DEPT_ID'			,width:100   ,align:'center' ,formatter:linkScDeptId},
+                            {name:'SC_DEPT_NM'		,index:'SC_DEPT_NM'			,width:100   ,align:'center' },
+                            {name:'SC_DEPT_NM1'		,index:'SC_DEPT_NM1'		,width:100   ,align:'center' ,formatter:linkScDeptNm},
+                            {name:'SCORE'			,index:'SCORE'				,width:100   ,align:'center' },
+                            {name:'SCORE1'			,index:'SCORE1'				,width:100   ,align:'center' ,formatter:linkScore},
+                            {name:'WEIGHT'			,index:'WEIGHT'				,width:100   ,align:'center' ,formatter:linkWeight},
+                            {name:'WEIGHT_SCORE'	,index:'WEIGHT_SCORE'		,width:100   ,align:'center' },
+                            {name:'GOV_SCORE'		,index:'GOV_SCORE'			,width:100   ,align:'center' ,formatter:linkGovScore},
+                            {name:'GOV_SCORE1'		,index:'GOV_SCORE1'			,width:100   ,align:'center' },
+                            {name:'GOV_WEIGHT'		,index:'GOV_WEIGHT'			,width:100   ,align:'center' ,formatter:linkGovWeight},
+                            {name:'GOV_WEIGHT_SCORE'		,index:'GOV_WEIGHT_SCORE'			,width:100   ,align:'center' },
+							{name:'ADJUST'			,index:'ADJUST'				,width:100   ,align:'center' ,formatter:linkAdjust},
+                            {name:'FINAL_SCORE'		,index:'FINAL_SCORE'		,width:100   ,align:'center' },
+                            {name:'GRADE'			,index:'GRADE'				,width:100   ,align:'center' ,formatter:linkGrade}
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			gridview     : true,
+			caption:"평가군 매핑"
+		}).jqGrid('hideCol',"YEAR").jqGrid('hideCol',"SC_DEPT_ID").jqGrid('hideCol',"SC_DEPT_NM1").jqGrid('hideCol',"SUM1").jqGrid('hideCol',"SCORE1").jqGrid('hideCol',"GOV_SCORE1").setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+		
+		/******************************************
+		 * 엑셀다운로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnExcelDown").click(function() {
+			excelDownload();
+			return false;
+		});
+
+		/******************************************
+         * 저장
+         ******************************************/
+        J("#btnInsert").click(function(e) {
+            e.preventDefault();
+
+            saveChk();
+        });
+
+		/******************************************
+		 * 내평점수가져오기 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnGet").click(function() {
+			J.showConfirmBox("등록한 비율 및 점수가 삭제됩니다.<br/>내부평가점수 가져오기를 실행하시겠습니까?", "getBscScore"); //getBscScore() 콜백함수 호출
+
+			return false;
+		});
+
+		/******************************************
+		 * 정평점수가져오기 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnGov").click(function() {
+			J.showConfirmBox("정평점수를 반영하시겠습니까?", "getGovScore"); //getGovScore() 콜백함수 호출
+
+			return false;
+		});
+		
+		/******************************************
+		 * 엑셀업로드 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnUpload").click(function() {
+    		goExcelUp();
+		});
+		
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchor").fancybox();            //엑셀업로드 팝업
+	});
+
+
+ 	/******************************************
+         * 저장버튼 이중 클릭 방지
+         ******************************************/
+        J("form").submit(function(){
+            J("#btnInsert").unbind();
+        });
+
+    /******************************************
+     * jqGrid 부서코드
+     ******************************************/
+    function linkScDeptId(cellvalue, options, rowObject) {
+    	return '<input type="text" name="scDeptIds" value="' + cellvalue + '" class="wp60" readonly="readonly"/>';
+    }
+
+    /******************************************
+     * jqGrid 부서이름
+     ******************************************/
+    function linkScDeptNm(cellvalue, options, rowObject) {
+    	return '<input type="text" name="scDeptNms" value="' + cellvalue + '" class="wp60" readonly="readonly"/>';
+    }
+
+    /******************************************
+     * jqGrid 합산점수
+     ******************************************/
+    function linkScore(cellvalue, options, rowObject) {
+    	return '<input type="text" name="scores" value="' + cellvalue + '" class="wp60" readonly="readonly"/>';
+    }
+
+    /******************************************
+     * jqGrid 정평점수
+     ******************************************/
+    function linkGovScore(cellvalue, options, rowObject) {
+    	return '<input type="text" name="govScores" value="' + cellvalue + '" class="wp60" />';
+    }
+
+	/******************************************
+     * jqGrid 가감점
+     ******************************************/
+    function linkAdjust(cellvalue, options, rowObject) {
+    	if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60")){
+    		return '<input type="text" name="adjusts" value="' + cellvalue + '" class="wp60" />';
+    	}else{
+    		return cellvalue;
+    	}
+    }
+	/******************************************
+     * jqGrid 등급
+     ******************************************/
+    function linkGrade(cellvalue, options, rowObject) {
+    	if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60")){
+    		return '<input type="text" name="grades" value="' + cellvalue + '" class="wp60" />';
+    	}else{
+    		return cellvalue;
+    	}
+    }
+    
+	/******************************************
+     * jqGrid 연말평가 반영비율
+     ******************************************/
+    function linkWeight(cellvalue, options, rowObject) {
+    	return '<input type="text" name="weights" value="' + cellvalue + '" class="wp60" />';
+    }
+    
+    /******************************************
+     * jqGrid 정부평가 반영비율
+     ******************************************/
+    function linkGovWeight(cellvalue, options, rowObject) {
+    	return '<input type="text" name="govWeights" value="' + cellvalue + '" class="wp60" />';
+    }
+
+	 /******************************************
+     * 필수입력 체크
+     ******************************************/
+    function saveChk() {
+		J.showConfirmBox("저장하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+    }
+
+    /******************************************
+	 * 내평점수가져오기 클릭이벤트
+	 ******************************************/
+	function getBscScore() {
+		J("#mode").val("GET_BSC_SCORE");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/bsc/dept/intEvalResult/intEvalResultProcess.vw?type=template").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 정평점수가져오기 클릭이벤트
+	 ******************************************/
+	function getGovScore() {
+		J("#mode").val("GET_GOV_SCORE");
+		J("#year").val(J("#findYear").val());
+		J("#formList").attr("action", "$!{context_path}/bsc/dept/intEvalResult/intEvalResultProcess.vw?type=template").submit();
+		return false;
+	}
+
+    /******************************************
+     * 저장
+     ******************************************/
+    function saveDo(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		var isCheck = false;
+		var isOK = true;
+
+		var arrOldGrades = new Array("S","A","B","C","D");
+		var ids = J("#list").jqGrid('getDataIDs');
+
+		for (var i = 0; i < ids.length; i++) {
+			var rowdata = J("#list").getRowData(ids[i]);
+
+			var grade = J("input[name=grades]").eq(i).val();
+
+    			if(grade !="") {
+    				isCheck =  false;
+
+	    			for (var j = 0; j < arrOldGrades.length; j++) {
+		    			if( grade == arrOldGrades[j] ){
+							isCheck = true;
+							break;
+						}
+			    	}
+
+					if(!isCheck) {
+	    				J.showMsgBox("평가등급은  S,A,B,C,D 중 하나여야 합니다.", null, null);
+	    				isOK = false;
+	    				return;
+		    		}
+	    		}
+	    }
+
+        J("#mode").val("ADD");
+        J("#year").val(J("#findYear").val());
+        J("#scDeptId").val(ret.SC_DEPT_ID);
+        J("#formList").attr("action", "$!{context_path}/bsc/dept/intEvalResult/intEvalResultProcess.vw?type=template").submit();
+
+        return false;
+
+    }
+    
+    /******************************************
+	 * 엑셀다운로드
+	 ******************************************/
+	function excelDownload(){
+		J("#year").val(J("#findYear > option:selected").text());
+		J("#formList").attr("action", "$!{context_path}/bsc/dept/intEvalResult/intEvalResultListExcel.vw?type=excel").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 엑셀업로드
+	 ******************************************/
+	function goExcelUp(){
+		var year = J("#findYear").val();
+		var findHighPgmId = J("#findHighPgmId").val();
+		var findSubPgmId = J("#findSubPgmId").val();
+		var findPgmId = J("#findPgmId").val();
+		J("#anchor").attr("href","$!{context_path}/bsc/dept/intEvalResult/popExcelUpload.vw?findYear=" + year +  "&amp;findHighPgmId=" + findHighPgmId + "&amp;findSubPgmId=" + findSubPgmId + "&amp;findPgmId=" + findPgmId);
+		J("#anchor").click();
+	}
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">내부평가결과</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/dept/intEvalResult/intEvalResultList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="내부평가결과">
+						<caption class="none">내부평가결과</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w300">
+            						<span><label for="findScDeptGrpId">평가군 </label></span>
+											<select id="findScDeptGrpId" name="findScDeptGrpId" class="select w150" >
+												$!CS_CODE.getCodeOption("003", $!{searchMap.txt2html("findScDeptGrpId")}, $!{searchMap.txt2html("findYear")})
+											</select>
+            						</span>
+            					</td>
+							</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+			<a id="anchor"></a>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/dept/intEvalResult/intEvalResultProcess.vw?type=template">
+			<input type="hidden" id="mode"       		name="mode" />
+			<input type="hidden" id="year"		 		name="year"			/>
+			<input type="hidden" id="scDeptId"			name="scDeptId" />
+			<input type="hidden" id="scDeptNm"		 	name="scDeptNm" />
+			<input type="hidden" id="score"		 		name="score"  />
+			<input type="hidden" id="finalScore"		name="finalScore"  />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="평가군 매핑 관리 조회결과">
+							<caption class="none">평가군 매핑 관리 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton" style="float:left; text-align:left; width:305px;">
+							<input id="btnExcelDown" type="button" align="middle" value="엑셀다운로드", alt="파일다운로드" />
+							<input id="btnUpload" 	 type="button" align="middle" value="업로드" alt="파일업로드"/>
+						</div>					
+					</div>
+                    <div class="blockButton">
+                        <ul>
+                        #if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+                        	<li><input	type="button"	id="btnGet"		value="내부평가점수가져오기" /></li>
+							<!--<li><input	type="button"	id="btnGov"		value="정평점수반영" /></li>-->
+                            <li><input	type="button"	id="btnInsert"	value="저장" /></li>
+                        #end
+                        </ul>
+                    </div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+	<div class="clear"></div>
+</div>

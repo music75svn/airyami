@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.office.officeGrp">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: GOV_OFFICE_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관평가군 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_OFFICE_GRP
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT OG.YEAR, OG.OFFICE_EVAL_GRP_ID, OG.OFFICE_EVAL_GRP_NM
+		     , COUNT(O.OFFICE_ID) AS OFFICE_CNT
+		     , OG.SORT_ORDER
+		  FROM GOV_OFFICE_GRP OG
+		       LEFT OUTER JOIN 
+		       GOV_OFFICE O
+		       ON OG.YEAR = O.YEAR
+		      AND OG.OFFICE_EVAL_GRP_ID = O.OFFICE_EVAL_GRP_ID
+		 WHERE 1=1
+		   AND OG.YEAR = #findYear#   
+		 GROUP BY OG.YEAR, OG.OFFICE_EVAL_GRP_ID, OG.OFFICE_EVAL_GRP_NM, OG.SORT_ORDER
+		 ORDER BY OG.SORT_ORDER NULLS LAST, OG.OFFICE_EVAL_GRP_ID
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관평가군 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_OFFICE_GRP
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR                  
+			 , OFFICE_EVAL_GRP_ID    
+			 , OFFICE_EVAL_GRP_NM    
+			 , SORT_ORDER            
+			 , COMMENTS              
+		  FROM GOV_OFFICE_GRP 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND OFFICE_EVAL_GRP_ID = #officeEvalGrpId#	      
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관평가군 등록
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_OFFICE_GRP
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('GOV_OFFICE_GRP',#year#,'','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO GOV_OFFICE_GRP ( 
+			   YEAR
+			 , OFFICE_EVAL_GRP_ID
+			 , OFFICE_EVAL_GRP_NM
+			 , SORT_ORDER
+			 , COMMENTS
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #officeEvalGrpNm#
+			 , #sortOrder#
+			 , #comments#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관평가군 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE_GRP
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE GOV_OFFICE_GRP 
+		   SET OFFICE_EVAL_GRP_NM     = #officeEvalGrpNm# 
+			 , SORT_ORDER             = #sortOrder# 
+			 , COMMENTS               = #comments# 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND OFFICE_EVAL_GRP_ID = #officeEvalGrpId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 공공기관평가군 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_OFFICE_GRP
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM GOV_OFFICE_GRP 
+		 WHERE 1 = 1 
+		   AND YEAR = #year#
+		   AND OFFICE_EVAL_GRP_ID = #officeEvalGrpId#
+	</update>
+	
+	
+</sqlMap>
+
+

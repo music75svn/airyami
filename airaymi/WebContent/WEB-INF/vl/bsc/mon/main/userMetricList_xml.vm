@@ -1,0 +1,35 @@
+#*************************************************************************
+* CLASS 명      : userMetricList_xml
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 9월 6일 
+* 기    능      : 비교조직선택 팝업 그리드 데이터
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김윤기     2012년 9월 6일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($metricList.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $metricList)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"SC_DEPT_NM"           : "$!{CS_HTML.txt2html($list.SC_DEPT_NM)}", 
+		"METRIC_ID"            : "$!{CS_HTML.txt2html($list.METRIC_ID)}", 
+		"METRIC_NM"            : "$!{CS_HTML.txt2html($list.METRIC_NM)}",
+		"VIEW_YN"              : "$!{CS_HTML.txt2html($list.VIEW_YN)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

@@ -1,0 +1,206 @@
+#*************************************************************************
+* CLASS 명      : showRpt
+* 작 업 자      : 김상용
+* 작 업 일      : 2013년 06월 13일 
+* 기    능      : 자기성과기술서 조회    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    김상용      2013년 06월 13일             최 초 작 업 
+**************************************************************************#
+<script type="text/javascript" language="javascript" >
+
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+		
+		#foreach($dept in $lastDept)
+			J("#lastYearDept").append("<li>$!{CS_HTML.txt2html($dept.DEPT_FULL_NM)} ( $!{CS_HTML.txt2html($dept.FROM_DT)} ~ $!{CS_HTML.txt2html($dept.TO_DT)} )</li>");
+		#end
+
+		#set($listSize = $!{CS_HTML.txt2html($rptDetail.size())})
+		var size = $listSize +2;
+		#if($listSize == 0)
+		J("#smallTitle").attr('rowspan', "2");
+		#else
+		J("#smallTitle").attr('rowspan', size);
+		#end
+		
+		#set($talkSize = $!{CS_HTML.txt2html($talkList.size())})
+		var sizeTalk = $talkSize +1;
+		#if($talkSize == 0)
+		J("#small2Title").attr('rowspan', "2");
+		#else
+		J("#small2Title").attr('rowspan', sizeTalk);
+		#end
+		
+		#set($totalScore = 0)
+		#foreach($rptDetail in $rptDetail)
+			#set($totalScore = $totalScore + $rptDetail.EVAL_SCORE)
+		#end
+		
+	});
+	
+//]]>
+</script>    
+</head>
+<body>
+<div>
+<form id="form1" name="form1" method="post" enctype="multipart/form-data" action="$!{context_path}/prs/mng/rpt/rptProcess.vw?type=template">
+    <input type="hidden" 	id="mode"		    name="mode"		      	value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"           name="year"           	value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="evalGrpId"   	name="evalGrpId"   		value="$!{searchMap.txt2html("evalGrpId")}" />
+	<input type="hidden"	id="empn"   		name="empn"   			value="$!{searchMap.txt2html("empn")}" />
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+	<div class="blockDetail">
+    <table summary="자기평가기술서 관리 등록">
+        <caption class="none">자기평가기술서 관리 등록</caption>
+        <colgroup>
+            <col width="10%" />
+            <col width="30%" />
+            <col width="10%" />
+            <col width="20%" />
+            <col width="10%" />
+            <col width="30%" />
+        </colgroup>
+       <tbody>
+		<tr>
+            <th scope="row"><label for="findYear">전년도 소속부서</label></th>
+            <td><div><ul id="lastYearDept"></ul></div></td>
+            <th scope="row"><label for="posTcNm">현 소속부서</label></th>
+            <td><span>$!{CS_HTML.txt2html($rpt.DEPT_CUR_NM)}</span></td>
+            <th scope="row"><label for="deptKorNm">성명</label></th>
+            <td><span>$!{CS_HTML.txt2html($rpt.KOR_NM)}</span></td>
+        </tr>
+		<tr>
+			<th scope="row"><label for="korNm">직위</label></th>
+            <td><span>$!{CS_HTML.txt2html($rpt.CAST_TC_NM)}</span></td>
+			<th scope="row"><label for="korNm">직급</label></th>
+            <td colspan="3"><span>$!{CS_HTML.txt2html($rpt.CAST_TC_NM)}</span></td>
+        </tr>
+		<tr>
+            <th scope="row"><label for="approveUserNm">직무 수행기간</label></th>
+            <td><span>$!{CS_HTML.txt2html($rpt.FROM_DT,100)} ~ $!{CS_HTML.txt2html($rpt.TO_DT,100)}</span></td>
+            <th scope="row"><label for="planStatusNm">확인자</label></th>
+            <td><span>$!{CS_HTML.txt2html($rpt.APPROVE_USER_NM)}</span></td>
+            <th scope="row"><label for="finalApproveDt">최종확인일</label></th>
+            <td><span>$!{CS_HTML.txt2html($rpt.FINAL_APPROVE_DT)}</span></td>
+        </tr>
+    </tbody>
+    </table>
+    </div>
+	
+	<div class="blockDetail">
+		<table summary="자기성과기술서 등록">
+			<caption class="none">자기성과기술서 등록</caption>
+			<colgroup>
+				<col width="10%" />
+				<col width="10%" />
+				<col width="20%" />
+				<col width="15%" />
+				<col width="5%" />
+				<col width="5%" />
+				<col width="5%" />
+				<col width="5%" />
+				<col width="5%" />
+				<col width="5%" />
+				<col width="5%" />
+				<col width="5%" />
+			</colgroup>
+			<tbody>
+				 <tr>
+                     <th scope="row" id="smallTitle" ><label for="directionCd">성과계획 및 실적</label></th>
+                     <th scope="row" class="textCenter"><label for="directionNm">설정방향</label></th>
+					 <th scope="row" class="textCenter"><label for="targetNm">성과목표</label></th>
+					 <th scope="row" class="textCenter"><label for="metricNm">성과지표 </label></th>
+					 <th scope="row" class="textCenter"><label for="targetValue">목표량 </label></th>
+					 <th scope="row" class="textCenter"><label for="unitNm">단위 </label></th>
+					 <th scope="row" class="textCenter"><label for="weight">가중치 </label></th>
+					 <th scope="row" class="textCenter"><label for="dfflyNm">난이도 </label></th>
+					 <th scope="row" class="textCenter"><label for="value">실적 </label></th>
+					 <th scope="row" class="textCenter"><label for="score">달성도 </label></th>
+					 <th scope="row" class="textCenter"><label for="evalGrade">평가 </label></th>
+					 <th scope="row" class="textCenter"><label for="evalScore">환산<br/>점수 </label></th>
+                 </tr>
+				  #if($!{CS_HTML.txt2html($rptDetail.size())} == 0)
+                     <tr class="textCenter"><td colspan="11">입력된 데이터가 없습니다.</td></tr>
+				  #else
+				  #foreach($rptDetail in $rptDetail)
+				 <tr>
+                    <td>$!{CS_HTML.txt2html($rptDetail.DIRECTION_NM)}</td>
+                    <td>$!{CS_HTML.txt2html($rptDetail.TARGET_NM)}</td>
+                    <td>$!{CS_HTML.txt2html($rptDetail.METRIC_NM)}</td>
+                    <td align="center">$!{CS_HTML.txt2html($rptDetail.TARGET_VALUE)}</td>
+                    <td align="center">$!{CS_HTML.txt2html($rptDetail.UNIT_NM)}</td>
+                    <td align="center">$!{CS_HTML.txt2html($rptDetail.WEIGHT)}</td>
+                    <td align="center">$!{CS_HTML.txt2html($rptDetail.DFFLY_NM)}</td>
+                    <td align="center">$!{CS_HTML.txt2html($rptDetail.VALUE)}</td>
+                    <td align="center">$!{CS_HTML.txt2html($rptDetail.SCORE)}</td>
+                    <td align="center">$!{CS_HTML.txt2html($rptDetail.EVAL_GRADE)}</td>
+                    <td align="center">$!{CS_HTML.txt2html($rptDetail.EVAL_SCORE)}</td>
+                 </tr>
+				 #end
+				 <tr>
+				 	<td align="center" colspan="10">총점</td>
+				 	<td align="center">$totalScore</td>	
+				 </tr>
+    			 #end
+    		     <tr>
+				 <th scope="row" id="fileTitle"><label for="fileList">증빙자료 </label></th>
+					#if($!{CS_HTML.txt2html($actualFileList.size())} == 0)
+                     <td colspan="11" class="textCenter">증빙자료가 없습니다.</td>
+				    #else
+				   <td colspan="11">
+					#foreach($actualFileList in $actualFileList)
+						$!{CS_HTML.makeFileIconFileName($actualFileList.get("ATTACH_FILE_SUFFIX"), $actualFileList.get("ATTACH_FILE_NM"), $actualFileList.get("ATTACH_FILE_PATH"))} 
+					#end
+				   </td>
+					#end
+				 </tr>
+				 <tr>
+					 <th scope="row" id="small2Title">중간면담</th>
+					 <th scope="row" class="textCenter"><label for="targetNm">면담자</label></th>
+					 <th scope="row" class="textCenter"><label for="metricNm">면담일자 </label></th>
+					 <th scope="row" class="textCenter" colspan="9"><label for="targetValue">면담내용 </label></th>
+                 </tr>
+				 #if($!{CS_HTML.txt2html($talkList.size())} == 0)
+                     <tr class="textCenter"><td colspan="11">입력된 데이터가 없습니다.</td></tr>
+				 #else
+				 #foreach($talkList in $talkList)
+				 <tr>
+					<td>$!{CS_HTML.txt2html($talkList.TALK_USER_NM)}</td>
+					<td>$!{CS_FORMAT.dateFormat($talkList.TALK_DT)}</td>
+					<td colspan="9">$!{CS_HTML.txt2html($talkList.TALK_CONTENT)}</td>
+				 </tr>
+				 #end
+				 #end
+				<tr>
+					<th scope="row">주요내용</th>
+					<td colspan="11"> 
+						<div style="height:300px;overflow:auto;">
+							$!{rpt.CONTENT.replaceAll("\r\n","").replaceAll("\\","&#92;").replaceAll("\'","\"")}
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">첨부파일</th>
+					<td colspan="11">
+						#foreach($fileList in $fileList)
+							$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))} 
+						#end
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="clear"></div>
+    </div>
+</form>
+</div>
+</body>
+</html>
+

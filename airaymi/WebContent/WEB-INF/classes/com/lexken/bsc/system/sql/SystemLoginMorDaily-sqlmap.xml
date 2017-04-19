@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.system.systemLoginMorDaily">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	:
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템사용현황(일별) 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LOG_LIST
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+       SELECT  YEAR, T1.DAY,
+		    F_ISNULL(A,0) A,
+		    F_ISNULL(B,0) B,
+		    F_ISNULL(C,0) C,
+		    F_ISNULL(D,0) D,
+		    F_ISNULL(E,0) E,
+		    F_ISNULL(F,0) F,
+		    F_ISNULL(G,0) G,
+		    F_ISNULL(H,0) H,
+		    F_ISNULL(I,0) I,
+		    F_ISNULL(J,0) J,
+		    F_ISNULL(K,0) K,
+		    F_ISNULL(L,0) L FROM
+       ( SELECT LPAD(LEVEL, 2, 0) DAY
+           FROM DUAL
+           CONNECT BY LEVEL <![CDATA[<]]>= (SELECT TO_CHAR(LAST_DAY(#findYear#||#findMon#||'01'),'DD') FROM DUAL)
+       ) T1 LEFT JOIN (SELECT
+          T1.YEAR, DAY
+        , F_ISNULL(COUNT(CASE WHEN T1.MON ='01' THEN T1.USER_ID ELSE '' END),0)  A
+        , F_ISNULL(COUNT(CASE WHEN T1.MON ='02' THEN T1.USER_ID ELSE '' END),0)  B
+        , F_ISNULL(COUNT(CASE WHEN T1.MON ='03' THEN T1.USER_ID ELSE '' END),0)  C
+        , F_ISNULL(COUNT(CASE WHEN T1.MON ='04' THEN T1.USER_ID ELSE '' END),0)  D
+        , F_ISNULL(COUNT(CASE WHEN T1.MON ='05' THEN T1.USER_ID ELSE '' END),0)  E
+        , F_ISNULL(COUNT(CASE WHEN T1.MON ='06' THEN T1.USER_ID ELSE '' END),0)  F
+        , F_ISNULL(COUNT(CASE WHEN T1.MON ='07' THEN T1.USER_ID ELSE '' END),0)  G
+        , F_ISNULL(COUNT(CASE WHEN T1.MON ='08' THEN T1.USER_ID ELSE '' END),0)  H
+        , F_ISNULL(COUNT(CASE WHEN T1.MON ='09' THEN T1.USER_ID ELSE '' END),0)  I
+        , F_ISNULL(COUNT(CASE WHEN T1.MON ='10' THEN T1.USER_ID ELSE '' END),0)  J
+        , F_ISNULL(COUNT(CASE WHEN T1.MON ='11' THEN T1.USER_ID ELSE '' END),0)  K
+        , F_ISNULL(COUNT(CASE WHEN T1.MON ='12' THEN T1.USER_ID ELSE '' END),0)  L
+        FROM BSC_LOG_LIST T1
+       INNER JOIN V_ROLE_USER T2
+           ON T1.USER_ID = T2.USER_ID
+       INNER JOIN BSC_SC_DEPT_MAPPING T3
+           ON T1.YEAR = T3.YEAR
+           AND T2.DEPT_ID = T3.DEPT_ID
+       INNER JOIN BSC_SC_DEPT T4
+           ON T1.YEAR = T4.YEAR
+           AND T3.SC_DEPT_ID = T4.SC_DEPT_ID
+ 		   AND T4.SC_DEPT_ID IN (
+               SELECT SC_DEPT_ID FROM BSC_SC_DEPT
+               WHERE YEAR=T4.YEAR
+               AND DELETE_DT IS NULL
+               CONNECT BY PRIOR SC_DEPT_ID=UP_SC_DEPT_ID  AND PRIOR YEAR = YEAR
+               START WITH SC_DEPT_ID=#findScDeptId#
+           )
+           AND T4.DELETE_DT IS NULL
+       WHERE T1.YEAR=#findYear#
+       AND GBN='L'
+       <dynamic prepend="AND">
+       	<isEqual property="includeAdmin" compareValue="N">
+     		T1.USER_ID NOT IN (SELECT USER_ID FROM BSC_ADMIN WHERE ADMIN_GUBUN='01')
+       	</isEqual>
+       </dynamic>
+       GROUP BY T1.YEAR, DAY) T2
+       ON T1.DAY=T2.DAY
+       ORDER BY T1.DAY
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템사용현황(일별) 상세 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LOG_LIST
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+                SELECT DISTINCT
+               T1.YEAR
+             , MON
+             , T4.SC_DEPT_ID
+             , T4.SC_DEPT_NM
+             , T4.SORT_ORDER
+             , T1.USER_ID
+             , T2.NAME_HAN USER_NM
+             , T2.POS_NM
+             , COUNT(TIME) TIME
+         FROM BSC_LOG_LIST T1
+        INNER JOIN V_ROLE_USER T2
+            ON T1.USER_ID=T2.USER_ID
+        INNER JOIN BSC_SC_DEPT_MAPPING T3
+            ON T1.YEAR=T3.YEAR
+            AND T3.DEPT_ID=T2.DEPT_ID
+        INNER JOIN BSC_SC_DEPT T4
+            ON T1.YEAR=T4.YEAR
+            AND T3.SC_DEPT_ID=T4.SC_DEPT_ID
+            AND T4.DELETE_DT IS NULL
+            AND T4.SC_DEPT_ID IN (
+                SELECT SC_DEPT_ID FROM BSC_SC_DEPT
+                WHERE YEAR=T4.YEAR
+                AND DELETE_DT IS NULL
+                CONNECT BY PRIOR SC_DEPT_ID=UP_SC_DEPT_ID AND PRIOR YEAR=YEAR
+                START WITH SC_DEPT_ID=#findScDeptId#
+            )
+             WHERE GBN='L'
+        AND T1.YEAR=#findYear#
+        AND MON=#findMon#
+        AND DAY=#findDay#
+       <dynamic prepend="AND">
+     	<isEqual property="includeAdmin" compareValue="N">
+     		T1.USER_ID NOT IN (SELECT USER_ID FROM BSC_ADMIN WHERE ADMIN_GUBUN='01')
+       	</isEqual>
+       </dynamic>
+        GROUP BY
+        T1.YEAR, MON, T4.SC_DEPT_ID, T4.SC_DEPT_NM, T1.USER_ID, T2.NAME_HAN, T4.SORT_ORDER, T2.POS_NM
+        ORDER BY T1.YEAR, MON, T4.SORT_ORDER, T2.POS_NM
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 시스템사용현황(일별) 차트 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_LOG_LIST
+	==================================================================
+	-->
+	<select id="getChartList" parameterClass="hashMap" resultClass="hashMap">
+	 SELECT  YEAR, T1.DAY,
+	    F_ISNULL(A,0) A FROM
+       ( SELECT LPAD(LEVEL, 2, 0) DAY
+           FROM DUAL
+           CONNECT BY LEVEL <![CDATA[<]]>= (SELECT TO_CHAR(LAST_DAY(#findYear#||#findMon#||'01'),'DD') FROM DUAL)
+       ) T1 LEFT JOIN (SELECT
+          T1.YEAR, DAY
+        , F_ISNULL(COUNT(T1.USER_ID),0)  A
+        FROM BSC_LOG_LIST T1
+       INNER JOIN V_ROLE_USER T2
+           ON T1.USER_ID=T2.USER_ID
+       INNER JOIN BSC_SC_DEPT_MAPPING T3
+           ON T1.YEAR=T3.YEAR
+           AND T2.DEPT_ID=T3.DEPT_ID
+       INNER JOIN BSC_SC_DEPT T4
+           ON T1.YEAR=T4.YEAR
+           AND T3.SC_DEPT_ID=T4.SC_DEPT_ID
+           AND T4.DELETE_DT IS NULL
+
+           AND T4.SC_DEPT_ID IN (
+               SELECT SC_DEPT_ID FROM BSC_SC_DEPT
+               WHERE YEAR=T4.YEAR
+               AND DELETE_DT IS NULL
+               CONNECT BY PRIOR SC_DEPT_ID=UP_SC_DEPT_ID  AND PRIOR YEAR = YEAR
+               START WITH SC_DEPT_ID=#findScDeptId#
+           )
+       WHERE T1.YEAR=#findYear#
+       AND MON=#findMon#
+       AND GBN='L'
+       <dynamic prepend="AND">
+       	<isEqual property="includeAdmin" compareValue="N">
+     		T1.USER_ID NOT IN (SELECT USER_ID FROM BSC_ADMIN WHERE ADMIN_GUBUN='01')
+       	</isEqual>
+       </dynamic>
+       GROUP BY T1.YEAR, DAY) T2
+       ON T1.DAY=T2.DAY
+       ORDER BY T1.DAY
+	</select>
+
+</sqlMap>
+

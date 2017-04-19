@@ -1,0 +1,48 @@
+#*************************************************************************
+* CLASS 명      : userMetricList_xml
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 9월 6일
+* 기    능      : 비교조직선택 팝업 그리드 데이터
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      김윤기     2012년 9월 6일            최 초 작 업
+**************************************************************************#
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}",
+		"METRIC_ID"            : "$!{CS_HTML.txt2html($list.METRIC_ID)}",
+	#if("D000001" == $!{CS_HTML.txt2html($list.SC_DEPT_ID)})
+		"METRIC_NM"            : "$!{CS_HTML.txt2html($list.METRIC_NM)}",
+	#else
+		"METRIC_NM"            : "($!{CS_HTML.txt2html($list.ETC1)})$!{CS_HTML.txt2html($list.METRIC_NM)}",
+	#end
+		"SC_DEPT_ID"           : "$!{CS_HTML.txt2html($list.SC_DEPT_ID)}",
+		"WEIGHT"               : "$!{CS_HTML.txt2html($list.WEIGHT)}",
+		"UNIT"                 : "$!{CS_HTML.txt2html($list.UNIT)}",
+		"UNIT_NM"              : "$!{CS_HTML.txt2html($list.UNIT_NM)}",
+		"TARGET"               : "$!{CS_HTML.txt2htmlTargetFormat($list.TARGET)}",
+		"ACTUAL"               : "$!{CS_HTML.txt2htmlActualFormat($list.ACTUAL)}",
+		"SCORE"                : "$!{CS_HTML.txt2htmlScoreFormat($list.SCORE)}",
+		"PERSENT"              : "$!{CS_HTML.txt2htmlScoreFormat($list.PERSENT)}",
+		"EXCSCORE"             : "$!{CS_HTML.txt2htmlActcolFormat($list.EXCSCORE)}",
+		"STATUS"               : "$!{CS_HTML.txt2html($list.STATUS)}",
+		"UP_METRIC_ID"         : "$!{CS_HTML.txt2html($list.UP_METRIC_ID)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

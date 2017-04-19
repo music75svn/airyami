@@ -1,0 +1,55 @@
+#*************************************************************************
+* CLASS 명      : sampleList_xml
+* 작 업 자      : sample
+* 작 업 일      : 2012년 11월 20일 
+* 기    능      : sample json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      sample     2012년 11월 20일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"EVAL_CAT_GRP_ID"      : "$!{CS_HTML.txt2html($list.EVAL_CAT_GRP_ID)}", 
+		"EVAL_CAT_GRP_NM"      : "$!{CS_HTML.txt2html($list.EVAL_CAT_GRP_NM)}", 
+		"EVAL_CAT_ID"          : "$!{CS_HTML.txt2html($list.EVAL_CAT_ID)}", 
+		"EVAL_CAT_NM"          : "$!{CS_HTML.txt2html($list.EVAL_CAT_NM)}", 
+		"GOV_METRIC_ID"        : "$!{CS_HTML.txt2html($list.GOV_METRIC_ID)}", 
+		"GOV_METRIC_NM"        : "$!{CS_HTML.txt2html($list.GOV_METRIC_NM)}", 
+		"MAIN_METRIC_YN"       : "$!{CS_HTML.txt2html($list.MAIN_METRIC_YN)}", 
+		"SEL_GOV_METRIC_NM"    : "$!{CS_HTML.txt2html($list.SEL_GOV_METRIC_NM)}", 
+		"DIREC_ID"             : "$!{CS_HTML.txt2html($list.DIREC_ID)}", 
+		"WEIGHT"               : "$!{CS_HTML.txt2html($list.WEIGHT)}", 
+		"DIREC_NM"             : "$!{CS_HTML.txt2html($list.DIREC_NM)}", 
+		"EVAL_METHOD_ID"       : "$!{CS_HTML.txt2html($list.EVAL_METHOD_ID)}", 
+		"EVAL_METHOD_NM"       : "$!{CS_HTML.txt2html($list.EVAL_METHOD_NM)}", 
+		"TARGET"               : "$!{CS_HTML.txt2html($list.TARGET)}", 
+		"ACTUAL"               : "$!{CS_HTML.txt2html($list.ACTUAL)}", 
+		"PERSENT"              : "$!{CS_HTML.txt2html($list.PERSENT)}", 
+		"SCORE"                : "$!{CS_HTML.txt2html($list.SCORE)}", 
+		"EXCSCORE"             : "$!{CS_HTML.txt2html($list.EXCSCORE)}", 
+		"STATUS_ID"            : "$!{CS_HTML.txt2html($list.STATUS_ID)}", 
+		"MAIN_WEIGHT"          : "$!{CS_HTML.txt2html($list.MAIN_WEIGHT)}", 
+		"GRP_CNT"              : "$!{CS_HTML.txt2html($list.GRP_CNT)}", 
+		"GRP_NUM"              : "$!{CS_HTML.txt2html($list.GRP_NUM)}", 
+		"CAT_CNT"              : "$!{CS_HTML.txt2html($list.CAT_CNT)}", 
+		"CAT_NUM"              : "$!{CS_HTML.txt2html($list.CAT_NUM)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

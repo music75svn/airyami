@@ -1,0 +1,123 @@
+#*************************************************************************
+* CLASS 명      : showRpt
+* 작 업 자      : 안요한
+* 작 업 일      : 2013년 07월 17일 
+* 기    능      : 사업추진실적보고 조회    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    안요한      2013년 07월 17일             최 초 작 업 
+**************************************************************************#
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+	
+<script type="text/javascript" language="javascript" src="$!{spaceditor_path}/spac_editor_common.js"></script>
+<script type="text/javascript" language="javascript" src="$!{spaceditor_path}/spac_editor.js"></script>
+<link rel="stylesheet" type="text/css" href="$!{spaceditor_path}/spac_editor_common.css">
+<link rel="stylesheet" type="text/css" href="$!{spaceditor_path}/spac_editor.css">
+	
+<script type="text/javascript" language="javascript" >
+</script>    
+</head>
+<body>
+<div>
+<form id="form1" name="form1" method="post" enctype="multipart/form-data" action="$!{context_path}/cbe/exc/excRpt/excRptProcess.vw?type=template">
+    <input type="hidden" 	id="mode"				name="mode"					value="$!{searchMap.txt2html("mode")}" />
+	<input type="hidden"	id="year"				name="year"					value="$!{searchMap.txt2html("year")}" />
+	<input type="hidden"	id="evalDegreeId"		name="evalDegreeId"			value="$!{searchMap.txt2html("evalDegreeId")}" />
+	<input type="hidden"	id="excEvalTarget"		name="excEvalTarget"		value="$!{searchMap.txt2html("excEvalTarget")}" />
+	<input type="hidden" 	id="excEvalTargetGubun"	name="excEvalTargetGubun"	value="$!{searchMap.txt2html("excEvalTargetGubun")}" />
+	<input type="hidden" 	id="excRptId"			name="excRptId"				value="$!{searchMap.txt2html("excRptId")}" />
+		
+    $!{searchMap.makeHiddenFind()}
+	
+    <div id="Table">
+    	<div id="Table_blockContainer">
+			<div class="tableTop" style="margin-top:10px;">
+                <!-- 검색 테이블 Start -->
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w250">$!{YEAR} <span class="searchBar">$!{searchMap.txt2html("year")}년</span></td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+    		<div class="blockDetail" >
+    			<table summary="사업추진실적보고서 등록">
+					<caption class="none">사업추진실적보고서 등록</caption>
+    				<colgroup>
+    					<col width="20%" />
+    					<col width="30%" />
+    					<col width="10%" />
+    					<col width="15%" />
+    					<col width="10%" />
+    					<col width="15%" />
+    				</colgroup>
+    				<tbody>
+						<tr>
+    						<th scope="row" colspan="6" style="text-align:center;">별도평가 사업추진실적 보고서</th>
+    					</tr>
+    					#if($!{searchMap.txt2html("excEvalTargetGubun")} == "D")
+    						<tr>
+    							<th scope="row" style="text-align:center;">부서명</th>
+    							<td colspan="5" style="text-align:left;">$!{CS_HTML.txt2html($excRpt.SC_DEPT_NM)}</td>
+    							<input type="hidden" id="scDeptId" name="scDeptId" value="$!{CS_HTML.txt2html($excRpt.SC_DEPT_ID)}" />
+    						</tr>
+    					#else
+    						<tr>
+    							<th scope="row" colspan="6" style="text-align:center;">$!{CS_HTML.txt2html($excRpt.SC_DEPT_NM)}</th>
+    							<input type="hidden" id="scDeptId" name="scDeptId" value="$!{CS_HTML.txt2html($excRpt.SC_DEPT_ID)}" />
+    						</tr>
+    						<tr>
+								<th scope="row" style="text-align:center;">별도평가부서근무기간</th>
+								<td >
+									<input type="text" id="dutyStartDt" name="dutyStartDt" class="inputbox w100" value='$!{CS_FORMAT.dateFormat($!{excRpt.DUTY_START_DT})}' maxlength="20" readonly />
+									~
+									<input type="text" id="dutyEndDt" name="dutyEndDt" class="inputbox w100" value='$!{CS_FORMAT.dateFormat($!{excRpt.DUTY_END_DT})}' maxlength="20" readonly />
+								</td>
+								<th scope="row" style="text-align:center;">직급</th>
+	    						<td>
+									$!{CS_HTML.txt2html($excRpt.CAST_TC_NM)}
+								</td>
+								<th scope="row" style="text-align:center;">성명</th>
+	    						<td>
+									$!{CS_HTML.txt2html($excRpt.KOR_NM)}
+								</td>
+							</tr>
+    					#end
+						<tr>
+							<th scope="row" style="text-align:center;">주요내용</th>
+							<td colspan="5">
+								<script type="text/javascript">createEditor('content','550', '$!{excRpt.CONTENT.replaceAll("\r\n","").replaceAll("\\","&#92;").replaceAll("\'","\"")}', 'insertunorderedlist,insertorderedlist,createlink,unlink,attach,image_link,emoticon,special_chars,page_add,textbox,sourcebox,fullscreen,subscript,superscript,source,images');</script>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row" style="text-align:center;">첨부파일</th>
+							<td colspan="5">
+								#foreach($fileList in $fileList)
+									$!{CS_HTML.makeFileIconFileName($fileList.get("ATTACH_FILE_SUFFIX"), $fileList.get("ATTACH_FILE_NM"), $fileList.get("ATTACH_FILE_PATH"))} 
+								#end
+							</td>
+						</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>
+</div>
+</body>
+</html>
+

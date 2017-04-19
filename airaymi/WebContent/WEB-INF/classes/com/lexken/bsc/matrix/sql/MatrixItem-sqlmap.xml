@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bsc.matrix.matrixItem">
+
+	<!--
+	==================================================================   
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: BSC_MAT_EVAL_ITEM_GRP
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+	 
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MAT_ITEM_GRP
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT DISTINCT A.YEAR,
+               A.ITEM_GRP_ID,
+               A.ITEM_GRP_NM,
+               A.CONTENT,
+               SUM(B.WEIGHT) OVER(PARTITION BY A.YEAR, A.ITEM_GRP_ID) ITEM_WEIGHT,
+               COUNT(B.ITEM_ID) OVER(PARTITION BY A.YEAR, A.ITEM_GRP_ID) ITEM_CNT,
+               A.SORT_ORDER,
+               (SELECT COUNT(*)
+                  FROM BSC_MAT_EVAL_USER C
+                 WHERE A.YEAR=C.YEAR
+                     AND C.EVAL_SUBMIT_YN='Y') SUBMIT_CNT
+          FROM BSC_MAT_ITEM_GRP A
+          LEFT OUTER JOIN BSC_MAT_ITEM B ON A.YEAR=B.YEAR AND A.ITEM_GRP_ID=B.ITEM_GRP_ID
+         WHERE A.YEAR=#findYear#
+         ORDER BY A.SORT_ORDER
+	</select>
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: BSC_MAT_ITEM_GRP
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR                  
+             , A.ITEM_GRP_ID      
+             , A.ITEM_GRP_NM      
+             , A.CONTENT              
+             , A.SORT_ORDER
+             ,(SELECT COUNT(*) 
+                 FROM  BSC_MAT_EVAL B
+                WHERE A.YEAR = B.YEAR) EVAL_CNT            
+          FROM BSC_MAT_ITEM_GRP A
+         WHERE A.YEAR = #year#
+           AND A.ITEM_GRP_ID =#itemGrpId#	        
+	</select>
+	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 등록
+	  #	기능	: INSERT
+	  #	TABLE	: BSC_MAT_ITEM_GRP
+	==================================================================
+	-->	
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT 'MGB'||LPAD(NVL(MAX(SUBSTR(ITEM_GRP_ID,4,6)),0)+1,4,'0') SEQ FROM BSC_MAT_ITEM_GRP
+		</selectKey>
+		INSERT INTO BSC_MAT_ITEM_GRP ( 
+			   YEAR
+			 , ITEM_GRP_ID
+			 , ITEM_GRP_NM
+			 , CONTENT
+			 , SORT_ORDER
+			 , CREATE_DT
+			 ) VALUES ( 
+			   #year#
+			 , #SEQ#
+			 , #itemGrpNm#
+			 , #content#
+			 , #sortOrder#
+			 , SYSDATE
+			 )
+	</insert>	
+	
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_MAT_ITEM_GRP
+	==================================================================
+	-->	
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE BSC_MAT_ITEM_GRP 
+		   SET ITEM_GRP_NM            = #itemGrpNm# 
+			 , CONTENT                = #content# 
+			 , SORT_ORDER             = #sortOrder# 
+			 , MODIFY_DT              = SYSDATE 
+		 WHERE YEAR = #year#
+		   AND ITEM_GRP_ID = #itemGrpId#		
+	</update>	
+	
+
+	<!--
+	==================================================================   
+	  # 설명	: 평가항목 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: BSC_MAT_ITEM_GRP
+	==================================================================
+	-->	
+	<update id="deleteData" parameterClass="hashMap">
+		DELETE FROM BSC_MAT_ITEM_GRP 
+		 WHERE YEAR = #year#
+		   AND ITEM_GRP_ID = #itemGrpId#
+	</update>
+	
+	
+</sqlMap>
+
+

@@ -1,0 +1,133 @@
+#*************************************************************************
+* CLASS 명      : popMemPeerResultList.vm
+* 작 업 자      : 유연주
+* 작 업 일      : 2017.03.23
+* 기    능      : 업무수행평가결과 동료평가목록 팝업
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호   작 업 자     작   업   일        변 경 내 용             비고
+* ----  --------  -----------------  -------------------------  --------
+*  1     유 연 주     2017.03.23          최 초 작 업 
+**************************************************************************# 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+#set($main_url = $!{searchMap.txt2html("mainUrl")})
+#set($curr_url = $!{context_path} + "/mem/eval/memEvalResult/popMemPeerResultList.vw")
+
+<head>
+	#parse("/WEB-INF/vl/common/template/head.vm")
+    <script type="text/javascript" language="javascript" >
+//<![CDATA[
+	var J = jQuery;
+	var grdRowId = 0;
+	
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFindPop').serialize();
+		
+		jQuery("#popList").jqGrid({
+			url          :"$!{searchMap.txt2html("context")}/mem/eval/memEvalResult/popMemPeerResultList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : 246,
+			colNames     :['평가년도', '소속부서', '직급', '성명', '동표평가<BR>(원점수)', '평균', '표준편차', '조정점수'],
+			colModel     :[
+							{name:'YEAR'             ,index:'YEAR'             ,width:0      ,align:'center' },
+							{name:'EVAL_DEPT_NM'  	 ,index:'EVAL_DEPT_NM'     ,width:200    ,align:'left' },
+							{name:'EVAL_CAST_NM'  	 ,index:'EVAL_CAST_NM'     ,width:80     ,align:'center' },
+							{name:'EVAL_EMP_NM'  	 ,index:'EVAL_EMP_NM'      ,width:100    ,align:'center' },
+							{name:'CHANGE_SCORE'  	 ,index:'CHANGE_SCORE'     ,width:100    ,align:'center' },
+							{name:'AVERAGE'          ,index:'AVERAGE'          ,width:100    ,align:'center' },
+							{name:'STD_DEVIATION'    ,index:'STD_DEVIATION'    ,width:100    ,align:'center' },
+                            {name:'ADJUST_SCORE'     ,index:'ADJUST_SCORE'     ,width:100    ,align:'center' },
+							
+							],
+			rowNum       : 100000,
+			autowidth    : true,
+			viewrecords  : true,
+			loadonce     : false,
+			multiselect  : false,
+			cellEdit     : false,
+			cmTemplate   : {sortable:false},
+			loadComplete : function() {
+                           },
+			caption:"자기평가 조회"
+		}).jqGrid('hideCol',"YEAR").setGridWidth(760);
+		
+		/******************************************
+		 * 닫기버튼 이벤트
+		 ******************************************/
+		J("#btnClose").click(function(e) {
+			self.close();
+		});
+	});
+//]]>
+</script>
+</head>
+<body>
+
+<form id="formFindPop" name="formFindPop" method="post">
+	<input type="hidden" id="findYear"         name="findYear"           value="$!{searchMap.txt2html("findYear")}" />
+	<input type="hidden" id="findEmpNo"        name="findEmpNo"          value="$!{searchMap.txt2html("findEmpNo")}" />
+	<input type="hidden" id="findEvalGrpId"    name="findEvalGrpId"      value="$!{searchMap.txt2html("findEvalGrpId")}" />
+
+    <div style="width:780px;height:300px;">
+    	<div id="popMetricGrpArea" style="margin-left:15px;">
+    		<h1 class="none">자기평가리스트</h1>
+			<div class="tableTop">
+                <!-- 검색 테이블 Start -->
+                </br>
+                <div class="searchBox">
+                <div><div><div>   
+                    <table summary="검색조건">        
+                        <caption class="none">검색조건</caption>
+                        <thead><tr><th></th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+								<td class="searchBox_tit w350">
+									평가년도 <span class="searchBar">$!{searchMap.txt2html("findYear")}년</span>&nbsp;&nbsp;&nbsp;
+									평가대상자 <span class="searchBar">$empInfo.EMP_NM</span>
+								</td>
+							</tr>
+                        </tbody>
+                    </table>
+                </div></div></div>
+                </div>
+                <!--// 검색 테이블 End -->
+                <div class="clear"></div>
+            </div>
+			<div id="userData">
+    			<!-- 데이터그리드 Start -->
+    			<div class="blockGridListTable">
+    				<table id="popList" summary="동료평가 조회">
+    					<caption class="none">동료평가조회</caption>
+    					<thead><tr><th></th></tr></thead>
+    					<tbody><tr><td></td></tr></tbody>
+    				</table>
+    				<div id="pager"></div>                    
+    			</div>
+    			<!--// 데이터그리드 End -->
+			</div><br>
+			<div class="blockButton"> 
+    			<ul>
+    				<li><input type="button" id="btnClose"   value="닫기" /></li>
+    			</ul>
+    		</div>	
+    	</div>
+    	<div class="clear"></div>
+    </div>
+</form>
+<div id="dialog" title="확인" style="display:none;"><p>&nbsp;</p></div>    <!-- 다이어로그 -->
+</body>
+</html>

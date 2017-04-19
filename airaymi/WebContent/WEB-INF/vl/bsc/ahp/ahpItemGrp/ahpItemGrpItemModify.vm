@@ -1,0 +1,377 @@
+#*************************************************************************
+* CLASS 명      : ahpItemGrpModify
+* 작 업 자      : 하윤식 
+* 작 업 일      : 2012년 11월 28일 
+* 기    능      : AHP 평가대상그룹    
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자    작     업     일        변 경 내 용                비고
+* ----  --------  -----------------  -------------------------  --------
+*  1    하윤식      2012년 11월 28일             최 초 작 업 
+*  1    김민주      2013년 06월 25일             추 가 작 업 
+**************************************************************************# 
+
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+    
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+		
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/ahp/ahpItemGrp/ahpItemGrpItemList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {   
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows", 
+    						records: function(obj){return obj.length;},
+    						repeatitems: false, 
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['평가대상코드', '평가대상', '설명', '정렬순서', '연계 $!{METRIC_GRP_NM} 코드', 'METRIC_GRP', '연계 $!{METRIC_GRP_NM}', 'ITEM_ID'],
+			colModel     :[
+                            {name:'ITEM_ID'          ,index:'ITEM_GRP_ID'          ,width:50    ,align:'left'   ,formatter:linkItemId}, 
+                            {name:'ITEM_NM'          ,index:'ITEM_GRP_NM'          ,width:130   ,align:'center' ,formatter:linkItemNm}, 
+                            {name:'CONTENT'          ,index:'CONTENT'              ,width:170   ,align:'left'   ,formatter:linkContent},
+							{name:'SORT_ORDER'       ,index:'SORT_ORDER'           ,width:50    ,align:'center' ,formatter:linkSortOrder},
+                            {name:'METRIC_GRP_ID'    ,index:'METRIC_GRP_ID'        ,width:100   ,align:'center' },
+                            {name:'METRIC_GRP'    	 ,index:'METRIC_GRP'		   ,width:100   ,align:'center' ,formatter:linkMetricGrpId},
+							{name:'METRIC_GRP_NM'    ,index:'METRIC_GRP_NM'        ,width:100   ,align:'left'   },
+							{name:'ITEM_ID2'         ,index:'ITEM_ID2'             ,width:100   ,align:'center' }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false, 
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : true,
+			cellEdit     : true,
+			gridview     : true,
+			loadComplete : function() {
+								J("input[name=sortOrders]").numeric();
+								J("input[name=sortOrders]").css("ime-mode", "disabled"); //한글사용 비활성화
+                           },
+			caption:"AHP 평가대상"
+        }).jqGrid('hideCol',"ITEM_GRP_ID").jqGrid('hideCol',"MAPPING_CNT").jqGrid('hideCol',"ITEM_ID").jqGrid('hideCol',"ITEM_ID2").jqGrid('hideCol',"METRIC_GRP_ID").jqGrid('hideCol',"METRIC_GRP").setGridWidth($!{jqGrid_width});
+		
+		/******************************************
+		 * 취소버튼 (돌아가기)
+		 ******************************************/
+		J("#btnBack").click(function() {
+			J("#formFind").attr("action", "$!{context_path}/bsc/ahp/ahpItemGrp/ahpItemGrpList.vw?type=template").submit();
+		});
+        
+		/******************************************
+		 * 저장버튼 이벤트
+		 ******************************************/
+		J("#btnInsert").click(function(e) {
+			e.preventDefault();
+			saveChk();
+		});
+		
+		/******************************************
+		 * 행추가 이벤트
+		 ******************************************/
+		J("#btnAdd").click(function(e) {
+			e.preventDefault();
+			rowAdd();
+		});
+
+		/******************************************
+		 * 행삭제 이벤트
+		 ******************************************/
+		J("#btnDel").click(function(e) {
+			e.preventDefault();
+			rowDel();
+		});
+		
+		/******************************************
+		 * KPI 지표풀 추가 이벤트
+		 ******************************************/
+		J("#btnKpiGrpAdd").click(function(e) {
+			e.preventDefault();
+			kpiGrpSearch();
+		});
+		
+		/******************************************
+		 * 지표풀 추가 이벤트
+		 ******************************************/
+		J("#btnMetricGrpAdd").click(function(e) {
+			e.preventDefault();
+			metricGrpSearch();
+		});
+		
+		/******************************************
+		 * 저장버튼 이중 클릭 방지
+		 ******************************************/
+		J("form").submit(function(){
+			J("#btnInsert").unbind();
+		});
+		
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchor").fancybox();            //지표풀 팝업
+		J("#anchor").fancybox();            //KPI 지표풀 팝업
+	});
+	
+	/******************************************
+	 * jqGrid 평가대상 코드
+	 ******************************************/
+	function linkItemId(cellvalue, options, rowObject) {
+		return '<input type="text" name="itemIds" value="' + cellvalue + '" class="inputbox wp50"/>';
+	}
+	
+	/******************************************
+	 * jqGrid 평가대상
+	 ******************************************/
+	function linkItemNm(cellvalue, options, rowObject) {
+		return '<input type="text" name="itemNms" value="' + cellvalue + '" class="inputbox wp90" maxlength="100" />';
+	}
+
+	/******************************************
+	 * jqGrid 설명
+	 ******************************************/
+	function linkContent(cellvalue, options, rowObject) {
+		return '<input type="text" name="contents" value="' + cellvalue + '" class="inputbox wp90" maxlength="150"/>';
+	}
+	
+	/******************************************
+	 * jqGrid 정렬순서
+	 ******************************************/
+	function linkSortOrder(cellvalue, options, rowObject) {
+		return '<input type="text" name="sortOrders" value="' + cellvalue + '" class="inputbox w50"/>';
+	}
+	
+	/******************************************
+	 * jqGrid 지표그룹
+	 ******************************************/
+	function linkMetricGrpId(cellvalue, options, rowObject) {
+		return '<input type="text" name="metricGrpIds" value="' + rowObject.METRIC_GRP_ID + '" class="inputbox wp90"/>';
+	}
+	
+	/******************************************
+	 * jqGrid 행추가
+	 ******************************************/
+	function rowAdd() {
+		var datarow = {};
+		
+		datarow.ITEM_ID = "";
+		datarow.ITEM_NM = "";
+		datarow.CONTENT = "";
+		datarow.SORT_ORDER = "";
+		datarow.METRIC_GRP_ID = "";
+		datarow.METRIC_GRP_NM = "";
+  		
+        var ids = J("#list").jqGrid('getDataIDs');
+        J("#list").jqGrid('addRowData', ids.length+1, datarow);
+		
+		J("input[name=sortOrders]").numeric({allow:"."});        //특정문자 허용(.)
+		J("input[name=sortOrders]").css("ime-mode", "disabled"); //한글사용 비활성화
+	}
+	
+	/******************************************
+	 * jqGrid 행삭제
+	 ******************************************/
+	function rowDel() {
+        var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var itemIds = "";
+		
+		for (var i = 0; i < ids.length; i++) {
+			J.each(id, function (index, value) {
+				if (value == ids[i]) {
+					rowdata = J("#list").getRowData(ids[i]);
+					itemIds += rowdata.ITEM_ID2 + '|';
+					J("#list").jqGrid('delRowData', value);
+				}
+			});
+		}
+		
+		var delItemIds = J("#delItemIds").val() + "|" + itemIds;
+		J("#delItemIds").val(delItemIds);
+	}
+	
+	/******************************************
+	 * 필수입력 체크
+	 ******************************************/
+	function saveChk() {
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var chk = "Y";
+		
+		for (var i = 0; i < ids.length; i++) {
+			rowdata = J("#list").getRowData(ids[i]);
+			
+			if("" == J("input[name=itemNms]").eq(i).val() ) {
+				chk = "N";
+			}
+
+/**********************************************************	
+			if("" == J(rowdata.ITEM_NM).val()) {
+				chk = "N";
+			}
+***********************************************************/
+		}
+		
+		if(chk == "N") {
+			J.showMsgBox("평가대상을 입력해 주십시요", null, null);
+		} else {
+			J.showConfirmBox("일괄등록 하시겠습니까?", "saveDo"); //saveDo() 콜백함수 호출
+		}
+	}
+    
+	/******************************************
+	 * 저장
+	 ******************************************/
+	function saveDo() {
+		J("#year").val(J("#findYear").val());
+		J("#itemGrpId").val(J("#findItemGrpId").val());
+		J("#mode").val("BATCH");
+		J("#formList").attr("action", "$!{context_path}/bsc/ahp/ahpItemGrp/ahpItemGrpProcess.vw?type=template").submit();
+		return false;
+	}
+
+	
+	
+	/*****************************************************
+	 * KPI 지표pool 선택 팝업
+	 *****************************************************/
+	function kpiGrpSearch() {
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popKpiGrpMultiSearch.vw?findYear=$!{searchMap.txt2html("findYear")}");
+		J("#anchor").click();
+	}
+	
+	/*****************************************************
+	 * 지표pool 선택 팝업
+	 *****************************************************/
+	function metricGrpSearch() {
+		J("#anchor").attr("href","$!{context_path}/bsc/module/commModule/popMetricGrpMultiSearch.vw?findYear=$!{searchMap.txt2html("findYear")}");
+		J("#anchor").click();
+	}
+		
+	/******************************************
+	 * jqGrid 행추가
+	 ******************************************/
+	function popRowAdd(metricGrpId, metricGrpNm) {
+		var datarow = {};
+		var id = J("#list").getGridParam('selarrrow');
+		var ids = J("#list").jqGrid('getDataIDs');
+		var rowdata = "";
+		var metricGrpId1 = "";
+		var row = "";
+		var flag = false;
+		
+		for (var i = 0; i < ids.length; i++) {
+			row = J("#list").getRowData(ids[i]);
+			
+			if(row.METRIC_GRP_ID == metricGrpId) {
+				flag = true;
+				J.showMsgBox("중복된 평가대상 데이터입니다.", null, null);
+			}
+		}
+		
+		if(flag == false) {
+			datarow.ITEM_ID = "";
+			datarow.ITEM_NM = metricGrpNm;
+			datarow.CONTENT = "";
+			datarow.SORT_ORDER = "";
+			datarow.METRIC_GRP_ID = metricGrpId;
+			datarow.METRIC_GRP_NM = metricGrpNm;
+	  		
+	        var ids = J("#list").jqGrid('getDataIDs');
+	        J("#list").jqGrid('addRowData', ids.length+1, datarow);
+			
+			J("input[name=sortOrders]").numeric({allow:"."});        //특정문자 허용(.)
+			J("input[name=sortOrders]").css("ime-mode", "disabled"); //한글사용 비활성화
+		}
+	}
+//]]>
+</script>    
+ 
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">AHP 평가대상그룹</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+			
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/ahp/ahpItemGrp/ahpItemGrpList.vw?type=template">
+				<input type="hidden"    id="findHighPgmId"  name="findHighPgmId"    value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden"    id="findSubPgmId"   name="findSubPgmId"     value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"      name="findPgmId"        value="$!{searchMap.txt2html("findPgmId")}" />
+				<input type="hidden"    id="findYear"       name="findYear"         value="$!{searchMap.txt2html("findYear")}" />
+				<input type="hidden"    id="findItemGrpId"  name="findItemGrpId"    value="$!{searchMap.txt2html("findItemGrpId")}" />
+				
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="AHP 평가대상그룹검색 조건">
+						<caption class="none">AHP 평가대상그룹 검색 조건</caption> 
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w250">
+            						<span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">$!{searchMap.txt2html("findYear")}년</span>
+            					</td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<div class="clear"></div>
+		</div>
+		
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/ahp/ahpItemGrp/ahpItemGrpProcess.vw?type=template">
+			<input type="hidden" id="mode"       name="mode" />
+			<input type="hidden" id="year"       name="year" />
+			<input type="hidden" id="yearNm"     name="yearNm" />
+			<input type="hidden" id="itemGrpIds" name="itemGrpIds" /> 
+			<input type="hidden" id="itemGrpId"  name="itemGrpId" />
+			<input type="hidden" id="delItemIds" name="delItemIds" /> 
+			<input type="hidden" id="metricGrpId1" name="metricGrpId1" /> 
+			
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="AHP 평가대상그룹 조회결과">
+							<caption class="none">AHP 평가대상그룹 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+					<div class="blockButton_all">
+						<div class="blockButton_l"></div>
+						<div class="blockButton">
+							<ul>
+								<li><input type="button" id="btnKpiGrpAdd"    value="KPI지표 Pool 추가" /></li>
+								<li><input type="button" id="btnMetricGrpAdd" value="$!{METRIC_GRP_NM}추가" /></li>
+								<li><input type="button" id="btnAdd"          value="행추가" /></li>
+								<li><input type="button" id="btnDel"          value="행삭제" /></li>
+								<li><input type="submit" id="btnInsert"       value="저장" /></li>
+								<li><input type="button" id="btnBack"         value="돌아가기" /></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+	</div>
+	<a id="anchor"></a>
+	<div class="clear"></div>
+</div>

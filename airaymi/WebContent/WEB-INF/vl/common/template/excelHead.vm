@@ -1,0 +1,29 @@
+	<meta http-equiv=Content-Type content="text/html; charset=utf-8">
+	<meta name=ProgId content=Excel.Sheet> 
+	<meta name=Generator content="Microsoft Excel 11">
+    
+    #set ($context_path     = $!{searchMap.txt2html("context")})
+    #set ($img_path         = $!{context_path} + "/images")
+    #set ($jsp_path         = $!{context_path} + "/jsp")
+    #set ($css_path         = $!{context_path} + "/css")
+    #set ($js_path          = $!{context_path} + "/js")
+    #set ($chart_path       = $!{context_path} + "/charts/FusionCharts")
+    #set ($widget_path      = $!{context_path} + "/charts/FusionWidgets")
+    #set ($powerChart_path  = $!{context_path} + "/charts/PowerCharts")
+    #set ($ckeditor_path    = $!{context_path} + "/ckeditor")
+    
+    #set ($METRIC_NM   	    = $!{searchMap.txt2html("METRIC_NM")})
+    #set ($METRIC_GRP_NM   	= $!{searchMap.txt2html("METRIC_GRP_NM")})
+    #set ($SC_DEPT_NM   	= $!{searchMap.txt2html("SC_DEPT_NM")})
+    #set ($DEPT_NM   		= $!{searchMap.txt2html("DEPT_NM")})
+    #set ($UP_SC_DEPT_NM    = $!{searchMap.txt2html("UP_SC_DEPT_NM")})
+    #set ($PERSPECTIVE_NM   = $!{searchMap.txt2html("PERSPECTIVE_NM")})
+    #set ($DIRECTION_NM     = $!{searchMap.txt2html("DIRECTION_NM")})
+    #set ($STRATEGY_NM      = $!{searchMap.txt2html("STRATEGY_NM")})
+    #set ($UP_STRATEGY_NM   = $!{searchMap.txt2html("UP_STRATEGY_NM")})
+    #set ($ACTIVITY_NM      = $!{searchMap.txt2html("ACTIVITY_NM")})
+    #set ($YEARMON   	    = $!{searchMap.txt2html("YEARMON")})
+    #set ($YEAR   	    	= $!{searchMap.txt2html("YEAR")})
+    #set ($WEIGHT   	    = $!{searchMap.txt2html("WEIGHT")})
+    #set ($ORG_EVAL_ITEM_NM = $!{searchMap.txt2html("ORG_EVAL_ITEM_NM")})
+    #set ($EMAIL   	        = "@kgs.or.kr")

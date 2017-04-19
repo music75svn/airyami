@@ -1,0 +1,48 @@
+#*************************************************************************
+* CLASS 명      : metricActivityActList_xml
+* 작 업 자      : 정철수
+* 작 업 일      : 2012년 9월 3일 
+* 기    능      : KPI 실적상세화면 json 데이터 조회
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1      정철수     2012년 9월 3일            최 초 작 업
+**************************************************************************# 
+#set($listSize = $!{CS_HTML.txt2html($list.size())})
+#set($idx = 0)
+
+{
+	"page": "1",
+	"total": 1,
+	"records": "$listSize",
+	"rows":[
+
+#foreach($list in $list)
+	{
+		"YEAR"                 : "$!{CS_HTML.txt2html($list.YEAR)}", 
+		"MON"                  : "$!{CS_HTML.txt2html($list.MON)}", 
+		"METRIC_ID"            : "$!{CS_HTML.txt2html($list.METRIC_ID)}", 
+		"PLAN_NM_1MON"         : "$!{CS_HTML.txt2html($list.PLAN_NM_1MON)}", 
+		"PLAN_CONTENTS_1MON"   : "$!{CS_HTML.txt2html($list.PLAN_CONTENTS_1MON)}", 
+		"ACT_NM"               : "$!{CS_HTML.txt2html($list.ACT_NM)}", 
+		"ACT_CONTENTS"         : "$!{CS_HTML.txt2html($list.ACT_CONTENTS)}", 
+		"ACT_NM_Y"             : "$!{CS_HTML.txt2html($list.ACT_NM_Y)}", 
+		"NEXT_PLAN_NM"         : "$!{CS_HTML.txt2html($list.NEXT_PLAN_NM)}", 
+		"NEXT_PLAN_CONTENTS"   : "$!{CS_HTML.txt2html($list.NEXT_PLAN_CONTENTS)}", 
+		"PLAN_NM_Y"            : "$!{CS_HTML.txt2html($list.PLAN_NM_Y)}", 
+		"SELF_EVAL"            : "$!{CS_HTML.txt2html($list.SELF_EVAL)}", 
+		"FINAL_EVAL"           : "$!{CS_HTML.txt2html($list.FINAL_EVAL)}", 
+		"EVAL_REASON"          : "$!{CS_HTML.txt2html($list.EVAL_REASON)}", 
+		"STATUS_ID"            : "$!{CS_HTML.txt2html($list.STATUS_ID)}", 
+		"CREATE_DT"            : "$!{CS_HTML.txt2html($list.CREATE_DT)}", 
+		"CAUSE_DESC"           : "$!{CS_HTML.txt2html($list.CAUSE_DESC)}", 
+		"CATCH_UP"             : "$!{CS_HTML.txt2html($list.CATCH_UP)}"
+	}
+	#set($idx = $idx + 1)
+	#if($idx != $listSize)
+	 ,
+	#end
+#end
+
+	]
+}

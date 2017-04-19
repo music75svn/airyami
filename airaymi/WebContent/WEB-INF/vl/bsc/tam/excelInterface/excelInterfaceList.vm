@@ -1,0 +1,310 @@
+#*************************************************************************
+* CLASS 명      : excelInterfaceList
+* 작 업 자      : 김윤기
+* 작 업 일      : 2012년 7월 17일
+* 기    능      : 엑셀로딩관리
+* ---------------------------- 변 경 이 력 --------------------------------
+* 번호    작 업 자     작   업   일       변 경 내 용           비  고
+* ----  --------  -----------------  -------------------------  -----------
+*  1     김윤기      2012년 7월 17일             최 초 작 업
+**************************************************************************#
+#set($curr_url = $!{context_path} + "/bsc/tam/excelInterface/excelInterfaceList.vw")
+<script type="text/javascript" language="javascript" >
+//<![CDATA[
+
+	var J = jQuery;
+
+	J(document).ready(function(){
+
+		/******************************************
+		 * 데이터 그리드 출력
+		 ******************************************/
+		var str = J('#formFind').serialize();
+
+		jQuery("#list").jqGrid({
+			url          :"$!{context_path}/bsc/tam/excelInterface/excelInterfaceList_xml.vw" + "?" + str,
+			mtype        :"POST",
+			datatype     :"json",
+			jsonReader   : {
+    						page   : "page",
+    						total  : "total",
+    						root   : "rows",
+    						records: function(obj){return obj.length;},
+    						repeatitems: false,
+    						id     : "id"
+    				       },
+			height       : $!{jqGrid_height},
+			width        : $!{jqGrid_width},
+			colNames     :['항목코드', '항목', '$!{YEAR}', '기준월', '최종연계일시', '연계자',  '성공여부', '연계건수', 'ITEM_ACTUAL_DIVI', '양식다운로드', '엑셀연계'],
+			colModel     :[
+                            {name:'ITEM_CD'              ,index:'ITEM_CD'              ,width:150   ,align:'center' },
+                            {name:'ITEM_NM'              ,index:'ITEM_NM'              ,width:400   ,align:'left'  , formatter:linkUpdate },
+                            {name:'YM'			         ,index:'YM'		           ,width:100   ,align:'center' },
+							{name:'MON'			         ,index:'MON'		           ,width:100   ,align:'center' },
+							{name:'INTERFACE_DT'         ,index:'INTERFACE_DT'         ,width:150   ,align:'center' },
+                            {name:'USER_NM'              ,index:'USER_NM'              ,width:110   ,align:'center' },
+							{name:'RESULT_YN'            ,index:'RESULT_YN'            ,width:100   ,align:'center' },
+							{name:'INPUT_VALUE'          ,index:'INPUT_VALUE'          ,width:100   ,align:'center' },
+							{name:'ITEM_ACTUAL_DIVI'     ,index:'ITEM_ACTUAL_DIVI'     ,width:100   ,align:'center' },
+                            {name:'EXCEL_DOWNLOAD'       ,index:'EXCEL_DOWNLOAD'       ,width:150   ,align:'center', formatter:linkUpdate1 },
+                            {name:'EXCEL_UPLOAD'         ,index:'EXCEL_UPLOAD'         ,width:150   ,align:'center', formatter:linkUpdate2 }
+							],
+			rowNum       : $!{jqGrid_rownum},
+			autowidth    : false,
+			viewrecords  : true,
+			loadonce     : true,
+			multiselect  : false,
+			cellEdit     : true,
+			cmTemplate   : {sortable:true},
+			caption:"엑셀로딩관리"
+		}).jqGrid('hideCol','ITEM_CD').jqGrid('hideCol','ITEM_ACTUAL_DIVI').setGridWidth($!{jqGrid_width});
+
+		/******************************************
+		 * 조회
+		 ******************************************/
+		J("#formFind").submit(function(event) {
+			//submit 하기전 작업추가
+		});
+
+		/******************************************
+		 * 신규 등록
+		 ******************************************/
+		J("#btnInsert").click(function() {
+			J("#mode").val("ADD");
+			J("#formList").attr("action", "$!{context_path}/bsc/tam/excelInterface/excelUploadModify.vw?type=template").submit();
+		});
+
+		/******************************************
+		 * 삭제 버튼 클릭 이벤트
+		 ******************************************/
+		J("#btnDelete").click(function() {
+			goDelete();
+			return false;
+		});
+
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchor").fancybox();            //엑셀업로드 팝업
+
+		/******************************************
+		 * fancy Box 팝업호출
+		 ******************************************/
+		J("#anchorTgt").fancybox();         //엑셀업로드 팝업
+	});
+
+	/******************************************
+	 * jqGrid 상세페이지 링크
+	 ******************************************/
+	function linkUpdate(cellvalue, options, rowObject) {
+
+		if(rowObject.ITEM_ACTUAL_DIVI == '01'){
+			return cellvalue
+		}else{
+			return '<a href=javascript:goDetail(' + options.rowId + ')>' + cellvalue + '<//a>';
+		}
+	}
+
+	/******************************************
+	 * jqGrid 수정페이지 링크
+	 ******************************************/
+	function linkUpdate1(cellvalue, options, rowObject) {
+
+		if(rowObject.ITEM_ACTUAL_DIVI == '01'){
+			return "<img name=\'execlDown\' src=\'$!{img_path}/btn_excel.gif\' onclick=\"goExcelTargetDown("+options.rowId+")\")\">";
+		}else{
+			return "<img name=\'execlDown\' src=\'$!{img_path}/btn_excel.gif\' onclick=\"goExcelDown("+options.rowId+")\")\">";
+		}
+
+	}
+
+	function linkUpdate2(cellvalue, options, rowObject) {
+
+		if(rowObject.ITEM_ACTUAL_DIVI == '01'){
+			return "<img name=\'execlUp\'  src=\'$!{img_path}/btn_excel_upload.gif\' onclick=\"goExcelTargetUp("+options.rowId+")\")\">";
+		}else{
+			return "<img name=\'execlUp\'  src=\'$!{img_path}/btn_excel_upload.gif\' onclick=\"goExcelUp("+options.rowId+")\")\">";
+		}
+
+	}
+
+	/******************************************
+	 * 상세페이지
+	 ******************************************/
+	function goDetail(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+
+		J("#year").val(J("#findYear").val());
+		J("input[name=findMon]").val(ret.MON);
+		J("#itemCd").val(ret.ITEM_CD);
+
+		J("#formList").attr("action", "$!{context_path}/bsc/tam/excelInterface/excelInterfaceDetailList.vw?type=template").submit();
+	}
+
+	/******************************************
+	 * 엑셀 양식다운로드
+	 ******************************************/
+	function goExcelDown(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#year").val(J("#findYear").val());
+		J("#itemCd").val(ret.ITEM_CD);
+		J("#itemNm").val(J(ret.ITEM_NM).text());
+
+		//alert(J(ret.ITEM_NM).text());
+
+		J("#formList").attr("action", "$!{context_path}/bsc/tam/excelInterface/excelTemplateDown.vw?type=excel").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 엑셀 양식다운로드
+	 ******************************************/
+	function goExcelTargetDown(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+		J("#year").val(J("#findYear").val());
+		J("#itemCd").val(ret.ITEM_CD);
+		J("#itemNm").val(ret.ITEM_NM);
+
+		//alert(ret.ITEM_NM);
+
+		J("#formList").attr("action", "$!{context_path}/bsc/tam/excelInterface/excelTargetTemplateDown.vw?type=excel").submit();
+		return false;
+	}
+
+	/******************************************
+	 * 엑셀 업로드
+	 ******************************************/
+	function goExcelUp(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+
+		var year = J("#findYear").val();
+		var findHighPgmId = J("#findHighPgmId").val();
+		var findSubPgmId = J("#findSubPgmId").val();
+		var findPgmId = J("#findPgmId").val();
+		var itemCd = ret.ITEM_CD;
+		var itemNm = ret.ITEM_NM;
+		var findItemActualDivi = J("#findItemActualDivi").val();
+		var findExcelUserId = J("#findExcelUserId").val();
+		var findItemNm = J("#findItemNm").val();
+
+		J("#anchor").attr("href","$!{context_path}/bsc/tam/excelInterface/popExcelUpload.vw?findYear=" + year + "&amp;itemCd=" + itemCd + "&amp;findHighPgmId=" + findHighPgmId + "&amp;findSubPgmId=" + findSubPgmId + "&amp;findPgmId=" + findPgmId + "&amp;findItemActualDivi=" + findItemActualDivi + "&amp;findExcelUserId=" + findExcelUserId + "&amp;findItemNm=" + findItemNm);
+		J("#anchor").click();
+	}
+
+	/******************************************
+	 * 엑셀 업로드
+	 ******************************************/
+	function goExcelTargetUp(rowId) {
+		var ret = J("#list").jqGrid('getRowData',rowId);
+
+		var year = J("#findYear").val();
+		var findHighPgmId = J("#findHighPgmId").val();
+		var findSubPgmId = J("#findSubPgmId").val();
+		var findPgmId = J("#findPgmId").val();
+		var findItemActualDivi = J("#findItemActualDivi").val();
+		var findExcelUserId = J("#findExcelUserId").val();
+		var findItemNm = J("#findItemNm").val();
+		
+		var itemCd = ret.ITEM_CD;
+		var itemNm = ret.ITEM_NM;
+		
+		J("#anchorTgt").attr("href","$!{context_path}/bsc/tam/excelInterface/popExcelTargetUpload.vw?findYear=" + year + "&amp;itemCd=" + itemCd + "&amp;findHighPgmId=" + findHighPgmId + "&amp;findSubPgmId=" + findSubPgmId + "&amp;findPgmId=" + findPgmId + "&amp;findItemActualDivi=" + findItemActualDivi + "&amp;findExcelUserId=" + findExcelUserId + "&amp;findItemNm=" + findItemNm);
+		J("#anchorTgt").click();
+	}
+
+//]]>
+</script>
+
+<div id="Table">
+	<div id="Table_blockContainer">
+		<h1 class="none">엑셀로딩관리</h1>
+		<div class="tableTop">
+			#parse("/WEB-INF/vl/common/template/tabs.vm")
+
+    		<!-- search S -->
+			<form id="formFind" name="formFind" method="post" action="$!{context_path}/bsc/tam/excelInterface/excelInterfaceList.vw?type=template">
+				<input type="hidden"	id="findHighPgmId"	name="findHighPgmId"	value="$!{searchMap.txt2html("findHighPgmId")}" />
+				<input type="hidden" 	id="findSubPgmId"	name="findSubPgmId"		value="$!{searchMap.txt2html("findSubPgmId")}" />
+				<input type="hidden"    id="findPgmId"		name="findPgmId"		value="$!{searchMap.txt2html("findPgmId")}" />
+				<div class="searchBox">
+    				<div><div><div>
+    				<table summary="엑셀로딩관리검색 조건">
+						<caption class="none">엑셀로딩관리 검색 조건</caption>
+						<thead><tr><th></th></tr></thead>
+        				<tbody>
+            				<tr>
+								<td class="searchBox_tit w200">
+                                    <span><label for="findYear">$!{YEAR}</label></span>
+            						<span class="searchBar">
+            							<select id="findYear" name="findYear" class="select w80">
+            								$!CS_CODE.getCodeOption("017", $!{searchMap.txt2html("findYear")})
+            							</select>
+            						</span>
+            					</td>
+								<td class="searchBox_tit w200">
+            						<span><label for="findItemActualDivi">연계구분</label></span>
+            						<span class="searchBar">
+            							<select id="findItemActualDivi" name="findItemActualDivi" class="select w100">
+            								<option value="">전체 </option>
+            								$!CS_CODE.getCodeOption("061", $!{searchMap.txt2html("findItemActualDivi")})
+            							</select>
+            						</span>
+            					</td>
+            					<td class="searchBox_tit w200">
+                					<span>담당자</span>
+            						<span class="searchBar">
+										#if($CS_LOGIN.chkAuthGrp("01") || $CS_LOGIN.chkAuthGrp("60"))
+    										<select id="findExcelUserId" name="findExcelUserId" class="select w100">
+                                            	<option value="" $searchMap.getSelected("findExcelUserId", "")>전체</option>
+    											#foreach($userList in $userList)
+                                                	<option value="$!{CS_HTML.txt2html($userList.EXCEL_USER_ID)}" $searchMap.getSelected("findExcelUserId", "$!{CS_HTML.txt2html($userList.EXCEL_USER_ID)}")>$!{CS_HTML.txt2html($userList.EXCEL_USER_NM)}</option>
+                                                #end
+    										</select>
+										#else
+											<input type="hidden" id="findExcelUserId" name="findExcelUserId" value="$CS_LOGIN.getUser_id()"/>
+											$CS_LOGIN.getUser_nm()
+										#end
+            						</span>
+                                </td>
+            					<td class="searchBox_tit w250">
+                					<span>항목</span>
+									<span class="searchBar"><input type="text" id="findItemNm" name="findItemNm" class="text" value="$!{searchMap.txt2html("findItemNm")}"  maxlength="10" title="업로드 항목명 "/> </span>
+                                </td>
+            				</tr>
+        				</tbody>
+    				</table>
+                    <input type="image" class="btnSearch" src="$!{img_path}/common/btn_search.gif" align="middle" alt="검색" />
+                    </div></div></div>
+    	        </div>
+    		</form>
+    		<!-- search E -->
+			<a id="anchor"></a>
+			<a id="anchorTgt"></a>
+			<div class="clear"></div>
+		</div>
+
+		<form id="formList" name="formList" method="post" action="$!{context_path}/bsc/tam/excelInterface/excelUploadProcess.vw?type=template">
+			<input type="hidden" id="mode"       name="mode" />
+			<input type="hidden" id="year"		 name="year" />
+			<input type="hidden" id="mon"		 name="mon" />
+			<input type="hidden" id="itemCd"     name="itemCd" />
+			<input type="hidden" id="itemNm"     name="itemNm" />
+			$!{searchMap.makeHiddenFind()}
+			<div id="splitterBox">
+				<div>
+					<!-- 데이터그리드 Start -->
+					<div class="blockGridListTable">
+						<table id="list" summary="엑셀로딩관리 조회결과">
+							<caption class="none">엑셀로딩관리 조회</caption>
+							<thead><tr><th></th></tr></thead>
+							<tbody><tr><td></td></tr></tbody>
+						</table>
+						<div id="pager"></div>
+					</div>
+					<!--// 데이터그리드 End -->
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="clear"></div>
+</div>

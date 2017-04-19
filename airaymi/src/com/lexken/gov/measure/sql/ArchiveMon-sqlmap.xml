@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="gov.measure.archiveMon">
+
+	<!--
+	==================================================================
+	  # 설명	: typeAlias 선언
+	  #	기능	: SETTING
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<typeAlias alias="hashMap" 			type="java.util.HashMap" />
+
+
+	<!--
+	==================================================================
+	  # 설명	: 계량지표총괄표 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR,
+               B.EVAL_CAT_GRP_ID,
+               B.EVAL_CAT_GRP_NM,
+               C.EVAL_CAT_ID,
+               C.EVAL_CAT_NM,
+               A.GOV_METRIC_ID,
+               A.GOV_METRIC_NM,
+               A.MAIN_METRIC_YN,
+               CASE WHEN A.MAIN_METRIC_YN != 'Y' THEN 'NNN'||A.GOV_METRIC_NM
+               ELSE 'YYY'||A.GOV_METRIC_NM END AS SEL_GOV_METRIC_NM,
+               A.DIREC_ID,
+               A.WEIGHT,
+               F_CODE_NM('147',A.DIREC_ID,A.YEAR) DIREC_NM,
+               A.EVAL_METHOD_ID,
+               F_CODE_NM('146',A.EVAL_METHOD_ID,A.YEAR) EVAL_METHOD_NM,
+               ROUND(A.BEST_TARGET,3) TARGET,
+               ROUND(D.ACTUAL,3) ACTUAL,
+               ROUND(D.SCORE,3) SCORE,
+               CASE WHEN A.DIREC_ID = '01' THEN ROUND((D.ACTUAL/A.BEST_TARGET)*100, 3)
+                  WHEN A.DIREC_ID = '02' THEN ROUND (  F_PERSENT_DOWN(D.ACTUAL, A.BEST_TARGET), 3)
+	           ELSE 0
+	           END RESULT_RATE,
+               D.STATUS_ID,
+               CASE WHEN A.MAIN_METRIC_YN = 'Y' THEN NVL(A.WEIGHT,0) ELSE 0 END MAIN_WEIGHT,
+		       COUNT(1) OVER(PARTITION BY B.EVAL_CAT_GRP_ID ) GRP_CNT ,
+		       ROW_NUMBER() OVER(PARTITION BY EVAL_CAT_GRP_ID ORDER BY B.SORT_ORDER, C.SORT_ORDER, A.SORT_ORDER, MAIN_METRIC_YN DESC) GRP_NUM,
+		       COUNT(1) OVER(PARTITION BY EVAL_CAT_GRP_ID, A.EVAL_CAT_ID) CAT_CNT,
+		       ROW_NUMBER() OVER(PARTITION BY EVAL_CAT_GRP_ID, A.EVAL_CAT_ID ORDER BY C.SORT_ORDER, A.SORT_ORDER, MAIN_METRIC_YN DESC) CAT_NUM,
+		       ROUND(SCORE * A.WEIGHT / 100, 3) AS MULTI
+          FROM (SELECT ROWNUM MET_ORDER,
+	                   X.YEAR,
+	                   X.GOV_METRIC_ID,
+	                   X.UP_METRIC_ID,
+	                   X.GOV_METRIC_NM,
+	                   X.EVAL_CAT_ID,
+	                   X.EVAL_CAT_GRP_ID,
+	                   X.DIREC_ID,
+	                   X.EVAL_METHOD_ID,
+	                   X.BEST_TARGET,
+	                   X.MAIN_METRIC_YN,
+	                   X.WEIGHT,
+	                   X.SORT_ORDER
+                  FROM (SELECT YEAR,
+			                   GOV_METRIC_ID,
+			                   UP_METRIC_ID,
+			                   GOV_METRIC_NM,
+			                   EVAL_CAT_ID,
+			                   EVAL_CAT_GRP_ID,
+			                   DIREC_ID,
+			                   EVAL_METHOD_ID,
+			                   BEST_TARGET,
+			                   MAIN_METRIC_YN,
+			                   WEIGHT,
+			                   SORT_ORDER
+			             FROM (SELECT *
+			                     FROM GOV_METRIC
+			                    WHERE delete_dt IS NULL)
+			            WHERE YEAR = #findYear#
+			              AND GBN_ID = '01'
+			       		START WITH MAIN_METRIC_YN = 'Y'
+			       	  CONNECT BY PRIOR GOV_METRIC_ID = UP_METRIC_ID
+			       		  AND PRIOR YEAR = YEAR
+						ORDER SIBLINGS BY SORT_ORDER ASC
+      				   ) X
+                ) A
+	     INNER JOIN GOV_EVAL_CAT_GRP B
+	        ON A.YEAR = B.YEAR
+	       AND A.EVAL_CAT_GRP_ID = B.EVAL_CAT_GRP_ID
+	     INNER JOIN GOV_EVAL_CAT C
+	       	ON A.YEAR = C.YEAR
+	       AND A.EVAL_CAT_ID = C.EVAL_CAT_ID
+	      LEFT OUTER JOIN GOV_ACTUAL D
+	      	ON A.YEAR = D.YEAR
+	       AND A.GOV_METRIC_ID = D.GOV_METRIC_ID
+	       AND D.MON = #findMon#
+	     ORDER BY A.MET_ORDER, B.SORT_ORDER, C.SORT_ORDER
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 범주차트 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getCatGrpList" parameterClass="hashMap" resultClass="hashMap">
+			SELECT X.EVAL_CAT_GRP_ID,
+                   X.EVAL_CAT_GRP_NM,
+                   ROUND(SUM(X.WEIGHT),3) WEIGHT,
+                   ROUND(SUM(X.WEIGHT_SCORE),3) SCORE
+      		  FROM (SELECT A.EVAL_CAT_GRP_ID,
+		                   A.EVAL_CAT_GRP_NM,
+		                   A.SORT_ORDER,
+		                   NVL(B.WEIGHT,0) WEIGHT,
+		                   NVL(C.SCORE,0) SCORE,
+		                   SUM(NVL(WEIGHT,0)) OVER(PARTITION BY A.EVAL_CAT_GRP_ID) WEIGHT_SUM,
+		                   C.SCORE * (B.WEIGHT/100) WEIGHT_SCORE
+                      FROM GOV_EVAL_CAT_GRP A
+		                   LEFT OUTER JOIN GOV_METRIC B
+		                   ON A.YEAR = B.YEAR
+		                   AND A.EVAL_CAT_GRP_ID = B.EVAL_CAT_GRP_ID
+		                   AND B.DELETE_DT IS NULL
+		                   AND B.GBN_ID = '01'
+		                   AND B.MAIN_METRIC_YN = 'Y'
+		                   LEFT OUTER JOIN GOV_ACTUAL C
+		                   ON B.YEAR = C.YEAR
+		                   AND B.GOV_METRIC_ID = C.GOV_METRIC_ID
+		                   AND C.MON = #findMon#
+                     WHERE A.YEAR = #findYear#
+                       AND B.GBN_ID = '01'
+                   ) X
+             GROUP BY X.EVAL_CAT_GRP_ID,
+                      X.EVAL_CAT_GRP_NM
+             ORDER BY MAX(X.SORT_ORDER)
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 범주차트 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getCatGrpByOneList" parameterClass="hashMap" resultClass="hashMap">
+			SELECT X.EVAL_CAT_GRP_ID,
+                   X.EVAL_CAT_GRP_NM,
+                   ROUND(SUM(X.WEIGHT),3) WEIGHT,
+                   ROUND(SUM(X.WEIGHT_SCORE),3) SCORE
+      		  FROM (SELECT A.EVAL_CAT_GRP_ID,
+		                   A.EVAL_CAT_GRP_NM,
+		                   A.SORT_ORDER,
+		                   NVL(B.WEIGHT,0) WEIGHT,
+		                   NVL(C.SCORE,0) SCORE,
+		                   SUM(NVL(WEIGHT,0)) OVER(PARTITION BY A.EVAL_CAT_GRP_ID) WEIGHT_SUM,
+		                   NVL(C.SCORE * (B.WEIGHT/100),0 ) WEIGHT_SCORE
+                      FROM GOV_EVAL_CAT_GRP A
+		                   LEFT OUTER JOIN GOV_METRIC B
+		                   ON A.YEAR = B.YEAR
+		                   AND A.EVAL_CAT_GRP_ID = B.EVAL_CAT_GRP_ID
+		                   AND B.GBN_ID = '01'
+		                   AND B.MAIN_METRIC_YN = 'Y'
+		                   AND B.DELETE_DT IS NULL
+		                   LEFT OUTER JOIN GOV_ACTUAL C
+		                   ON B.YEAR = C.YEAR
+		                   AND B.GOV_METRIC_ID = C.GOV_METRIC_ID
+		                   AND C.MON = #findMon#
+                     WHERE A.YEAR = #findYear#
+                       AND A.EVAL_CAT_GRP_ID = #findEvalCatGrpId#
+                   ) X
+             GROUP BY X.EVAL_CAT_GRP_ID,
+                      X.EVAL_CAT_GRP_NM
+             ORDER BY MAX(X.SORT_ORDER) 
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 부문차트 목록 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getCatList" parameterClass="hashMap" resultClass="hashMap">
+			SELECT X.EVAL_CAT_ID,
+                   X.EVAL_CAT_NM,
+                   SUM(X.WEIGHT) WEIGHT,
+                   SUM(X.WEIGHT_SCORE) SCORE
+              FROM (SELECT A.EVAL_CAT_ID,
+		                   A.EVAL_CAT_NM,
+		                   A.SORT_ORDER,
+		                   NVL(B.WEIGHT,0) WEIGHT,
+		                   NVL(C.SCORE,0) SCORE,
+		                   SUM(NVL(WEIGHT,0)) OVER(PARTITION BY A.EVAL_CAT_GRP_ID) WEIGHT_SUM,
+		                   C.SCORE * (B.WEIGHT/100) WEIGHT_SCORE
+                      FROM GOV_EVAL_CAT A
+		                   LEFT OUTER JOIN GOV_METRIC B
+		                   ON A.YEAR = B.YEAR
+		                   AND A.EVAL_CAT_ID = B.EVAL_CAT_ID
+		                   AND B.GBN_ID = '01'
+		                   AND B.MAIN_METRIC_YN = 'Y'
+		                   AND B.DELETE_DT IS NULL
+		                   LEFT OUTER JOIN GOV_ACTUAL C
+		                   ON B.YEAR = C.YEAR
+		                   AND B.GOV_METRIC_ID = C.GOV_METRIC_ID
+		                   AND C.MON = #findMon#
+                     WHERE A.YEAR = #findYear#
+                       AND A.EVAL_CAT_GRP_ID = #findEvalCatGrpId#
+                       AND B.GBN_ID = '01'
+                    ) X
+              GROUP BY X.EVAL_CAT_ID,
+                       X.EVAL_CAT_NM
+              ORDER BY MAX(X.SORT_ORDER)			 
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 부문차트 목록 보기 (정평지표)
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getGovList" parameterClass="hashMap" resultClass="hashMap">
+			SELECT
+			        X.GOV_METRIC_ID,
+			        X.GOV_METRIC_NM,
+			        SUM(X.WEIGHT) WEIGHT,
+			        SUM(X.WEIGHT_SCORE) SCORE               
+			    FROM
+			        (SELECT
+			            A.GOV_METRIC_ID,
+			            A.GOV_METRIC_NM,
+			            NVL(A.WEIGHT, 0) WEIGHT,
+			            NVL(B.SCORE * (A.WEIGHT/100),0) WEIGHT_SCORE                             
+			        FROM GOV_METRIC A                 
+			        LEFT OUTER JOIN GOV_ACTUAL B                      
+			                 ON A.YEAR = B.YEAR                      
+			                AND A.GOV_METRIC_ID = B.GOV_METRIC_ID                      
+			                AND B.MON = #findMon#                    
+			        WHERE   A.YEAR = #findYear#                       
+			            AND A.EVAL_CAT_GRP_ID = #findEvalCatGrpId#                    
+			            AND A.GBN_ID = '01'  
+			            AND A.MAIN_METRIC_YN = 'Y'                      
+			            AND A.DELETE_DT IS NULL       
+			          ) X               
+			    GROUP BY
+			        X.GOV_METRIC_ID,
+			        X.GOV_METRIC_NM               
+			    ORDER BY
+			        MAX(X.GOV_METRIC_ID) 
+
+	</select>
+	
+	<!--
+	==================================================================
+	  # 설명	: 계량지표총괄표 상세 보기
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<select id="getDetail" parameterClass="hashMap" resultClass="hashMap">
+		SELECT YEAR
+			 , GOV_METRIC_ID
+			 , EVAL_CAT_ID
+			 , EVAL_CAT_GRP_ID
+			 , GOV_METRIC_NM
+			 , CONTENT
+			 , GBN_ID
+			 , DIREC_ID
+			 , EVAL_METHOD_ID
+			 , UNIT
+			 , ACT_CAL_TYPE
+			 , DETAIL_EVAL_SUMMARY_COMMENT
+			 , SC_DEPT_ID
+			 , INSERT_USER_ID
+			 , BASE_VALUE
+			 , BEST_TARGET
+			 , LOWEST_TARGET
+			 , STAD_CONST
+			 , SORT_ORDER
+			 , WEIGHT
+			 , SIMULATION_YN
+			 , UNMEAS_BEST_TARGET
+			 , MAIN_METRIC_YN
+			 , UP_METRIC_ID
+		  FROM GOV_METRIC
+		 WHERE 1 = 1
+		   AND YEAR = #year#
+		   AND GOV_METRIC_ID = #govMetricId#
+	</select>
+
+	<!--
+	==================================================================
+	  # 설명	: 계량지표총괄표 등록
+	  #	기능	: INSERT
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<insert id="insertData" parameterClass="hashMap">
+		<selectKey resultClass="java.lang.String" keyProperty="SEQ" >
+			SELECT F_PGM_SERI('GOV_METRIC','','','','','') SEQ FROM DUAL
+		</selectKey>
+		INSERT INTO GOV_METRIC (
+			   YEAR
+			 , GOV_METRIC_ID
+			 , EVAL_CAT_ID
+			 , EVAL_CAT_GRP_ID
+			 , GOV_METRIC_NM
+			 , CONTENT
+			 , GBN_ID
+			 , DIREC_ID
+			 , EVAL_METHOD_ID
+			 , UNIT
+			 , ACT_CAL_TYPE
+			 , DETAIL_EVAL_SUMMARY_COMMENT
+			 , SC_DEPT_ID
+			 , INSERT_USER_ID
+			 , BASE_VALUE
+			 , BEST_TARGET
+			 , LOWEST_TARGET
+			 , STAD_CONST
+			 , SORT_ORDER
+			 , WEIGHT
+			 , SIMULATION_YN
+			 , UNMEAS_BEST_TARGET
+			 , MAIN_METRIC_YN
+			 , UP_METRIC_ID
+			 , CREATE_DT
+			 ) VALUES (
+			   #year#
+			 , #SEQ#
+			 , #evalCatId#
+			 , #evalCatGrpId#
+			 , #govMetricNm#
+			 , #content#
+			 , #gbnId#
+			 , #direcId#
+			 , #evalMethodId#
+			 , #unit#
+			 , #actCalType#
+			 , #detailEvalSummaryComment#
+			 , #scDeptId#
+			 , #insertUserId#
+			 , #baseValue#
+			 , #bestTarget#
+			 , #lowestTarget#
+			 , #stadConst#
+			 , #sortOrder#
+			 , #weight#
+			 , #simulationYn#
+			 , #unmeasBestTarget#
+			 , #mainMetricYn#
+			 , #upMetricId#
+			 , SYSDATE
+			 )
+	</insert>
+
+	<!--
+	==================================================================
+	  # 설명	: 계량지표총괄표 수정
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<update id="updateData" parameterClass="hashMap">
+		UPDATE GOV_METRIC
+		   SET EVAL_CAT_ID            = #evalCatId#
+			 , EVAL_CAT_GRP_ID        = #evalCatGrpId#
+			 , GOV_METRIC_NM          = #govMetricNm#
+			 , CONTENT                = #content#
+			 , GBN_ID                 = #gbnId#
+			 , DIREC_ID               = #direcId#
+			 , EVAL_METHOD_ID         = #evalMethodId#
+			 , UNIT                   = #unit#
+			 , ACT_CAL_TYPE           = #actCalType#
+			 , DETAIL_EVAL_SUMMARY_COMMENT = #detailEvalSummaryComment#
+			 , SC_DEPT_ID             = #scDeptId#
+			 , INSERT_USER_ID         = #insertUserId#
+			 , BASE_VALUE             = #baseValue#
+			 , BEST_TARGET            = #bestTarget#
+			 , LOWEST_TARGET          = #lowestTarget#
+			 , STAD_CONST             = #stadConst#
+			 , SORT_ORDER             = #sortOrder#
+			 , WEIGHT                 = #weight#
+			 , SIMULATION_YN          = #simulationYn#
+			 , UNMEAS_BEST_TARGET     = #unmeasBestTarget#
+			 , MAIN_METRIC_YN         = #mainMetricYn#
+			 , UP_METRIC_ID           = #upMetricId#
+		 WHERE 1 = 1
+		   AND YEAR = #year#
+		   AND GOV_METRIC_ID = #govMetricId#
+	</update>
+
+
+	<!--
+	==================================================================
+	  # 설명	: 계량지표총괄표 삭제
+	  #	기능	: UPDATE
+	  #	TABLE	: GOV_METRIC
+	==================================================================
+	-->
+	<update id="deleteData" parameterClass="hashMap">
+		UPDATE GOV_METRIC
+		   SET DELETE_DT       = SYSDATE
+		 WHERE 1 = 1
+		   AND YEAR = #year#
+		   AND GOV_METRIC_ID = #govMetricId#
+	</update>
+
+	<!--
+	==================================================================
+	  # 설명	: 내평지표 매핑리스트
+	  #	기능	: SELECT
+	  #	TABLE	: GOV_METRIC_MAPPING
+	==================================================================
+	-->
+	<select id="getMappingMetricList" parameterClass="hashMap" resultClass="hashMap">
+		SELECT A.YEAR
+		     , A.GOV_METRIC_ID
+		     , B.METRIC_ID
+		     , D.SC_DEPT_NM
+		     , C.METRIC_NM
+		     , TO_CHAR(E.TARGET) AS TARGET
+		     , TO_CHAR(E.ACTUAL) AS ACTUAL
+		     , TO_CHAR(E.SCORE) AS SCORE
+		     , E.STATUS
+		FROM GOV_METRIC A
+		     INNER JOIN GOV_METRIC_MAPPING B ON A.YEAR = B.YEAR AND A.GOV_METRIC_ID = B.GOV_METRIC_ID
+		     INNER JOIN BSC_METRIC C ON B.YEAR = C.YEAR AND B.METRIC_ID = C.METRIC_ID AND C.DELETE_DT IS NULL
+		     INNER JOIN BSC_SC_DEPT D ON C.YEAR = D.YEAR AND C.SC_DEPT_ID = D.SC_DEPT_ID AND C.DELETE_DT IS NULL
+		     LEFT OUTER JOIN BSC_METRICSCORE E ON C.YEAR = E.YEAR AND E.MON = #findMon# AND C.METRIC_ID = E.METRIC_ID AND E.ANAL_CYCLE = 'Y'
+		WHERE 1 = 1
+		  AND A.YEAR = #findYear#
+		  AND A.GOV_METRIC_ID = #findGovMetricId#
+		  AND A.DELETE_DT IS NULL
+		ORDER BY C.SORT_ORDER ASC
+	</select>
+
+</sqlMap>
+
+
