@@ -25,7 +25,7 @@
 <!--            <property name="JDBC.Driver" value="oracle.jdbc.driver.OracleDriver"/> -->
             <property name="JDBC.Driver" value="com.mysql.jdbc.Driver"/>
 <!--            <property name="JDBC.Driver" value="net.sf.log4jdbc.DriverSpy"/> -->
-<!-- 개발 DB3 -->
+<!-- 개발 DB4 -->
 <!--
             <property name="JDBC.ConnectionURL" value="jdbc:oracle:thin:@150.3.50.52:1521:orcl"/>
             <property name="JDBC.Username" value="kgsdev"/>
