@@ -46,7 +46,7 @@ public class ScDeptUtilDAO {
 		return instance;
 	}
 
-	//객체 재생성 - 모든년도 데이터 *사용금지* 성과조직관리에서만 사용하세요!
+	//객체 재생성 - 모든년도 데이터 *사용금지* 성과조직관리에서만 사용하세요!.
 	public void reSetCodeUtil() {
 		SqlMapClient sqlMap = MyAppSqlConfig.getSqlMapInstance();
 		ArrayList yearList = new ArrayList();
