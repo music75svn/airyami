@@ -41,7 +41,7 @@ public class ScDeptUtilDAO {
 		reSetCodeUtil();
 	}
 
-	//생성되어있는 객체 불러오기.
+	//생성되어있는 객체 불러오기
 	public static ScDeptUtilDAO getInstance() {
 		return instance;
 	}
