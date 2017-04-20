@@ -4,7 +4,7 @@
 <struts>
     
     <package name="bsc" namespace="/bsc" extends="lexken-default">
-<!-- aaaaa -->
+<!-- bbbbb -->
         <action name="*" method="process" class="com.lexken.framework.core.ActionFactory">
         	<result name="mainTemplate">/WEB-INF/vl/common/template/mainTemplate.vm</result>
         </action>
