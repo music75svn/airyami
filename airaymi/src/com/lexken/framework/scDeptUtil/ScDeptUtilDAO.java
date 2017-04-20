@@ -41,7 +41,7 @@ public class ScDeptUtilDAO {
 		reSetCodeUtil();
 	}
 
-	//생성되어있는 객체 불러오기
+	//생성되어있는 객체 불러오기.
 	public static ScDeptUtilDAO getInstance() {
 		return instance;
 	}
@@ -49,22 +49,7 @@ public class ScDeptUtilDAO {
 	//객체 재생성 - 모든년도 데이터 *사용금지* 성과조직관리에서만 사용하세요!.
 	public void reSetCodeUtil() {
 		SqlMapClient sqlMap = MyAppSqlConfig.getSqlMapInstance();
-		ArrayList yearList = new ArrayList();
-		try {
-			yearList = (ArrayList)sqlMap.queryForList("com.lexken.framework.scDeptUtil.getYearList");
-		} catch (SQLException e){
-			logger.error("SQL 트랜잭션 오류 : " + e.toString());
-			e.printStackTrace();
-		} catch (Exception ex) {
-			logger.error(ex.toString());
-			ex.printStackTrace();
-		}
-		for (int i = 0; i < yearList.size(); i++) {
-			HashMap map = (HashMap) yearList.get(i);
-			String year = (String) map.get("YEAR");
-
-			this.reSetCodeUtil(year);
-		}
+		this.reSetCodeUtil("2016");
 	}
 
 	//객체 재생성 - 년도별 *사용금지* 성과조직관리에서만 사용하세요!
@@ -73,10 +58,7 @@ public class ScDeptUtilDAO {
 			SqlMapClient sqlMap = MyAppSqlConfig.getSqlMapInstance();
 			ArrayList yearList = new ArrayList();
 			try {
-				scDeptMapYear.put(year, (ArrayList)sqlMap.queryForList("com.lexken.framework.scDeptUtil.getList", year));
-			} catch (SQLException e){
-				logger.error("SQL 트랜잭션 오류 : " + e.toString());
-				e.printStackTrace();
+				scDeptMapYear.put(year, "2016");
 			} catch (Exception ex) {
 				logger.error(ex.toString());
 				ex.printStackTrace();
