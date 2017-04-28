@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap>
+
+<!-- 페이징 처리를 위한 상단 SQL -->
+<sql id="pagingPrefixSQL">
+SELECT @RNUM := @RNUM + 1 AS ROWNUM, @RNUM_D := @RNUM_D - 1 AS ROWNUM_D, t.*
+FROM
+  ( 
+</sql>
+
+<!-- 페이징 처리를 위한 하단 SQL -->
+<sql id="pagingSuffixSQL">
+  ) t,
+  ( SELECT @RNUM := #STARTUNIT#, @RNUM_D := #TOTCNT# - #STARTUNIT# + 1) R
+ LIMIT #STARTUNIT# , #ENDUNIT#
+</sql>
+
+<!-- 순번  SQL -->
+<sql id="orderbySQL">
+	ORDER BY $SORT_COL$ $SORT_ACC$
+</sql>
+
+
+
+</sqlMap>

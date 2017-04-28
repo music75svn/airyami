@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d %5p [%c] %m%n" />
+        </Console>
+    </Appenders>
+    <appender name="console-infolog" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %5p %m%n" />
+        </layout>  
+    </appender>
+
+
+
+    <Loggers>
+        <!-- <Logger name="java.sql" level="INFO" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger> -->
+        <Logger name="egovframework" level="DEBUG" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+        <!-- Log all JDBC calls except for ResultSet calls -->
+		<Logger name="jdbc.audit" level="WARN" additivity="false">
+			<AppenderRef ref="console" />
+		</Logger>		
+        <!-- Log only the SQL that is executed.(logs executed sql with binding arguments replaced with bound data) -->
+		<Logger name="jdbc.sqlonly" level="WARN" additivity="false">
+			<AppenderRef ref="console-infolog" />
+		</Logger>
+		<Logger name="jdbc.resultsettable" level="WARN" additivity="false">
+			<AppenderRef ref="console-infolog" />
+		</Logger>
+		<!-- log SQL with timing information, post execution -->
+	    <Logger name="jdbc.sqltiming" level="INFO" additivity="false">
+	        <AppenderRef ref="console" />
+	    </Logger>
+	    <Logger name="org.springframework" level="INFO" additivity="false">
+	        <AppenderRef ref="console" />
+	    </Logger>
+	    <!-- <Logger name="com.ibatis" level="INFO" additivity="false">
+	        <AppenderRef ref="console" />
+	    </Logger> -->
+        <Root level="ERROR">
+            <AppenderRef ref="console" />
+        </Root>
+    </Loggers>
+</Configuration>

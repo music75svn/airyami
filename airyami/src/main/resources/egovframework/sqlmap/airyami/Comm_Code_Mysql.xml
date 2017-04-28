@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="commcode">
+
+<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+	
+	<select id="commcode.listCommCodeCnt" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT COUNT(1) 
+	  FROM TB_COMM_CODE
+	 WHERE USE_YN = 'Y' 
+	 <isNotEmpty property="GROUP_CODE">
+	   AND GROUP_CODE= #GROUP_CODE# 
+	 </isNotEmpty>
+	</select>
+	
+	<select id="commcode.listCommCode" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingPrefixSQL"/>
+	</isEqual>
+	SELECT GROUP_CODE
+	      ,CODE			AS CD
+	      ,CODE_NAME	AS CD_NM
+	      ,CODE_DESC
+	      ,ETC 
+	      ,'Y'			AS DELYN
+	      ,'박대하'		AS EXT
+	      ,'FIRST,xls'		AS SIMG		
+	      ,2			AS LVL
+	      /* ,'/images/board/img_sample_thumbnail2.jpg'	AS IMGPATH */
+	      ,'/img/upload/5555/20150907050635501.jpg'	AS IMGPATH
+	      ,'썸네일'		AS ALT
+	      ,if(GROUP_CODE='ADMIN_TYPE', 'Y','N')			AS BTN_YN
+	      ,'지정버튼명'		AS BTN_NM
+	      ,CODE			AS CD1
+	      ,CODE_NAME	AS CD_NM1
+	      ,REG_DT		AS REG_DT
+	      ,1            AS REPLY_LEVEL
+	      ,'admin'		AS REG_ID
+	      ,'notice'		AS RCLASS
+	  FROM TB_COMM_CODE
+	 WHERE USE_YN = 'Y' 
+	 <isNotEmpty property="GROUP_CODE">
+	   AND GROUP_CODE= #GROUP_CODE# 
+	 </isNotEmpty>
+	 <isNotEmpty property="SORT_COL">
+	 	<include refid="orderbySQL"/>
+	 </isNotEmpty>
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingSuffixSQL"/>
+	</isEqual>
+	</select>
+	
+	<select id="commcode.selectCommCode" parameterClass="Map" resultClass="ValueMap">
+	SELECT GROUP_CODE
+	      ,CODE			AS CD
+	      ,CODE_NAME	AS CD_NM
+	      ,CODE_DESC
+	      ,ETC 
+	  FROM TB_COMM_CODE
+	 WHERE USE_YN = 'Y' 
+	   AND GROUP_CODE= #GROUP_CODE# 
+	 <isNotEmpty property="UPPER_CODE">
+	   AND UPPER_CODE = #UPPER_CODE#
+	 </isNotEmpty>
+	 <isEmpty property="UPPER_CODE">
+	   AND UPPER_CODE IS NULL
+	 </isEmpty>
+	  ORDER BY PRINT_ORDER
+	</select>
+	
+	<!-- 코드 목록 -->
+	<select id="commcode.getCommcodeCombo" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	SELECT 
+	      CODE			AS CD
+	      ,CODE_NAME	AS CD_NM
+	  FROM TB_COMM_CODE A
+	 WHERE USE_YN = 'Y' 
+	   AND GROUP_CODE = #GROUP_CODE#	
+	 <isNotEmpty property="UPPER_CODE" prepend="AND"><![CDATA[ UPPER_CODE = #UPPER_CODE# ]]> </isNotEmpty>
+	ORDER BY PRINT_ORDER
+	</select>
+	
+	<select id="commcode.getCommCode" parameterClass="Map" resultClass="ValueMap">
+	SELECT GROUP_CODE
+	      ,CODE			AS CD
+	      ,CODE_NAME	AS CD_NM
+	      ,CODE_DESC
+	      ,ETC 
+	      ,CODE			AS CD1
+	      ,'/template/template_list.do'		AS CD1_URL
+	      ,1			AS ARTICLE_SEQ
+	  FROM TB_COMM_CODE
+	 WHERE USE_YN = 'Y' 
+	   AND GROUP_CODE= #GROUP_CODE# 
+	   AND CODE= #CODE# 
+	</select>
+	
+	
+</sqlMap>

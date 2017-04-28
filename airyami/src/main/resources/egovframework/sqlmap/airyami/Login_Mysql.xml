@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="login">
+	<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+	
+	<select id="login.test" parameterClass="Map" resultClass="ValueMap" >
+		<![CDATA[
+		SELECT '1' AS AA 
+		  FROM DUAL
+		]]>
+	</select>
+	
+	<select id="login.getLoginInfo" parameterClass="Map" resultClass="ValueMap" >
+		<![CDATA[
+		SELECT 
+			   A.USER_ID		AS USER_ID 
+			  ,A.USER_NM 
+			  ,A.EMAIL			AS USER_EMAIL
+			  ,A.MOBILE
+		  FROM TB_USER A
+		 WHERE A.USER_ID = #LOGIN_ID#
+		   AND A.PWD = PASSWORD(#PW#)
+		   AND A.USE_YN = 'Y'
+			
+		]]>
+	</select>
+	
+	<select id="login.getAdminLoginInfo" parameterClass="Map" resultClass="ValueMap" >
+		<![CDATA[
+		SELECT 
+			   ADMIN_ID			AS USER_ID 
+			  ,NAME				AS USER_NM 
+			  ,EMAIL			AS USER_EMAIL
+			  ,ADMIN_TYPE		AS RULE_CD
+			  ,USE_YN
+			  ,REG_ID
+			  ,REG_DATE
+			  ,MOD_ID
+			  ,MOD_DATE	
+		  FROM TB_ADMIN
+		 WHERE ADMIN_ID=#LOGIN_ID#
+		   AND PASSWORD = PASSWORD(#PW#)
+		   AND USE_YN = 'Y'
+			
+		]]>
+	</select>
+	
+	
+	<insert id="admin_login.insertLoginLog" parameterClass="Map">
+	INSERT into tb_user_login_log
+       ( 
+         USER_ID,
+         LOGIN_IP,
+         LOGIN_DTTM,
+         REG_ID,
+         REG_DT,
+         REG_TM,
+         MOD_ID,
+         MOD_DT,
+         MOD_TM 
+       ) 
+       VALUES
+       ( 
+          #USER_ID#
+         ,#LOGIN_IP# 
+         ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+         ,#USER_ID#
+	     ,DATE_FORMAT(now(), '%Y%m%d')
+	     ,DATE_FORMAT(now(), '%H%i%s')
+	     ,#USER_ID#
+	     ,DATE_FORMAT(now(), '%Y%m%d')
+	     ,DATE_FORMAT(now(), '%H%i%s') 
+       ) 
+	</insert>
+	
+</sqlMap>

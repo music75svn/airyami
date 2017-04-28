@@ -1,0 +1,756 @@
+@charset "utf-8";
+/* CSS Document */
+
+
+* { margin:0; padding:0; font-size:12px; font-family:dotum, gulim, tahoma, verdana, sans-serif;  list-style:none; color:#545454;}
+a{ text-decoration:none; color:#545454; border:0; }
+img{ border:0; }
+.t_right{ text-align:right; }
+.t_left{ text-align:left; }
+.t_center{ text-align:center; }
+
+
+
+
+
+
+#header{ float:left; width:100%; height:100px; }
+
+#logo a{ float:left; width:190px; height:60px; margin-right:20px; font-weight:bold; font-size:26px; font-family:tahoma; line-height:60px; text-align:center; }
+#top_link{ float:left; width:700px; margin-top:40px;}
+#top_link ul{ float:right; text-align:right; list-style:none; }
+#top_link li{ float:left; margin-left:10px; text-align:right; }
+#top_link a{ font-size:11px; }
+
+#gnb{ float:left; width:100%; height:40px; background:#3a95cd url(/images/admin/bg_gnb.gif) left top repeat-x; }
+#gnb ul{ float:left; height:40px; margin-left:20px; list-style:none;}
+#gnb li{ float:left; margin:0; line-height:40px; }
+/* 메뉴명이 텍스트일 경우 */
+#gnb li a span{ float:left; margin:0 13px;; font-weight:bold; color:#fff;  }
+#gnb li a:hover span{ float:left; margin:0 13px; font-weight:bold; color:#ff0;  }
+#gnb .on span{ color:#ff0; }
+
+/* 메뉴명이 이미지일 경우 */
+#gnb li a.gnb_over img { display:inline; } 
+#gnb li a.gnb_over img.over { display:none; } 
+#gnb li a.gnb_over:hover { border:0px } 
+#gnb li a.gnb_over:hover img { display:none; } 
+#gnb li a.gnb_over:hover img.over { display:inline; }
+#gnb li a.on img{ display:none; } 
+#gnb li a.on img.over{ display:inline; }
+	
+
+
+#container{ float:left; width:100%; min-height:100%; margin:0; }
+#container:after{ content:""; display:block; clear:left; }
+
+* html #container{ height: 100%; }  
+
+
+
+
+#aside{ float:left; width:180px; height:100%; margin-right:30px; border-right:1px solid #ddd; }
+
+#aside h4 span{ float:left; width:100%; border-bottom:2px solid #000;  font-weight:bold; font-size:20px; line-height:60px; text-align:center; }
+#aside h4 img{ float:left; width:100%; }
+#aside ul{ float:left; width:100%; list-style:none; }
+#aside li{ float:left; width:100%; line-height:30px; border-top:1px solid #fff; border-bottom:1px solid #ccc; color:#333; }
+#aside .on{ font-weight:bold; }
+
+/* lnb 메뉴명이 텍스트일 경우 */
+#aside li a span{ float:left; text-indent:20px; }
+#aside li a:hover span{ float:left; font-weight:bold; text-indent:20px; }
+#aside .on span{ font-weight:bold; color:#000; }
+
+/* lnb 메뉴명이 이미지일 경우 */
+#aside li a.lnb_over img { display:inline; } 
+#aside li a.lnb_over img.over { display:none; } 
+#aside li a.lnb_over:hover { border:0px } 
+#aside li a.lnb_over:hover img { display:none; } 
+#aside li a.lnb_over:hover img.over { display:inline; }
+#aside li a.on img{ display:none; } 
+#aside li a.on img.over{ display:inline; }
+
+#aside .d1{ display:block; cursor:pointer; }
+#aside .d1a{ cursor:pointer; }
+
+
+#aside .sub{ height:auto; padding:5px 0; border:0; border-top:1px solid #DDD; background:#F4F4F4; }
+#aside .sub ul{ padding:0; border:0; }
+#aside .sub li{ border:0; line-height:20px; }
+
+/* sub 메뉴명이 텍스트일 경우 */
+#aside .sub li a span{ float:left; font-size:11px; text-indent:30px; }
+#aside .sub li a:hover span{ float:left; font-weight:bold; font-size:11px; text-indent:30px; }
+#aside .sub .on span{ font-weight:bold; color:#000; }
+
+/* sub 메뉴명이 이미지일 경우 */
+#aside .sub li a.sub_over img { display:inline; } 
+#aside .sub li a.sub_over img.over { display:none; } 
+#aside .sub li a.sub_over:hover { border:0px } 
+#aside .sub li a.sub_over:hover img { display:none; } 
+#aside .sub li a.sub_over:hover img.over { display:inline; }
+#aside .sub li a.on img{ display:none; } 
+#aside .sub li a.on img.over{ display:inline; }
+
+
+
+#footer{ float:left; width:100%; height:20px; padding:10px 0 0 0; background:#eee; border-top:1px solid #ccc; color:#999; text-indent:20px; }
+
+
+
+
+
+#contents{ float:left; width:700px; margin-top:35px;}
+
+#search{ float:left; width:676px; margin:0 0 20px 0; padding:10px; border:2px solid #3a95cd; background:#fff; }
+#search dl{ float:left; width:100%; }
+#search dt{ float:left; width:15%; margin:3px 0; line-height:18px; }
+#search dd{ float:left; width:85%; margin:3px 0; line-height:18px; }
+
+
+
+/* 게시판형 */
+#contents h3{ float:left; width:100%; margin-bottom:10px;}
+#contents .bbs_search{ float:left; width:100%; }
+#contents .bbs_search .left{ float:left; width:10%; line-height:25px;}
+#contents .bbs_search .right{ float:right; width:90%; text-align:right; }
+#contents .bbs_search label{ margin-left:10px; }
+
+#contents .tbl_list_type1{ float:left; width:100%; margin-bottom:10px; border:0; table-layout:fixed; word-break:break-all; }
+#contents .tbl_list_type1 th{ height:30px; border:0; border-top:2px solid #3a95cd; border-bottom:1px solid #ccc; background:#f1f1f1; }
+#contents .tbl_list_type1 td{ padding:7px 0; border:0; border-bottom:1px solid #ccc; border-collapse:collapse; text-align:center; table-layout:fixed; }
+#contents .tbl_list_type1 .left{ text-align:left; text-indent:10px; }
+#contents .tbl_list_type1 a{ text-decoration:underline; color:inherit; }
+#contents .tbl_list_type1 a:hover, #contents .tbl_list_type1 a:focus{ text-decoration:underline; }
+
+
+/* 테이블형 */
+#contents .tbl_list_type2{ float:left; width:100%; margin-bottom:10px; border:0; border-top:2px solid #3a95cd; table-layout:fixed; word-break:break-all; }
+#contents .tbl_list_type2 th{ padding:7px 10px; border-bottom:1px solid #ccc; text-align:left; background:#f4f4f4; }
+#contents .tbl_list_type2 td{ padding:7px 0; border:0; border-bottom:1px solid #ccc; border-collapse:collapse; text-align:left; table-layout:fixed; }
+#contents .tbl_list_type2 td img{ /*display:block;*/ margin:0; padding:0;  }
+#contents .tbl_list_type2 .lock img{ margin:0 !important; padding:0; }
+#contents .tbl_list_type2 tbody td{ line-height:18px; }
+#contents .tbl_list_type2 .re_input{ float:left; padding:5px; }
+#contents .tbl_list_type2 .re_bt{ float:left; margin-left:5px; padding:10px 5px; }
+#contents .tbl_list_type2 .reply_name{ float:left; width:580px; color:#999; }
+#contents .tbl_list_type2 .reply_date{ float:left; width:70px; color:#999; text-align:right; }
+#contents .tbl_list_type2 .reply_del input[type=button]{ float:left; width:30px;  }
+#contents .tbl_list_type2 .reply_txt{ clear:left; float:left; width:100%; display:block; margin-top:3px; line-height:16px; }
+#contents .tbl_list_type2 th a img{ margin:0 0 0 7px; vertical-align:-4px; }
+#contents .tbl_list_type2 td input[type=button]{ display:inline-block; width:auto; height:22px; margin-top:1px; padding:0 5px; border:1px solid #CCC; background:#EEE; font-family:dotum; font-size:11px; color:#333; line-height:22px; }
+#contents .tbl_list_type2 td .bt{ display:inline-block; }
+#contents .tbl_list_type2 .pl10{ padding-left:10px; }
+
+
+/* 테이블 속 테이블 */
+#contents .tbl_list_type3{ float:left; width:100%; margin:5px 0; border:1px solid #CCC; border-collapse:collapse; table-layout:fixed; word-break:break-all; }
+#contents .tbl_list_type3 th{ height:30px; padding:0; border:1px solid #CCC; border-collapse:collapse; background:#f1f1f1; text-align:center; }
+#contents .tbl_list_type3 td{ padding:5px 0; border:1px solid #CCC; border-collapse:collapse; text-align:center; table-layout:fixed; }
+#contents .tbl_list_type3 .left{ text-align:left; text-indent:10px; }
+#contents .tbl_list_type3 a{ text-decoration:none; color:inherit; }
+#contents .tbl_list_type3 a:hover, #contents .tbl_list_type1 a:focus{ text-decoration:underline; }
+#contents .tbl_list_type3 th a img{ margin:0; padding:0; }
+
+
+/*
+#contents .tbl_list_type2 .write_title{  }
+#contents .tbl_list_type2 .write_name{  }
+#contents .tbl_list_type2 .write_date{ text-align:right; }
+#contents .tbl_list_type2 .write_count{ font-weight:100; text-align:right; }
+*/
+
+/* 갤러리형 */
+#bbs_album{ float:left; width:700px; border-width:2px 0 2px 0; border-color:#3a95cd; border-style:solid; }
+#bbs_album .gallery{ float:left; width:160px; margin:10px 7.5px; }
+#bbs_album .gallery img{ float:left; width:158px; height:125px; margin:0 0 5px 0; border:1px solid #ccc; }
+#bbs_album .gallery span{ float:left; width:160px; height:18px; line-height:18px; word-break:break-all; overflow:hidden; }
+#bbs_album .gallery .g_title a{ text-decoration:none; color:inherit; font-weight:bold; }
+#bbs_album .gallery .g_category{ color:#0066CC; }
+#bbs_album .gallery .g_date{}
+#bbs_album .none{ float:left; width:100%; padding:20px 0; text-align:center; }
+
+
+
+
+
+/* 트리구조 */
+#tree{ float:left; width:30%; padding:10px; background:#F4F4F4; border:1px solid #CCC; }
+			
+			/*******************************************************************************
+			 * Tree container
+			 */
+			ul.dynatree-container { font-family: tahoma, arial, helvetica; font-size: 10pt; white-space: nowrap; padding: 15px; margin: 0; overflow: auto; height: 100%;}
+			ul.dynatree-container ul { padding: 0 0 0 16px; margin: 0; }
+			ul.dynatree-container li { list-style-image: none; list-style-position: outside; list-style-type: none; /* -moz-background-clip:border; -moz-background-inline-policy: continuous; -moz-background-origin: padding;*/ background-attachment: scroll; background-color: transparent; background-repeat: repeat-y; background-image:url(/images/vline.gif); background-position: 0 0; margin: 0; padding: 1px 0 0 0; }
+			/* Suppress lines for last child node */
+			ul.dynatree-container li.dynatree-lastsib { background-image: none; }
+			/* Suppress lines if level is fixed expanded (option minExpandLevel) */
+			ul.dynatree-no-connector > li { background-image: none; }
+			/* Style, when control is disabled */
+			.ui-dynatree-disabled ul.dynatree-container { opacity: 0.5; /*	filter: alpha(opacity=50); /* Yields a css warning */
+				background-color: silver; }
+			/*******************************************************************************
+			 * Common icon definitions
+			 */
+			span.dynatree-empty,
+			span.dynatree-vline,
+			span.dynatree-connector,
+			span.dynatree-expander,
+			span.dynatree-icon,
+			span.dynatree-checkbox,
+			span.dynatree-radio,
+			span.dynatree-drag-helper-img,
+			#dynatree-drop-marker { width: 16px; height: 16px; /*	display: -moz-inline-box; /* @ FF 1+2 removed for issue 221 */
+			/*	-moz-box-align: start; /* issue 221 */
+				display: inline-block; /* Required to make a span sizeable */ vertical-align: top; background-repeat: no-repeat; background-position: left; background-image:url(/images/icons.gif); background-position: 0 0; }
+			/** Used by 'icon' node option: */
+			ul.dynatree-container img { width: 16px; height: 16px; margin-left: 3px; vertical-align: top; border-style: none; }
+			/*******************************************************************************
+			 * Lines and connectors
+			 */
+			
+			span.dynatree-connector { background-position: -16px -64px; }
+			/*******************************************************************************
+			 * Expander icon
+			 * Note: IE6 doesn't correctly evaluate multiples class names,
+			 *		 so we create combined class names that can be used in the CSS.
+			 *
+			 * Prefix: dynatree-exp-
+			 * 1st character: 'e': expanded, 'c': collapsed
+			 * 2nd character (optional): 'd': lazy (Delayed)
+			 * 3rd character (optional): 'l': Last sibling
+			 */
+			
+			span.dynatree-expander { background-position: 0px -80px; cursor: pointer; }
+			.dynatree-exp-cl span.dynatree-expander /* Collapsed, not delayed, last sibling */ { background-position: 0px -96px; }
+			.dynatree-exp-cd span.dynatree-expander /* Collapsed, delayed, not last sibling */ { background-position: -64px -80px; }
+			.dynatree-exp-cdl span.dynatree-expander /* Collapsed, delayed, last sibling */ { background-position: -64px -96px; }
+			.dynatree-exp-e span.dynatree-expander,  /* Expanded, not delayed, not last sibling */
+			.dynatree-exp-ed span.dynatree-expander  /* Expanded, delayed, not last sibling */ { background-position: -32px -80px; }
+			.dynatree-exp-el span.dynatree-expander,  /* Expanded, not delayed, last sibling */
+			.dynatree-exp-edl span.dynatree-expander  /* Expanded, delayed, last sibling */ { background-position: -32px -96px; }
+			.dynatree-loading span.dynatree-expander  /* 'Loading' status overrides all others */ { background-position: 0 0; background-image: url("/images/loading.gif"); }
+			/*******************************************************************************
+			 * Checkbox icon
+			 */
+			span.dynatree-checkbox { margin-left: 3px; background-position: 0px -32px; }
+			span.dynatree-checkbox:hover { background-position: -16px -32px; }
+			.dynatree-partsel span.dynatree-checkbox { background-position: -64px -32px; }
+			.dynatree-partsel span.dynatree-checkbox:hover { background-position: -80px -32px; }
+			.dynatree-selected span.dynatree-checkbox { background-position: -32px -32px; }
+			.dynatree-selected span.dynatree-checkbox:hover { background-position: -48px -32px; }
+			/*******************************************************************************
+			 * Radiobutton icon
+			 * This is a customization, that may be activated by overriding the 'checkbox'
+			 * class name as 'dynatree-radio' in the tree options.
+			 */
+			span.dynatree-radio { margin-left: 3px; background-position: 0px -48px; }
+			span.dynatree-radio:hover { background-position: -16px -48px; }
+			.dynatree-partsel span.dynatree-radio { background-position: -64px -48px; }
+			.dynatree-partsel span.dynatree-radio:hover { background-position: -80px -48px; }
+			.dynatree-selected span.dynatree-radio { background-position: -32px -48px; }
+			.dynatree-selected span.dynatree-radio:hover { background-position: -48px -48px; }
+			/*******************************************************************************
+			 * Node type icon
+			 * Note: IE6 doesn't correctly evaluate multiples class names,
+			 *		 so we create combined class names that can be used in the CSS.
+			 *
+			 * Prefix: dynatree-ico-
+			 * 1st character: 'e': expanded, 'c': collapsed
+			 * 2nd character (optional): 'f': folder
+			 */
+			
+			span.dynatree-icon /* Default icon */ { margin-left: 3px; background-position: 0px 0px; }
+			.dynatree-ico-cf span.dynatree-icon  /* Collapsed Folder */ { background-position: 0px -16px; }
+			.dynatree-ico-ef span.dynatree-icon  /* Expanded Folder */ { background-position: -64px -16px; }
+			/* Status node icons */
+			
+			.dynatree-statusnode-wait span.dynatree-icon { background-image: url("/images/loading.gif"); }
+			.dynatree-statusnode-error span.dynatree-icon { background-position: 0px -112px;/*	background-image: url("ltError.gif");*/
+			}
+			/*******************************************************************************
+			 * Node titles
+			 */
+			
+			/* @Chrome: otherwise hit area of node titles is broken (issue 133)
+			   Removed again for issue 165; (133 couldn't be reproduced) */
+			span.dynatree-node { /*	display: -moz-inline-box; /* issue 133, 165, 172, 192. removed for issue 221*/
+			/*	-moz-box-align: start; /* issue 221 */
+			/*  display: inline-block; /* Required to make a span sizeable */
+			}
+			/* Remove blue color and underline from title links */
+			ul.dynatree-container a /*, ul.dynatree-container a:visited*/
+			{ color: black; /* inherit doesn't work on IE */ text-decoration: none; vertical-align: top; margin: 0px; margin-left: 3px;/*	outline: 0; /* @ Firefox, prevent dotted border after click */
+			}
+			ul.dynatree-container a:hover { /*	text-decoration: underline; */
+				background-color: #F2F7FD; /* light blue */ border-color: #B8D6FB; /* darker light blue */ }
+			span.dynatree-node a { font-size: 10pt; /* required for IE, quirks mode */ display: inline-block; /* Better alignment, when title contains <br> */ /*	vertical-align: top;*/
+				padding-left: 3px; padding-right: 3px; /* Otherwise italic font will be outside bounds *//*	line-height: 16px; /* should be the same as img height, in case 16 px */
+			}
+			span.dynatree-folder a { font-weight: bold; }
+			ul.dynatree-container a:focus,
+			span.dynatree-focused a:link  /* @IE */ { background-color: #EFEBDE; /* gray */ }
+			span.dynatree-has-children a { }
+			span.dynatree-expanded a { }
+			span.dynatree-selected a { color: green; font-style: italic; }
+			span.dynatree-active a { background-color: #3169C6 !important; color: white !important; /* @ IE6 */ }
+			/*******************************************************************************
+			 * Drag'n'drop support
+			 */
+			
+			/*** Helper object ************************************************************/
+			div.dynatree-drag-helper { }
+			div.dynatree-drag-helper a { border: 1px solid gray; background-color: white; padding-left: 5px; padding-right: 5px; opacity: 0.8; }
+			span.dynatree-drag-helper-img { /*
+				position: relative;
+				left: -16px;
+				*/
+			}
+			div.dynatree-drag-helper /*.dynatree-drop-accept*/ { /*    border-color: green;
+				background-color: red;*/
+			}
+			div.dynatree-drop-accept span.dynatree-drag-helper-img { background-position: -32px -112px; }
+			div.dynatree-drag-helper.dynatree-drop-reject { border-color: red; }
+			div.dynatree-drop-reject span.dynatree-drag-helper-img { background-position: -16px -112px; }
+			/*** Drop marker icon *********************************************************/
+			
+			#dynatree-drop-marker { width: 24px; position: absolute; background-position: 0 -128px; margin: 0;/*	border: 1px solid red; */
+			}
+			#dynatree-drop-marker.dynatree-drop-after,
+			#dynatree-drop-marker.dynatree-drop-before { width:64px; background-position: 0 -144px; }
+			#dynatree-drop-marker.dynatree-drop-copy { background-position: -64px -128px; }
+			#dynatree-drop-marker.dynatree-drop-move { background-position: -64px -128px; }
+			/*** Source node while dragging ***********************************************/
+			
+			span.dynatree-drag-source { /* border: 1px dotted gray; */
+				background-color: #e0e0e0; }
+			span.dynatree-drag-source a { color: gray; }
+			/*** Target node while dragging cursor is over it *****************************/
+			
+			span.dynatree-drop-target { /*border: 1px solid gray;*/
+			}
+			span.dynatree-drop-target a { }
+			span.dynatree-drop-target.dynatree-drop-accept a { /*border: 1px solid green;*/
+				background-color: #3169C6 !important; color: white !important; /* @ IE6 */ text-decoration: none; }
+			span.dynatree-drop-target.dynatree-drop-reject { /*border: 1px solid red;*/
+			}
+			span.dynatree-drop-target.dynatree-drop-after a { }
+			/*******************************************************************************
+			 * Custom node classes (sample)
+			 */
+			
+			span.custom1 a { background-color: maroon; color: yellow; }
+			
+
+
+
+
+/* 트리 옆 테이블 */
+#tree_side{ float:right; width:65%; }
+
+
+
+
+
+
+/* 첨부파일 */
+#contents input[type=file]{ display:block; margin:3px 0; }
+#contents .attach{ display:block; margin:3px 0; }
+
+
+/* 덧글 */
+#reply { float:left; width:100%; }
+#reply h4{ float:left; width:100%; line-height:30px; }
+#reply .reply_count{ font-weight:bold; font-size:12px; color:#F30; }
+#reply .reply_info{ float:left; width:100%;}
+#reply .reply_info .r_name{ font-weight:bold; }
+#reply .reply_info .r_date{ margin:0 5px;}
+#reply .reply_txt{ font-size:11px; line-height:16px; color:#818181; letter-spacing:-1px; }
+#reply .r_input{ display:block; float:right; padding:3px 15px 1px 15px; border:0; background:#3a95cd; font-weight:bold; font-size:11px; line-height:16px; color:#FFF; }
+
+
+
+/* 이전글 다음글 */
+#article{ float:left; width:100%; margin:50px 0; border-top:2px solid #3a95cd; }
+#article dt{ float:left; width:10%; border-bottom:1px solid #ccc; line-height:30px; text-indent:10px; }
+#article dd{ float:left; width:90%; border-bottom:1px solid #ccc; line-height:30px; text-indent:10px; }
+#article dd a{ text-decoration:none; color:inherit; font-weight:bold; }
+
+
+
+/* 관련글 */
+.reply_relate{ float:left; width:100%; margin:50px 0; border-top:2px solid #3a95cd; }
+.reply_relate dt{ display:none; float:left; width:0%; border-bottom:1px solid #ccc; line-height:30px; text-indent:10px; }
+.reply_relate dd{ float:left; width:100%; border-bottom:1px solid #ccc; line-height:30px; text-indent:10px; }
+.reply_relate dd a{ text-decoration:none; color:inherit; font-weight:bold; }
+
+
+
+
+/* 페이징 */
+.paginate{ float:left; width:100%; margin:20px 0 50px 0; text-align:center; }
+.paginate a{ margin:0; padding:5px 8px 4px; text-decoration:none; color:inherit; }
+.paginate a:hover, .paginate a:focus{ margin:0; padding:5px 8px 4px; background:#ccc; text-decoration:none; color:inherit; }
+.paginate strong{ margin:0; padding:5px 8px 4px; background:#3a95cd; color:#fff;}
+
+
+/* 버튼영역 */
+.btn_zone{ float:left; width:100%; margin-bottom:40px; text-align:right;}
+.btn_zone .btn a{ display:inline-block; margin:5px 0 0 5px; padding:7px 20px 5px; background:#3a95cd; font-weight:bold; color:#FFF; text-decoration:none;  }
+.btn_zone .left{ float:left; }
+.btn_zone .right{ float:right; }
+.bt a{ display:inline-block; margin:0; padding:2px 5px 0px; border:1px solid #ccc; background:#eee; font-size:11px; color:#333; text-indent:0; text-decoration:none; letter-spacing:-1px; }
+.btn_zone input[type=submit]{ display:inline-block;  margin:5px 0 0 5px; padding:7px 20px 5px; border:0px;  background:#3a95cd; font-weight:bold; color:#FFF; text-decoration:none; cursor:pointer;  }
+.r_del a{ font-size:11px; color:#999; letter-spacing:-1px; }
+
+
+
+
+
+
+
+#pop400{ float:left; width:360px; margin:0; padding:20px; }
+#pop400 h3{ float:left; width:100%; line-height:20px; }
+#pop400 #tree{ float:left; width:338px !important; height:390px; overflow-y:scroll;  }
+#pop400 #tree li{ display:block; height:18px; line-height:18px; }
+#pop400 #tree img{ width:18px; height:18px; line-height:18px; vertical-align:middle; }
+#pop400 #tree input[type=checkbox] { line-height:18px; vertical-align:middle; }
+#pop400 #tree label{ height:16px; padding-top:2px; padding-left:5px; line-height:18px; vertical-align:middle; }
+
+
+
+
+
+
+/******************* themes **************************************************************************************************************/
+
+/*!
+ * jQuery UI CSS Framework 1.8.21
+ *
+ * Copyright 2012, AUTHORS.txt (http://jqueryui.com/about)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * http://docs.jquery.com/UI/Theming/API
+ *
+ * To view and modify this theme, visit http://jqueryui.com/themeroller/
+ */
+
+
+/* Component containers
+----------------------------------*/
+.ui-widget { font-family: Verdana,Arial,sans-serif/*{ffDefault}*/; font-size: 1.1em/*{fsDefault}*/; }
+.ui-widget .ui-widget { font-size: 1em; }
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button { font-family: Verdana,Arial,sans-serif/*{ffDefault}*/; font-size: 1em; }
+.ui-widget-content { border: 1px solid #aaaaaa/*{borderColorContent}*/; background: #ffffff/*{bgColorContent}*/ url(images/ui-bg_flat_75_ffffff_40x100.png)/*{bgImgUrlContent}*/ 50%/*{bgContentXPos}*/ 50%/*{bgContentYPos}*/ repeat-x/*{bgContentRepeat}*/; color: #222222/*{fcContent}*/; }
+.ui-widget-content a { color: #222222/*{fcContent}*/; }
+.ui-widget-header { border: 1px solid #aaaaaa/*{borderColorHeader}*/; background: #cccccc/*{bgColorHeader}*/ url(images/ui-bg_highlight-soft_75_cccccc_1x100.png)/*{bgImgUrlHeader}*/ 50%/*{bgHeaderXPos}*/ 50%/*{bgHeaderYPos}*/ repeat-x/*{bgHeaderRepeat}*/; color: #222222/*{fcHeader}*/; font-weight: bold; }
+.ui-widget-header a { color: #222222/*{fcHeader}*/; }
+
+/* Interaction states
+----------------------------------*/
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default { border: 1px solid #d3d3d3/*{borderColorDefault}*/; background: #e6e6e6/*{bgColorDefault}*/ url(images/ui-bg_glass_75_e6e6e6_1x400.png)/*{bgImgUrlDefault}*/ 50%/*{bgDefaultXPos}*/ 50%/*{bgDefaultYPos}*/ repeat-x/*{bgDefaultRepeat}*/; font-weight: normal/*{fwDefault}*/; color: #555555/*{fcDefault}*/; }
+.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited { color: #555555/*{fcDefault}*/; text-decoration: none; }
+.ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover, .ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus { border: 1px solid #999999/*{borderColorHover}*/; background: #dadada/*{bgColorHover}*/ url(images/ui-bg_glass_75_dadada_1x400.png)/*{bgImgUrlHover}*/ 50%/*{bgHoverXPos}*/ 50%/*{bgHoverYPos}*/ repeat-x/*{bgHoverRepeat}*/; font-weight: normal/*{fwDefault}*/; color: #212121/*{fcHover}*/; }
+.ui-state-hover a, .ui-state-hover a:hover { color: #212121/*{fcHover}*/; text-decoration: none; }
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active { border: 1px solid #aaaaaa/*{borderColorActive}*/; background: #ffffff/*{bgColorActive}*/ url(images/ui-bg_glass_65_ffffff_1x400.png)/*{bgImgUrlActive}*/ 50%/*{bgActiveXPos}*/ 50%/*{bgActiveYPos}*/ repeat-x/*{bgActiveRepeat}*/; font-weight: normal/*{fwDefault}*/; color: #212121/*{fcActive}*/; }
+.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited { color: #212121/*{fcActive}*/; text-decoration: none; }
+.ui-widget :active { outline: none; }
+
+/* Interaction Cues
+----------------------------------*/
+.ui-state-highlight, .ui-widget-content .ui-state-highlight, .ui-widget-header .ui-state-highlight  {border: 1px solid #fcefa1/*{borderColorHighlight}*/; background: #fbf9ee/*{bgColorHighlight}*/ url(images/ui-bg_glass_55_fbf9ee_1x400.png)/*{bgImgUrlHighlight}*/ 50%/*{bgHighlightXPos}*/ 50%/*{bgHighlightYPos}*/ repeat-x/*{bgHighlightRepeat}*/; color: #363636/*{fcHighlight}*/; }
+.ui-state-highlight a, .ui-widget-content .ui-state-highlight a,.ui-widget-header .ui-state-highlight a { color: #363636/*{fcHighlight}*/; }
+.ui-state-error, .ui-widget-content .ui-state-error, .ui-widget-header .ui-state-error {border: 1px solid #cd0a0a/*{borderColorError}*/; background: #fef1ec/*{bgColorError}*/ url(images/ui-bg_glass_95_fef1ec_1x400.png)/*{bgImgUrlError}*/ 50%/*{bgErrorXPos}*/ 50%/*{bgErrorYPos}*/ repeat-x/*{bgErrorRepeat}*/; color: #cd0a0a/*{fcError}*/; }
+.ui-state-error a, .ui-widget-content .ui-state-error a, .ui-widget-header .ui-state-error a { color: #cd0a0a/*{fcError}*/; }
+.ui-state-error-text, .ui-widget-content .ui-state-error-text, .ui-widget-header .ui-state-error-text { color: #cd0a0a/*{fcError}*/; }
+.ui-priority-primary, .ui-widget-content .ui-priority-primary, .ui-widget-header .ui-priority-primary { font-weight: bold; }
+.ui-priority-secondary, .ui-widget-content .ui-priority-secondary,  .ui-widget-header .ui-priority-secondary { opacity: .7; filter:Alpha(Opacity=70); font-weight: normal; }
+.ui-state-disabled, .ui-widget-content .ui-state-disabled, .ui-widget-header .ui-state-disabled { opacity: .35; filter:Alpha(Opacity=35); background-image: none; }
+
+/* Icons
+----------------------------------*/
+
+/* states and images */
+.ui-icon { width: 16px; height: 16px; background-image: url(images/ui-icons_222222_256x240.png)/*{iconsContent}*/; }
+.ui-widget-content .ui-icon {background-image: url(images/ui-icons_222222_256x240.png)/*{iconsContent}*/; }
+.ui-widget-header .ui-icon {background-image: url(images/ui-icons_222222_256x240.png)/*{iconsHeader}*/; }
+.ui-state-default .ui-icon { background-image: url(images/ui-icons_888888_256x240.png)/*{iconsDefault}*/; }
+.ui-state-hover .ui-icon, .ui-state-focus .ui-icon {background-image: url(images/ui-icons_454545_256x240.png)/*{iconsHover}*/; }
+.ui-state-active .ui-icon {background-image: url(images/ui-icons_454545_256x240.png)/*{iconsActive}*/; }
+.ui-state-highlight .ui-icon {background-image: url(images/ui-icons_2e83ff_256x240.png)/*{iconsHighlight}*/; }
+.ui-state-error .ui-icon, .ui-state-error-text .ui-icon {background-image: url(images/ui-icons_cd0a0a_256x240.png)/*{iconsError}*/; }
+
+/* positioning */
+.ui-icon-carat-1-n { background-position: 0 0; }
+.ui-icon-carat-1-ne { background-position: -16px 0; }
+.ui-icon-carat-1-e { background-position: -32px 0; }
+.ui-icon-carat-1-se { background-position: -48px 0; }
+.ui-icon-carat-1-s { background-position: -64px 0; }
+.ui-icon-carat-1-sw { background-position: -80px 0; }
+.ui-icon-carat-1-w { background-position: -96px 0; }
+.ui-icon-carat-1-nw { background-position: -112px 0; }
+.ui-icon-carat-2-n-s { background-position: -128px 0; }
+.ui-icon-carat-2-e-w { background-position: -144px 0; }
+.ui-icon-triangle-1-n { background-position: 0 -16px; }
+.ui-icon-triangle-1-ne { background-position: -16px -16px; }
+.ui-icon-triangle-1-e { background-position: -32px -16px; }
+.ui-icon-triangle-1-se { background-position: -48px -16px; }
+.ui-icon-triangle-1-s { background-position: -64px -16px; }
+.ui-icon-triangle-1-sw { background-position: -80px -16px; }
+.ui-icon-triangle-1-w { background-position: -96px -16px; }
+.ui-icon-triangle-1-nw { background-position: -112px -16px; }
+.ui-icon-triangle-2-n-s { background-position: -128px -16px; }
+.ui-icon-triangle-2-e-w { background-position: -144px -16px; }
+.ui-icon-arrow-1-n { background-position: 0 -32px; }
+.ui-icon-arrow-1-ne { background-position: -16px -32px; }
+.ui-icon-arrow-1-e { background-position: -32px -32px; }
+.ui-icon-arrow-1-se { background-position: -48px -32px; }
+.ui-icon-arrow-1-s { background-position: -64px -32px; }
+.ui-icon-arrow-1-sw { background-position: -80px -32px; }
+.ui-icon-arrow-1-w { background-position: -96px -32px; }
+.ui-icon-arrow-1-nw { background-position: -112px -32px; }
+.ui-icon-arrow-2-n-s { background-position: -128px -32px; }
+.ui-icon-arrow-2-ne-sw { background-position: -144px -32px; }
+.ui-icon-arrow-2-e-w { background-position: -160px -32px; }
+.ui-icon-arrow-2-se-nw { background-position: -176px -32px; }
+.ui-icon-arrowstop-1-n { background-position: -192px -32px; }
+.ui-icon-arrowstop-1-e { background-position: -208px -32px; }
+.ui-icon-arrowstop-1-s { background-position: -224px -32px; }
+.ui-icon-arrowstop-1-w { background-position: -240px -32px; }
+.ui-icon-arrowthick-1-n { background-position: 0 -48px; }
+.ui-icon-arrowthick-1-ne { background-position: -16px -48px; }
+.ui-icon-arrowthick-1-e { background-position: -32px -48px; }
+.ui-icon-arrowthick-1-se { background-position: -48px -48px; }
+.ui-icon-arrowthick-1-s { background-position: -64px -48px; }
+.ui-icon-arrowthick-1-sw { background-position: -80px -48px; }
+.ui-icon-arrowthick-1-w { background-position: -96px -48px; }
+.ui-icon-arrowthick-1-nw { background-position: -112px -48px; }
+.ui-icon-arrowthick-2-n-s { background-position: -128px -48px; }
+.ui-icon-arrowthick-2-ne-sw { background-position: -144px -48px; }
+.ui-icon-arrowthick-2-e-w { background-position: -160px -48px; }
+.ui-icon-arrowthick-2-se-nw { background-position: -176px -48px; }
+.ui-icon-arrowthickstop-1-n { background-position: -192px -48px; }
+.ui-icon-arrowthickstop-1-e { background-position: -208px -48px; }
+.ui-icon-arrowthickstop-1-s { background-position: -224px -48px; }
+.ui-icon-arrowthickstop-1-w { background-position: -240px -48px; }
+.ui-icon-arrowreturnthick-1-w { background-position: 0 -64px; }
+.ui-icon-arrowreturnthick-1-n { background-position: -16px -64px; }
+.ui-icon-arrowreturnthick-1-e { background-position: -32px -64px; }
+.ui-icon-arrowreturnthick-1-s { background-position: -48px -64px; }
+.ui-icon-arrowreturn-1-w { background-position: -64px -64px; }
+.ui-icon-arrowreturn-1-n { background-position: -80px -64px; }
+.ui-icon-arrowreturn-1-e { background-position: -96px -64px; }
+.ui-icon-arrowreturn-1-s { background-position: -112px -64px; }
+.ui-icon-arrowrefresh-1-w { background-position: -128px -64px; }
+.ui-icon-arrowrefresh-1-n { background-position: -144px -64px; }
+.ui-icon-arrowrefresh-1-e { background-position: -160px -64px; }
+.ui-icon-arrowrefresh-1-s { background-position: -176px -64px; }
+.ui-icon-arrow-4 { background-position: 0 -80px; }
+.ui-icon-arrow-4-diag { background-position: -16px -80px; }
+.ui-icon-extlink { background-position: -32px -80px; }
+.ui-icon-newwin { background-position: -48px -80px; }
+.ui-icon-refresh { background-position: -64px -80px; }
+.ui-icon-shuffle { background-position: -80px -80px; }
+.ui-icon-transfer-e-w { background-position: -96px -80px; }
+.ui-icon-transferthick-e-w { background-position: -112px -80px; }
+.ui-icon-folder-collapsed { background-position: 0 -96px; }
+.ui-icon-folder-open { background-position: -16px -96px; }
+.ui-icon-document { background-position: -32px -96px; }
+.ui-icon-document-b { background-position: -48px -96px; }
+.ui-icon-note { background-position: -64px -96px; }
+.ui-icon-mail-closed { background-position: -80px -96px; }
+.ui-icon-mail-open { background-position: -96px -96px; }
+.ui-icon-suitcase { background-position: -112px -96px; }
+.ui-icon-comment { background-position: -128px -96px; }
+.ui-icon-person { background-position: -144px -96px; }
+.ui-icon-print { background-position: -160px -96px; }
+.ui-icon-trash { background-position: -176px -96px; }
+.ui-icon-locked { background-position: -192px -96px; }
+.ui-icon-unlocked { background-position: -208px -96px; }
+.ui-icon-bookmark { background-position: -224px -96px; }
+.ui-icon-tag { background-position: -240px -96px; }
+.ui-icon-home { background-position: 0 -112px; }
+.ui-icon-flag { background-position: -16px -112px; }
+.ui-icon-calendar { background-position: -32px -112px; }
+.ui-icon-cart { background-position: -48px -112px; }
+.ui-icon-pencil { background-position: -64px -112px; }
+.ui-icon-clock { background-position: -80px -112px; }
+.ui-icon-disk { background-position: -96px -112px; }
+.ui-icon-calculator { background-position: -112px -112px; }
+.ui-icon-zoomin { background-position: -128px -112px; }
+.ui-icon-zoomout { background-position: -144px -112px; }
+.ui-icon-search { background-position: -160px -112px; }
+.ui-icon-wrench { background-position: -176px -112px; }
+.ui-icon-gear { background-position: -192px -112px; }
+.ui-icon-heart { background-position: -208px -112px; }
+.ui-icon-star { background-position: -224px -112px; }
+.ui-icon-link { background-position: -240px -112px; }
+.ui-icon-cancel { background-position: 0 -128px; }
+.ui-icon-plus { background-position: -16px -128px; }
+.ui-icon-plusthick { background-position: -32px -128px; }
+.ui-icon-minus { background-position: -48px -128px; }
+.ui-icon-minusthick { background-position: -64px -128px; }
+.ui-icon-close { background-position: -80px -128px; }
+.ui-icon-closethick { background-position: -96px -128px; }
+.ui-icon-key { background-position: -112px -128px; }
+.ui-icon-lightbulb { background-position: -128px -128px; }
+.ui-icon-scissors { background-position: -144px -128px; }
+.ui-icon-clipboard { background-position: -160px -128px; }
+.ui-icon-copy { background-position: -176px -128px; }
+.ui-icon-contact { background-position: -192px -128px; }
+.ui-icon-image { background-position: -208px -128px; }
+.ui-icon-video { background-position: -224px -128px; }
+.ui-icon-script { background-position: -240px -128px; }
+.ui-icon-alert { background-position: 0 -144px; }
+.ui-icon-info { background-position: -16px -144px; }
+.ui-icon-notice { background-position: -32px -144px; }
+.ui-icon-help { background-position: -48px -144px; }
+.ui-icon-check { background-position: -64px -144px; }
+.ui-icon-bullet { background-position: -80px -144px; }
+.ui-icon-radio-off { background-position: -96px -144px; }
+.ui-icon-radio-on { background-position: -112px -144px; }
+.ui-icon-pin-w { background-position: -128px -144px; }
+.ui-icon-pin-s { background-position: -144px -144px; }
+.ui-icon-play { background-position: 0 -160px; }
+.ui-icon-pause { background-position: -16px -160px; }
+.ui-icon-seek-next { background-position: -32px -160px; }
+.ui-icon-seek-prev { background-position: -48px -160px; }
+.ui-icon-seek-end { background-position: -64px -160px; }
+.ui-icon-seek-start { background-position: -80px -160px; }
+/* ui-icon-seek-first is deprecated, use ui-icon-seek-start instead */
+.ui-icon-seek-first { background-position: -80px -160px; }
+.ui-icon-stop { background-position: -96px -160px; }
+.ui-icon-eject { background-position: -112px -160px; }
+.ui-icon-volume-off { background-position: -128px -160px; }
+.ui-icon-volume-on { background-position: -144px -160px; }
+.ui-icon-power { background-position: 0 -176px; }
+.ui-icon-signal-diag { background-position: -16px -176px; }
+.ui-icon-signal { background-position: -32px -176px; }
+.ui-icon-battery-0 { background-position: -48px -176px; }
+.ui-icon-battery-1 { background-position: -64px -176px; }
+.ui-icon-battery-2 { background-position: -80px -176px; }
+.ui-icon-battery-3 { background-position: -96px -176px; }
+.ui-icon-circle-plus { background-position: 0 -192px; }
+.ui-icon-circle-minus { background-position: -16px -192px; }
+.ui-icon-circle-close { background-position: -32px -192px; }
+.ui-icon-circle-triangle-e { background-position: -48px -192px; }
+.ui-icon-circle-triangle-s { background-position: -64px -192px; }
+.ui-icon-circle-triangle-w { background-position: -80px -192px; }
+.ui-icon-circle-triangle-n { background-position: -96px -192px; }
+.ui-icon-circle-arrow-e { background-position: -112px -192px; }
+.ui-icon-circle-arrow-s { background-position: -128px -192px; }
+.ui-icon-circle-arrow-w { background-position: -144px -192px; }
+.ui-icon-circle-arrow-n { background-position: -160px -192px; }
+.ui-icon-circle-zoomin { background-position: -176px -192px; }
+.ui-icon-circle-zoomout { background-position: -192px -192px; }
+.ui-icon-circle-check { background-position: -208px -192px; }
+.ui-icon-circlesmall-plus { background-position: 0 -208px; }
+.ui-icon-circlesmall-minus { background-position: -16px -208px; }
+.ui-icon-circlesmall-close { background-position: -32px -208px; }
+.ui-icon-squaresmall-plus { background-position: -48px -208px; }
+.ui-icon-squaresmall-minus { background-position: -64px -208px; }
+.ui-icon-squaresmall-close { background-position: -80px -208px; }
+.ui-icon-grip-dotted-vertical { background-position: 0 -224px; }
+.ui-icon-grip-dotted-horizontal { background-position: -16px -224px; }
+.ui-icon-grip-solid-vertical { background-position: -32px -224px; }
+.ui-icon-grip-solid-horizontal { background-position: -48px -224px; }
+.ui-icon-gripsmall-diagonal-se { background-position: -64px -224px; }
+.ui-icon-grip-diagonal-se { background-position: -80px -224px; }
+
+
+/* Misc visuals
+----------------------------------*/
+
+/* Corner radius */
+.ui-corner-all, .ui-corner-top, .ui-corner-left, .ui-corner-tl { -moz-border-radius-topleft: 4px/*{cornerRadius}*/; -webkit-border-top-left-radius: 4px/*{cornerRadius}*/; -khtml-border-top-left-radius: 4px/*{cornerRadius}*/; border-top-left-radius: 4px/*{cornerRadius}*/; }
+.ui-corner-all, .ui-corner-top, .ui-corner-right, .ui-corner-tr { -moz-border-radius-topright: 4px/*{cornerRadius}*/; -webkit-border-top-right-radius: 4px/*{cornerRadius}*/; -khtml-border-top-right-radius: 4px/*{cornerRadius}*/; border-top-right-radius: 4px/*{cornerRadius}*/; }
+.ui-corner-all, .ui-corner-bottom, .ui-corner-left, .ui-corner-bl { -moz-border-radius-bottomleft: 4px/*{cornerRadius}*/; -webkit-border-bottom-left-radius: 4px/*{cornerRadius}*/; -khtml-border-bottom-left-radius: 4px/*{cornerRadius}*/; border-bottom-left-radius: 4px/*{cornerRadius}*/; }
+.ui-corner-all, .ui-corner-bottom, .ui-corner-right, .ui-corner-br { -moz-border-radius-bottomright: 4px/*{cornerRadius}*/; -webkit-border-bottom-right-radius: 4px/*{cornerRadius}*/; -khtml-border-bottom-right-radius: 4px/*{cornerRadius}*/; border-bottom-right-radius: 4px/*{cornerRadius}*/; }
+
+/* Overlays */
+.ui-widget-overlay { background: #aaaaaa/*{bgColorOverlay}*/ url(images/ui-bg_flat_0_aaaaaa_40x100.png)/*{bgImgUrlOverlay}*/ 50%/*{bgOverlayXPos}*/ 50%/*{bgOverlayYPos}*/ repeat-x/*{bgOverlayRepeat}*/; opacity: .3;filter:Alpha(Opacity=30)/*{opacityOverlay}*/; }
+.ui-widget-shadow { margin: -8px/*{offsetTopShadow}*/ 0 0 -8px/*{offsetLeftShadow}*/; padding: 8px/*{thicknessShadow}*/; background: #aaaaaa/*{bgColorShadow}*/ url(images/ui-bg_flat_0_aaaaaa_40x100.png)/*{bgImgUrlShadow}*/ 50%/*{bgShadowXPos}*/ 50%/*{bgShadowYPos}*/ repeat-x/*{bgShadowRepeat}*/; opacity: .3;filter:Alpha(Opacity=30)/*{opacityShadow}*/; -moz-border-radius: 8px/*{cornerRadiusShadow}*/; -khtml-border-radius: 8px/*{cornerRadiusShadow}*/; -webkit-border-radius: 8px/*{cornerRadiusShadow}*/; border-radius: 8px/*{cornerRadiusShadow}*/; }
+
+
+
+
+
+
+
+
+
+
+/******************* datepicker **************************************************************************************************************/
+
+/*!
+ * jQuery UI Datepicker 1.8.21
+ *
+ * Copyright 2012, AUTHORS.txt (http://jqueryui.com/about)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * http://docs.jquery.com/UI/Datepicker#theming
+ */
+.ui-datepicker { width: 17em; padding: .2em .2em 0; display: none; }
+.ui-datepicker .ui-datepicker-header { position:relative; padding:.2em 0; }
+.ui-datepicker .ui-datepicker-prev, .ui-datepicker .ui-datepicker-next { position:absolute; top: 2px; width: 1.8em; height: 1.8em; text-align:center; }
+.ui-datepicker .ui-datepicker-prev-hover, .ui-datepicker .ui-datepicker-next-hover { top: 1px; }
+.ui-datepicker .ui-datepicker-prev { left:2px; }
+.ui-datepicker .ui-datepicker-next { right:2px; }
+.ui-datepicker .ui-datepicker-prev-hover { left:1px; }
+.ui-datepicker .ui-datepicker-next-hover { right:1px; }
+.ui-datepicker .ui-datepicker-prev span, .ui-datepicker .ui-datepicker-next span { display: block; position: absolute; left: 50%; margin-left: -8px; top: 50%; margin-top: -5px;  }
+.ui-datepicker .ui-datepicker-title { margin: 0 2.3em; line-height: 1.8em; text-align: center; }
+.ui-datepicker .ui-datepicker-title select { font-size:1em; margin:1px 0; }
+.ui-datepicker select.ui-datepicker-month-year {width: 100%;}
+.ui-datepicker select.ui-datepicker-month, 
+.ui-datepicker select.ui-datepicker-year { width: 49%;}
+.ui-datepicker table {width: 100%; font-size: .9em; border-collapse: collapse; margin:0 0 .4em; }
+.ui-datepicker th { padding: .7em .3em; text-align: center; font-weight: bold; border: 0;  }
+.ui-datepicker td { border: 0; padding: 1px; }
+.ui-datepicker td span, .ui-datepicker td a { display: block; padding: .2em; text-align: right; text-decoration: none; }
+.ui-datepicker .ui-datepicker-buttonpane { background-image: none; margin: .7em 0 0 0; padding:0 .2em; border-left: 0; border-right: 0; border-bottom: 0; }
+.ui-datepicker .ui-datepicker-buttonpane button { float: right; margin: .5em .2em .4em; cursor: pointer; padding: .2em .6em .3em .6em; width:auto; overflow:visible; }
+.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-current { float:left; }
+
+/* with multiple calendars */
+.ui-datepicker.ui-datepicker-multi { width:auto; }
+.ui-datepicker-multi .ui-datepicker-group { float:left; }
+.ui-datepicker-multi .ui-datepicker-group table { width:95%; margin:0 auto .4em; }
+.ui-datepicker-multi-2 .ui-datepicker-group { width:50%; }
+.ui-datepicker-multi-3 .ui-datepicker-group { width:33.3%; }
+.ui-datepicker-multi-4 .ui-datepicker-group { width:25%; }
+.ui-datepicker-multi .ui-datepicker-group-last .ui-datepicker-header { border-left-width:0; }
+.ui-datepicker-multi .ui-datepicker-group-middle .ui-datepicker-header { border-left-width:0; }
+.ui-datepicker-multi .ui-datepicker-buttonpane { clear:left; }
+.ui-datepicker-row-break { clear:both; width:100%; font-size:0em; }
+
+/* RTL support */
+.ui-datepicker-rtl { direction: rtl; }
+.ui-datepicker-rtl .ui-datepicker-prev { right: 2px; left: auto; }
+.ui-datepicker-rtl .ui-datepicker-next { left: 2px; right: auto; }
+.ui-datepicker-rtl .ui-datepicker-prev:hover { right: 1px; left: auto; }
+.ui-datepicker-rtl .ui-datepicker-next:hover { left: 1px; right: auto; }
+.ui-datepicker-rtl .ui-datepicker-buttonpane { clear:right; }
+.ui-datepicker-rtl .ui-datepicker-buttonpane button { float: left; }
+.ui-datepicker-rtl .ui-datepicker-buttonpane button.ui-datepicker-current { float:right; }
+.ui-datepicker-rtl .ui-datepicker-group { float:right; }
+.ui-datepicker-rtl .ui-datepicker-group-last .ui-datepicker-header { border-right-width:0; border-left-width:1px; }
+.ui-datepicker-rtl .ui-datepicker-group-middle .ui-datepicker-header { border-right-width:0; border-left-width:1px; }
+
+/* IE6 IFRAME FIX (taken from datepicker 1.5.3 */
+.ui-datepicker-cover {
+    display: none; /*sorry for IE5*/
+    display/**/: block; /*sorry for IE5*/
+    position: absolute; /*must have*/
+    z-index: -1; /*must have*/
+    filter: mask(); /*must have*/
+    top: -4px; /*must have*/
+    left: -4px; /*must have*/
+    width: 200px; /*must have*/
+    height: 200px; /*must have*/
+}
+
