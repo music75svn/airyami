@@ -155,12 +155,10 @@ function gfn_validationForm(formObj){
 //팝업스타일====================================================================================
 var fa_POP_STYLE = new Object();
 
-fa_POP_STYLE["DEFAULT"] = {width:700,height:660,center:true,scrollbars:true};
-fa_POP_STYLE["/board/ArticleHistoryList"] = {width:850,height:660,center:true,scrollbars:true};
-fa_POP_STYLE["/board/BoardListPopup"] = {width:950,height:660,center:true,scrollbars:true};
-fa_POP_STYLE["/board/ArticleContentPopup"] = {width:950,height:660,center:true,scrollbars:true};
+fa_POP_STYLE["DEFAULT"] = "width=700,height=660,center=true,scrollbars=true,status=yes";
+fa_POP_STYLE["/board/ArticleHistoryList"] = "width=700,height=660,center=true,scrollbars=true,status=yes";
 
-fa_POP_STYLE["/MCS/MCS0011P"] = {width:450,height:600,center:true,scrollbars:false,resizable:true};
+fa_POP_STYLE["/MCS/MCS0011P"] = "status=yes,scrollbars=yes,resizable=yes,top=50,left=400,width=830,height=760";
 //==============================================================================================
 
 /**************************************************************** 
@@ -172,6 +170,34 @@ fa_POP_STYLE["/MCS/MCS0011P"] = {width:450,height:600,center:true,scrollbars:fal
 * @return   : 없음
 ****************************************************************/
 function gfn_commonGo(psUrl, paParam, psPopupYn){
+	var url = gfn_getApplication() + psUrl + ".do";
+	
+	// form 생성하자.
+	var $form = $('<form></form>');
+    $form.attr('action', url);
+    $form.attr('method', 'post');
+    $form.appendTo('body');
+    
+    for(_paParam in paParam){
+    	$form.append($('<input type="hidden" value="'+paParam[_paParam]+'" name="'+_paParam+'">'));
+    }
+    
+    debugger;
+    
+    if(psPopupYn == "Y"){
+    	var option = (gfn_isNull(fa_POP_STYLE[psUrl])) ? fa_POP_STYLE["DEFAULT"] : fa_POP_STYLE[psUrl];
+    	var win = window.open("", psUrl, option);
+    	
+    	$form.attr('target', psUrl);
+    	$form.submit();
+    	win.focus();
+    }
+    else
+    	$form.submit();
+    
+}
+
+function gfn_commonGo_old(psUrl, paParam, psPopupYn){
 	
 	var url = gfn_getApplication() + psUrl + ".do";
 	var params = "?";

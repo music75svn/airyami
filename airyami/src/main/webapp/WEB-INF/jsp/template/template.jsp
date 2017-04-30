@@ -146,14 +146,27 @@ function fn_Insert(){
 	alert("fn_Insert");
 }
 
+
+
+// 화면전환
+function fn_gopage(){
+	var inputParam = {};
+	
+	inputParam.aaa = "111aaa";
+	inputParam.aaaNm = "배수한121";
+	
+	gfn_commonGo("/login/login", inputParam, "N");
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
-// 팝업 호출
+// 팝업 호출	
+	
 function fn_popCommCodeInfo(inputParam){
 	
 	inputParam.SYS_DT = "20131017";
 	inputParam.DOMAIN = "ppe.pe.kr";
 	
-	gfn_commonGo("/admin/commcode/commcode_list_popup", inputParam, "Y");
+	gfn_commonGo("/commcode/commcode_list_popup", inputParam, "Y");
 	
 }
 
@@ -318,11 +331,14 @@ function fn_setChart(list){
 				</div> --%>
 				<div><span id="pagingNav" class="pagenate"></span></div>
 				
+				<div class="title"><h2>화면전환 호출</h2><span class="hide"></span></div>
+					<input type="button" class="input" value="화면전환" onclick="javascript:fn_gopage();return false;"/>
+				
 				<div class="title"><h2>popup 호출</h2><span class="hide"></span></div>
 					<span class="tt ml20">
 					<label>관리자</label>
 					<input type="text" id="USER_NM" name="USER_NM" onkeydown="javascript:fn_userNmChange();"/>
-					<a id="ahref" href="/dWise/admin/commcode/commcode_list_popup.do?GROUP_CODE=GROUP&RULE_CD=;" onclick="javascript:alert('화면전환');return false;"><img src="/img/icon_search.gif" alt="화면전환" /></a>
+					<a id="ahref" href="/commcode/commcode_list_popup.do?GROUP_CODE=GROUP&RULE_CD=;" onclick="javascript:alert('화면전환');return false;"><img src="/img/icon_search.gif" alt="화면전환" /></a>
 					<a href="/dWise/admin/commcode/commcode_list_popup.do?GROUP_CODE=GROUP&RULE_CD=;" onclick="javascript:fn_popCommCode();return false;" target="_blank">popup</a>
 					<a href="/dWise/admin/commcode/commcode_list_popup.do?GROUP_CODE=GROUP&RULE_CD=;" target="_blank">popup no script</a>
 					
