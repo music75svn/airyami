@@ -15,6 +15,7 @@ $(function() {  //onready
 	gfn_OnLoad();
 	
 	fn_init();
+	
 });
 
 // 화면내 초기화 부분
@@ -23,9 +24,9 @@ function fn_init(){
 	//gfn_setCheck($('#C001001'));
 	//$('#C001001').attr('checked', true);
 	// select 박스 초기화
-	alert('<spring:message code="common.save.msg" />');
-	debugger;
+	//alert('<spring:message code="common.save.msg" />');
 	gfn_setSelect($('#LANG_CD'), 'en');
+	gfn_setSelect($('#GRP_CD'), 'C002');
 	//$('#LANG_CD').val('C001002');
 }
 
@@ -52,7 +53,6 @@ function fn_srch(){
 
 // 연동 select 코드 조회
 function fn_selectLink(code){
-	debugger;
 	if(gfn_isNull(code)){
 		return;
 	}
@@ -97,7 +97,7 @@ function fn_callBack(sid, result, data){
 		
 		gfn_displayList(result.ds_list, "tb_list", tbHiddenInfo);
 		gfn_displayTotCnt(result.totCnt);
-		debugger;
+//		debugger;
 		gfn_addPaging(result.pageInfo, 'gfn_clickPageNo');
 	}
 	
@@ -243,13 +243,13 @@ function fn_setChart(list){
 					
 					<span class="tt"><label>Selectbox</label></span>
 					<select id="LANG_CD" name="LANG_CD">
-                        <option value="">-- 전체 --</option>
+                        <option value="">-- <spring:message code="word.all" /> --</option>
                         <c:forEach var="LANG" items="${ds_cd_LANG}">
                             <option value="${LANG.CD}">${LANG.CD_NM}</option>
                         </c:forEach>
                     </select>
                     <span class="tt ml20"><label>Selectbox3</label></span>
-					<select id="RULE_CD" name="RULE_CD" onchange="javascript:fn_selectLink(this.value);">
+					<select id="GRP_CD" name="GRP_CD" onchange="javascript:fn_selectLink(this.value);">
                         <c:forEach var="GRP_CD" items="${ds_cd_GRP_CD}">
                             <option value="${GRP_CD.CD}">${GRP_CD.CD_NM}</option>
                         </c:forEach>
@@ -258,13 +258,21 @@ function fn_setChart(list){
 					</select>
 				<div class="title"><h2>체크박스</h2><span class="hide"></span></div>
 					<!-- 체크박스 -->
-					<span class="tt">그룹종류</span>
-					<c:forEach var="GROUP" items="${ds_cd_GROUP}">
-						<input type="checkbox" id="${GROUP.CD}" name="${GROUP.CD}" value="${GROUP.CD}"/>
-						<label for="${GROUP.CD}">${GROUP.CD_NM}</label>
+					<span class="tt"><spring:message code="word.lang" /></span>
+					<c:forEach var="LANG" items="${ds_cd_LANG}">
+						<input type="checkbox" id="${LANG.CD}" name="${LANG.CD}" value="${LANG.CD}"/>
+						<label for="${LANG.CD}">${LANG.CD_NM}</label>
 					</c:forEach>
 					
 					<input type="text" id="search_word" name="search_word" value="" title="검색어 입력" style="width:160px;" depends="required, englishNumeric" maxlength=12>
+				
+				<div class="title"><h2>라디오박스</h2><span class="hide"></span></div>
+					<!-- 체크박스 -->
+					<span class="tt"><spring:message code="word.lang" /></span>
+					<c:forEach var="LANG" items="${ds_cd_LANG}">
+						<input type="radio" id="${LANG.CD}" name="CHK_LANG" value="${LANG.CD}"/>
+						<label for="${LANG.CD}">${LANG.CD_NM}</label>
+					</c:forEach>
 				
 				<div class="title"><h2>그리드 조회</h2><span class="hide"></span></div>
 					<button type="submit" class="red" onClick="gfn_fn_srch();" ><span>조회</span></button>

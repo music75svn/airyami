@@ -321,7 +321,7 @@ function gfn_GetCodeList(code, mycombo, option){
 	
 	$.ajax({url: GC_URL+"/commCode/selectCommCode.do",
         type: "post"
-      , data: {GROUP_CODE:code}
+      , data: {CODE_GROUP_ID:code}
       , dataType: "json"
       , async: false
       , success: function(response, successName) {

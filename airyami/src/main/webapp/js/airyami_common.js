@@ -339,6 +339,8 @@ function gfn_setSelect(obj, svalue){
   
     $dropdown.children().removeClass('selected')
       .filter(':contains(' +text + ')').addClass('selected');
+    
+    obj.trigger('change'); 
 }
 
 function gfn_setRadio(rname, rvalue){
