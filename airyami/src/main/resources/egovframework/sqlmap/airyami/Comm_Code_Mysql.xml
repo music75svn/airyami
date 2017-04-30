@@ -52,7 +52,8 @@
 	</select>
 	
 	<select id="commcode.selectCommCode" parameterClass="Map" resultClass="ValueMap">
-	SELECT A.CODE_ID AS CD
+	SELECT /* Comm_Code_Mysql.xml  commcode.selectCommCode */
+	       A.CODE_ID AS CD
 	      ,B.CODE_NM AS CD_NM
 	  FROM TB_CODE A
 	      ,TB_CODE_NM B

@@ -153,10 +153,10 @@ public class LoginController {
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
     	log.info("/template/template param 1111::1111 " + params);
     	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
-    	log.info("/template/template param 1111::2222 " + params);
+    	log.info("params.LANG_CD :: " + params.get("LANG_CD"));
     	
-    	params.clear();
-		params.put( "CODE_GROUP_ID", "LANG" ); //언어
+    	//params.clear();
+		params.put( "CODE_GROUP_ID", "LANG" ); //언어코드 대분류
 //		params.put( "LANG_CD", "ko" ); //언어
 		List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
 		model.put("ds_cd_LANG", code_LANG);

@@ -105,7 +105,7 @@ public class CommonUtils {
         }
 
         
-        result.put("LANG_CD", getLocale(request));
+        result.put("LANG_CD", getLangCd(request));
         
         
         AuthCheck idCk = new AuthCheck (request, null);
@@ -607,7 +607,7 @@ public class CommonUtils {
 	 }
 	 
 	 /**
-	  * 디데이 계산하기
+	  * 언어 가지고 오기.(Locale)
 	  * */
 	 public static Locale getLocale(HttpServletRequest request) {
 		 
@@ -617,6 +617,22 @@ public class CommonUtils {
 			 return Locale.getDefault();
 					 
 		 return (Locale)session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME);
+	 }
+	 
+	 /**
+	  * 언어 가지고 오기.(Locale)
+	  * */
+	 public static String getLangCd(HttpServletRequest request) {
+		 Locale locales = null;
+		 HttpSession session = request.getSession();
+		 if( isNull(session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME)+"") )
+			 locales = Locale.getDefault();
+		 else
+			 locales = (Locale)session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME);
+		 
+		 String strLocales = locales + "";
+		 
+		 return strLocales.substring(0,2);
 	 }
 	 
 	 /**
