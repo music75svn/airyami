@@ -49,6 +49,7 @@
 	
 
 function fn_setLocal(value){
+	return;
 	alert(value);
 	var inputParam = new Object();
 	inputParam.sid 				= "changeLocal";
