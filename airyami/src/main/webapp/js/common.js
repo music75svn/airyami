@@ -121,7 +121,7 @@ function gfn_validationForm(formObj){
 			if( depends.indexOf("|email|") > -1){
 				if(!gfn_checkEmail(val)) {
 //					alert("올바른 형식의 이메일주소가 아닙니다.");
-					alert(gfn_getMsg("fail.email.msg"));
+					alert(gfn_getMsg("errors.email"));
 					conObj.focus();
 					return false;
 				}
@@ -329,12 +329,13 @@ function gfn_GetCodeList(code, mycombo, option){
               gfn_callbackGetCodeList(code, mycombo, option, response.ds_list);
           } else {
 //              alert("공통코드 조회에 실패하였습니다.");
-              alert(gfn_getMsg("mgr.code") + " " + gfn_getMsg("fail.common.select"));
+              alert(gfn_getMsg("word.code") + " " + gfn_getMsg("fail.common.select"));
           }
       },
       error: function(xhr, errorName, error) {
-//          alert("공통코드 조회 중 에러가 발생하였습니다.");
-    	  alert(gfn_getMsg("mgr.code") + " " + gfn_getMsg("fail.common.select"));
+    	  debugger;
+          //alert("공통코드 조회 중 에러가 발생하였습니다.");
+    	  alert(gfn_getMsg("word.code") + " " + gfn_getMsg("fail.common.select"));
       }
   });
 }
@@ -1329,7 +1330,7 @@ function gfn_displayList(list, tbID, HiddenInfo){
         		var CID = tbIDInfo[_tbIDInfo];
         		
         		if(CID == "BTN111")
-        			debugger;
+//        			debugger;
         		
         		var tdStyle = "";
         		var tdClick = "";
@@ -2825,7 +2826,7 @@ function gfn_getMenuCd(){
  *          : hostname과 application에 따라 사이트 아이디는 정해진다.
  *  ****************************************************************/ 
 function gfn_getSiteID(){
-	debugger;
+//	debugger;
 	var appName = gfn_getApplication();	
 	var hostname = location.hostname;
 	var menuCd = gfn_getMenuCd();

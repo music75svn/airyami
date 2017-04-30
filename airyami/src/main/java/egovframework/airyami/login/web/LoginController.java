@@ -160,6 +160,10 @@ public class LoginController {
 //		params.put( "LANG_CD", "ko" ); //언어
 		List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
 		model.put("ds_cd_LANG", code_LANG);
+		
+		params.put( "CODE_GROUP_ID", "GRP_CD" ); //대분류 테스트
+		List<ValueMap> code_GRP_CD = commCodeService.selectCommCode(params);
+		model.put("ds_cd_GRP_CD", code_GRP_CD);
     	
     	return "/template/template";
     }

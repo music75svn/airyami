@@ -23,8 +23,9 @@ function fn_init(){
 	//gfn_setCheck($('#C001001'));
 	//$('#C001001').attr('checked', true);
 	// select 박스 초기화
+	alert('<spring:message code="common.save.msg" />');
 	debugger;
-	gfn_setSelect($('#LANG_CD'), 'ko');
+	gfn_setSelect($('#LANG_CD'), 'en');
 	//$('#LANG_CD').val('C001002');
 }
 
@@ -51,6 +52,7 @@ function fn_srch(){
 
 // 연동 select 코드 조회
 function fn_selectLink(code){
+	debugger;
 	if(gfn_isNull(code)){
 		return;
 	}
@@ -248,8 +250,8 @@ function fn_setChart(list){
                     </select>
                     <span class="tt ml20"><label>Selectbox3</label></span>
 					<select id="RULE_CD" name="RULE_CD" onchange="javascript:fn_selectLink(this.value);">
-                        <c:forEach var="GROUP" items="${ds_cd_GROUP}">
-                            <option value="${GROUP.CD}">${GROUP.CD_NM}</option>
+                        <c:forEach var="GRP_CD" items="${ds_cd_GRP_CD}">
+                            <option value="${GRP_CD.CD}">${GRP_CD.CD_NM}</option>
                         </c:forEach>
 					</select>
 					<select id="SUB_CD" name="SUB_CD">

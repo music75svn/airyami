@@ -5,6 +5,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <jsp:include page="/include/common.jsp"/>
+<%@ include file="/include/message.jsp"%>
 
 <%@ page import="egovframework.airyami.cmm.util.UrlUtil"%>
 
@@ -25,6 +26,7 @@
 <script type="text/javascript" src="/js/jquery.form.js" ></script>
 <script type="text/javascript" src="/js/jquery-migrate-1.2.1.min.js" ></script>
 
+<script type="text/javascript" src="/js/constant.js"></script>
 <script type="text/javascript" src="/js/common.js"></script>
 <script type="text/javascript" src="<%=UrlUtil.getActionRoot(request)%>/js/airyami_common.js"></script>
 <%-- <script type="text/javascript" src="<%=UrlUtil.getActionRoot(request)%>/js/airyami_constant.js"></script> --%>
