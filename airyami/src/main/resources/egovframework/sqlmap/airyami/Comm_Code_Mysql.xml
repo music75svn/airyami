@@ -7,10 +7,10 @@
 	
 	<select id="commcode.listCommCodeCnt" parameterClass="Map" resultClass="java.lang.Integer">
 	SELECT COUNT(1) 
-	  FROM TB_COMM_CODE
+	  FROM TB_CODE
 	 WHERE USE_YN = 'Y' 
-	 <isNotEmpty property="GROUP_CODE">
-	   AND GROUP_CODE= #GROUP_CODE# 
+	 <isNotEmpty property="CODE_GROUP_ID">
+	   AND CODE_GROUP_ID= #CODE_GROUP_ID# 
 	 </isNotEmpty>
 	</select>
 	
@@ -18,34 +18,29 @@
 	<isEqual property="EXCEL_YN" compareValue="N">
 	<include refid="pagingPrefixSQL"/>
 	</isEqual>
-	SELECT GROUP_CODE
-	      ,CODE			AS CD
-	      ,CODE_NAME	AS CD_NM
-	      ,CODE_DESC
-	      ,ETC 
-	      ,'Y'			AS DELYN
-	      ,'박대하'		AS EXT
-	      ,'FIRST,xls'		AS SIMG		
-	      ,2			AS LVL
-	      /* ,'/images/board/img_sample_thumbnail2.jpg'	AS IMGPATH */
-	      ,'/img/upload/5555/20150907050635501.jpg'	AS IMGPATH
-	      ,'썸네일'		AS ALT
-	      ,if(GROUP_CODE='ADMIN_TYPE', 'Y','N')			AS BTN_YN
-	      ,'지정버튼명'		AS BTN_NM
-	      ,CODE			AS CD1
-	      ,CODE_NAME	AS CD_NM1
-	      ,REG_DT		AS REG_DT
-	      ,1            AS REPLY_LEVEL
-	      ,'admin'		AS REG_ID
-	      ,'notice'		AS RCLASS
-	  FROM TB_COMM_CODE
-	 WHERE USE_YN = 'Y' 
-	 <isNotEmpty property="GROUP_CODE">
-	   AND GROUP_CODE= #GROUP_CODE# 
+	SELECT 
+	       C.CODE_GROUP_NM
+		  ,A.CODE_GROUP_ID
+	      ,A.CODE_ID 		AS CD
+	      ,B.CODE_NM 		AS CD_NM
+	      ,A.REMARKS
+	  FROM TB_CODE A
+	      ,TB_CODE_NM B
+	      ,TB_CODE_GROUP C
+	 WHERE A.CODE_GROUP_ID = B.CODE_GROUP_ID
+	   AND A.CODE_ID = B.CODE_ID
+	   AND A.CODE_GROUP_ID = C.CODE_GROUP_ID
+	   AND A.USE_YN = 'Y'
+	   AND B.LANG_CD = #LANG_CD# 
+	 <isNotEmpty property="CODE_GROUP_ID">
+	   AND A.CODE_GROUP_ID= #CODE_GROUP_ID# 
 	 </isNotEmpty>
 	 <isNotEmpty property="SORT_COL">
 	 	<include refid="orderbySQL"/>
 	 </isNotEmpty>
+	 <isEmpty property="SORT_COL">
+	 ORDER BY A.CODE_GROUP_ID, A.SORT_ORDER
+	 </isEmpty>
 	<isEqual property="EXCEL_YN" compareValue="N">
 	<include refid="pagingSuffixSQL"/>
 	</isEqual>
@@ -70,15 +65,15 @@
 	SELECT 
 	      CODE			AS CD
 	      ,CODE_NAME	AS CD_NM
-	  FROM TB_COMM_CODE A
+	  FROM TB_CODE A
 	 WHERE USE_YN = 'Y' 
-	   AND GROUP_CODE = #GROUP_CODE#	
+	   AND CODE_GROUP_ID = #CODE_GROUP_ID#	
 	 <isNotEmpty property="UPPER_CODE" prepend="AND"><![CDATA[ UPPER_CODE = #UPPER_CODE# ]]> </isNotEmpty>
 	ORDER BY PRINT_ORDER
 	</select>
 	
 	<select id="commcode.getCommCode" parameterClass="Map" resultClass="ValueMap">
-	SELECT GROUP_CODE
+	SELECT CODE_GROUP_ID
 	      ,CODE			AS CD
 	      ,CODE_NAME	AS CD_NM
 	      ,CODE_DESC
@@ -86,9 +81,9 @@
 	      ,CODE			AS CD1
 	      ,'/template/template_list.do'		AS CD1_URL
 	      ,1			AS ARTICLE_SEQ
-	  FROM TB_COMM_CODE
+	  FROM TB_CODE
 	 WHERE USE_YN = 'Y' 
-	   AND GROUP_CODE= #GROUP_CODE# 
+	   AND CODE_GROUP_ID= #CODE_GROUP_ID# 
 	   AND CODE= #CODE# 
 	</select>
 	

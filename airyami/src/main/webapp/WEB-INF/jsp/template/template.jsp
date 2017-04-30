@@ -276,6 +276,9 @@ function fn_setChart(list){
 				
 				<div class="title"><h2>그리드 조회</h2><span class="hide"></span></div>
 					<button type="submit" class="red" onClick="gfn_fn_srch();" ><span>조회</span></button>
+					<!-- 출력건수 -->
+					<div class="tablelistQuantity" id="pageUnit"></div>
+					<!--// 출력건수 -->
 			 	<!-- 가로 스크롤 -->
 				<div class="scroll"> 
 					<table id="tb_list" cellspacing="0" cellpadding="0" border="0" class="sorting">
@@ -291,7 +294,7 @@ function fn_setChart(list){
 							<tr> 
 								<th cid="GROUP_CODE" alg="center" clickevent="fn_callPopup(this);" url="/admin/commcode/commcode_list_popup.do">GROUPCODE</th>
 								<th cid="CD" alg="center" clickevent="fn_test2(this);">CODE</th>
-								<th cid="CD_NM" alg="center">코드명</th>
+								<th cid="CD_NM" alg="center"><</th>
 								<th cid="CODE_DESC" alg="center">코드설명</th>
 								<th cid="ETC" alg="center">기타</th>
 							</tr> 

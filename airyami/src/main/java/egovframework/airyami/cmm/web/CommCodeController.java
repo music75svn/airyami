@@ -69,6 +69,9 @@ public class CommCodeController {
     PlatformTransactionManager transactionManager;
     
     
+   
+    
+    
     /**
 	 * 공통코드 목록을 조회한다. (pageing)
 	 * @param searchVO - 조회할 정보가 담긴 SampleDefaultVO
@@ -82,6 +85,10 @@ public class CommCodeController {
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
     	log.debug("param :: " + params);
     	
+    	
+    	// 이건 체크박스로 리스트에서 값 가지고 오는거..
+    	// 일단 리스트에선 패스..
+    	/*
     	if(!CommonUtils.isNull((String)params.get("rowDatas"))){
     		List<Object> rParams = JsonUtil.parseToList( (String)params.get("rowDatas") );
     		
@@ -90,6 +97,7 @@ public class CommCodeController {
     			log.debug("rowData.CD :: " + rowData.get("CD"));
     		}
     	}
+    	*/
     	
     	
     	boolean success = true;
@@ -187,13 +195,31 @@ public class CommCodeController {
     	response.getWriter().println(CommonUtils.setJsonResult(result));
     	
     	return null;
-    } 
+    }
+    
+    
+    
+    /**
+     * 공통코드리스트 호출 
+     */
+    @RequestMapping(value="/admin/commcode/commcode_list_popup")
+    public String goCommcodeList(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param 1111:: " + params);
+    	CommonUtils.setModelByParams(model, params);
+    	
+    	
+    	return "/admin/commcode/commcode_list_popup";
+    }
+    
     
     /**
      * 공통코드 목록을 조회한다. (pageing)
-     * @param searchVO - 조회할 정보가 담긴 SampleDefaultVO
+     * @param searchVO - 
      * @param model
-     * @return "/sample/egovSampleList"
+     * @return 
      * @exception Exception
      */
     @RequestMapping(value="/commCode/codeList2.do")
@@ -223,23 +249,5 @@ public class CommCodeController {
     	
     	return "/test/templete";
     } 
-    
-    
-    
-    
-    /**
-     * 공통코드리스트 호출 
-     */
-    @RequestMapping(value="/admin/commcode/commcode_list_popup")
-    public String goCommcodeList(HttpServletRequest request, HttpServletResponse response, 
-    		ModelMap model) throws Exception {
-    	
-    	Map<String,Object> params = CommonUtils.getRequestMap(request);
-    	log.info("param 1111:: " + params);
-    	CommonUtils.setModelByParams(model, params);
-    	
-    	
-    	return "/admin/commcode/commcode_list_popup";
-    }
 
 }
