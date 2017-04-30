@@ -153,7 +153,7 @@ function gfn_validationForm(formObj){
 
 
 //팝업스타일====================================================================================
-var fa_POP_STYLE = new Object();
+var fa_POP_STYLE = new Object(); 
 
 fa_POP_STYLE["DEFAULT"] = "width=700,height=660,center=true,scrollbars=true,status=yes";
 fa_POP_STYLE["/board/ArticleHistoryList"] = "width=700,height=660,center=true,scrollbars=true,status=yes";
