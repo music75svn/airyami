@@ -24,8 +24,8 @@ function fn_init(){
 	//$('#C001001').attr('checked', true);
 	// select 박스 초기화
 	debugger;
-	gfn_setSelect($('#SYS_CD'), 'C001002');
-	$('#SYS_CD').val('C001002');
+	gfn_setSelect($('#LANG_CD'), 'ko');
+	//$('#LANG_CD').val('C001002');
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -240,10 +240,10 @@ function fn_setChart(list){
 				</form>
 					
 					<span class="tt"><label>Selectbox</label></span>
-					<select id="SYS_CD" name="SYS_CD">
+					<select id="LANG_CD" name="LANG_CD">
                         <option value="">-- 전체 --</option>
-                        <c:forEach var="GROUP" items="${ds_cd_GROUP}">
-                            <option value="${GROUP.CD}">${GROUP.CD_NM}</option>
+                        <c:forEach var="LANG" items="${ds_cd_LANG}">
+                            <option value="${LANG.CD}">${LANG.CD_NM}</option>
                         </c:forEach>
                     </select>
                     <span class="tt ml20"><label>Selectbox3</label></span>

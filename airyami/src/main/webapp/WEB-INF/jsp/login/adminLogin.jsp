@@ -114,7 +114,7 @@ function fn_callBack(sid, result){
 				<h3>admin로그인</h3>
 		            
 				<div id="id">
-					<label for="user_id" class="i_label">아이디</label>
+					<label for="user_id" class="i_label"><spring:message code="common.save.msg" />아이디</label>
 					<input id="LOGIN_ID" name="LOGIN_ID" value="admin" class="i_input" onfocus="OnEnter(this)" onblur="OnExit(this)" type="text">
 					
 				</div>

@@ -19,17 +19,30 @@
     </bean>
     <!-- 프로퍼티 파일 위치 설정 -->
 	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="defaultEncoding" value="UTF-8"/>
         <property name="basenames">
             <list>
                 <value>classpath:/egovframework/message/com/message-common</value>
                 <value>classpath:/egovframework/rte/fdl/idgnr/messages/idgnr</value>
                 <value>classpath:/egovframework/rte/fdl/property/messages/properties</value>
+                <value>classpath:/egovframework/egovProps/globals</value>
             </list>
         </property>
+        <property name="fallbackToSystemLocale" value="false"/>
         <property name="cacheSeconds">
             <value>60</value>
         </property>
     </bean>
+    
+    <!-- 세션에 locale 정보가 없을 경우 기본 언어 -->
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver">
+		<property name="defaultLocale" value="ko_KR" />  
+	</bean>
+	
+	<bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+        <property name="paramName" value="lang" />
+    </bean>
+    	
 	
 	<!-- Exception 발생시 후처리용 별도작업을 위해 실행환경의 LeveaTrace를 활용하도록 설정 -->
 	<bean id="leaveaTrace" class="egovframework.rte.fdl.cmmn.trace.LeaveaTrace">

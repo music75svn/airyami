@@ -16,17 +16,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.ui.ModelMap;
-
-//import kr.go.sbc.ecbmsj.excel.ExcelStyle;
-
-//import org.apache.poi.ss.usermodel.*;
-//import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
-//import com.dsjdf.jdf.Logger;
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 
 public class CommonUtils {
@@ -35,28 +32,28 @@ public class CommonUtils {
      * @param map  맵
      */
     public static String setJsonResult(ValueMap map) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        if (map != null) {
-            int i = 0;
-            for (Map.Entry<String,Object> entry : map.entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
-                if (i > 0) {
-                    builder.append("\n,");
-                }
-                builder.append("\"");
-                builder.append(key);
-                builder.append("\":");
-                builder.append(JsonUtil.toString(value));
-                i++;
-            }
-        }
-        builder.append("}");
-        
-        String jsonResult = builder.toString();
-        return jsonResult;
-        
+    	StringBuilder builder = new StringBuilder();
+    	builder.append("{");
+    	if (map != null) {
+    		int i = 0;
+    		for (Map.Entry<String,Object> entry : map.entrySet()) {
+    			String key = entry.getKey();
+    			Object value = entry.getValue();
+    			if (i > 0) {
+    				builder.append("\n,");
+    			}
+    			builder.append("\"");
+    			builder.append(key);
+    			builder.append("\":");
+    			builder.append(JsonUtil.toString(value));
+    			i++;
+    		}
+    	}
+    	builder.append("}");
+    	
+    	String jsonResult = builder.toString();
+    	return jsonResult;
+    	
 //        InputStream inputStream;
 //        
 //        try {
@@ -106,6 +103,9 @@ public class CommonUtils {
                	result.put(name, value);
             }
         }
+
+        
+        result.put("LANG_CD", getLocale(request));
         
         
         AuthCheck idCk = new AuthCheck (request, null);
@@ -171,11 +171,11 @@ public class CommonUtils {
      * @param map  맵
      */
     public static void setModelByParams(ModelMap model, Map<String,Object> params, HttpServletRequest request)
-    {
+    {	
+    	setModelByParams(model, params);
+    	
     	model.put("MYPATH", UrlUtil.getMenuID(request));
     	model.put("REFPATH", UrlUtil.getRefPath(request));
-    	
-    	setModelByParams(model, params);
     }
     
     /**
@@ -609,10 +609,26 @@ public class CommonUtils {
 	 /**
 	  * 디데이 계산하기
 	  * */
-	 public static String getLocale() {
+	 public static Locale getLocale(HttpServletRequest request) {
 		 
-		 return Locale.getDefault()+"";
+//		 return Locale.getDefault()+"";
+		 HttpSession session = request.getSession();
+		 if( isNull(session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME)+"") )
+			 return Locale.getDefault();
+					 
+		 return (Locale)session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME);
 	 }
+	 
+	 /**
+	  * Locale Null여부 확인
+	  * */
+	 public static boolean getLocaleNull(HttpServletRequest request) {		 
+		 HttpSession session = request.getSession();
+		 boolean reValue =false;
+		 if( isNull(session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME)+"") )
+			 reValue = true;
+		 return reValue;					 
+	 }	 
 	 
 	 /**
 	  * SHA256 처리(단방향 암호화, 비밀번호에 사용)
@@ -638,5 +654,129 @@ public class CommonUtils {
 			}
 			return SHA;
 		}
+	 
+	 
+	 /**
+	  * 정규식 validation 체크
+	  * */
+	 public static ValueMap checkRegular(String sData, String sRegular) {
+		ValueMap result = new ValueMap();
+		boolean success = true;
+		result.put("PASS_YN", success);
+		 
+		Pattern p = null;
+		Matcher m = null;
+		String exp = "";
+		String msg = "";
+		 
+		// 숫자만
+		if("NUM".equals(sRegular)){
+			exp = "^[0-9]+$";
+			msg = " 숫자만 입력하세요";
+		}
+		 
+		// 숫자+영문
+		if("NUMENG".equals(sRegular)){
+			exp = "^[a-zA-Z0-9]+$";
+			msg = " 숫자+영문만 입력하세요";
+		}
+		 
+		// 한글,띄어쓰기만 가능
+		if("KOR".equals(sRegular)){
+			exp = "^[가-힣\\s]+$";
+			msg = " 한글만 입력하세요";
+		}
+			
+		// 영문,띄어쓰기만 가능
+		if("ENG".equals(sRegular)){
+			exp = "^[a-zA-Z\\s]+$";
+			msg = " 영문만 입력하세요";
+		}
+		// 전화번호
+		if("TEL".equals(sRegular)){
+			exp = "^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}$";
+			msg = " 전화번호형식이 아닙니다.";
+		}
+		// 이메일
+		if("EMAIL".equals(sRegular)){
+			exp = "^([\\w-]+(?:\\.[\\w-]+)*)@((?:[\\w-]+\\.)*\\w[\\w-]{0,66})\\.([a-z]{2,6}(?:\\.[a-z]{2})?)$";
+			msg = " 유효한 이메일 주소가 아닙니다.";
+		}
+		// 도메인
+		if("DOMAIN".equals(sRegular)){
+			exp = "^(((http(s?))\\:\\/\\/)?)([0-9a-zA-Z\\-]+\\.)+[a-zA-Z]{2,6}(\\:[0-9]+)?(\\/\\S*)?$";
+			msg = " 유효한 도메인 주소가 아닙니다.";
+		}
+		 
+		 
+		 if(isNull(exp) || isNull(sData)){
+			 return result;
+		 }
+		 
+		 p = Pattern.compile(exp);
+		 m = p.matcher(sData);
+		 
+		 success = m.matches();
+		 
+		 if(!success){
+			 result.put("ERRMSG", msg);
+		 }
+		 
+		 result.put("PASS_YN", m.matches());
+		 return result;
+	 }
+	 
+	/**
+	 * 로그인 여부 체크 및 user_group 허용이 있을경우 방아서 처리
+	 * 
+	 */
+	public static boolean checkAuth(HttpServletRequest request) {		 
+		HttpSession session = request.getSession();
+		boolean reValue =false;
+		
+		AuthCheck idCk = new AuthCheck (request, null);
+		// 로그인 상태만 체크한다.
+		if (idCk.isLogin()){
+			reValue = true;
+		}
+		
+		return reValue;
+	        
+	}
+	
+	/**
+	 * 로그인 여부 체크 및 user_group 허용이 있을경우 방아서 처리
+	 * 
+	 */
+	public static boolean checkAuth(HttpServletRequest request, Map<String,Object> params) {		 
+		HttpSession session = request.getSession();
+		boolean reValue =false;
+		
+		AuthCheck idCk = new AuthCheck (request, null);
+		// 로그인 상태만 체크한다.
+		if (idCk.isLogin()){
+			// USER_GROUP 체크가 필요한경우 체크한다.
+			if(params.containsKey("USER_GROUP")){
+				try {
+					String myUserGroup = idCk.getLoing_user_group();
+					String allowUserGroup = (String)params.get("USER_GROUP");
+					
+					if( !allowUserGroup.contains(myUserGroup) ){
+						return reValue;
+					}
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+					
+			reValue = true;
+		}
+		
+		return reValue;
+		
+	}
+	
+	
 }
 

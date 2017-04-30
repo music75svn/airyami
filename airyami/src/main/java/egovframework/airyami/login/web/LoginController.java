@@ -16,12 +16,14 @@
 package egovframework.airyami.login.web;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,6 +35,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 import egovframework.airyami.cmm.service.CommCodeService;
 import egovframework.airyami.cmm.util.AuthCheck;
@@ -92,17 +95,17 @@ public class LoginController {
     		ModelMap model) throws Exception {
     	
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug(" board.save.success.msg1 :  " + egovMessageSource.getMessage("common.save.msg"));
     	log.info("/login/adminLogin param 1111:: " + params);
-    	CommonUtils.setModelByParams(model, params);
+    	CommonUtils.setModelByParams(model, params);	
+    	
     	
     	ValueMap result = new ValueMap();
     	ValueMap testInfo = loginService.getTest(params);
     	log.info("/login/adminLogin param 2222:: " + testInfo);
     	
     	
-    	
     	return "login/adminLogin";
-    	//return "cmm/uat/uia/EgovLoginUsr";
     }
     
     
@@ -114,7 +117,7 @@ public class LoginController {
     		ModelMap model) throws Exception {
     	
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
-    	log.info("param 1111:: " + params);
+    	log.info("/login/login.do param 1111:: " + params);
     	CommonUtils.setModelByParams(model, params);
     	
     	ValueMap result = new ValueMap();
@@ -152,10 +155,11 @@ public class LoginController {
     	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
     	log.info("/template/template param 1111::2222 " + params);
     	
-//    	params.clear();
-//		params.put( "GROUP_CODE", "GROUP" ); //기관분류 구분
-//		List<ValueMap> code_GROUP = commCodeService.listCommCode(params);        
-//		model.put("ds_cd_GROUP", code_GROUP);
+    	params.clear();
+		params.put( "CODE_GROUP_ID", "LANG" ); //언어
+//		params.put( "LANG_CD", "ko" ); //언어
+		List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
+		model.put("ds_cd_LANG", code_LANG);
     	
     	return "/template/template";
     }
@@ -192,6 +196,54 @@ public class LoginController {
     	TransactionStatus status = transactionManager.getTransaction(def);
     	
     	try{
+    		
+    		if(!CommonUtils.isNull((String)params.get("locale"))){
+        		String locale = (String)params.get("locale");
+        		Locale locales = null;
+        		// 넘어온 파라미터에 ko가 있으면 Locale의 언어를 한국어로 바꿔준다.
+        		// 그렇지 않을 경우 영어로 설정한다.
+        		if (locale.matches("ko")) {
+        			locales = new Locale("ko", "KR");
+        		} else {
+        			locales = new Locale("en", "US");
+        		}
+        		log.debug("changeLocale :: " + locales);
+        		
+        		HttpSession session = request.getSession();
+        		
+        		// 세션에 존재하는 Locale을 새로운 언어로 변경해준다.
+        		session.setAttribute(
+        				SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locales);
+        		log.debug("CommonUtils.getLocale(request)::: " + CommonUtils.getLocale(request));
+        		log.debug("SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME :: " + session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME));
+        		//log.debug(" board.save.success.msg1 :  " + egovMessageSource.getMessage("common.save.msg", locales));
+        		//log.debug(" Locale.KOREAN :  " + Locale.KOREAN);
+        		log.debug(" board.save.success.msg3 :  " + egovMessageSource.getMessage("common.save.msg", CommonUtils.getLocale(request)));
+        		//log.debug(" board.save.success.msg2 :  " + egovMessageSource.getMessage("common.save.msg", null, Locale.KOREAN));
+        	}
+//        	{
+//        		String locale = "en";
+//        		Locale locales = null;
+//        		// 넘어온 파라미터에 ko가 있으면 Locale의 언어를 한국어로 바꿔준다.
+//        		// 그렇지 않을 경우 영어로 설정한다.
+//        		if (locale.matches("ko")) {
+//        			locales = new Locale("ko", "KR");
+//        		} else {
+//        			locales = new Locale("en", "US");
+//        		}
+//        		log.debug("changeLocale :: " + locales);
+//        		
+//        		HttpSession session = request.getSession();
+//        		
+//        		// 세션에 존재하는 Locale을 새로운 언어로 변경해준다.
+//        		session.setAttribute(
+//        				SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locales);
+//        		log.debug("CommonUtils.getLocale(request)::: " + CommonUtils.getLocale(request));
+//        		log.debug("SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME :: " + session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME));
+//        		log.debug(" board.save.success.msg3 :  " + egovMessageSource.getMessage("common.save.msg", CommonUtils.getLocale(request)));
+//        		//log.debug(" board.save.success.msg :  " + egovMessageSource.getMessage("common.save.msg", null, Locale.ENGLISH));
+//        		
+//        	}
     		//ValueMap loginInfo = loginService.getLoginInfo(params);
     		ValueMap loginInfo = loginService.getAdminLoginInfo(params);
     		

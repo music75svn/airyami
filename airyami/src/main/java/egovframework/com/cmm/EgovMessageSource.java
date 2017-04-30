@@ -51,5 +51,19 @@ public class EgovMessageSource extends ReloadableResourceBundleMessageSource imp
 	public String getMessage(String code) {
 		return getReloadableResourceBundleMessageSource().getMessage(code, null, Locale.getDefault());
 	}
+	
+	public String getMessage(String code, Locale locale) {
+		return getReloadableResourceBundleMessageSource().getMessage(code, null, locale);
+	}
+
+	public String getMessageWithParam(String code, Object[] args) {
+		return getReloadableResourceBundleMessageSource().getMessage(code, args, Locale.getDefault());
+//		return getReloadableResourceBundleMessageSource().getMessage(code, args, Locale.getDefault());
+	}
+	
+	public String getMessageWithParam(String code, Object[] args, Locale locale) {
+		return getReloadableResourceBundleMessageSource().getMessage(code, args, locale);
+//		return getReloadableResourceBundleMessageSource().getMessage(code, args, Locale.getDefault());
+	}
 
 }

@@ -52,21 +52,16 @@
 	</select>
 	
 	<select id="commcode.selectCommCode" parameterClass="Map" resultClass="ValueMap">
-	SELECT GROUP_CODE
-	      ,CODE			AS CD
-	      ,CODE_NAME	AS CD_NM
-	      ,CODE_DESC
-	      ,ETC 
-	  FROM TB_COMM_CODE
-	 WHERE USE_YN = 'Y' 
-	   AND GROUP_CODE= #GROUP_CODE# 
-	 <isNotEmpty property="UPPER_CODE">
-	   AND UPPER_CODE = #UPPER_CODE#
-	 </isNotEmpty>
-	 <isEmpty property="UPPER_CODE">
-	   AND UPPER_CODE IS NULL
-	 </isEmpty>
-	  ORDER BY PRINT_ORDER
+	SELECT A.CODE_ID AS CD
+	      ,B.CODE_NM AS CD_NM
+	  FROM TB_CODE A
+	      ,TB_CODE_NM B
+	 WHERE A.CODE_GROUP_ID = B.CODE_GROUP_ID
+	   AND A.CODE_ID = B.CODE_ID
+	   AND A.USE_YN = 'Y'
+	   AND A.CODE_GROUP_ID = #CODE_GROUP_ID#
+	   AND B.LANG_CD = #LANG_CD#
+	  ORDER BY A.SORT_ORDER
 	</select>
 	
 	<!-- 코드 목록 -->

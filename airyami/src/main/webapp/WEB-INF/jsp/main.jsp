@@ -95,7 +95,7 @@ function fn_callBack(sid, result){
 	<!--// menu -->
   
 	<div id="contents">
-		<h3>Main 화면</h3>
+		<h3><spring:message code="common.save.msg" /> Main 화면</h3>
 	</div> 
 </div>
 <!--  footer -->
