@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+    version="2.0">
+
+  <description>ppe 유틸</description>
+  <display-name>ppe JSTL core</display-name>
+  <tlib-version>1.0</tlib-version>
+  <short-name>ppe</short-name>
+  <tag>
+    <description>
+        make bean object to hidden tag
+    </description>
+    <name>makeHidden</name>
+    <tag-class>egovframework.airyami.cmm.util.MakeHiddenTag</tag-class>
+    <body-content>empty</body-content>
+    <attribute>
+        <description>
+        bean object
+        </description>
+        <name>var</name>
+        <required>true</required>
+        <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+        <description>
+        hidden tag name prefix
+        </description>
+        <name>prefix</name>
+        <required>false</required>
+        <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+        <description>
+        filter form name by form's prefix name ex) findSeq -> find
+        </description>
+        <name>filter</name>
+        <required>false</required>
+        <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+        <description>
+        exclude form name by form's full name ex) exclude="findYear,findMode"
+        </description>
+        <name>exclude</name>
+        <required>false</required>
+        <rtexprvalue>true</rtexprvalue>
+    </attribute>
+  </tag>
+</taglib>
