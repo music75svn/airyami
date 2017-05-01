@@ -6,12 +6,13 @@
 <meta http-equiv="Content-Type" content="text/html;application/json; charset=utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
 <%@ include file="/include/title.jsp"%>
-<%@ include file="/include/airyami_standard.jsp"%>
+<%@ include file="/include/admin_standard.jsp"%>
 
 <script type="text/javascript">
 
 $(function() {  //onready
 	//여기에 최초 실행될 자바스크립트 코드를 넣어주세요
+	
 	gfn_OnLoad();
 	
 	fn_init();

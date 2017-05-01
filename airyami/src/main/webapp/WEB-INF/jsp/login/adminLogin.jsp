@@ -6,7 +6,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>admin 로그인</title>
-<%@ include file="/include/airyami_standard.jsp"%>
+<%@ include file="/include/admin_standard.jsp"%>
 <!-- <link rel="stylesheet" href="/dWise/css/admin/admin.css" type="text/css"> -->
 <script type="text/javascript"> 
 	$(function() {  //onready

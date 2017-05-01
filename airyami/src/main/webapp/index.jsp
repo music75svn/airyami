@@ -26,6 +26,10 @@ index.jsp 페이지
 <input type="submit" value="template"/>
 </form>
 
+<form id='login' action="/template/template_list.do" method="post">
+<input type="submit" value="template_list"/>
+</form>
+
 <form id='login' action="/cop/bbs/addBBSMaster.do" method="post">
 <input type="submit" value="join"/>
 </form>

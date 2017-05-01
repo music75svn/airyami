@@ -6,8 +6,7 @@
 <meta http-equiv="Content-Type" content="text/html;application/json; charset=utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
 <%@ include file="/include/title.jsp"%>
-<%@ include file="/include/airyami_standard.jsp"%>
-<jsp:include page="/include/common.jsp"/>
+<%@ include file="/include/admin_standard.jsp"%>
 
 <script type="text/javascript">
 var onload = true;

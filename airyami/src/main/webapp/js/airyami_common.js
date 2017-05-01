@@ -17,8 +17,9 @@ function gfn_OnLoad(bNeedLogin){
 
 	try{
 		// 팝업에선 메뉴가 필요없음
-		if( !gfn_isNull(SES_USER_ID) )
-			fn_getHeadMenuList();
+		if( !gfn_isNull(SES_USER_ID) ){
+			//fn_getHeadMenuList();
+		}
 	}catch(e){}
 }
 

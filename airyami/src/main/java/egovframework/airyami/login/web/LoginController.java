@@ -143,31 +143,6 @@ public class LoginController {
     	return "/main";
     }
     
-    /**
-     * 테스트페이지 이동 
-     */
-    @RequestMapping(value="/template/template.do")
-    public String goTestTemplete(HttpServletRequest request, HttpServletResponse response, 
-    		ModelMap model) throws Exception {
-    	
-    	Map<String,Object> params = CommonUtils.getRequestMap(request);
-    	log.info("/template/template param 1111::1111 " + params);
-    	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
-    	log.info("params.LANG_CD :: " + params.get("LANG_CD"));
-    	
-    	//params.clear();
-		params.put( "CODE_GROUP_ID", "LANG" ); //언어코드 대분류
-//		params.put( "LANG_CD", "ko" ); //언어
-		List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
-		model.put("ds_cd_LANG", code_LANG);
-		
-		params.put( "CODE_GROUP_ID", "GRP_CD" ); //대분류 테스트
-		List<ValueMap> code_GRP_CD = commCodeService.selectCommCode(params);
-		model.put("ds_cd_GRP_CD", code_GRP_CD);
-    	
-    	return "/template/template";
-    }
-    
     	
     /**
      * @Description  로그인 처리

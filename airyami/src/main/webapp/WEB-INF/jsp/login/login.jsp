@@ -7,7 +7,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>로그인</title>
 <%@ include file="/include/airyami_standard.jsp"%>
-<!-- <link rel="stylesheet" href="/dWise/css/admin/admin.css" type="text/css"> -->
 <script type="text/javascript"> 
 	$(function() {  //onready
 		//여기에 최초 실행될 자바스크립트 코드를 넣어주세요
