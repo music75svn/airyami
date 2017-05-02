@@ -111,7 +111,6 @@ public class TemplateController {
     	params.put( "CODE_GROUP_ID", "LANG" ); //언어코드 대분류
     	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
     	model.put("ds_cd_LANG", code_LANG);
-    	model.put("params", params);
     	
     	return "/template/template_list";
     }

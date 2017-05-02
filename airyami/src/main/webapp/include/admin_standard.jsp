@@ -4,6 +4,7 @@
 <%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui"%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib uri="/WEB-INF/tlds/ppeUtil.tld" prefix="ppe" %>
 <jsp:include page="/include/common.jsp"/>
 <%@ include file="/include/message.jsp"%>
 

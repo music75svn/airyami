@@ -151,6 +151,8 @@ public class CommonUtils {
      */
     public static void setModelByParams(ModelMap model, Map<String,Object> params)
     {
+    	Map<String,Object> findParams = new HashMap<String,Object>();
+    	
     	if ( params.isEmpty() )
     	{
     		return;
@@ -163,7 +165,10 @@ public class CommonUtils {
     	
     	for (String key : params.keySet()) {
             model.put(key, params.get(key));
+            findParams.put(key, params.get(key));
         }
+    	
+    	model.put("findParams", findParams);
     }
     
     /**

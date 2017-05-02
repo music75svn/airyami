@@ -26,7 +26,7 @@ index.jsp 페이지
 <input type="submit" value="template"/>
 </form>
 
-<form id='login' action="/template/template_list.do" method="post">
+<form id='login' action="/template/template_list.do?ppe=aa" method="post">
 <input type="submit" value="template_list"/>
 </form>
 

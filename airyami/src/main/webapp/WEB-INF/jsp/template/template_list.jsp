@@ -12,9 +12,8 @@
 var onload = true;
 $(function() {  //onready
 	//여기에 최초 실행될 자바스크립트 코드를 넣어주세요
-	alert("LOGIN_ID " + '<c:out value="${LOGIN_ID}"/>');
+	//alert("LOGIN_ID " + '<c:out value="${LOGIN_ID}"/>');
 	
-	debugger;
 	gfn_OnLoad();
 	
 	fn_init();
@@ -183,6 +182,15 @@ function fn_btnTest(pObj){
 }
 
 
+// 목록으로 돌아가기
+function fn_goBack(){
+	var inputParam = gfn_makeInputData($("#findForm"));
+	
+	
+	gfn_commonGo("/template/template", inputParam, "N");
+}
+
+
 //엑셀버튼
 function fn_excel() {
     var url = "/commCode/codeList";
@@ -272,11 +280,9 @@ function fn_userNmChange() {
   
 	<div id="contents">
 		<h3>장비 관리 목록</h3>
-		<form id="paramForm" name="paramForm">
-			<ppe:makeHidden var="${params}" filter="find" exclude="findYear,findUseYn,findEvalGrpId" />
-			<input type="hidden" name="params" id="params" value="<c:out value="${params}"/>"/>
+		<form id="findForm" name="findForm">
+			<ppe:makeHidden var="${findParams}" filter="" prefix="FIND_" exclude="LOGIN_ID,LOGIN_NM,LANG_CD"/>
 		</form>
-		<input type="hidden" name="MYPARAMS" id="MYPARAMS" value="<c:out value="${MYPARAMS}"/>"/>
 		<form id="srchForm" name="srchForm" method="post" action="<c:url value='/commCode/codeList.do'/>" onsubmit="return false;">
 			<input type="hidden" name="pageNo" id="pageNo" value="1"/>
 			<input type="hidden" name="EXCEL_YN" id="EXCEL_YN" />
@@ -370,6 +376,7 @@ function fn_userNmChange() {
 			<span class="btn right"><a href="gear_input.html" onclick="javascript:fn_excel(); return false;"> 엑셀 </a> </span>
 			<button type="button" id="btnW_update" onClick="javascript:fn_radioTest()">라디오</button>
 			<button type="button" id="btnW_getTable" onClick="javascript:fn_getTable()">테이블</button>
+			<button type="button" id="btnBack" onClick="javascript:fn_goBack()">목록</button>
 		</div>
 	</div> 
 </div>

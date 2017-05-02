@@ -42,6 +42,14 @@
     </attribute>
     <attribute>
         <description>
+        exclude filter form name by form's prefix name ex) findSeq -> find
+        </description>
+        <name>exCludeFilter</name>
+        <required>false</required>
+        <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+        <description>
         exclude form name by form's full name ex) exclude="findYear,findMode"
         </description>
         <name>exclude</name>

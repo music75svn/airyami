@@ -21,6 +21,15 @@ $(function() {  //onready
 
 // 화면내 초기화 부분
 function fn_init(){
+	// 돌아가기로 온 경우 이전 파라미터 복원작업 필요
+	debugger;
+	var myParams = gfn_makeInputData($("#myParams"));
+	
+	for(_myParams in myParams){
+		var key = gfn_replaceAll(_myParams, "FIND_", "");
+		$("#"+key).val(myParams[_myParams]);
+	}
+	
 	// 체크박스 초기화
 	//gfn_setCheck($('#C001001'));
 	//$('#C001001').attr('checked', true);
@@ -154,10 +163,10 @@ function fn_gopage(){
 	var inputParam = {};
 	
 	inputParam.aaa = "111aaa";
-	inputParam.aaaNm = "배수한121";
+	inputParam.aaaNm = "배수한";
 	
 	
-	gfn_commonGo("/login/login", inputParam, "N");
+	gfn_commonGo("/template/template_list", inputParam, "N");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -251,6 +260,9 @@ function fn_setChart(list){
 				<!-- 검색조건 START -->
 				<div class="title"><h2>Select 박스 적용</h2><span class="hide"></span></div>
 				<div class="search_bar">
+				<form id="myParams" name="myParams">
+					<ppe:makeHidden var="${findParams}" filter="FIND_" />
+				</form>
 				<form id="srchForm" name="srchForm" method="post" onsubmit="return false;">
 					<input type="hidden" name="pageNo" id="pageNo" value="1"/>
 					<input type="hidden" name="USER_ID" id="USER_ID" />
@@ -335,6 +347,8 @@ function fn_setChart(list){
 				
 				<div class="title"><h2>화면전환 호출</h2><span class="hide"></span></div>
 					<input type="button" class="input" value="화면전환" onclick="javascript:fn_gopage();return false;"/>
+					<input type="text" id="aaa" />
+					<input type="text" id="aaaNm" />
 				
 				<div class="title"><h2>popup 호출</h2><span class="hide"></span></div>
 					<span class="tt ml20">
