@@ -23,12 +23,6 @@ $(function() {  //onready
 function fn_init(){
 	// 돌아가기로 온 경우 이전 파라미터 복원작업 필요
 	debugger;
-	var myParams = gfn_makeInputData($("#myParams"));
-	
-	for(_myParams in myParams){
-		var key = gfn_replaceAll(_myParams, "FIND_", "");
-		$("#"+key).val(myParams[_myParams]);
-	}
 	
 	// 체크박스 초기화
 	//gfn_setCheck($('#C001001'));
@@ -261,7 +255,7 @@ function fn_setChart(list){
 				<div class="title"><h2>Select 박스 적용</h2><span class="hide"></span></div>
 				<div class="search_bar">
 				<form id="myParams" name="myParams">
-					<ppe:makeHidden var="${findParams}" filter="FIND_" />
+					<ppe:makeHidden var="${findParams}" filter="FIND_" exclude="FIND_RETURNURL"/>
 				</form>
 				<form id="srchForm" name="srchForm" method="post" onsubmit="return false;">
 					<input type="hidden" name="pageNo" id="pageNo" value="1"/>

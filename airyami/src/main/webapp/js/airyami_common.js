@@ -103,6 +103,32 @@ function gfn_SetCommInit(){
 	});
 	
 	// 이전 페이지 목록 버튼 생성
+	$("td[id^='preLink'], span[id^='preLink'], div[id^='preLink']").each(function() {
+		if( $('#findForm').length > 0 ){
+			var title = $(this).attr("title");
+			
+			if (gfn_isNull(title)) {
+				title = "이전";
+			}
+			
+			var commTag = "<button type='button' id='btnR_Return'>" + title + "</button>";
+			
+			$(this).html(commTag);
+		}
+	});
+	
+	
+	// 돌아가기 버튼
+	$("#btnR_Return").click(function() {
+		if( $('#findForm').length > 0 ){
+			var inputParam = gfn_makeInputData($("#findForm"));
+		
+			gfn_commonGo(inputParam.FIND_RETURNURL, inputParam, "N");
+		}
+	});
+	
+	
+	// 이전 페이지 목록 버튼 생성
 	$("td[id^='pre_link'], span[id^='pre_link'], div[id^='pre_link']").each(function() {
 		if( $('#REFPATH').length > 0 ){
 			var title = $(this).attr("title");
@@ -149,6 +175,19 @@ function gfn_SetCommInit(){
 	  });
 }
 
+
+// myParams 에 넘어온 값이 있으면 이전 검색조건 셋팅한다.
+function gfn_setMyParams(){
+	// 돌아오기로 넘어온 이전 검색조건 셋팅
+	if ( $("#myParams").length > 0 ) {
+		var myParams = gfn_makeInputData($("#myParams"));
+		
+		for(_myParams in myParams){
+			var key = gfn_replaceAll(_myParams, "FIND_", "");
+			$("#"+key).val(myParams[_myParams]);
+		}
+	}
+}
 
 
 /**************************************************************** 

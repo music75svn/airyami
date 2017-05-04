@@ -178,11 +178,22 @@ function gfn_commonGo(psUrl, paParam, psPopupYn){
     $form.attr('method', 'post');
     $form.appendTo('body');
     
+    if(psPopupYn == "Y"){
+    	
+    }
+    else{
+    	// 핸재 보내는곳의 주소 (돌아올곳.)
+    	paParam.FIND_RETURNURL = gfn_getListUrl();
+    	// 메뉴변수 셋팅
+		gfn_setMenuParams(paParam);
+    }
+    
+    
     for(_paParam in paParam){
     	$form.append($('<input type="hidden" value="'+paParam[_paParam]+'" name="'+_paParam+'">'));
     }
     
-    debugger;
+//    debugger;
     
     if(psPopupYn == "Y"){
     	var option = (gfn_isNull(fa_POP_STYLE[psUrl])) ? fa_POP_STYLE["DEFAULT"] : fa_POP_STYLE[psUrl];
@@ -192,8 +203,9 @@ function gfn_commonGo(psUrl, paParam, psPopupYn){
     	$form.submit();
     	win.focus();
     }
-    else
+    else{
     	$form.submit();
+    }
     
 }
 
@@ -298,6 +310,9 @@ function gfn_setMenuParams(params){
 
 
 function gfn_getListUrl(){
+	
+	return gfn_replaceAll(location.pathname, ".do", "");
+	
 	var search = location.search;
 	if ( $("#MYPARAMS").length > 0 && !gfn_isNull(search) ) {
 		var tmpArr = search.split("&");
@@ -2585,11 +2600,11 @@ function gfn_makeSearchCondition(oSearchArea) {
 /**************************************************************** 
  * Desc 	: 검색조건내 Div 내의 input type을 검색하여 검색조건을 만든다.
  *  ****************************************************************/
-function gfn_makeInputData(oSearchArea, inputData) {
+function gfn_makeInputData(oSearchArea, inputData, prefix) {
 	if( gfn_isNull(inputData) ){
 		inputData = new Object();
 	}
-	inputData = $.extend(inputData, oSearchArea.fn_getInputdata());
+	inputData = $.extend(inputData, oSearchArea.fn_getInputdata(prefix));
 	
 	oSearchArea.find('input[isNum="Y"]').each(function(i){
 		inputData[$(this).attr('id')] = $(this).getOnlyNumeric();
@@ -2622,7 +2637,8 @@ function gfn_makeObjDisable(oSearchArea, bDisabled) {
  * @Method Name : $.fn.fn_getInputdata  ex) var data = $('#id').fn_getInputdata();
  * @return  json 
  ****************************************************************/
-$.fn.fn_getInputdata = function(){
+$.fn.fn_getInputdata = function(prefix){
+	prefix = gfn_null(prefix, "");
 	var data = {};
 	var setVal = function(obj){
 		//var id = (gfn_isNull(obj.attr('id')))? obj.attr('name'):obj.attr('id');
@@ -2633,9 +2649,8 @@ $.fn.fn_getInputdata = function(){
 			val = ($(obj).attr('checked')) ? "Y" : "N";
 		}
 		
-//		if(!fn_isEmpty(val)){
-		if(!gfn_isNull(val)){
-			data[id] = val;
+		if(!gfn_isNull(val) && !gfn_isNull(id)){
+			data[prefix + id] = val;
 		}
 	};	
 	

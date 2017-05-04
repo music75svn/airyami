@@ -36,6 +36,9 @@ function fn_init(){
 	// 그리드에 소트 기능 추가한다.
 	gfn_addGridSort("tb_list");
 	
+	// myParams 에 넘어온 값이 있으면 이전 검색조건 셋팅한다.
+	gfn_setMyParams();
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -116,7 +119,7 @@ function fn_callBack(sid, result){
 		gfn_addPaging(result.pageInfo, 'gfn_clickPageNo');
 		
 		
-		gfn_addRowClickEvent("tb_list");
+		//gfn_addRowClickEvent("tb_list");
 		//gfn_addRowClickEvent("tb_list", "fn_clickRow"); // ==>동일하다
 	}
 	
@@ -164,16 +167,16 @@ function fn_callPopup(pObj){
 function fn_goDetail(pObj){
 	var rowObj = $(pObj).parent();
 	var CODE_GROUP_ID = $('input[name=CODE_GROUP_ID]', rowObj).val();
-	var CODE = $('input[name=CD]', rowObj).val();
+	var CODE_ID = $('input[name=CD]', rowObj).val();
 	
-	var inputParam = new Object();
-	inputParam.CODE_GROUP_ID = CODE_GROUP_ID;
-	inputParam.CODE = CODE;
+	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND_");
+	inputParam.CODE_GROUP_ID 	= CODE_GROUP_ID;
+	inputParam.CODE_ID 			= CODE_ID;
 	
-	inputParam.LISTPARAMS = gfn_replaceAll($("#srchForm").serialize(), "&", "|");
-	inputParam.LISTURL = gfn_getListUrl();
+	//inputParam.LISTPARAMS = gfn_replaceAll($("#srchForm").serialize(), "&", "|");
+	//inputParam.LISTURL = gfn_getListUrl();
 	
-	gfn_commonGo("/template/templateView", inputParam, "E");
+	gfn_commonGo("/template/templateView", inputParam, "N");
 }
 
 // 그리드 버튼
@@ -279,9 +282,9 @@ function fn_userNmChange() {
 	<!--// menu -->
   
 	<div id="contents">
-		<h3>장비 관리 목록</h3>
-		<form id="findForm" name="findForm">
-			<ppe:makeHidden var="${findParams}" filter="" prefix="FIND_" exclude="LOGIN_ID,LOGIN_NM,LANG_CD"/>
+		<h3>template 목록</h3>
+		<form id="myParams" name="myParams">
+			<ppe:makeHidden var="${findParams}" filter="FIND_" />
 		</form>
 		<form id="srchForm" name="srchForm" method="post" action="<c:url value='/commCode/codeList.do'/>" onsubmit="return false;">
 			<input type="hidden" name="pageNo" id="pageNo" value="1"/>
@@ -343,21 +346,19 @@ function fn_userNmChange() {
 				<col width="15%"/>
 				<col width="15%"/>
 				<col width=""/>
-				<col width="15%"/>
 				<col width="8%"/>
 				<col width="8%"/>
 			</colgroup>
 			<thead> 
 				<tr>
-					<th cid="ROWNUM" cClass="num" cType="NUM">순번</th>
+					<th cid="ROWNUM" cClass="num" cType="NUM"><spring:message code="word.num"/></th>
 					<th cid="RADIO"></th>
 					<th cid="CK"><input type="checkbox" name="check"  onclick="javascript:gfn_checkAll('tb_list', this);"/></th>
 					<th cid="ROWNUM_D" cType="NUM">역순번</th>
 					<th cid="CODE_GROUP_ID" alg="center" clickevent="fn_callPopup(this);" url="/admin/commcode/commcode_list_popup.do">GROUPCODE</th>
 					<th cid="CD" alg="center" clickevent="fn_goDetail(this);">CODE</th>
-					<th cid="CD_NM" alg="left" delTag="DELYN" cExt="EXT" level="LVL">코드명</th>
-					<th cid="CODE_DESC" alg="left" sImg="SIMG">코드설명</th>
-					<th cid="ETC" alg="left">기타</th>
+					<th cid="CD_NM" alg="left" delTag="DELYN" cExt="EXT" level="LVL"><spring:message code="word.codeNm"/></th>
+					<th cid="REMARKS" alg="left" sImg="SIMG"><spring:message code="word.codeDesc"/></th>
 					<th cid="BTN" alg="left" cBtnClick="fn_callPopup($(this).parent());">버튼제어</th>
 					<th cid="BTN_S" alg="left" cBtnNM="버튼명" cBtnClick="fn_btnTest(this);"></th>
 				</tr> 
@@ -371,9 +372,9 @@ function fn_userNmChange() {
 		<span id="pagingNav"></span>
 		
 		<div class="btn_zone">
-			<span class="btn right"><a href="gear_input.html"> 등록 </a> </span>
+			<span class="btn right"><a href="gear_input.html">등록 </a></span>
 			<span class="btn right" onclick="javascript:fn_allDelete(); return false;">체크박스테스트</span>
-			<span class="btn right"><a href="gear_input.html" onclick="javascript:fn_excel(); return false;"> 엑셀 </a> </span>
+			<span class="btn right"><a href="gear_input.html" onclick="javascript:fn_excel(); return false;">엑셀 </a></span>
 			<button type="button" id="btnW_update" onClick="javascript:fn_radioTest()">라디오</button>
 			<button type="button" id="btnW_getTable" onClick="javascript:fn_getTable()">테이블</button>
 			<button type="button" id="btnBack" onClick="javascript:fn_goBack()">목록</button>

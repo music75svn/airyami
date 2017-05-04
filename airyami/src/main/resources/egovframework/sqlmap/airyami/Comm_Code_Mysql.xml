@@ -72,19 +72,24 @@
 	ORDER BY PRINT_ORDER
 	</select>
 	
+	<!-- 상세조회 -->
 	<select id="commcode.getCommCode" parameterClass="Map" resultClass="ValueMap">
-	SELECT CODE_GROUP_ID
-	      ,CODE			AS CD
-	      ,CODE_NAME	AS CD_NM
-	      ,CODE_DESC
-	      ,ETC 
-	      ,CODE			AS CD1
-	      ,'/template/template_list.do'		AS CD1_URL
-	      ,1			AS ARTICLE_SEQ
-	  FROM TB_CODE
-	 WHERE USE_YN = 'Y' 
-	   AND CODE_GROUP_ID= #CODE_GROUP_ID# 
-	   AND CODE= #CODE# 
+	SELECT 
+	       C.CODE_GROUP_NM
+		  ,A.CODE_GROUP_ID
+	      ,A.CODE_ID 		AS CD
+	      ,B.CODE_NM 		AS CD_NM
+	      ,A.REMARKS
+	  FROM TB_CODE A
+	      ,TB_CODE_NM B
+	      ,TB_CODE_GROUP C
+	 WHERE A.CODE_GROUP_ID = B.CODE_GROUP_ID
+	   AND A.CODE_ID = B.CODE_ID
+	   AND A.CODE_GROUP_ID = C.CODE_GROUP_ID
+	   AND A.USE_YN = 'Y'
+	   AND B.LANG_CD = #LANG_CD#
+	   AND A.CODE_GROUP_ID= #CODE_GROUP_ID# 
+	   AND A.CODE_ID = #CODE_ID# 
 	</select>
 	
 	

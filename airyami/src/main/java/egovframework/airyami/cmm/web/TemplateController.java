@@ -118,9 +118,9 @@ public class TemplateController {
     
     /**
 	 * templateList 로 화면이동
-	 * @param searchVO - 조회할 정보가 담긴 SampleDefaultVO
+	 * @param 
 	 * @param model
-	 * @return "/sample/egovSampleList"
+	 * @return 
 	 * @exception Exception
 	 */
     @RequestMapping(value="/template/selectList.do")
@@ -205,6 +205,60 @@ public class TemplateController {
     	response.getWriter().println(CommonUtils.setJsonResult(result));
     	
         return null;
+    }
+    
+    
+    /**
+     * detail 호출 
+     */
+    @RequestMapping(value="/template/templateView.do")
+    public String goTemplateView(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param 1111:: " + params);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	
+    	ValueMap ds_right = new ValueMap();
+    	ds_right.put("RIGHT", "C,W,R");
+    	model.put("PAGERIGHT", ds_right.get("RIGHT"));
+    	
+    	
+    	
+    	return "/template/templateView";
+    }
+    
+    
+    /**
+     * detail 상세조회 
+     */
+    @RequestMapping(value="/template/getCodeView.do")
+    public String getCodeView(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		ValueMap ds_detail = commCodeService.getCommCode(params);
+    		
+    		result.put("ds_detail", ds_detail);
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
     }
 
 }
