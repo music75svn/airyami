@@ -154,8 +154,6 @@ function fn_userNmChange() {
   
 	<div id="contents">
 		<h3>코드정보 상세보기</h3>
-		<input type="hidden" name="LISTPARAMS" id="LISTPARAMS" value='<c:out value="${LISTPARAMS}"/>'/>
-		<input type="hidden" name="LISTURL" id="LISTURL" value='<c:out value="${LISTURL}"/>'/>
 		<form id="frmUpload" name="frmUpload" method="post" action="/test/fileInsert.do" enctype="multipart/form-data" onsubmit="return false;">
 			<input type="hidden" name="CODE" id="CODE" value='<c:out value="${CODE}"/>'/>
 			<input type="hidden" name="FILE_MST_SEQ" id="FILE_MST_SEQ" value="24"/>

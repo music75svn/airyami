@@ -5,7 +5,8 @@
 <meta http-equiv="Content-Type" content="text/html;application/json; charset=utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
 <%@ include file="/include/title.jsp"%>
-<%@ include file="/include/dwise_standard.jsp"%>
+<%-- <%@ include file="/include/admin_standard_pop.jsp"%> --%>
+<%@ include file="/include/admin_standard.jsp"%>
 <jsp:include page="/include/common.jsp"/>
 
 <script type="text/javascript">
@@ -77,12 +78,12 @@ function fn_addTableTr(value, seq){
 <h1>리스트 샘플<a onClick="self.close();" class="close">X</a></h1>
 
 <div class="content">
-	<h3>장비 관리 목록</h3>
+	<h3>Template 목록</h3>
 	<form id="srchForm" name="srchForm" method="post" onsubmit="return false;">
-		<input type="hidden" name="GROUP_CODE" id="GROUP_CODE" value='<c:out value="${GROUP_CODE}"/>'/>
+		<input type="hidden" name="CODE_GROUP_ID" id="CODE_GROUP_ID" value='<c:out value="${CODE_GROUP_ID}"/>'/>
 	</form>
 	<!-- 테이블 -->
-	<table id="tb_list" summary="장비 관리 목록" cellspacing="0" border="0" class="tbl_list_type1">
+	<table id="tb_list" summary="Template 목록" cellspacing="0" border="0" class="tbl_list_type1">
 		<tbody id="tableTbody"> 
 			<tr></tr>
 		</tbody>
@@ -92,7 +93,7 @@ function fn_addTableTr(value, seq){
     	<strong>1</strong>
     </div>
     <div class="btn_zone">
-		<span class="btn right"><a href="gear_input.html"> 등록 </a> </span>
+		<span class="btn right"><a href=""> 등록 </a> </span>
     </div>
 </div>
 

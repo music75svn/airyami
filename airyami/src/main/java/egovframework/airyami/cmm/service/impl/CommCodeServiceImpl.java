@@ -88,11 +88,25 @@ public class CommCodeServiceImpl extends AbstractServiceImpl implements
 	}
 	
 	/**
+     * 공통코드Grp 상세를 조회한다.
+     */
+    public ValueMap getCodeGrpDetail(Map<String,Object> params) throws Exception{
+    	return commCodeDAO.getCodeGrpDetail(params);
+    }
+	
+	/**
 	 * 공통코드 목록을 조회한다.
 	 */
 	public List<ValueMap> getCommcodeCombo(Map<String, Object> params)
 			throws Exception {
 		return commCodeDAO.getCommcodeCombo(params);
 	}
+	
+	/**
+     * 코드그룹 테이블 저장
+     */
+    public int saveCodeGrp(Map<String,Object> params) throws Exception{
+    	return commCodeDAO.saveCodeGrp(params);
+    }
     
 }

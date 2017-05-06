@@ -34,6 +34,7 @@ import egovframework.airyami.cmm.util.CommonUtils;
 import egovframework.airyami.cmm.util.JsonUtil;
 import egovframework.airyami.cmm.util.PageInfo;
 import egovframework.airyami.cmm.util.ValueMap;
+import egovframework.com.cmm.EgovMessageSource;
 import egovframework.com.cmm.service.EgovProperties;
 
 
@@ -63,6 +64,10 @@ public class TemplateController {
 	/** CommCodeService */
     @Resource(name = "commCodeService")
     private CommCodeService commCodeService;
+    
+    /** EgovMessageSource */
+	@Resource(name = "egovMessageSource")
+	EgovMessageSource egovMessageSource;
     
     /** Transaction */    
     @Resource(name="txManager")
@@ -251,6 +256,118 @@ public class TemplateController {
     		success = false;
     		e.printStackTrace();
     		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
+    }
+    
+    
+    /**
+     * detail 상세조회 
+     */
+    @RequestMapping(value="/template/getCodeGrpView.do")
+    public String getCodeGrpView(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		ValueMap ds_detail = commCodeService.getCodeGrpDetail(params);
+    		
+    		result.put("ds_detail", ds_detail);
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
+    }
+    
+    
+    
+    /**
+     * update form 호출 
+     */
+    @RequestMapping(value="/template/templateForm.do")
+    public String goTemplateFrom(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param :: goTemplateFrom " + params);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	return "/template/templateForm";
+    }
+    
+    
+    /**
+     * popup 호출 
+     */
+    @RequestMapping(value="/template/template_popup.do")
+    public String goTemplatePopup(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param 1111:: " + params);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	return "/template/template_popup";
+    }
+    
+    /**
+     * popup 호출 
+     */
+    @RequestMapping(value="/template/templateForm_popup.do")
+    public String goTemplateFormPopup(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param 1111:: " + params);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	params.put( "CODE_GROUP_ID", "USE_YN" ); //코드 대분류
+    	List<ValueMap> code_USE_YN = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_USE_YN", code_USE_YN);
+    	
+    	return "/template/templateForm_popup";
+    }
+    
+    
+    /**
+     * 저장 예제.. merge 
+     */
+    @RequestMapping(value="/template/saveCodeGrp.do")
+    public String saveCodeGrp(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		commCodeService.saveCodeGrp(params);
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    		result.put("msg", egovMessageSource.getMessage("fail.common.msg", CommonUtils.getLocale(request)) );
     	}
     	
     	result.put("success", success);

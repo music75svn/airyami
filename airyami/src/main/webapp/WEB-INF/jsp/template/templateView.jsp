@@ -81,12 +81,10 @@ function goUpdateForm(){
 		return;
 	}
 	
-	return;
+	var inputParam = gfn_makeInputData($("#srchForm"));
 	
-	
-	var inputParam = new Object();
-	
-	gfn_commonGo("/template/templateForm", inputParam, "E");
+	//gfn_commonGo("/template/template_popup", inputParam, "Y");
+	gfn_commonGo("/template/templateForm_popup", inputParam, "N");
 }
 
 
@@ -103,7 +101,6 @@ function fn_clearData(){
 	if(!gfn_validationForm($("#srchForm"))){
 		return;
 	}
-	return;
 	
 	gfn_clearData($("#contents"));
 }
@@ -151,49 +148,6 @@ function fn_clearData(){
 				<th>코드명</th>
 				<td><input type="text" name="CD_NM" id="CD_NM" regular="NUM"/></td>
 			</tr>
-			<tr>
-				<th>일련번호(S/N)</th>
-				<td><a href="#" id="CD1_URL"><span id="CD1"></span></a></td>
-			</tr>
-			<tr>
-				<th>장비사진</th>
-				<td><img src="http://placehold.it/100x50" alt="장비 사진"></td>
-			</tr>
-			<tr>
-				<th>제조사</th>
-				<td>메이커봇</td>
-			</tr>
-			<tr>
-				<th>제조국</th>
-				<td>미국</td>
-			</tr>
-			<tr>
-				<th>가격(천원)</th>
-				<td>10,300천원</td>
-			</tr>
-			<tr>
-				<th>예산구분</th>
-				<td>사업예산</td>
-			</tr>
-			<tr>
-				<th>장비설명</th>
-				<td>적층하여 3D 형상 출력 <br />적층하여 3D 형상 출력 </td>
-			</tr>
-			<tr>
-				<th>사용설명</th>
-				<td>- 3D 프린터 사용전에 기초 교육을 이수한자만 신청이 가능합니다.<br />
-				      - 재료는 재공되나 일부 부품을 구매를 하셔야 합니다.<br />
-				      - 3d 데이터 파일을 가지 오셔야 합니다.
-				</td>
-			</tr>
-			<tr>
-				<th>상태</th>
-				<td>정상</td>
-			</tr>
-			<tr>
-				<th>구입일</th>
-				<td>2013.06.01</td>
-			</tr>
 		</table>
 		</form>
 		
@@ -203,10 +157,6 @@ function fn_clearData(){
 			<div class="right"><button type="button" id="btnW_update" onClick="javascript:goUpdateForm()">수정</button></div>
 			<div class="right"><button type="button" id="btnW_update" onClick="javascript:fn_clearData()">클리어</button></div>
 		</div>
-
-<!--  evaluation -->
-<%@ include file="/include/evaluation.jsp"%>
-<!--  //evaluation -->
 
 	</div> 
 </div>

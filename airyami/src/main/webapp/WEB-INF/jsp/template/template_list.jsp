@@ -161,7 +161,7 @@ function fn_callPopup(pObj){
 	var inputParam = new Object();
 	inputParam.CODE_GROUP_ID = CODE_GROUP_ID;
 	
-	gfn_commonGo("/test/template_popup", inputParam, "Y");
+	gfn_commonGo("/template/template_popup", inputParam, "Y");
 }
 
 function fn_goDetail(pObj){
@@ -185,12 +185,12 @@ function fn_btnTest(pObj){
 }
 
 
-// 목록으로 돌아가기
-function fn_goBack(){
-	var inputParam = gfn_makeInputData($("#findForm"));
+// 팝업_등록폼 호출하기
+function fn_popInsertForm(){
+	var inputParam = {}; //gfn_makeInputData($("#srchForm"));
 	
 	
-	gfn_commonGo("/template/template", inputParam, "N");
+	gfn_commonGo("/template/templateForm_popup", inputParam, "Y");
 }
 
 
@@ -372,12 +372,11 @@ function fn_userNmChange() {
 		<span id="pagingNav"></span>
 		
 		<div class="btn_zone">
-			<span class="btn right"><a href="gear_input.html">등록 </a></span>
+			<button type="button" id="btnBack" onClick="javascript:fn_popInsertForm()">팝업등록</button>
 			<span class="btn right" onclick="javascript:fn_allDelete(); return false;">체크박스테스트</span>
 			<span class="btn right"><a href="gear_input.html" onclick="javascript:fn_excel(); return false;">엑셀 </a></span>
 			<button type="button" id="btnW_update" onClick="javascript:fn_radioTest()">라디오</button>
 			<button type="button" id="btnW_getTable" onClick="javascript:fn_getTable()">테이블</button>
-			<button type="button" id="btnBack" onClick="javascript:fn_goBack()">목록</button>
 		</div>
 	</div> 
 </div>

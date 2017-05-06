@@ -18,7 +18,7 @@
 	<isEqual property="EXCEL_YN" compareValue="N">
 	<include refid="pagingPrefixSQL"/>
 	</isEqual>
-	SELECT 
+	SELECT /* Comm_Code_Mysql.xml  commcode.listCommCode */
 	       C.CODE_GROUP_NM
 		  ,A.CODE_GROUP_ID
 	      ,A.CODE_ID 		AS CD
@@ -62,7 +62,7 @@
 	
 	<!-- 코드 목록 -->
 	<select id="commcode.getCommcodeCombo" parameterClass="Map" resultClass="ValueMap" remapResults="true">
-	SELECT 
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCommcodeCombo */
 	      CODE			AS CD
 	      ,CODE_NAME	AS CD_NM
 	  FROM TB_CODE A
@@ -74,7 +74,7 @@
 	
 	<!-- 상세조회 -->
 	<select id="commcode.getCommCode" parameterClass="Map" resultClass="ValueMap">
-	SELECT 
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCommCode */
 	       C.CODE_GROUP_NM
 		  ,A.CODE_GROUP_ID
 	      ,A.CODE_ID 		AS CD
@@ -91,6 +91,46 @@
 	   AND A.CODE_GROUP_ID= #CODE_GROUP_ID# 
 	   AND A.CODE_ID = #CODE_ID# 
 	</select>
+	
+	<!-- TB_CODE_GROUP 상세조회 -->
+	<select id="commcode.getCodeGrpDetail" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeGrpDetail */
+	       CODE_GROUP_ID
+	      ,CODE_GROUP_NM
+	      ,USE_YN
+	      ,REMARKS
+	  FROM TB_CODE_GROUP A
+	 WHERE A.CODE_GROUP_ID= #CODE_GROUP_ID#
+	</select>
+	
+	<insert id="commcode.saveCodeGrp" parameterClass="Map">
+	INSERT /* Comm_Code_Mysql.xml  commcode.saveCodeGrp */
+	  INTO TB_CODE_GROUP
+		(
+		CODE_GROUP_ID,
+		CODE_GROUP_NM,
+		USE_YN,
+		REMARKS,
+		INSERT_USER_ID,
+		INSERT_DT)
+		VALUES
+		(
+		#CODE_GROUP_ID#,
+		#CODE_GROUP_NM#,
+		#USE_YN#,
+		#REMARKS#,
+		#LOGIN_ID#,
+		DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	ON DUPLICATE KEY UPDATE
+		CODE_GROUP_ID = #CODE_GROUP_ID#,
+		CODE_GROUP_NM = #CODE_GROUP_NM#,
+		USE_YN = #USE_YN#,
+		REMARKS = #REMARKS#,
+		UPDATE_USER_ID = #LOGIN_ID#,
+		UPDATE_DT = DATE_FORMAT(now(), '%Y%m%d%H%i%s'
+		)
+	</insert>
 	
 	
 </sqlMap>

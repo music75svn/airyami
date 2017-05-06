@@ -70,6 +70,7 @@ function gfn_Transaction( inputParam ) {
 			}
 	   },
 	   error		: function(xhr, errorName, error) {
+		   debugger;
 	       alert("에러가 발생하였습니다. " + xhr.statusText);
 //	       alert(gfn_getMsg("fail.common.msg") + xhr.statusText);	// 에러가 발생했습니다!
 	   }

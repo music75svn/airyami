@@ -62,8 +62,18 @@ public interface CommCodeService {
     ValueMap getCommCode(Map<String,Object> params) throws Exception;
     
     /**
+     * 공통코드Grp 상세를 조회한다.
+     */
+    ValueMap getCodeGrpDetail(Map<String,Object> params) throws Exception;
+    
+    /**
      * 공통코드 목록을 조회한다.
      */
     List<ValueMap> getCommcodeCombo(Map<String,Object> params) throws Exception;
+    
+    /**
+     * 코드그룹 테이블 저장
+     */
+    int saveCodeGrp(Map<String,Object> params) throws Exception;
     
 }

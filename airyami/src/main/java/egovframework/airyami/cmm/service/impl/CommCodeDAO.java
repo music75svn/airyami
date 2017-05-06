@@ -57,11 +57,24 @@ public class CommCodeDAO extends EgovAbstractDAO {
     }
     
     /**
+     * 공통코드Grp 상세를 조회한다.
+     */
+    public ValueMap getCodeGrpDetail(Map<String,Object> params) throws Exception{
+    	return (ValueMap)getSqlMapClientTemplate().queryForObject("commcode.getCodeGrpDetail", params);
+    }
+    
+    /**
      * 공통코드 목록을 조회한다.
      */
     public List<ValueMap> getCommcodeCombo(Map params) throws Exception {
 		return (List<ValueMap>) list("commcode.getCommcodeCombo", params );
     }
     
+    /**
+     * 코드그룹 테이블 저장
+     */
+    public int saveCodeGrp(Map<String,Object> params) throws Exception{
+    	return getSqlMapClientTemplate().update("commcode.saveCodeGrp" ,params);
+    }
     
 }
