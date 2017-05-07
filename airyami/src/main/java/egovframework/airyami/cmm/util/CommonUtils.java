@@ -113,6 +113,7 @@ public class CommonUtils {
         	try {
 				result.put("LOGIN_ID", idCk.getUser_id());
 				result.put("LOGIN_NM", idCk.getUser_nm());
+				result.put("USER_GROUP", idCk.getLoing_user_group());
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

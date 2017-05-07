@@ -34,7 +34,6 @@
 			return;
 		} 
 		*/
-		alert("fn_login!!!");
 		
 		var inputParam = new Object();
 		inputParam.sid 				= "adminCheck";
@@ -70,7 +69,7 @@ function fn_callBack(sid, result){
 	}
 	
 	if(sid == "changeLocal"){
-		debugger;
+		//debugger;
 	}
 	
 	// fn_login
@@ -89,7 +88,7 @@ function fn_callBack(sid, result){
 			alert("패스워드가 틀렸습니다.");
 		}
 		else if("10" == checkResult){
-			debugger;
+			//debugger;
 			gfn_goMain("");
 		}
 	}

@@ -17,7 +17,8 @@ function fn_getLeftMenuList() {
 	inputParam.sid 			= "leftMenuList";
 	inputParam.url 			= "/CMM/lMenuList.do";
 	inputParam.data 		= gfn_makeInputData($("#menuForm"));
-	inputParam.data.MENU_SITE_ID = gfn_getSiteID();
+	//inputParam.data.MENU_SITE_ID = gfn_getSiteID();
+	inputParam.data.MENU_TYPE = "A";
 	
 	inputParam.callback		= fn_callBackLMenu;
 	

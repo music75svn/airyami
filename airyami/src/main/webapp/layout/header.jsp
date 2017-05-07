@@ -11,7 +11,8 @@ function fn_getHeadMenuList() {
 	inputParam.sid 			= "headMenuList";
 	inputParam.url 			= "/CMM/hMenuList.do";
 	inputParam.data 		= gfn_makeInputData($("#menuForm"));
-	inputParam.data.MENU_SITE_ID = gfn_getSiteID();
+	//inputParam.data.MENU_TYPE = //gfn_getSiteID();
+	inputParam.data.MENU_TYPE = "A";
 	inputParam.callback		= fn_callBackHMenu;
 	
 	gfn_Transaction( inputParam );
