@@ -97,7 +97,7 @@ public interface CmmService {
 	/**
 	 * 공통 서비스 등록
 	 */
-	int insertCommDb( Map<String,Object> paramMap, String sql )  throws Exception;
+	void insertCommDb( Map<String,Object> paramMap, String sql )  throws Exception;
 	
 	/**
 	 * 공통 서비스 수정

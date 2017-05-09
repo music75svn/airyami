@@ -121,9 +121,9 @@ public class CmmServiceImpl extends AbstractServiceImpl implements CmmService
 	/**
 	 * 공통 서비스 등록
 	 */
-	public int insertCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
+	public void insertCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
 		// TODO Auto-generated method stub
-		return cmmDAO.insertCommDb(paramMap, sql);
+		cmmDAO.insertCommDb(paramMap, sql);
 	}
 	
 	/**

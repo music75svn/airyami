@@ -121,9 +121,9 @@ public class CmmDAO extends EgovAbstractDAO {
 	/**
 	 * 공통 DAO 등록
 	 */
-	public int insertCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
+	public void insertCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
 		// TODO Auto-generated method stub
-		return (Integer)getSqlMapClientTemplate().insert(sql, paramMap);
+		 getSqlMapClientTemplate().insert(sql, paramMap);
 	}
 	
 	/**

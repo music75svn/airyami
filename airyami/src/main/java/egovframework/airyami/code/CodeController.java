@@ -75,14 +75,14 @@ public class CodeController {
     /**
      * 공통코드 그룹 리스트 이동 
      */
-    @RequestMapping(value="/code/codeGrouplist.do")
+    @RequestMapping(value="/code/codeGroupList.do")
     public String getCodeList(HttpServletRequest request, HttpServletResponse response, 
     		ModelMap model) throws Exception {
     	
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
     	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
     	
-    	return "/code/code_group_list";
+    	return "/code/codeGroupList";
     }
     
     /**
@@ -176,4 +176,82 @@ public class CodeController {
         return null;
     }
     
+    /**
+     * 코드그룹 detail 호출 
+     */
+    @RequestMapping(value="/code/codeGroupDetail.do")
+    public String codeGroupDetail(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	return "/code/codeGroupDetail";
+    }
+    
+    /**
+     * 코드그룹 detail 상세조회 
+     */
+    @RequestMapping(value="/code/getCodeGroupDetail.do")
+    public String getCodeGroupDetail(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		ValueMap ds_detail = cmmService.getCommDbMap(params, "commcode.getCodeGroupDetail");
+    		
+    		result.put("ds_detail", ds_detail);
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
+    }
+    
+    /**
+     * 코드그룹 detail 저장 
+     */
+    @RequestMapping(value="/code/saveCodeGroup.do")
+    public String saveCodeGroup(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		if("CREATE".equals(params.get("PROC_MODE"))){
+    			cmmService.insertCommDb(params, "commcode.insertCodeGroup");
+    		}else if("UPDATE".equals(params.get("PROC_MODE"))){
+    			cmmService.updateCommDb(params, "commcode.updateCodeGroup");
+    		}else if("DELETE".equals(params.get("PROC_MODE"))){
+    			cmmService.deleteCommDb(params, "commcode.deleteCodeGroup");
+    		}
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
+    }
 }

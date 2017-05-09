@@ -92,17 +92,6 @@
 	   AND A.CODE_ID = #CODE_ID# 
 	</select>
 	
-	<!-- TB_CODE_GROUP 상세조회 -->
-	<select id="commcode.getCodeGrpDetail" parameterClass="Map" resultClass="ValueMap">
-	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeGrpDetail */
-	       CODE_GROUP_ID
-	      ,CODE_GROUP_NM
-	      ,USE_YN
-	      ,REMARKS
-	  FROM TB_CODE_GROUP A
-	 WHERE A.CODE_GROUP_ID= #CODE_GROUP_ID#
-	</select>
-	
 	<insert id="commcode.saveCodeGrp" parameterClass="Map">
 	INSERT /* Comm_Code_Mysql.xml  commcode.saveCodeGrp */
 	  INTO TB_CODE_GROUP
@@ -132,6 +121,8 @@
 		)
 	</insert>
 	
+	
+	<!-- 유연주 코드관리 새로 작업 -->
 	<select id="commcode.getCodeGroupCount" parameterClass="Map" resultClass="java.lang.Integer">
 	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeGroupCount */
 	       COUNT(1) 
@@ -173,4 +164,53 @@
 	<include refid="pagingSuffixSQL"/>
 	</isEqual>
 	</select>
+	
+	<!-- TB_CODE_GROUP 상세조회 -->
+	<select id="commcode.getCodeGroupDetail" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeGroupDetail */
+	       CODE_GROUP_ID
+	      ,CODE_GROUP_NM
+	      ,USE_YN
+	      ,REMARKS
+	  FROM TB_CODE_GROUP A
+	 WHERE A.CODE_GROUP_ID= #SEARCH_CODE_GROUP_ID#
+	</select>
+	
+	<insert id="commcode.insertCodeGroup" parameterClass="Map">
+	INSERT /* Comm_Code_Mysql.xml  commcode.insertCodeGroup */
+	  INTO TB_CODE_GROUP
+		(
+		CODE_GROUP_ID,
+		CODE_GROUP_NM,
+		USE_YN,
+		REMARKS,
+		INSERT_USER_ID,
+		INSERT_DT)
+		VALUES
+		(
+		#CODE_GROUP_ID#,
+		#CODE_GROUP_NM#,
+		#USE_YN#,
+		#REMARKS#,
+		#LOGIN_ID#,
+		DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+	
+	<update id="commcode.updateCodeGroup" parameterClass="Map">
+	UPDATE /* Comm_Code_Mysql.xml  commcode.updateCodeGroup */
+	       TB_CODE_GROUP
+	   SET CODE_GROUP_NM = #CODE_GROUP_NM#
+	     , REMARKS = #REMARKS#
+	     , USE_YN = #USE_YN#
+	     , UPDATE_USER_ID = #LOGIN_ID#
+	     , UPDATE_DT = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	 WHERE CODE_GROUP_ID = #CODE_GROUP_ID#
+	</update>
+	
+	<delete id="commcode.deleteCodeGroup" parameterClass="Map">
+	DELETE /* Comm_Code_Mysql.xml  commcode.deleteCodeGroup */
+	  FROM TB_CODE_GROUP
+	 WHERE CODE_GROUP_ID = #CODE_GROUP_ID#
+	</delete>
 </sqlMap>
