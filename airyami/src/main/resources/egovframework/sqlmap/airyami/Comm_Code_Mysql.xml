@@ -176,6 +176,15 @@
 	 WHERE A.CODE_GROUP_ID= #SEARCH_CODE_GROUP_ID#
 	</select>
 	
+	<select id="commcode.getCodeGroupExistYn" parameterClass="Map" resultClass="java.lang.String">
+	SELECT CASE WHEN count(*) = 0 THEN 'N' ELSE 'Y' END EXIST_YN
+	  FROM TB_CODE_GROUP
+	 WHERE 1 = 1
+	 <isNotEmpty property="CODE_GROUP_ID">
+	   AND CODE_GROUP_ID= #CODE_GROUP_ID# 
+	 </isNotEmpty>
+	</select>
+	
 	<insert id="commcode.insertCodeGroup" parameterClass="Map">
 	INSERT /* Comm_Code_Mysql.xml  commcode.insertCodeGroup */
 	  INTO TB_CODE_GROUP
