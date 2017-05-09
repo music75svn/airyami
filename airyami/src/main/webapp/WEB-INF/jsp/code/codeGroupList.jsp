@@ -145,7 +145,7 @@ function fn_goCodeList(pObj){
 	<!--// menu -->
   
 	<div id="contents">
-		<h3>코드그룹 목록</h3>
+		<h3><spring:message code="word.codeGroupList"/></h3>
 		<form id="myParams" name="myParams">
 			<ppe:makeHidden var="${findParams}" filter="FIND_" />
 		</form>
@@ -158,15 +158,15 @@ function fn_goCodeList(pObj){
 			<dl>
 				<dt>&nbsp;</dt>
 				<dd>
-					<label for="SEARCH_WORD" id="S1">그룹명</label>
-					<input type="text" id="SEARCH_WORD" name="SEARCH_WORD" value="" title="그룹명" maxlength=20/>
-					<label for="SEARCH_USE_YN" id="S2">사용여부</label>
-					<select id="SEARCH_USE_YN" name="SEARCH_USE_YN" title="사용여부">
-						<option value="">전체</option>
-						<option value="Y">사용</option>
-						<option value="N">미사용</option>
+					<label for="SEARCH_WORD" id="S1"><spring:message code="word.codeGroupNm"/></label>
+					<input type="text" id="SEARCH_WORD" name="SEARCH_WORD" value="" title="<spring:message code="word.codeGroupNm"/>" maxlength=20/>
+					<label for="SEARCH_USE_YN" id="S2"><spring:message code="cop.useAt"/></label>
+					<select id="SEARCH_USE_YN" name="SEARCH_USE_YN" title="<spring:message code="cop.useAt"/>">
+						<option value=""><spring:message code="word.all"/></option>
+						<option value="Y"><spring:message code="button.use"/></option>
+						<option value="N"><spring:message code="button.notUsed"/></option>
 					</select>
-					<input type="submit" value="검색" onclick="javascript:gfn_fn_srch(); return false;"/>
+					<input type="submit" value="<spring:message code="button.search"/>" onclick="javascript:gfn_fn_srch(); return false;"/>
 				</dd>
 			</dl>
 		</div>
@@ -183,7 +183,7 @@ function fn_goCodeList(pObj){
 		
 		<!-- table list -->
 		<div class="aTypeListTbl">
-		<table id="tb_list" summary="코드그룹 목록">
+		<table id="tb_list" summary="<spring:message code="word.codeGroupList"/>">
 			<caption>리스트</caption>
 			<colgroup>
 				<col width="5%"/>

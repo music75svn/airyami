@@ -56,7 +56,7 @@ function fn_callBack(sid, result, data){
 		gfn_setDetails(result.ds_detail, $("#contents"));	// 지역내 상세 내용 셋업
 	}else if(sid = "saveCodeGroup"){
 		// 저장
-		alert("처리되었습니다.");
+		alert("<spring:message code="success.request.msg"/>");
 		
 		var inputParam = gfn_makeInputData($("#findForm"));
 		gfn_commonGo("/code/codeGroupList", inputParam, "N");
@@ -71,7 +71,9 @@ function goSave(){
 	if(!gfn_validationForm($("#dataForm"))){
 		return;
 	}
-	
+	if(!confirm("<spring:message code="common.save.msg"/>")){
+		return false;
+	}
 	var inputParam = gfn_makeInputData($("#dataForm"));
 	inputParam.sid 				= "saveCodeGroup";
 	inputParam.url 				= "/code/saveCodeGroup.do";
@@ -86,7 +88,7 @@ function goSave(){
 }
 
 function goDelete(){
-	if(!confirm("정말로 삭제하시겠습니까?")){
+	if(!confirm("<spring:message code="common.delete.msg"/>")){
 		return false;
 	}
 	
@@ -120,10 +122,6 @@ function fn_userNmChange() {
 
 function fn_clearData(){
 	
-	if(!gfn_validationForm($("#dataForm"))){
-		return;
-	}
-	
 	gfn_clearData($("#contents"));
 }
 
@@ -146,7 +144,7 @@ function fn_clearData(){
 	<!--// menu -->
   
 	<div id="contents">
-		<h3>코드그룹 정보</h3>
+		<h3><spring:message code="word.codeGroupDetail"/></h3>
 		<form id="findForm" name="findForm">
 			<ppe:makeHidden var="${findParams}" filter="FIND_"/>
 		</form>
@@ -154,29 +152,29 @@ function fn_clearData(){
 			<input type="hidden" name="SEARCH_CODE_GROUP_ID" id="SEARCH_CODE_GROUP_ID" value='<c:out value="${CODE_GROUP_ID}"/>'/>
 			<input type="hidden" name="MODE" id="MODE" value='<c:out value="${MODE}"/>'/>
 			<input type="hidden" name="PROC_MODE" id="PROC_MODE" value=''/>
-		<table summary="코드그룹 정보" cellspacing="0" border="0" class="tbl_list_type2">
+		<table summary="<spring:message code="word.codeGroupDetail"/>" cellspacing="0" border="0" class="tbl_list_type2">
 			<colgroup>
 			<col width="20%">
 			<col width="80%">
 			</colgroup>
 			<tr>
-				<th>코드그룹</th>
+				<th><spring:message code="word.codeGroupCd"/></th>
 			<c:choose>
 				<c:when test="${MODE=='DETAIL'}">
 				<td><input type="text" name="CODE_GROUP_ID" id="CODE_GROUP_ID" disabled /></td>
 				</c:when>
 				<c:when test="${MODE=='CREATE'}">
-				<td><input type="text" name="CODE_GROUP_ID" id="CODE_GROUP_ID" maxlength="10" regular="NUM"/></td>
+				<td><input type="text" name="CODE_GROUP_ID" id="CODE_GROUP_ID" maxlength="10" title="<spring:message code="word.codeGroupCd"/>" depends="required,englishNumeric"/></td>
 				</c:when>
 			</c:choose>
 			</tr>
 			<tr>
-				<th>코드그룹명</th>
-				<td><input type="text" name="CODE_GROUP_NM" id="CODE_GROUP_NM" /></td>
+				<th><spring:message code="word.codeGroupNm"/></th>
+				<td><input type="text" name="CODE_GROUP_NM" id="CODE_GROUP_NM" maxlength="50" title="<spring:message code="word.codeGroupNm"/>" depends="required"/></td>
 			</tr>
 			<tr>
-				<th>비고</th>
-				<td><textarea name="REMARKS" id="REMARKS" cols="50" rows="3"/></textarea></td>
+				<th><spring:message code="cop.remark"/></th>
+				<td><textarea name="REMARKS" id="REMARKS" cols="50" rows="3" maxlength="50" title="<spring:message code="cop.remark"/>"/></textarea></td>
 			</tr>
 	<c:choose>
 		<c:when test="${MODE=='CREATE'}">
@@ -184,11 +182,11 @@ function fn_clearData(){
 		</c:when>
 		<c:when test="${MODE=='DETAIL'}">
 			<tr>
-				<th>사용여부</th>
+				<th><spring:message code="cop.useAt"/></th>
 				<td>
-					<select id="USE_YN" name="USE_YN" title="사용여부">
-						<option value="Y">사용</option>
-						<option value="N">미사용</option>
+					<select id="USE_YN" name="USE_YN" title="<spring:message code="cop.useAt"/>">
+						<option value="Y"><spring:message code="button.use"/></option>
+						<option value="N"><spring:message code="button.notUsed"/></option>
 					</select>
 				</td>
 			</tr>
@@ -198,16 +196,16 @@ function fn_clearData(){
 		</form>
 		
 		<div class="btn_zone">
-			<div class="left"><span id="preLink" onClick="javascript:goBack()" title="목록"></span></div>
+			<div class="left"><span id="preLink" onClick="javascript:goBack()" title="<spring:message code="button.list"/>"></span></div>
 		<c:choose>
 			<c:when test="${MODE=='DETAIL'}">
-			<div class="right"><button type="button" id="btnW_delete" onClick="javascript:goDelete()">삭제</button></div>
+			<div class="right"><button type="button" id="btnW_delete" onClick="javascript:goDelete()"><spring:message code="button.delete"/></button></div>
 			</c:when>
 			<c:when test="${MODE=='CREATE'}">
-			<div class="right"><button type="button" id="btnW_clear" onClick="javascript:fn_clearData()">클리어</button></div>
+			<div class="right"><button type="button" id="btnW_clear" onClick="javascript:fn_clearData()"><spring:message code="button.clear"/></button></div>
 			</c:when>
 		</c:choose>
-			<div class="right"><button type="button" id="btnW_save" onClick="javascript:goSave()">저장</button></div>
+			<div class="right"><button type="button" id="btnW_save" onClick="javascript:goSave()"><spring:message code="button.save"/></button></div>
 		</div>
 
 	</div> 
