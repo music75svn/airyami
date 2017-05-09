@@ -55,6 +55,14 @@ public interface CmmService {
 	 * @throws Exception
 	 */
 	List<ValueMap> getLeftMenuList ( Map<String,Object> params ) throws Exception;
+
+	/***
+	 * 메뉴 > 사이트별 조회
+	 * @param request
+	 * @return
+	 * @throws Exception
+	 */
+	List<ValueMap> getMenuList ( Map<String,Object> params ) throws Exception;
 	
 	///////////////////////////////////////////////////////////////////////////////
 	//공통 서비스 by 유연주
