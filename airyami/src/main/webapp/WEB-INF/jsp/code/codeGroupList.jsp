@@ -111,11 +111,9 @@ function fn_goCreate(){
 function fn_goCodeList(pObj){
 	var rowObj = $(pObj).parent();
 	var CODE_GROUP_ID = $('input[name=CODE_GROUP_ID]', rowObj).val();
-	var CODE_ID = $('input[name=CD]', rowObj).val();
 	
 	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND_");
 	inputParam.CODE_GROUP_ID 	= CODE_GROUP_ID;
-	inputParam.CODE_ID 			= CODE_ID;
 	
 	//inputParam.LISTPARAMS = gfn_replaceAll($("#srchForm").serialize(), "&", "|");
 	//inputParam.LISTURL = gfn_getListUrl();
