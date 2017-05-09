@@ -243,7 +243,7 @@ function fn_userNmChange() {
 	<!--// menu -->
   
 	<div id="contents">
-		<h3>template 목록</h3>
+		<h3>코드그룹 목록</h3>
 		<form id="myParams" name="myParams">
 			<ppe:makeHidden var="${findParams}" filter="SEARCH_" />
 		</form>
@@ -256,8 +256,14 @@ function fn_userNmChange() {
 			<dl>
 				<dt>&nbsp;</dt>
 				<dd>
-					<label for="SEARCH_WORD" id="S3">그룹명</label>
+					<label for="SEARCH_WORD" id="S2">그룹명</label>
 					<input type="text" id="SEARCH_WORD" name="SEARCH_WORD" value="" title="그룹명" maxlength=20/>
+					<label for="SEARCH_USE_YN" id="S1">사용여부</label>
+					<select id="SEARCH_USE_YN" name="SEARCH_USE_YN" title="사용여부">
+						<option value="">전체</option>
+						<option value="Y">사용</option>
+						<option value="N">미사용</option>
+					</select>
 					<input type="submit" value="검색" onclick="javascript:gfn_fn_srch(); return false;"/>
 				</dd>
 			</dl>
