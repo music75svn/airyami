@@ -178,16 +178,22 @@ function fn_clearData(){
 				<th>비고</th>
 				<td><textarea name="REMARKS" id="REMARKS" cols="50" rows="3"/></textarea></td>
 			</tr>
+	<c:choose>
+		<c:when test="${MODE=='CREATE'}">
+			<input type="hidden" name="USE_YN" id="USE_YN" value="Y"/>
+		</c:when>
+		<c:when test="${MODE=='DETAIL'}">
 			<tr>
 				<th>사용여부</th>
 				<td>
 					<select id="USE_YN" name="USE_YN" title="사용여부">
-						<option value="">선택</option>
 						<option value="Y">사용</option>
 						<option value="N">미사용</option>
 					</select>
 				</td>
 			</tr>
+		</c:when>
+	</c:choose>
 		</table>
 		</form>
 		
