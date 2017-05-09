@@ -132,5 +132,45 @@
 		)
 	</insert>
 	
+	<select id="commcode.getCodeGroupCount" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeGroupCount */
+	       COUNT(1) 
+	  FROM TB_CODE_GROUP A
+	 WHERE 1 = 1
+	 <isNotEmpty property="SEARCH_WORD">
+	   AND A.CODE_GROUP_NM LIKE CONCAT('%',#SEARCH_WORD#,'%')
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_USE_YN">
+	   AND A.USE_YN = #SEARCH_USE_YN#
+	 </isNotEmpty>
+	</select>
 	
+	<select id="commcode.getCodeGroupList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingPrefixSQL"/>
+	</isEqual>
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeGroupList */
+		   A.CODE_GROUP_ID
+	     , A.CODE_GROUP_NM
+	     , A.REMARKS
+	     , A.USE_YN
+	     , (SELECT COUNT(*) FROM TB_CODE WHERE CODE_GROUP_ID = A.CODE_GROUP_ID AND USE_YN = 'Y') AS CODE_COUNT
+	  FROM TB_CODE_GROUP A
+	 WHERE 1 = 1
+	 <isNotEmpty property="SEARCH_WORD">
+	   AND A.CODE_GROUP_NM LIKE CONCAT('%',#SEARCH_WORD#,'%')
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_USE_YN">
+	   AND A.USE_YN = #SEARCH_USE_YN#
+	 </isNotEmpty>
+	 <isNotEmpty property="SORT_COL">
+	 	<include refid="orderbySQL"/>
+	 </isNotEmpty>
+	 <isEmpty property="SORT_COL">
+	 ORDER BY A.CODE_GROUP_ID
+	 </isEmpty>
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingSuffixSQL"/>
+	</isEqual>
+	</select>
 </sqlMap>

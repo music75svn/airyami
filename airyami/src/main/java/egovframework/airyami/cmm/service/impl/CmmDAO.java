@@ -80,4 +80,65 @@ public class CmmDAO extends EgovAbstractDAO {
 		
 	};
 
+	///////////////////////////////////////////////////////////////////////////////
+	//공통 DAO by 유연주
+	///////////////////////////////////////////////////////////////////////////////
+	/***
+	 * 공통 DAO 리스트 반환
+	 * @param request
+	 * @return
+	 * @throws Exception
+	 */
+	public List<ValueMap> getCommDbList ( Map<String,Object> params, String sql) throws Exception{
+		return getSqlMapClientTemplate().queryForList(sql, params);
+		
+	};
+	/***
+	 * 공통 DAO Map 반환
+	 * @param request
+	 * @return
+	 * @throws Exception
+	 */
+	public ValueMap getCommDbMap ( Map<String,Object> params, String sql) throws Exception{
+		return (ValueMap)getSqlMapClientTemplate().queryForObject(sql, params);
+		
+	};
+	/**
+	 * 공통 DAO Integer 반환
+	 */
+	public int getCommDbInt(Map<String,Object> params, String sql) throws Exception{
+		return (Integer)getSqlMapClientTemplate().queryForObject(sql, params);
+		
+	};
+	/**
+	 * 공통 DAO String 반환
+	 */
+	public String getCommDbString(Map<String,Object> params, String sql) throws Exception{
+		return (String)getSqlMapClientTemplate().queryForObject(sql, params);
+		
+	};
+	
+	/**
+	 * 공통 DAO 등록
+	 */
+	public int insertCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
+		// TODO Auto-generated method stub
+		return (Integer)getSqlMapClientTemplate().insert(sql, paramMap);
+	}
+	
+	/**
+	 * 공통 DAO 수정
+	 */
+	public int updateCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
+		// TODO Auto-generated method stub
+		return (Integer)getSqlMapClientTemplate().update(sql, paramMap);
+	}
+	
+	/**
+	 * 공통 DAO 삭제
+	 */
+	public int deleteCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
+		// TODO Auto-generated method stub
+		return (Integer)getSqlMapClientTemplate().delete(sql, paramMap);
+	}
 }

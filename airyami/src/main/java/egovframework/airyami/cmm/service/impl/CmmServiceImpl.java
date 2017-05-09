@@ -79,4 +79,66 @@ public class CmmServiceImpl extends AbstractServiceImpl implements CmmService
 		
 	};
 	
+	///////////////////////////////////////////////////////////////////////////////
+	//공통 서비스 by 유연주
+	///////////////////////////////////////////////////////////////////////////////
+	
+	/***
+	 * 공통 서비스 리스트 반환
+	 * @param request
+	 * @return
+	 * @throws Exception
+	 */
+	public List<ValueMap> getCommDbList ( Map<String,Object> params, String sql) throws Exception{
+		return cmmDAO.getCommDbList ( params, sql );
+		
+	};
+	/***
+	 * 공통 서비스 Map 반환
+	 * @param request
+	 * @return
+	 * @throws Exception
+	 */
+	public ValueMap getCommDbMap ( Map<String,Object> params, String sql) throws Exception{
+		return cmmDAO.getCommDbMap ( params, sql );
+		
+	};
+	/**
+	 * 공통 서비스 Integer 반환
+	 */
+	public int getCommDbInt(Map<String,Object> params, String sql) throws Exception{
+		return cmmDAO.getCommDbInt ( params, sql );
+		
+	};
+	/**
+	 * 공통 서비스 String 반환
+	 */
+	public String getCommDbString(Map<String,Object> params, String sql) throws Exception{
+		return cmmDAO.getCommDbString ( params, sql );
+		
+	};
+	
+	/**
+	 * 공통 서비스 등록
+	 */
+	public int insertCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
+		// TODO Auto-generated method stub
+		return cmmDAO.insertCommDb(paramMap, sql);
+	}
+	
+	/**
+	 * 공통 서비스 수정
+	 */
+	public int updateCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
+		// TODO Auto-generated method stub
+		return cmmDAO.updateCommDb(paramMap, sql);
+	}
+	
+	/**
+	 * 공통 서비스 삭제
+	 */
+	public int deleteCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
+		// TODO Auto-generated method stub
+		return cmmDAO.deleteCommDb(paramMap, sql);
+	}
 }

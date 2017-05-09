@@ -56,13 +56,48 @@ public interface CmmService {
 	 */
 	List<ValueMap> getLeftMenuList ( Map<String,Object> params ) throws Exception;
 	
+	///////////////////////////////////////////////////////////////////////////////
+	//공통 서비스 by 유연주
+	///////////////////////////////////////////////////////////////////////////////
 	
 	/***
-	 * 메뉴 > 사이트별 조회
+	 * 공통 서비스 리스트 반환
 	 * @param request
 	 * @return
 	 * @throws Exception
 	 */
-	List<ValueMap> getMenuList ( Map<String,Object> params ) throws Exception;
+	List<ValueMap> getCommDbList ( Map<String,Object> params, String sql) throws Exception;
 	
+	/***
+	 * 공통 서비스 Map 반환
+	 * @param request
+	 * @return
+	 * @throws Exception
+	 */
+	ValueMap getCommDbMap ( Map<String,Object> params, String sql) throws Exception;
+	
+	/**
+	 * 공통 서비스 Integer 반환
+	 */
+    int getCommDbInt(Map<String,Object> params, String sql) throws Exception;
+   
+	/**
+	 * 공통 서비스 String 반환
+	 */
+    String getCommDbString(Map<String,Object> params, String sql) throws Exception;
+    
+	/**
+	 * 공통 서비스 등록
+	 */
+	int insertCommDb( Map<String,Object> paramMap, String sql )  throws Exception;
+	
+	/**
+	 * 공통 서비스 수정
+	 */
+	int updateCommDb( Map<String,Object> paramMap, String sql )  throws Exception;
+	
+	/**
+	 * 공통 서비스 삭제
+	 */
+	int deleteCommDb( Map<String,Object> paramMap, String sql )  throws Exception;
 }
