@@ -240,13 +240,11 @@ public class CodeController {
     			// 그룹코드 중복
     			if("Y".equals(existYn)){
     				// TODO 예외처리
-    				log.debug("코드그룹이 중복되었습니다.");
-    		    	result.put("success", false);
-    		    	response.setContentType("text/xml;charset=UTF-8");
-    		    	response.getWriter().println(CommonUtils.setJsonResult(result));
-    			}else{
-    				cmmService.insertCommDb(params, "commcode.insertCodeGroup");
+    		    	result.put("msg", egovMessageSource.getMessage("fail.exist.msg", CommonUtils.getLocale(request)) );
+    		    	throw new Exception();
     			}
+
+    			cmmService.insertCommDb(params, "commcode.insertCodeGroup");
     		}else if("UPDATE".equals(params.get("PROC_MODE"))){
     			cmmService.updateCommDb(params, "commcode.updateCodeGroup");
     		}else if("DELETE".equals(params.get("PROC_MODE"))){
