@@ -66,7 +66,7 @@ function fn_callBack(sid, result, data){
 ////////////////////////////////////////////////////////////////////////////////////
 // Click evnet
 // 저장버튼클릭
-function goSave(){
+function fn_goSave(){
 	
 	if(!gfn_validationForm($("#dataForm"))){
 		return;
@@ -102,7 +102,7 @@ function goDelete(){
 }
 
 //목록 버튼
-function goBack(){
+function fn_goBack(){
 	var inputParam = gfn_makeInputData($("#findForm"));
 	
 	gfn_commonGo("/code/codeGroupList", inputParam, "N");
@@ -196,7 +196,7 @@ function fn_clearData(){
 		</form>
 		
 		<div class="btn_zone">
-			<div class="left"><span id="preLink" onClick="javascript:goBack()" title="<spring:message code="button.list"/>"></span></div>
+			<div class="left"><span id="preLink" onClick="javascript:fn_goBack()" title="<spring:message code="button.list"/>"></span></div>
 		<c:choose>
 			<c:when test="${MODE=='DETAIL'}">
 			<div class="right"><button type="button" id="btnW_delete" onClick="javascript:goDelete()"><spring:message code="button.delete"/></button></div>
@@ -205,7 +205,7 @@ function fn_clearData(){
 			<div class="right"><button type="button" id="btnW_clear" onClick="javascript:fn_clearData()"><spring:message code="button.clear"/></button></div>
 			</c:when>
 		</c:choose>
-			<div class="right"><button type="button" id="btnW_save" onClick="javascript:goSave()"><spring:message code="button.save"/></button></div>
+			<div class="right"><button type="button" id="btnW_save" onClick="javascript:fn_goSave()"><spring:message code="button.save"/></button></div>
 		</div>
 
 	</div> 

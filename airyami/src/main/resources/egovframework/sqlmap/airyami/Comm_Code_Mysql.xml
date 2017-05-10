@@ -222,4 +222,59 @@
 	  FROM TB_CODE_GROUP
 	 WHERE CODE_GROUP_ID = #CODE_GROUP_ID#
 	</delete>
+	
+	<select id="commcode.getCodeCount" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeCount */
+	       COUNT(1) 
+	  FROM TB_CODE A
+	     , TB_CODE_NM B
+	 WHERE 1 = 1
+	   AND A.CODE_GROUP_ID = B.CODE_GROUP_ID
+	   AND A.CODE_ID = B.CODE_ID
+	   AND B.LANG_CD = #LANG_CD#
+	   AND A.CODE_GROUP_ID = #SEARCH_CODE_GROUP_ID#
+	 <isNotEmpty property="SEARCH_WORD2">
+	   AND B.CODE_NM LIKE CONCAT('%',#SEARCH_WORD2#,'%')
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_USE_YN2">
+	   AND A.USE_YN = #SEARCH_USE_YN2#
+	 </isNotEmpty>
+	</select>
+	
+	<select id="commcode.getCodeList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingPrefixSQL"/>
+	</isEqual>
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeList */
+		   A.CODE_GROUP_ID
+		 , C.CODE_GROUP_NM
+	     , A.CODE_ID
+	     , B.CODE_NM
+	     , A.REMARKS
+	     , A.USE_YN
+	  FROM TB_CODE A
+	     , TB_CODE_NM B
+	     , TB_CODE_GROUP C
+	 WHERE 1 = 1
+	   AND A.CODE_GROUP_ID = B.CODE_GROUP_ID
+	   AND A.CODE_ID = B.CODE_ID
+	   AND A.CODE_GROUP_ID = C.CODE_GROUP_ID
+	   AND A.CODE_GROUP_ID= #SEARCH_CODE_GROUP_ID#
+	   AND B.LANG_CD = #LANG_CD#
+	 <isNotEmpty property="SEARCH_WORD2">
+	   AND B.CODE_NM LIKE CONCAT('%',#SEARCH_WORD2#,'%')
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_USE_YN2">
+	   AND A.USE_YN = #SEARCH_USE_YN2#
+	 </isNotEmpty>
+	 <isNotEmpty property="SORT_COL">
+	 	<include refid="orderbySQL"/>
+	 </isNotEmpty>
+	 <isEmpty property="SORT_COL">
+	 ORDER BY A.SORT_ORDER, A.CODE_ID
+	 </isEmpty>
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingSuffixSQL"/>
+	</isEqual>
+	</select>
 </sqlMap>

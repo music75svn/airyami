@@ -76,7 +76,7 @@ public class CodeController {
      * 공통코드 그룹 리스트 이동 
      */
     @RequestMapping(value="/code/codeGroupList.do")
-    public String getCodeList(HttpServletRequest request, HttpServletResponse response, 
+    public String codeGroupList(HttpServletRequest request, HttpServletResponse response, 
     		ModelMap model) throws Exception {
     	
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
@@ -249,6 +249,199 @@ public class CodeController {
     			cmmService.updateCommDb(params, "commcode.updateCodeGroup");
     		}else if("DELETE".equals(params.get("PROC_MODE"))){
     			cmmService.deleteCommDb(params, "commcode.deleteCodeGroup");
+    		}
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
+    }
+    
+    /**
+     * 공통코드 리스트 이동 
+     */
+    @RequestMapping(value="/code/codeList.do")
+    public String getCodeList(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
+    	
+    	return "/code/codeList";
+    }
+    
+    /**
+	 * 코드 리스트 조회
+	 * @param 
+	 * @param model
+	 * @return 
+	 * @exception Exception
+	 */
+    @RequestMapping(value="/code/selectCodeList.do")
+    public String selectCodeList(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	
+    	// 이건 체크박스로 리스트에서 값 가지고 오는거..
+    	// 일단 리스트에선 패스..
+    	/*
+    	if(!CommonUtils.isNull((String)params.get("rowDatas"))){
+    		List<Object> rParams = JsonUtil.parseToList( (String)params.get("rowDatas") );
+    		
+    		for(int i = 0 ; i < rParams.size() ; i++){
+    			Map<String,Object> rowData = (Map<String, Object>) rParams.get(i);
+    			log.debug("rowData.CD :: " + rowData.get("CD"));
+    		}
+    	}
+    	*/
+    	
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	
+    	PageInfo pageInfo = null;
+    	
+    	// 엑셀 여부..( 전체조회인지.. 아닌지)
+    	if(!params.containsKey("EXCEL_YN"))
+    		params.put("EXCEL_YN", "N");
+    	 
+    	String excelYn = (String)params.get("EXCEL_YN");
+    	
+    	try{
+    		if("N".equals(excelYn)){
+    			int pageNo = Integer.parseInt( CommonUtils.NVL((String)params.get("pageNo"), "0")  );
+    			int totCnt = cmmService.getCommDbInt(params, "commcode.getCodeCount");
+    			
+    			if("".equals( pageNo ) || pageNo < 1 ) {
+    				pageInfo = new PageInfo(1, totCnt, EgovProperties.getProperty("Globals.DbType"));
+    			} else {
+    				pageInfo = new PageInfo(pageNo, totCnt, EgovProperties.getProperty("Globals.DbType"));
+    			}
+    			
+    			if( !CommonUtils.isNull( (String)params.get("pageRowCnt") ) ){
+    				pageInfo.setPerUnit( Integer.valueOf( (String)params.get("pageRowCnt") ));
+    				pageInfo.calculate();
+    			}
+    			
+    			params.put( "STARTUNIT", pageInfo.getStartUnit() );
+    			params.put( "ENDUNIT", pageInfo.getEndUnit() );
+    			params.put( "TOTCNT", totCnt);
+    			result.put( "totCnt", totCnt);
+    		}
+    	
+    		List<ValueMap> list = cmmService.getCommDbList(params, "commcode.getCodeList");
+    		
+    		if("Y".equals(excelYn)){
+    			model.put( "excel_name", "GROUPCODE" );
+    			model.put( "data", list );
+    			if(params.containsKey("SEARCH_CONDITION"))
+    				model.put( "excel_condition", params.get("SEARCH_CONDITION") );
+    	        
+    	        log.debug("excelView Call!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    	        
+    	        return "excelView";
+    		}
+    		
+    		result.put("ds_list", list);
+    		result.put("pageInfo", pageInfo);
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+        
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+        return null;
+    }
+    
+    /**
+     * 코드 detail 호출 
+     */
+    @RequestMapping(value="/code/codeDetail.do")
+    public String codeDetail(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	return "/code/codeGroupDetail";
+    }
+    
+    /**
+     * 코드 detail 상세조회 
+     */
+    @RequestMapping(value="/code/getCodeDetail.do")
+    public String getCodeDetail(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		ValueMap ds_detail = cmmService.getCommDbMap(params, "commcode.getCodeDetail");
+    		
+    		result.put("ds_detail", ds_detail);
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
+    }
+    
+    /**
+     * 코드 detail 저장 
+     */
+    @RequestMapping(value="/code/saveCode.do")
+    public String saveCode(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		if("CREATE".equals(params.get("PROC_MODE"))){
+    			// 중복체크
+    			String existYn = cmmService.getCommDbString(params, "commcode.getCodeExistYn");
+    			
+    			// 그룹코드 중복
+    			if("Y".equals(existYn)){
+    				// TODO 예외처리
+    		    	result.put("msg", egovMessageSource.getMessage("fail.exist.msg", CommonUtils.getLocale(request)) );
+    		    	throw new Exception();
+    			}
+
+    			cmmService.insertCommDb(params, "commcode.insertCode");
+    		}else if("UPDATE".equals(params.get("PROC_MODE"))){
+    			cmmService.updateCommDb(params, "commcode.updateCode");
+    		}else if("DELETE".equals(params.get("PROC_MODE"))){
+    			cmmService.deleteCommDb(params, "commcode.deleteCode");
     		}
     	}
     	catch(Exception e){

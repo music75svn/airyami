@@ -42,8 +42,8 @@ function fn_srch(){
 	}
 	
 	var inputParam = new Object();
-	inputParam.sid 				= "codeGroupList";
-	inputParam.url 				= "/code/selectCodeGroupList.do";
+	inputParam.sid 				= "codeList";
+	inputParam.url 				= "/code/selectCodeList.do";
 	inputParam.data 			= gfn_makeInputData($("#srchForm"));
 	//inputParam.callback			= fn_callBackA;
 	
@@ -62,8 +62,8 @@ function fn_callBack(sid, result){
 	
 	
 	// fn_srch
-	if(sid == "codeGroupList"){
-		var tbHiddenInfo = ["CODE_GROUP_ID"]; // row에 추가할 히든 컬럼 설정  없으면 삭제
+	if(sid == "codeList"){
+		var tbHiddenInfo = ["CODE_GROUP_ID", "CODE_ID"]; // row에 추가할 히든 컬럼 설정  없으면 삭제
 		
 		gfn_displayList(result.ds_list, "tb_list", tbHiddenInfo);
 		gfn_displayTotCnt(result.totCnt);
@@ -84,35 +84,42 @@ function fn_callBack(sid, result){
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Click evnet
+//뒤로 버튼
+function fn_goBack(){
+	var inputParam = gfn_makeInputData($("#myParams"));
+	
+	gfn_commonGo("/code/codeGroupList", inputParam, "N");
+}
+
 function fn_goDetail(pObj){
 	var rowObj = $(pObj).parent();
 	var CODE_GROUP_ID = $('input[name=CODE_GROUP_ID]', rowObj).val();
 
-	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND_");
+	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND2_");
 	inputParam.CODE_GROUP_ID 	= CODE_GROUP_ID;
 	inputParam.MODE				= "DETAIL";
 	
 	//inputParam.LISTPARAMS = gfn_replaceAll($("#srchForm").serialize(), "&", "|");
 	//inputParam.LISTURL = gfn_getListUrl();
 	
-	gfn_commonGo("/code/codeGroupDetail", inputParam, "N");
+	gfn_commonGo("/code/codeDetail", inputParam, "N");
 }
 
 function fn_goCreate(){
-	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND_");
+	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND2_");
 	inputParam.MODE				= "CREATE";
 	
 	//inputParam.LISTPARAMS = gfn_replaceAll($("#srchForm").serialize(), "&", "|");
 	//inputParam.LISTURL = gfn_getListUrl();
 	
-	gfn_commonGo("/code/codeGroupDetail", inputParam, "N");
+	gfn_commonGo("/code/codeDetail", inputParam, "N");
 }
 
 function fn_goCodeList(pObj){
 	var rowObj = $(pObj).parent();
 	var CODE_GROUP_ID = $('input[name=CODE_GROUP_ID]', rowObj).val();
 	
-	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND_");
+	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND2_");
 	inputParam.CODE_GROUP_ID 	= CODE_GROUP_ID;
 	
 	//inputParam.LISTPARAMS = gfn_replaceAll($("#srchForm").serialize(), "&", "|");
@@ -143,23 +150,25 @@ function fn_goCodeList(pObj){
 	<!--// menu -->
   
 	<div id="contents">
-		<h3><spring:message code="word.codeGroupList"/></h3>
+		<h3><spring:message code="word.codeList"/></h3>
 		<form id="myParams" name="myParams">
 			<ppe:makeHidden var="${findParams}" filter="FIND_" />
+			<ppe:makeHidden var="${findParams}" filter="FIND2_" />
 		</form>
 		<form id="srchForm" name="srchForm" method="post" action="<c:url value='/commCode/codeList.do'/>" onsubmit="return false;">
 			<input type="hidden" name="pageNo" id="pageNo" value="1"/>
 			<input type="hidden" name="EXCEL_YN" id="EXCEL_YN" />
-			<input type="hidden" name="SORT_COL" id="SORT_COL" value="CODE_GROUP_ID ASC"/>
+			<input type="hidden" name="SORT_COL" id="SORT_COL" value="A.SORT_ORDER ASC, A.CODE_ID ASC"/>
 			<input type="hidden" name="SORT_ACC" id="SORT_ACC" />
+			<input type="hidden" name="SEARCH_CODE_GROUP_ID" id="SEARCH_CODE_GROUP_ID" value='<c:out value="${CODE_GROUP_ID}"/>'/>
 		<div id="search">
 			<dl>
 				<dt>&nbsp;</dt>
 				<dd>
-					<label for="SEARCH_WORD" id="S1"><spring:message code="word.codeGroupNm"/></label>
-					<input type="text" id="SEARCH_WORD" name="SEARCH_WORD" value="" title="<spring:message code="word.codeGroupNm"/>" maxlength=20/>
-					<label for="SEARCH_USE_YN" id="S2"><spring:message code="cop.useAt"/></label>
-					<select id="SEARCH_USE_YN" name="SEARCH_USE_YN" title="<spring:message code="cop.useAt"/>">
+					<label for="SEARCH_WORD2" id="S1"><spring:message code="word.codeNm"/></label>
+					<input type="text" id="SEARCH_WORD2" name="SEARCH_WORD2" value="" title="<spring:message code="word.codeNm"/>" maxlength=20/>
+					<label for="SEARCH_USE_YN2" id="S2"><spring:message code="cop.useAt"/></label>
+					<select id="SEARCH_USE_YN2" name="SEARCH_USE_YN2" title="<spring:message code="cop.useAt"/>">
 						<option value=""><spring:message code="word.all"/></option>
 						<option value="Y"><spring:message code="button.use"/></option>
 						<option value="N"><spring:message code="button.notUsed"/></option>
@@ -181,23 +190,25 @@ function fn_goCodeList(pObj){
 		
 		<!-- table list -->
 		<div class="aTypeListTbl">
-		<table id="tb_list" summary="<spring:message code="word.codeGroupList"/>">
+		<table id="tb_list" summary="<spring:message code="word.codeList"/>">
 			<caption>리스트</caption>
 			<colgroup>
 				<col width="5%"/>
-				<col width="15%"/>
-				<col width="25%"/>
-				<col width=""/>
 				<col width="8%"/>
+				<col width="20%"/>
+				<col width="8%"/>
+				<col width="20%"/>
+				<col width=""/>
 				<col width="8%"/>
 			</colgroup>
 			<thead> 
 				<tr>
 					<th cid="ROWNUM" cClass="num" cType="NUM"><spring:message code="word.num"/></th>
-					<th cid="CODE_GROUP_ID" alg="center" clickevent="fn_goDetail(this);" url="/code/codeGroupList.do"><spring:message code="word.codeGroupCd"/></th>
+					<th cid="CODE_GROUP_ID" alg="center"><spring:message code="word.codeGroupCd"/></th>
 					<th cid="CODE_GROUP_NM" alg="left"><spring:message code="word.codeGroupNm"/></th>
+					<th cid="CODE_ID" alg="center" clickevent="fn_goDetail(this);" url="/code/codeList.do"><spring:message code="word.code"/></th>
+					<th cid="CODE_NM" alg="left"><spring:message code="word.codeNm"/></th>
 					<th cid="REMARKS" alg="left"><spring:message code="cop.remark"/></th>
-					<th cid="CODE_COUNT" alg="center" clickevent="fn_goCodeList(this);" url="/code/codeGroupList.do"><spring:message code="word.codeCount"/></th>
 					<th cid="USE_YN" alg="center"><spring:message code="cop.useAt"/></th>
 				</tr> 
 			</thead> 
@@ -210,7 +221,8 @@ function fn_goCodeList(pObj){
 		<span id="pagingNav"></span>
 		
 		<div class="btn_zone">
-			<button type="button" id="btnReg" onClick="javascript:fn_goCreate()"><spring:message code="button.create"/></button>
+			<div class="left"><button type="button" id="preLink" onClick="javascript:fn_goBack()"><spring:message code="button.back"/></button></div>
+			<div class="right"><button type="button" id="btnReg" onClick="javascript:fn_goCreate()"><spring:message code="button.create"/></button></div>
 		</div>
 	</div> 
 </div>
