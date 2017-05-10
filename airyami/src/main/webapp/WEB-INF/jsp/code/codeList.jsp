@@ -115,19 +115,6 @@ function fn_goCreate(){
 	gfn_commonGo("/code/codeDetail", inputParam, "N");
 }
 
-function fn_goCodeList(pObj){
-	var rowObj = $(pObj).parent();
-	var CODE_GROUP_ID = $('input[name=CODE_GROUP_ID]', rowObj).val();
-	
-	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND2_");
-	inputParam.CODE_GROUP_ID 	= CODE_GROUP_ID;
-	
-	//inputParam.LISTPARAMS = gfn_replaceAll($("#srchForm").serialize(), "&", "|");
-	//inputParam.LISTURL = gfn_getListUrl();
-	
-	gfn_commonGo("/code/codeList", inputParam, "N");
-}
-
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출
 
