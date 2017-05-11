@@ -1371,7 +1371,7 @@ function gfn_displayList(list, tbID, HiddenInfo){
         	for(_tbIDInfo in tbIDInfo){
         		var CID = tbIDInfo[_tbIDInfo];
         		
-        		if(CID == "BTN111")
+        		//if(CID == "BTN111")
 //        			debugger;
         		
         		var tdStyle = "";
@@ -1554,8 +1554,8 @@ function gfn_displayList(list, tbID, HiddenInfo){
         	trHtml = "<tr "+rClassHtml+">"+tdHtml+"</tr>";
         	
         	//alert(trHtml);
-//        	if(i==1)
-//        		debugger;
+        	//if(i==1)
+        	//	debugger;
         	
         	$('#'+tbID+ " > tbody").append(trHtml);
         	
