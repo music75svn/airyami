@@ -108,4 +108,9 @@ public interface CmmService {
 	 * 공통 서비스 삭제
 	 */
 	int deleteCommDb( Map<String,Object> paramMap, String sql )  throws Exception;
+	
+	/**
+	 * 공통 서비스 다중커리 처리
+	 */
+	void saveCommDbList( List queryList )  throws Exception;
 }

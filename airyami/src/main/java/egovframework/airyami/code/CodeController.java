@@ -15,6 +15,8 @@
  */
 package egovframework.airyami.code;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +32,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import egovframework.airyami.cmm.service.CmmService;
+import egovframework.airyami.cmm.service.CommCodeService;
 import egovframework.airyami.cmm.util.CommonUtils;
 import egovframework.airyami.cmm.util.PageInfo;
 import egovframework.airyami.cmm.util.ValueMap;
@@ -59,6 +62,10 @@ import egovframework.com.cmm.service.EgovProperties;
 @Controller
 public class CodeController {
 	protected Log log = LogFactory.getLog(this.getClass());
+	
+	/** CommCodeService */
+    @Resource(name = "commCodeService")
+    private CommCodeService commCodeService;
 	
 	/** CmmService */
     @Resource(name = "cmmService")
@@ -378,8 +385,12 @@ public class CodeController {
     	
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
     	CommonUtils.setModelByParams(model, params, request);
+
+    	params.put( "CODE_GROUP_ID", "LANG" ); //언어코드 대분류
+    	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_LANG", code_LANG);
     	
-    	return "/code/codeGroupDetail";
+    	return "/code/codeDetail";
     }
     
     /**
@@ -395,8 +406,13 @@ public class CodeController {
     	ValueMap result = new ValueMap();
     	
     	try{
+    		// 코드 상세조회
     		ValueMap ds_detail = cmmService.getCommDbMap(params, "commcode.getCodeDetail");
     		
+    		// 코드명 목록 조회
+    		List<ValueMap> ds_langNameList = cmmService.getCommDbList(params, "commcode.getCodeNameList");
+    		
+    		result.put("ds_langNameList", ds_langNameList);
     		result.put("ds_detail", ds_detail);
     	}
     	catch(Exception e){
@@ -436,12 +452,77 @@ public class CodeController {
     		    	result.put("msg", egovMessageSource.getMessage("fail.exist.msg", CommonUtils.getLocale(request)) );
     		    	throw new Exception();
     			}
+    			
+    			// 코드 등록
+    			List queryList = new ArrayList();
+    			Map<String,Object> queryMap = new HashMap();
+    			queryMap.putAll(params);
+    			queryMap.put("queryGubun", "INSERT");
+    			queryMap.put("query", "commcode.insertCode");
+    			queryList.add(queryMap);
+    			
+    			// 메시지 등록
+    			Map<String,Object> langMap = new HashMap();
+    			langMap.putAll(params);
+    			langMap.put( "CODE_GROUP_ID", "LANG" ); //언어코드 대분류
+    			List<ValueMap> code_LANG = commCodeService.selectCommCode(langMap);
+    			for(int i = 0; i < code_LANG.size(); i++){
+    				queryMap = new HashMap();
+    				queryMap.putAll(params);
+    				Map code_LANGMap = (ValueMap)code_LANG.get(i);
+    				queryMap.put("CODE_NM", params.get("CODE_NM_"+code_LANGMap.get("CD")));
+    				queryMap.put("LANG_CD", code_LANGMap.get("CD"));
+    				queryMap.put("queryGubun", "UPDATE");
+    				queryMap.put("query", "commcode.saveCodeNm");
+        			
+        			log.debug("params : "+queryMap);
+        			
+        			queryList.add(queryMap);
+    			}
 
-    			cmmService.insertCommDb(params, "commcode.insertCode");
+    			cmmService.saveCommDbList(queryList);
     		}else if("UPDATE".equals(params.get("PROC_MODE"))){
-    			cmmService.updateCommDb(params, "commcode.updateCode");
+    			// 코드 수정
+    			List queryList = new ArrayList();
+    			Map<String,Object> queryMap = new HashMap();
+    			queryMap.putAll(params);
+    			queryMap.put("queryGubun", "UPDATE");
+    			queryMap.put("query", "commcode.updateCode");
+    			queryList.add(queryMap);
+    			
+    			// 메시지 등록
+    			Map<String,Object> langMap = new HashMap();
+    			langMap.putAll(params);
+    			langMap.put( "CODE_GROUP_ID", "LANG" ); //언어코드 대분류
+    			List<ValueMap> code_LANG = commCodeService.selectCommCode(langMap);
+    			for(int i = 0; i < code_LANG.size(); i++){
+    				queryMap = new HashMap();
+    				queryMap.putAll(params);
+    				Map code_LANGMap = (ValueMap)code_LANG.get(i);
+    				queryMap.put("CODE_NM", params.get("CODE_NM_"+code_LANGMap.get("CD")));
+    				queryMap.put("LANG_CD", code_LANGMap.get("CD"));
+    				queryMap.put("queryGubun", "UPDATE");
+    				queryMap.put("query", "commcode.saveCodeNm");
+        			
+        			log.debug("params : "+queryMap);
+        			
+        			queryList.add(queryMap);
+    			}
+
+    			cmmService.saveCommDbList(queryList);
+    			
     		}else if("DELETE".equals(params.get("PROC_MODE"))){
-    			cmmService.deleteCommDb(params, "commcode.deleteCode");
+    			// 코드 삭제
+    			List queryList = new ArrayList();
+    			params.put("queryGubun", "DELETE");
+    			params.put("query", "commcode.deleteCode");
+    			queryList.add(params);
+    			
+    			// 메시지 삭제
+    			params.put("queryGubun", "DELETE");
+    			params.put("query", "commcode.deleteCodeNm");
+    			queryList.add(params);
+    			cmmService.saveCommDbList(queryList);
     		}
     	}
     	catch(Exception e){

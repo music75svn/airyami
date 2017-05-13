@@ -169,15 +169,16 @@
 	<select id="commcode.getCodeGroupDetail" parameterClass="Map" resultClass="ValueMap">
 	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeGroupDetail */
 	       CODE_GROUP_ID
-	      ,CODE_GROUP_NM
-	      ,USE_YN
-	      ,REMARKS
+	     , CODE_GROUP_NM
+	     , USE_YN
+	     , REMARKS
 	  FROM TB_CODE_GROUP A
 	 WHERE A.CODE_GROUP_ID= #SEARCH_CODE_GROUP_ID#
 	</select>
 	
 	<select id="commcode.getCodeGroupExistYn" parameterClass="Map" resultClass="java.lang.String">
-	SELECT CASE WHEN count(*) = 0 THEN 'N' ELSE 'Y' END EXIST_YN
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeGroupExistYn */
+		   CASE WHEN count(*) = 0 THEN 'N' ELSE 'Y' END EXIST_YN
 	  FROM TB_CODE_GROUP
 	 WHERE 1 = 1
 	 <isNotEmpty property="CODE_GROUP_ID">
@@ -189,20 +190,20 @@
 	INSERT /* Comm_Code_Mysql.xml  commcode.insertCodeGroup */
 	  INTO TB_CODE_GROUP
 		(
-		CODE_GROUP_ID,
-		CODE_GROUP_NM,
-		USE_YN,
-		REMARKS,
-		INSERT_USER_ID,
-		INSERT_DT)
+		   CODE_GROUP_ID
+		 , CODE_GROUP_NM
+		 , USE_YN
+		 , REMARKS
+		 , INSERT_USER_ID
+		 , INSERT_DT)
 		VALUES
 		(
-		#CODE_GROUP_ID#,
-		#CODE_GROUP_NM#,
-		#USE_YN#,
-		#REMARKS#,
-		#LOGIN_ID#,
-		DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		   #CODE_GROUP_ID#
+		 , #CODE_GROUP_NM#
+		 , #USE_YN#
+		 , #REMARKS#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 		)
 	</insert>
 	
@@ -277,4 +278,131 @@
 	<include refid="pagingSuffixSQL"/>
 	</isEqual>
 	</select>
+	
+	<!-- TB_CODE 상세조회 -->
+	<select id="commcode.getCodeDetail" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeDetail */
+		   A.CODE_GROUP_ID
+		 , B.CODE_GROUP_NM
+	     , A.CODE_ID
+	     , A.USE_YN
+	     , A.SORT_ORDER
+	     , A.REMARKS
+	  FROM TB_CODE A
+	     , TB_CODE_GROUP B
+	 WHERE 1 = 1
+	   AND A.CODE_GROUP_ID = B.CODE_GROUP_ID
+	   AND A.CODE_GROUP_ID= #SEARCH_CODE_GROUP_ID#
+	   AND A.CODE_ID= #SEARCH_CODE_ID#
+	</select>
+	
+	
+	<!-- TB_CODE 코드명 조회 -->
+	<select id="commcode.getCodeNameList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeNameList */
+	       LANG_CD
+		 , A.CODE_NM
+	  FROM TB_CODE_NM A
+	 WHERE 1 = 1
+	   AND A.CODE_GROUP_ID= #SEARCH_CODE_GROUP_ID#
+	   AND A.CODE_ID= #SEARCH_CODE_ID#
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="commcode.getCodeExistYn" parameterClass="Map" resultClass="java.lang.String">
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeExistYn */
+		   CASE WHEN count(*) = 0 THEN 'N' ELSE 'Y' END EXIST_YN
+	  FROM TB_CODE
+	 WHERE 1 = 1
+	 <isNotEmpty property="CODE_GROUP_ID">
+	   AND CODE_GROUP_ID= #CODE_GROUP_ID#
+	   AND CODE_ID= #CODE_ID#
+	 </isNotEmpty>
+	</select>
+	
+	<insert id="commcode.insertCode" parameterClass="Map">
+	INSERT /* Comm_Code_Mysql.xml  commcode.insertCodeGroup */
+	  INTO TB_CODE
+		(
+		   CODE_GROUP_ID
+		 , CODE_ID
+		 , USE_YN
+		 , REMARKS
+		 , SORT_ORDER
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+		   #CODE_GROUP_ID#
+		 , #CODE_ID#
+		 , #USE_YN#
+		 , #REMARKS#
+		 , #SORT_ORDER#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+	
+	<update id="commcode.updateCode" parameterClass="Map">
+	UPDATE /* Comm_Code_Mysql.xml  commcode.updateCode */
+	       TB_CODE
+	   SET REMARKS = #REMARKS#
+	     , USE_YN = #USE_YN#
+	     , SORT_ORDER = #SORT_ORDER#
+	     , UPDATE_USER_ID = #LOGIN_ID#
+	     , UPDATE_DT = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	 WHERE CODE_GROUP_ID = #CODE_GROUP_ID#
+	   AND CODE_ID= #CODE_ID#
+	</update>
+	
+	<insert id="commcode.saveCodeNm" parameterClass="Map">
+	INSERT /* Comm_Code_Mysql.xml  commcode.saveCodeNm */
+	  INTO TB_CODE_NM
+		(
+		CODE_GROUP_ID,
+		CODE_ID,
+		LANG_CD,
+		CODE_NM,
+		INSERT_USER_ID,
+		INSERT_DT)
+		VALUES
+		(
+		#CODE_GROUP_ID#,
+		#CODE_ID#,
+		#LANG_CD#,
+		#CODE_NM#,
+		#LOGIN_ID#,
+		DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	ON DUPLICATE KEY UPDATE
+		CODE_NM = #CODE_NM#,
+		UPDATE_USER_ID = #LOGIN_ID#,
+		UPDATE_DT = DATE_FORMAT(now(), '%Y%m%d%H%i%s'
+		)
+	</insert>
+	
+	<delete id="commcode.deleteCode" parameterClass="Map">
+	DELETE /* Comm_Code_Mysql.xml  commcode.deleteCode */
+	  FROM TB_CODE
+	 WHERE CODE_GROUP_ID = #CODE_GROUP_ID#
+	   AND CODE_ID= #CODE_ID#
+	</delete>
+	
+	<delete id="commcode.deleteCodeNm" parameterClass="Map">
+	DELETE /* Comm_Code_Mysql.xml  commcode.deleteCodeNm */
+	  FROM TB_CODE_NM
+	 WHERE CODE_GROUP_ID = #CODE_GROUP_ID#
+	   AND CODE_ID= #CODE_ID#
+	</delete>
 </sqlMap>

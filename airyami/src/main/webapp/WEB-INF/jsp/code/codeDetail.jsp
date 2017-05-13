@@ -1,6 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ page import="egovframework.airyami.cmm.util.*"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <html lang="ko">
 <head>
 <meta http-equiv="Content-Type" content="text/html;application/json; charset=utf-8" />
@@ -34,8 +35,8 @@ function fn_init(){
 // 상세조회 조회
 function fn_srch(){
 	var inputParam = new Object();
-	inputParam.sid 				= "getCodeGroupDetail";
-	inputParam.url 				= "/code/getCodeGroupDetail.do";
+	inputParam.sid 				= "getCodeDetail";
+	inputParam.url 				= "/code/getCodeDetail.do";
 	inputParam.data 			= gfn_makeInputData($("#dataForm"));
 	//inputParam.callback			= "fn_callBack";
 	
@@ -52,14 +53,19 @@ function fn_callBack(sid, result, data){
 	}
 	
 	// fn_srch
-	if(sid == "getCodeGroupDetail"){
+	if(sid == "getCodeDetail"){
 		gfn_setDetails(result.ds_detail, $("#contents"));	// 지역내 상세 내용 셋업
-	}else if(sid = "saveCodeGroup"){
+		
+		for(var i = 0; i < result.ds_langNameList.length; i++){
+			$('#CODE_NM_'+result.ds_langNameList[i].LANG_CD).val(result.ds_langNameList[i].CODE_NM);
+		}
+		
+	}else if(sid = "saveCode"){
 		// 저장
 		alert("<spring:message code="success.request.msg"/>");
 		
 		var inputParam = gfn_makeInputData($("#findForm"));
-		gfn_commonGo("/code/codeGroupList", inputParam, "N");
+		gfn_commonGo("/code/codeList", inputParam, "N");
 	}
 }
 
@@ -75,8 +81,8 @@ function fn_goSave(){
 		return false;
 	}
 	var inputParam = gfn_makeInputData($("#dataForm"));
-	inputParam.sid 				= "saveCodeGroup";
-	inputParam.url 				= "/code/saveCodeGroup.do";
+	inputParam.sid 				= "saveCode";
+	inputParam.url 				= "/code/saveCode.do";
 	
 	if('<c:out value="${MODE}"/>' == 'DETAIL'){
 		$('#PROC_MODE').val("UPDATE");
@@ -93,8 +99,8 @@ function goDelete(){
 	}
 	
 	var inputParam = gfn_makeInputData($("#dataForm"));
-	inputParam.sid 				= "saveCodeGroup";
-	inputParam.url 				= "/code/saveCodeGroup.do";
+	inputParam.sid 				= "saveCode";
+	inputParam.url 				= "/code/saveCode.do";
 	$('#PROC_MODE').val("DELETE");
 	inputParam.data 			= gfn_makeInputData($("#dataForm"));
 	
@@ -105,7 +111,7 @@ function goDelete(){
 function fn_goBack(){
 	var inputParam = gfn_makeInputData($("#findForm"));
 	
-	gfn_commonGo("/code/codeGroupList", inputParam, "N");
+	gfn_commonGo("/code/codeList", inputParam, "N");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -144,37 +150,54 @@ function fn_clearData(){
 	<!--// menu -->
   
 	<div id="contents">
-		<h3><spring:message code="word.codeGroupDetail"/></h3>
+		<h3><spring:message code="word.codeDetail"/></h3>
 		<form id="findForm" name="findForm">
 			<ppe:makeHidden var="${findParams}" filter="FIND_"/>
+			<ppe:makeHidden var="${findParams}" filter="FIND2_"/>
+			<input type="hidden" name="CODE_GROUP_ID" id="CODE_GROUP_ID" value='<c:out value="${CODE_GROUP_ID}"/>'/>
 		</form>
 		<form id="dataForm" name="dataForm" method="post" action="#" onsubmit="return false;">
 			<input type="hidden" name="SEARCH_CODE_GROUP_ID" id="SEARCH_CODE_GROUP_ID" value='<c:out value="${CODE_GROUP_ID}"/>'/>
+			<input type="hidden" name="SEARCH_CODE_ID" id="SEARCH_CODE_ID" value='<c:out value="${CODE_ID}"/>'/>
 			<input type="hidden" name="MODE" id="MODE" value='<c:out value="${MODE}"/>'/>
 			<input type="hidden" name="PROC_MODE" id="PROC_MODE" value=''/>
-		<table summary="<spring:message code="word.codeGroupDetail"/>" cellspacing="0" border="0" class="tbl_list_type2">
+			<input type="hidden" name="CODE_GROUP_ID" id="CODE_GROUP_ID" value='<c:out value="${CODE_GROUP_ID}"/>'/>
+		<table summary="<spring:message code="word.codeDetail"/>" cellspacing="0" border="0" class="tbl_list_type2">
 			<colgroup>
-			<col width="20%">
-			<col width="80%">
+			<col width="15%">
+			<col width="15%">
+			<col width="70%">
 			</colgroup>
 			<tr>
-				<th><spring:message code="word.codeGroupCd"/></th>
+				<th colspan="2"><spring:message code="word.code"/></th>
 			<c:choose>
 				<c:when test="${MODE=='DETAIL'}">
-				<td><input type="text" name="CODE_GROUP_ID" id="CODE_GROUP_ID" disabled /></td>
+				<td><input type="text" name="CODE_ID" id="CODE_ID" disabled /></td>
 				</c:when>
 				<c:when test="${MODE=='CREATE'}">
-				<td><input type="text" name="CODE_GROUP_ID" id="CODE_GROUP_ID" maxlength="10" title="<spring:message code="word.codeGroupCd"/>" depends="required,englishNumeric"/></td>
+				<td><input type="text" name="CODE_ID" id="CODE_ID" maxlength="10" title="<spring:message code="word.code"/>" depends="required,englishNumeric"/></td>
 				</c:when>
 			</c:choose>
 			</tr>
 			<tr>
-				<th><spring:message code="word.codeGroupNm"/></th>
-				<td><input type="text" name="CODE_GROUP_NM" id="CODE_GROUP_NM" maxlength="50" title="<spring:message code="word.codeGroupNm"/>" depends="required"/></td>
+<c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
+				<th rowspan="${listSize+1}"><spring:message code="word.codeNm"/></th>
+<c:forEach var="LANG" items="${ds_cd_LANG}">
+			<tr>
+				<th>${LANG.CD_NM}</th>
+				<td>
+					<input type="text" name="CODE_NM_${LANG.CD}" id="CODE_NM_${LANG.CD}" maxlength="50" value="${NAMELIST.CODE_NM}" title="<spring:message code="word.codeNm"/>" depends="required"/>
+				</td>
+			</tr>
+</c:forEach>
 			</tr>
 			<tr>
-				<th><spring:message code="cop.remark"/></th>
+				<th colspan="2"><spring:message code="cop.remark"/></th>
 				<td><textarea name="REMARKS" id="REMARKS" cols="50" rows="3" maxlength="500" title="<spring:message code="cop.remark"/>"/></textarea></td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.sortOrder"/></th>
+				<td><input type="text" name="SORT_ORDER" id="SORT_ORDER" maxlength="2" title="<spring:message code="word.sortOrder"/>" depends="required,Numeric"/></td>
 			</tr>
 	<c:choose>
 		<c:when test="${MODE=='CREATE'}">
@@ -182,7 +205,7 @@ function fn_clearData(){
 		</c:when>
 		<c:when test="${MODE=='DETAIL'}">
 			<tr>
-				<th><spring:message code="cop.useAt"/></th>
+				<th colspan="2"><spring:message code="cop.useAt"/></th>
 				<td>
 					<select id="USE_YN" name="USE_YN" title="<spring:message code="cop.useAt"/>">
 						<option value="Y"><spring:message code="button.use"/></option>

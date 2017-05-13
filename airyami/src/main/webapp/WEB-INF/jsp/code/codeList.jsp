@@ -27,7 +27,7 @@ function fn_init(){
 	gfn_addGridSort("tb_list");
 	
 	// myParams 에 넘어온 값이 있으면 이전 검색조건 셋팅한다.
-	gfn_setMyParams();
+	gfn_setMyParams2();
 	
 }
 
@@ -94,9 +94,21 @@ function fn_goBack(){
 function fn_goDetail(pObj){
 	var rowObj = $(pObj).parent();
 	var CODE_GROUP_ID = $('input[name=CODE_GROUP_ID]', rowObj).val();
+	var CODE_ID = $('input[name=CODE_ID]', rowObj).val();
 
-	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND2_");
+	var inputParam					= gfn_makeInputData($("#srchForm"), null, "FIND2_");
+	var inputParam2					= gfn_makeInputData($("#myParams"), null, "FIND_");
+	
+	inputParam.FIND_SORT_COL 		= inputParam2.FIND_FIND_SORT_COL;
+	inputParam.FIND_RETURNURL 		= inputParam2.FIND_FIND_RETURNURL;
+	inputParam.FIND_pageNo 			= inputParam2.FIND_FIND_pageNo;
+	inputParam.FIND_pageRowCnt 		= inputParam2.FIND_FIND_pageRowCnt;
+	
+	inputParam.FIND_SEARCH_USE_YN 	= inputParam2.FIND_FIND_SEARCH_USE_YN;
+	inputParam.FIND_SEARCH_WORD 	= inputParam2.FIND_FIND_SEARCH_WORD;
+
 	inputParam.CODE_GROUP_ID 	= CODE_GROUP_ID;
+	inputParam.CODE_ID 			= CODE_ID;
 	inputParam.MODE				= "DETAIL";
 	
 	//inputParam.LISTPARAMS = gfn_replaceAll($("#srchForm").serialize(), "&", "|");
@@ -106,9 +118,19 @@ function fn_goDetail(pObj){
 }
 
 function fn_goCreate(){
-	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND2_");
-	inputParam.MODE				= "CREATE";
+	var inputParam					= gfn_makeInputData($("#srchForm"), null, "FIND2_");
+	var inputParam2					= gfn_makeInputData($("#myParams"), null, "FIND_");
 	
+	inputParam.FIND_SORT_COL 		= inputParam2.FIND_FIND_SORT_COL;
+	inputParam.FIND_RETURNURL 		= inputParam2.FIND_FIND_RETURNURL;
+	inputParam.FIND_pageNo 			= inputParam2.FIND_FIND_pageNo;
+	inputParam.FIND_pageRowCnt 		= inputParam2.FIND_FIND_pageRowCnt;
+	
+	inputParam.FIND_SEARCH_USE_YN 	= inputParam2.FIND_FIND_SEARCH_USE_YN;
+	inputParam.FIND_SEARCH_WORD 	= inputParam2.FIND_FIND_SEARCH_WORD;
+
+	inputParam.CODE_GROUP_ID 	= "<c:out value="${CODE_GROUP_ID}"/>";
+	inputParam.MODE				= "CREATE";
 	//inputParam.LISTPARAMS = gfn_replaceAll($("#srchForm").serialize(), "&", "|");
 	//inputParam.LISTURL = gfn_getListUrl();
 	

@@ -141,4 +141,22 @@ public class CmmServiceImpl extends AbstractServiceImpl implements CmmService
 		// TODO Auto-generated method stub
 		return cmmDAO.deleteCommDb(paramMap, sql);
 	}
+	
+	/**
+	 * 공통 서비스 다중커리 처리
+	 */
+	public void saveCommDbList( List queryList )  throws Exception{
+		// TODO Auto-generated method stub
+		for(int i = 0; i < queryList.size(); i++){
+			Map queryMap = (Map)queryList.get(i);
+			
+			if("INSERT".equals(queryMap.get("queryGubun"))){
+				cmmDAO.insertCommDb(queryMap, (String)queryMap.get("query"));
+			}else if("UPDATE".equals(queryMap.get("queryGubun"))){
+				cmmDAO.updateCommDb(queryMap, (String)queryMap.get("query"));
+			}else if("DELETE".equals(queryMap.get("queryGubun"))){
+				cmmDAO.deleteCommDb(queryMap, (String)queryMap.get("query"));
+			}
+		}
+	}
 }
