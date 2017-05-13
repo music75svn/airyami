@@ -189,6 +189,19 @@ function gfn_setMyParams(){
 	}
 }
 
+//myParams 에 넘어온 값이 있으면 이전 검색조건 셋팅한다.
+function gfn_setMyParams2(){
+	// 돌아오기로 넘어온 이전 검색조건 셋팅
+	if ( $("#myParams").length > 0 ) {
+		var myParams = gfn_makeInputData($("#myParams"));
+		
+		for(_myParams in myParams){
+			var key = gfn_replaceAll(_myParams, "FIND2_", "");
+			$("#"+key).val(myParams[_myParams]);
+		}
+	}
+}
+
 
 /**************************************************************** 
  * Desc 	: 로그인 후.. 접속할 메인 페이지
