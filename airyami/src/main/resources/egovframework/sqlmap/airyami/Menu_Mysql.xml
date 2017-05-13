@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+
+<sqlMap namespace="menu">
+	<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+	
+	<select id="menu.getMenuList" parameterClass="Map" resultClass="ValueMap" >
+
+	SELECT  hi.MENU_TYPE
+	       ,hi.MENU_CODE
+	       ,B.MENU_NAME
+	       ,hi.UPPER_MENU_CODE 
+	       ,LEVEL 
+	       ,hi.MENU_LEVEL
+           ,MENU_ORDER
+           ,CASE WHEN MENU_LEVEL = 1 THEN MENU_ORDER * 10000
+                WHEN MENU_LEVEL = 2 THEN (SELECT MENU_ORDER * 10000 FROM TB_MENU WHERE MENU_CODE = hi.UPPER_MENU_CODE) + MENU_ORDER * 100
+                WHEN MENU_LEVEL = 3 THEN (SELECT MENU_ORDER * 10000 FROM TB_MENU WHERE MENU_CODE = (SELECT UPPER_MENU_CODE FROM TB_MENU WHERE MENU_CODE = hi.UPPER_MENU_CODE)) + UPPER_MENU_ORDER * 100 + MENU_ORDER
+                ELSE MENU_ORDER
+           END AS LEVEL_ORDER
+	  FROM (
+			SELECT hierarchy_connect_by_parent_eq_prior_id(MENU_CODE) AS MENU_CODE, @level AS level
+			  FROM (
+					SELECT  @start_with := (SELECT UPPER_MENU_CODE 
+					                          FROM TB_MENU 
+					                         WHERE MENU_LEVEL = 0
+					                           AND MENU_TYPE = #SRCH_MENU_TYPE#
+					                        ),
+							@id := @start_with,
+							@level := 0
+					) vars
+				  ,TB_MENU
+			 WHERE  @id IS NOT NULL
+   		   ) ho       
+   		  ,(SELECT A.*
+		          ,IFNULL(B.MENU_ORDER, 0) AS UPPER_MENU_ORDER
+	          FROM TB_MENU A
+				   LEFT OUTER JOIN TB_MENU B
+				   ON B.MENU_CODE = A.UPPER_MENU_CODE
+		  ) hi
+		  ,TB_MENU_NM B
+	 WHERE hi.MENU_CODE = ho.MENU_CODE 
+	   AND hi.MENU_TYPE = #SRCH_MENU_TYPE#
+	   AND hi.MENU_TYPE 		= B.MENU_TYPE
+	   AND hi.MENU_CODE 		= B.MENU_CODE
+	   AND B.LANG_CD = #LANG_CD#
+		<isNotEmpty property="SRCH_USER_GROUP">
+	   AND EXISTS (SELECT * FROM TB_MENU_USERGROUP WHERE MENU_TYPE = #SRCH_MENU_TYPE# AND USER_GROUP = #SRCH_USER_GROUP# AND MENU_CODE = B.MENU_CODE )  
+		</isNotEmpty>
+     ORDER BY LEVEL_ORDER
+	</select>
+	
+	<select id="menu.selectMenu" parameterClass="Map" resultClass="ValueMap" >
+			SELECT  A.MENU_TYPE 
+				  ,	A.MENU_CODE
+			      , A.UPPER_MENU_CODE
+			      , B.MENU_NAME
+			      , A.MENU_LEVEL
+			      , IFNULL(A.LINK_URL, '') AS LINK_URL
+			      , IFNULL(A.LINK_PARAM, '') AS LINK_PARAM
+			      , A.MENU_ORDER
+			      , A.USE_YN      
+			  FROM TB_MENU A
+				  ,TB_MENU_NM B
+			 WHERE A.MENU_TYPE = B.MENU_TYPE
+		   	   AND A.MENU_CODE = B.MENU_CODE 
+			   AND A.MENU_CODE = #MENU_CODE#
+			   AND B.LANG_CD = #LANG_CD#
+	</select>
+	
+	<select id="menu.selectMenuUserGroup" parameterClass="Map" resultClass="ValueMap" >
+			   SELECT A.USER_GROUP
+	              	 ,C.CODE_NM USER_GROUP_NAME
+	            FROM TB_MENU_USERGROUP A
+	                ,TB_CODE B
+	                ,TB_CODE_NM C
+	           WHERE A.MENU_CODE = #MENU_CODE#
+	             AND A.USER_GROUP = B.CODE_ID
+                 AND B.CODE_GROUP_ID = 'USER_GROUP'
+                 AND B.CODE_GROUP_ID = C.CODE_GROUP_ID
+                 AND B.CODE_ID = C.CODE_ID
+                 AND C.LANG_CD = #LANG_CD#
+	</select>
+	
+	<select id="menu.selectMenuOrderMax" parameterClass="Map" resultClass="java.lang.Integer" >
+			   SELECT IFNULL(MAX(MENU_ORDER), 1) AS MAX_MENU_ORDER
+	            FROM TB_MENU
+	           WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
+	</select>
+	
+	<update id="menu.updateMenu" parameterClass="Map" >
+			UPDATE TB_MENU
+			SET  
+				MENU_NAME  	   = #MENU_NAME# 
+				,LINK_URL      = #LINK_URL#       
+				,LINK_PARAM    = #LINK_PARAM#  
+				,MENU_DESC     = #MENU_DESC#
+				,MENU_ORDER    = #MENU_ORDER#  
+				,CHARGE_NM     = #CHARGE_NM#       
+				,CHARGE_DEPT   = #CHARGE_DEPT#    
+				,CHARGE_PHONE  = #CHARGE_PHONE# 
+				,USE_YN        = #USE_YN#       
+				,MOD_ID        = #LOGIN_ID#         
+				,MOD_DT        = DATE_FORMAT(now(), '%Y%m%d')          
+				,MOD_TM        = DATE_FORMAT(now(), '%H%i%s')       
+			WHERE MENU_CODE = #MENU_CODE#
+	</update> 
+	
+	<update id="menu.updateMenuOrderDown" parameterClass="Map" >
+			UPDATE TB_MENU
+			SET    
+				 MENU_ORDER    = MENU_ORDER - 1 
+				,MOD_ID        = #LOGIN_ID#         
+				,MOD_DT        = DATE_FORMAT(now(), '%Y%m%d')          
+				,MOD_TM        = DATE_FORMAT(now(), '%H%i%s')       
+			WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
+			  AND MENU_ORDER <![CDATA[ > ]]> #OLD_MENU_ORDER#
+			  AND MENU_ORDER <![CDATA[ <= ]]> #MENU_ORDER#
+	</update> 
+	
+	
+	<update id="menu.updateMenuOrderUp" parameterClass="Map" >
+			UPDATE TB_MENU
+			SET    
+				MENU_ORDER    = MENU_ORDER + 1 
+				,MOD_ID        = #LOGIN_ID#         
+				,MOD_DT        = DATE_FORMAT(now(), '%Y%m%d')          
+				,MOD_TM        = DATE_FORMAT(now(), '%H%i%s')       
+			WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
+			  AND MENU_ORDER <![CDATA[ < ]]>  #OLD_MENU_ORDER#
+			  AND MENU_ORDER  <![CDATA[ >= ]]> #MENU_ORDER#
+	</update> 
+	
+	<insert id="menu.insertSiteMenu" parameterClass="Map" >
+			INSERT INTO TB_MENU
+				(SITE_ID
+				,MENU_CODE
+				,UPPER_MENU_CODE
+				,MENU_NAME
+				,MENU_DESC
+				,MENU_LEVEL
+				,MENU_ORDER
+				,USE_YN
+				,REG_ID
+				,REG_DT
+				,REG_TM
+				,MOD_ID
+				,MOD_DT
+				,MOD_TM) 
+			SELECT 
+				 #NOW_SITE_ID#
+				,CONCAT(#UPPER_MENU_CODE#, IF(IFNULL(MAX(MENU_CODE), '9999') = '9999', '01', LPAD(CONVERT(SUBSTRING(MAX(MENU_CODE), LENGTH(UPPER_MENU_CODE)+1, 2), UNSIGNED) + 1, 2, '0')))
+				,#UPPER_MENU_CODE#
+				,#SITE_NAME#
+				,''
+				,0
+				,1
+				,'Y'
+				,#LOGIN_ID#
+				,DATE_FORMAT(now(), '%Y%m%d')
+				,DATE_FORMAT(now(), '%H%i%s')
+				,#LOGIN_ID#
+				,DATE_FORMAT(now(), '%Y%m%d')
+				,DATE_FORMAT(now(), '%H%i%s')
+			FROM TB_MENU
+			WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
+	</insert>
+	
+	<insert id="menu.insertMenu" parameterClass="Map" >
+			INSERT INTO TB_MENU
+				(SITE_ID
+				,MENU_CODE
+				,UPPER_MENU_CODE
+				,MENU_NAME
+				,MENU_DESC
+				,MENU_LEVEL
+				,LINK_URL
+				,LINK_PARAM
+				,MENU_ORDER
+				,CHARGE_NM
+				,CHARGE_DEPT
+				,CHARGE_PHONE
+				,USE_YN
+				,REG_ID
+				,REG_DT
+				,REG_TM
+				,MOD_ID
+				,MOD_DT
+				,MOD_TM) 
+			SELECT 
+				 #NOW_SITE_ID#
+				 ,#MENU_CODE#
+				<!-- ,CONCAT(#UPPER_MENU_CODE#, IF(IFNULL(MAX(MENU_CODE), '9999') = '9999', '01', LPAD(CONVERT(SUBSTRING(MAX(MENU_CODE), LENGTH(UPPER_MENU_CODE)+1, 2), UNSIGNED) + 1, 2, '0')))   --> 
+				,#UPPER_MENU_CODE#
+				,#MENU_NAME#
+				,#MENU_DESC#
+				,#MENU_LEVEL#
+				,#LINK_URL#
+				,#LINK_PARAM#
+				,IFNULL(MAX(MENU_ORDER), 0) + 1 
+				,#CHARGE_NM#
+				,#CHARGE_DEPT#
+				,#CHARGE_PHONE#
+				,#USE_YN#
+				,#LOGIN_ID#
+				,DATE_FORMAT(now(), '%Y%m%d')
+				,DATE_FORMAT(now(), '%H%i%s')
+				,#LOGIN_ID#
+				,DATE_FORMAT(now(), '%Y%m%d')
+				,DATE_FORMAT(now(), '%H%i%s')				
+			FROM TB_MENU
+			WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
+	</insert>
+	
+	<select id="menu.selectInsertedMenu" parameterClass="Map" resultClass="ValueMap"  >
+			SELECT CONCAT(#UPPER_MENU_CODE#, IF(IFNULL(MAX(MENU_CODE), '9999') = '9999', '01', LPAD(CONVERT(SUBSTRING(MAX(MENU_CODE), LENGTH(UPPER_MENU_CODE)+1, 2), UNSIGNED) + 1, 2, '0'))) AS MENU_CODE
+			FROM TB_MENU
+			WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
+	</select>
+</sqlMap>

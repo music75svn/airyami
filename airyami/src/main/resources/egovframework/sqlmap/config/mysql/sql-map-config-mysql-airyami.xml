@@ -8,4 +8,5 @@
 	<sqlMap resource="egovframework/sqlmap/airyami/Cmm_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/Comm_Code_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/Login_Mysql.xml"/>
+	<sqlMap resource="egovframework/sqlmap/airyami/Menu_Mysql.xml"/>
 </sqlMapConfig>

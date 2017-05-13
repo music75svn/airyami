@@ -74,6 +74,7 @@
 		   AND A.MENU_CODE = C.MENU_CODE
 		   AND C.USER_GROUP = #USER_GROUP#
 		   AND A.MENU_TYPE = #MENU_TYPE#
+		   AND B.LANG_CD = #LANG_CD#
 		   AND A.MENU_LEVEL = '1'
 		   AND A.USE_YN = 'Y'
 		 ORDER BY A.MENU_ORDER
@@ -96,50 +97,10 @@
 		   AND A.MENU_CODE		= C.MENU_CODE
 		   AND C.USER_GROUP 	= #USER_GROUP#
 		   AND A.MENU_TYPE 		= #MENU_TYPE#
+		   AND B.LANG_CD = #LANG_CD#
 		   AND A.UPPER_MENU_CODE = #H_MENU_CD#
 		   AND A.USE_YN 		= 'Y'
 		 ORDER BY A.MENU_ORDER
-	</select>
-	
-	<select id="cmm.getMenuList" parameterClass="Map" resultClass="ValueMap" >
-	<![CDATA[ 
-	SELECT  hi.SITE_ID
-	       ,hi.MENU_CODE
-	       ,hi.MENU_NAME
-	       ,UPPER_MENU_CODE AS H_MENU_CD
-	       ,hi.LINK_URL
-	       ,IFNULL(hi.LINK_PARAM, '') AS LINK_PARAM
-	       ,hi.MENU_LEVEL
-	       ,level 
-	  FROM (
-			SELECT  hierarchy_connect_by_parent_eq_prior_id(MENU_CODE) AS MENU_CODE, @level AS level
-			FROM    (
-			SELECT  @start_with := (SELECT MENU_CODE FROM TB_MENU WHERE SITE_ID = #MENU_SITE_ID# AND MENU_LEVEL = 0) ,
-			@id := @start_with,
-			@level := 0
-			) vars, TB_MENU
-			WHERE  @id IS NOT NULL
-		   ) ho
-		   ,TB_MENU hi
-	 WHERE hi.MENU_CODE = ho.MENU_CODE 
-	   AND hi.SITE_ID = #MENU_SITE_ID#
-	   AND hi.USE_YN = 'Y'
-	   AND hi.MENU_LEVEL > 0
-  	]]>
-  	/*
-	   AND EXISTS (SELECT * 
-		 			FROM TB_MENU_USERGROUP B
-		 				,TB_USER C
-		 		   WHERE B.USER_GROUP = C.USER_GROUP
-		 		  <isNotEmpty property="LOGIN_ID">
-		 		  	 AND C.USER_ID = LOGIN_ID
-		 		  </isNotEmpty>
-		 		    <isEmpty property="LOGIN_ID">
-					 AND C.USER_ID = 'guest'
-				  </isEmpty>
-		 		     AND hi.MENU_CODE = B.MENU_CODE
-		 		    )
-  	*/
 	</select>
 	
 	

@@ -14,7 +14,7 @@
 
 <link rel="stylesheet" href="/css/admin/admin.css" type="text/css">
 <link href="<c:url value='/'/>css/common.css" rel="stylesheet" type="text/css" >
-<link href="<c:url value='/'/>css/login.css" rel="stylesheet" type="text/css" >
+<link href="<c:url value='/'/>css/admin.css" rel="stylesheet" type="text/css" >
 <!-- 달력관련 -->
 <link rel="stylesheet" href="/js/lib/DatePicker/themes/base/jquery.ui.all.css"  media="screen" />
 	

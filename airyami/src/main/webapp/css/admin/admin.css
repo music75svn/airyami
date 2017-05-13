@@ -78,7 +78,7 @@ select {padding: 0;font-size: 12px;font-weight: bold;}
 /* setting the width and height of the SELECT element to match the replacing graphics */
 .styledSelect select{position: relative;z-index: 10;min-width: 61px;}
 /* dynamically created SPAN, placed below the SELECT */
-.styledSelect span.select{z-index:1;position: absolute;bottom: 0;float: left;left: 0;min-width: 61px;height: 30px;line-height: 30px;background: #fff url(/images/board/selectArrow.gif) no-repeat 100% 50%;border: 1px solid #cccccc;cursor: default;color: #747474;font-size: 12px;text-align: left;text-indent: 7px;overflow:hidden;word-spacing:nowrap;}
+.styledSelect span.select{z-index:1;position: absolute;bottom: 0;float: left;left: 0;min-width: 61px;height: 30px;line-height: 30px;background: #fff url(/images/admin/selectArrow.gif) no-repeat 100% 50%;border: 1px solid #cccccc;cursor: default;color: #747474;font-size: 12px;text-align: left;text-indent: 7px;overflow:hidden;word-spacing:nowrap;}
 
 
 
