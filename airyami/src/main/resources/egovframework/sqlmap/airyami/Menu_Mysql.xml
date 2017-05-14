@@ -92,19 +92,40 @@
 	<update id="menu.updateMenu" parameterClass="Map" >
 			UPDATE TB_MENU
 			SET  
-				MENU_NAME  	   = #MENU_NAME# 
-				,LINK_URL      = #LINK_URL#       
-				,LINK_PARAM    = #LINK_PARAM#  
-				,MENU_DESC     = #MENU_DESC#
-				,MENU_ORDER    = #MENU_ORDER#  
-				,CHARGE_NM     = #CHARGE_NM#       
-				,CHARGE_DEPT   = #CHARGE_DEPT#    
-				,CHARGE_PHONE  = #CHARGE_PHONE# 
+				 LINK_URL      = #LINK_URL#       
+				,LINK_PARAM    = #LINK_PARAM#
+				,MENU_ORDER    = #MENU_ORDER# 
 				,USE_YN        = #USE_YN#       
-				,MOD_ID        = #LOGIN_ID#         
-				,MOD_DT        = DATE_FORMAT(now(), '%Y%m%d')          
-				,MOD_TM        = DATE_FORMAT(now(), '%H%i%s')       
-			WHERE MENU_CODE = #MENU_CODE#
+				,UPDATE_USER_ID   = #LOGIN_ID#
+				,UPDATE_DT        = DATE_FORMAT(now(), '%Y%m%d')    
+			WHERE MENU_TYPE = #MENU_TYPE#
+			  AND MENU_CODE = #MENU_CODE#
+	</update>
+	 
+	<update id="menu.updateMenuNm" parameterClass="Map" >
+		INSERT /* Menu_Mysql.xml  menu.updateMenuNm */
+		  INTO TB_MENU_NM
+			(
+			MENU_TYPE,
+			MENU_CODE,
+			LANG_CD,
+			MENU_NAME,
+			INSERT_USER_ID,
+			INSERT_DT)
+			VALUES
+			(
+			#MENU_TYPE#,
+			#MENU_CODE#,
+			#LANG_CD#,
+			#MENU_NAME#,
+			#LOGIN_ID#,
+			DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+			)
+		ON DUPLICATE KEY UPDATE
+			MENU_NAME = #MENU_NAME#,
+			UPDATE_USER_ID = #LOGIN_ID#,
+			UPDATE_DT = DATE_FORMAT(now(), '%Y%m%d%H%i%s'
+			)
 	</update> 
 	
 	<update id="menu.updateMenuOrderDown" parameterClass="Map" >

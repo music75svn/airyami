@@ -169,83 +169,100 @@ public class MenuMngController {
     }
     
 
-//    /**
-//     * 메뉴 수정 
-//     */
-//    @RequestMapping(value="/menu/updateMenu.do")
-//    public String updateMenuMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
-//
-//    	boolean success = true;
-//    	ValueMap result = new ValueMap();
-//    	String msg = egovMessageSource.getMessage("success.common.update");
-//    	//*****************************************************************************
-//		// 입력부 로그 출력 
-//		//*****************************************************************************
-//		logger.debug("===================================================================");
-//		logger.debug("[MenuMngController.updateMenuMng() ================== start]");
-//
-//		//*****************************************************************************
-//		// 변수 및 객체 선언 및 초기화 
-//		//*****************************************************************************
-//		
-//		Map<String,Object> params = CommonUtils.getRequestMap(request);
-//		log.info("param >>>>> :: " + params);
-//		
-//		//*****************************************************************************
-//		// 비지니스 처리
-//		//*****************************************************************************
-//    	try{
-//    		int maxOrder = menuMngService.selectMenuOrderMax(params);
-//    		if(Integer.parseInt((String)params.get("MENU_ORDER")) < 1) {
-//    			success = false;
-//    			msg = egovMessageSource.getMessage("fail.menu.minorder");    			
-//    		} else if(Integer.parseInt((String)params.get("MENU_ORDER")) > maxOrder) {
-//    			success = false;
-//    			msg = egovMessageSource.getMessage("fail.menu.maxorder");
-//    		} else {
-//        		int updateCnt =  menuMngService.updateMenu(params);
-//
-//        		if ( updateCnt == 0 ) {
-//            		success = false;
-//        			msg = egovMessageSource.getMessage("fail.common.update");
-//        		}     			
-//    		}    		
-//    	}
-//    	catch(Exception e){
-//			msg = egovMessageSource.getMessage("fail.common.update");
-//    		
-//    		success = false;
-//    		e.printStackTrace();
-//    		System.out.println(e.getMessage());
-//    	}
-//
-//		//*****************************************************************************
-//		// 화면 출력 데이터 셋팅
-//		//*****************************************************************************
-//		result.put("msg", msg);    		
-//    	result.put("success", success);
-//    	response.setContentType("text/xml;charset=UTF-8");
-//    	response.getWriter().println(CommonUtils.setJsonResult(result));
-//
-//		log.info("result result :: " + result);
-//    	return null;
-//    }
-//
-//    /**
-//     * 메뉴 등록 페이지 이동 
-//     */
-//    @RequestMapping(value="/menu/goInsertMenu.do")
-//    public String goInsertMenuMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
-//    	
-//    	Map<String,Object> params = CommonUtils.getRequestMap(request);
-//    	log.info("param >>>> :: " + params);
-//    	CommonUtils.setModelByParams(model, params, request);
-//    	ValueMap siteDetail = siteMngService.selectSiteView(params);
-//
-//    	model.put("SITE_NAME", siteDetail.getString("SITE_NAME"));
-//		return "/admin/menu/adminMenuForm";
-//    }
-//    
+    /**
+     * 메뉴 수정 
+     */
+    @RequestMapping(value="/menu/updateMenu.do")
+    public String updateMenuMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	String msg = egovMessageSource.getMessage("success.common.update");
+    	//*****************************************************************************
+		// 입력부 로그 출력 
+		//*****************************************************************************
+		logger.debug("===================================================================");
+		logger.debug("[MenuMngController.updateMenuMng() ================== start]");
+
+		//*****************************************************************************
+		// 변수 및 객체 선언 및 초기화 
+		//*****************************************************************************
+		
+		Map<String,Object> params = CommonUtils.getRequestMap(request);
+		log.info("param >>>>> :: " + params);
+		
+		//*****************************************************************************
+		// 비지니스 처리
+		//*****************************************************************************
+    	try{
+    		int maxOrder = cmmService.getCommDbInt(params, "menu.selectMenuOrderMax");
+    		if(Integer.parseInt((String)params.get("MENU_ORDER")) < 1) {
+    			success = false;
+    			msg = egovMessageSource.getMessage("fail.menu.minorder");    			
+    		} else if(Integer.parseInt((String)params.get("MENU_ORDER")) > maxOrder) {
+    			success = false;
+    			msg = egovMessageSource.getMessage("fail.menu.maxorder");
+    		} else {
+        		int updateCnt =  cmmService.updateCommDb(params, "menu.updateMenu");
+        		
+        		// 메뉴내용 변경
+        		if ( updateCnt == 0 ) {
+        			success = false;
+        			msg = egovMessageSource.getMessage("fail.common.update");
+        		}
+        		
+        		// 메뉴명 변경
+        		if(success)
+        		{
+        			updateCnt =  cmmService.updateCommDb(params, "menu.updateMenuNm");
+        			if ( updateCnt == 0 ) {
+        				success = false;
+        				msg = egovMessageSource.getMessage("fail.common.update");
+        			}
+        		}
+
+    		}    		
+    	}
+    	catch(Exception e){
+			msg = egovMessageSource.getMessage("fail.common.update");
+    		
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+
+		//*****************************************************************************
+		// 화면 출력 데이터 셋팅
+		//*****************************************************************************
+		result.put("msg", msg);    		
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+
+		log.info("result result :: " + result);
+    	return null;
+    }
+
+    /**
+     * 메뉴 등록 페이지 이동 
+     */
+    @RequestMapping(value="/menu/goInsertMenu.do")
+    public String goInsertMenuMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param >>>> :: " + params);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	params.put( "CODE_GROUP_ID", "MENU_TYPE" ); //
+		List<ValueMap> code_MENU_TYPE = commCodeService.selectCommCode(params);
+		model.put("ds_cd_MENU_TYPE", code_MENU_TYPE);
+		
+    	//ValueMap siteDetail = siteMngService.selectSiteView(params);
+
+    	//model.put("SITE_NAME", siteDetail.getString("SITE_NAME"));
+		return "/menu/menuForm";
+    }
+    
 //    /**
 //     * 메뉴 등록 
 //     */
