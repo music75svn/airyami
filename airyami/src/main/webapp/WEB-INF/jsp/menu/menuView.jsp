@@ -199,8 +199,8 @@ function fn_callBack(sid, result, data){
 		
 		var usergrpHtml = "";
 		for(var i = 0; i < result.ds_menuUsergrplist.length; i++) {
-			usergrpHtml = usergrpHtml + "<tr><td>" + result.ds_menuUsergrplist[i].USER_GROUP + "</td>";
-			usergrpHtml = usergrpHtml + "<td>" + result.ds_menuUsergrplist[i].USER_GROUP_NAME + "</td></tr>";
+			usergrpHtml = usergrpHtml + "<tr><td>" + result.ds_menuUsergrplist[i].USER_TYPE + "</td>";
+			usergrpHtml = usergrpHtml + "<td>" + result.ds_menuUsergrplist[i].USER_TYPE_NAME + "</td></tr>";
 		}
 		$("#menuUsergrp").html(usergrpHtml);
 	} else if(sid == "updateMenu") {
@@ -277,10 +277,10 @@ function fn_callbackAdminGroup(param) {
 	                            <option value="${MENU_TYPE.CD}">${MENU_TYPE.CD_NM}</option>
 	                        </c:forEach>
 						</select>						
-						<select id="SRCH_USER_GROUP" name="SRCH_USER_GROUP">
+						<select id="SRCH_USER_TYPE" name="SRCH_USER_TYPE">
 							<option value ="">전체</option>
-	                        <c:forEach var="USER_GROUP" items="${ds_cd_USER_GROUP}">
-	                            <option value="${USER_GROUP.CD}">${USER_GROUP.CD_NM}</option>
+	                        <c:forEach var="USER_TYPE" items="${ds_cd_USER_TYPE}">
+	                            <option value="${USER_TYPE.CD}">${USER_TYPE.CD_NM}</option>
 	                        </c:forEach>
 						</select>						
 						<input type="submit" value="검색" onclick="javascript:gfn_fn_srch(); return false;"/>

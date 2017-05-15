@@ -114,8 +114,12 @@ function fn_callBack(sid, result, data){
 				<td><input type="text" name="MENU_ORDER" id="MENU_ORDER" size=72 value="자동생성 - 위치변경은 메뉴수정에서 변경" readonly/></td>
 			</tr>
 			<tr>
-				<th>사용자그룹</th>
-				<td><input type="text" name="USER_GROUP" id="USER_GROUP" size=72 value="초기등록은 관리자그룹만 등록" readonly/></td>
+				<th>사용자구분</th>
+				<td><input type="text" name="USER_TYPE" id="USER_TYPE" size=72 value="초기등록은 관리자그룹만 등록" readonly/></td>
+			</tr>
+			<tr>
+				<th>사용자역할</th>
+				<td><input type="text" name="USER_ROLE" id="USER_ROLE" size=72 value="초기등록은 관리자그룹만 등록" readonly/></td>
 			</tr>
 			<tr>
 				<th>사용여부</th>

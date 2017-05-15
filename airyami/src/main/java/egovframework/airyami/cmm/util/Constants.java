@@ -28,6 +28,7 @@ public class Constants {
 	
 	public static final String SYSTEM_ADMIN_GROUP = "system";
 	public static final String USER_GROUP = "user";
+	public static final String USER_TYPE  = "user_type";
 	public static final String USER_COMPANY_GROUP = "company";
 	
 	

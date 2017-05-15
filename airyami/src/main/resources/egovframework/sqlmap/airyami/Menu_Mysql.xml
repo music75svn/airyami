@@ -45,8 +45,8 @@
 	   AND hi.MENU_TYPE 		= B.MENU_TYPE
 	   AND hi.MENU_CODE 		= B.MENU_CODE
 	   AND B.LANG_CD = #LANG_CD#
-		<isNotEmpty property="SRCH_USER_GROUP">
-	   AND EXISTS (SELECT * FROM TB_MENU_USERGROUP WHERE MENU_TYPE = #SRCH_MENU_TYPE# AND USER_GROUP = #SRCH_USER_GROUP# AND MENU_CODE = B.MENU_CODE )  
+		<isNotEmpty property="SRCH_USER_TYPE">
+	   AND EXISTS (SELECT * FROM TB_MENU_USERGROUP WHERE MENU_TYPE = #SRCH_MENU_TYPE# AND USER_TYPE = #SRCH_USER_TYPE# AND MENU_CODE = B.MENU_CODE )  
 		</isNotEmpty>
      ORDER BY LEVEL_ORDER
 	</select>
@@ -70,14 +70,15 @@
 	</select>
 	
 	<select id="menu.selectMenuUserGroup" parameterClass="Map" resultClass="ValueMap" >
-			   SELECT A.USER_GROUP
-	              	 ,C.CODE_NM USER_GROUP_NAME
+			   SELECT A.USER_TYPE
+	              	 ,C.CODE_NM USER_TYPE_NAME
+			         ,A.USER_ROLE
 	            FROM TB_MENU_USERGROUP A
 	                ,TB_CODE B
 	                ,TB_CODE_NM C
 	           WHERE A.MENU_CODE = #MENU_CODE#
-	             AND A.USER_GROUP = B.CODE_ID
-                 AND B.CODE_GROUP_ID = 'USER_GROUP'
+	             AND A.USER_TYPE = B.CODE_ID
+                 AND B.CODE_GROUP_ID = 'USER_TYPE'
                  AND B.CODE_GROUP_ID = C.CODE_GROUP_ID
                  AND B.CODE_ID = C.CODE_ID
                  AND C.LANG_CD = #LANG_CD#

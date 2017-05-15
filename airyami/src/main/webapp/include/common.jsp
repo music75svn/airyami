@@ -41,7 +41,7 @@
 %>
 <script type="text/javascript">
 SES_LOGIN = '<%=idCk.isLogin()%>';
-SES_USER_GROUP = '<%=idCk.getLoing_user_group()%>';
+SES_USER_TYPE = '<%=idCk.getUser_type()%>';
 SES_USER_NAME = '<%=idCk.getUser_nm()%>';
 SES_USER_ID = '<%=idCk.getUser_id()%>';
 </script>

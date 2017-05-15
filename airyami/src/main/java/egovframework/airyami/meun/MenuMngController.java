@@ -71,9 +71,9 @@ public class MenuMngController {
 		List<ValueMap> code_MENU_TYPE = commCodeService.selectCommCode(params);
 		model.put("ds_cd_MENU_TYPE", code_MENU_TYPE);
 		
-		params.put( "CODE_GROUP_ID", "USER_GROUP" ); //
-		List<ValueMap> code_USER_GROUP = commCodeService.selectCommCode(params);
-		model.put("ds_cd_USER_GROUP", code_USER_GROUP);
+		params.put( "CODE_GROUP_ID", "USER_TYPE" ); //
+		List<ValueMap> code_USER_TYPE = commCodeService.selectCommCode(params);
+		model.put("ds_cd_USER_TYPE", code_USER_TYPE);
         
     	return "/menu/menuView";
     }

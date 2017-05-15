@@ -252,7 +252,8 @@ public class LoginController {
     					pInfo.setProperty( AuthCheck.USER_ID, 		loginInfo.getString("USER_ID"));
     					pInfo.setProperty( AuthCheck.USER_NM, 		loginInfo.getString("USER_NM"));
     					pInfo.setProperty( AuthCheck.LOGIN_EMAIL, 	CommonUtils.NVL(loginInfo.getString("USER_EMAIL")));
-    					pInfo.setProperty( AuthCheck.USER_GROUP, 	"A");	// ADMIN SITE
+    					pInfo.setProperty( AuthCheck.USER_TYPE, 	"M");	// 관리자
+    					pInfo.setProperty( AuthCheck.USER_ROLE, 	"ADM");	// 
     					
     					idCk.putSession (pInfo);	// 세션 생성
     					params.put("LOGIN_YN", "Y");
@@ -356,7 +357,8 @@ public class LoginController {
     					pInfo.setProperty( AuthCheck.USER_ID, 		loginInfo.getString("USER_ID"));
     					pInfo.setProperty( AuthCheck.USER_NM, 		loginInfo.getString("USER_NM"));
     					pInfo.setProperty( AuthCheck.LOGIN_EMAIL, 	CommonUtils.NVL(loginInfo.getString("USER_EMAIL")));
-    					//pInfo.setProperty( AuthCheck.USER_GROUP, 	loginInfo.getString("USER_GROUP"));
+    					pInfo.setProperty( AuthCheck.USER_TYPE, 	"M");	// 관리자
+    					pInfo.setProperty( AuthCheck.USER_ROLE, 	"ADM");	//
     					
     					idCk.putSession (pInfo);	// 세션 생성
     					params.put("LOGIN_YN", "Y");
