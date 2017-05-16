@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
-<%@ page import="kr.co.dreamwise.cmm.util.*"%>
+<%@ page import="egovframework.airyami.cmm.util.*"%>
 <script type="text/javascript">
 // 메뉴리스트 조회
 $(function() {  //onready
