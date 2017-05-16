@@ -200,7 +200,8 @@ function fn_callBack(sid, result, data){
 		var usergrpHtml = "";
 		for(var i = 0; i < result.ds_menuUsergrplist.length; i++) {
 			usergrpHtml = usergrpHtml + "<tr><td>" + result.ds_menuUsergrplist[i].USER_TYPE + "</td>";
-			usergrpHtml = usergrpHtml + "<td>" + result.ds_menuUsergrplist[i].USER_TYPE_NAME + "</td></tr>";
+			usergrpHtml = usergrpHtml + "<td>" + result.ds_menuUsergrplist[i].USER_TYPE_NAME + "</td>";
+			usergrpHtml = usergrpHtml + "<td>" + result.ds_menuUsergrplist[i].USER_ROLE_NM + "</td></tr>";
 		}
 		$("#menuUsergrp").html(usergrpHtml);
 	} else if(sid == "updateMenu") {
@@ -365,12 +366,14 @@ function fn_callbackAdminGroup(param) {
 							<caption>사용자그룹</caption>
 							<colgroup>
 								<col width="100">
-								<col width="200">
+								<col width="100">
+								<col width="100">
 							</colgroup>
 							<thead>
 								<tr>
 									<th scope="col">사용자그룹</th>
 									<th scope="col">사용자그룹명</th>
+									<th scope="col">사용자역할</th>
 								</tr>
 							</thead>
 							<tbody id="menuUsergrp">

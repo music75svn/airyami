@@ -11,6 +11,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -56,6 +60,10 @@ public class MenuMngController {
 	/** CmmService */
     @Resource(name = "cmmService")
     private CmmService cmmService; 
+    
+    /** Transaction */    
+    @Resource(name="txManager")
+    PlatformTransactionManager transactionManager;
     
     /**
      * 메뉴 목록조회 페이지 이동 
@@ -196,6 +204,18 @@ public class MenuMngController {
 		//*****************************************************************************
     	try{
     		int maxOrder = cmmService.getCommDbInt(params, "menu.selectMenuOrderMax");
+    		
+//    		ValueMap ds_detail =  menuMngDAO.selectMenu ( params );
+//    		int oldMenuOrder = ds_detail.getInteger("MENU_ORDER");
+//    		int menuOder = Integer.parseInt((String)params.get("MENU_ORDER"));
+//    		params.put("OLD_MENU_ORDER", oldMenuOrder);
+//    		
+//    		if(oldMenuOrder > menuOder) {
+//    			menuMngDAO.updateMenuOrderUp( params );
+//    		} else if(oldMenuOrder < menuOder) {
+//    			menuMngDAO.updateMenuOrderDown( params );			
+//    		}
+    		
     		if(Integer.parseInt((String)params.get("MENU_ORDER")) < 1) {
     			success = false;
     			msg = egovMessageSource.getMessage("fail.menu.minorder");    			
@@ -263,56 +283,69 @@ public class MenuMngController {
 		return "/menu/menuForm";
     }
     
-//    /**
-//     * 메뉴 등록 
-//     */
-//    @RequestMapping(value="/menu/insertMenu.do")
-//    public String insertMenuMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
-//    			
-//		boolean success = true;
-//    	ValueMap result = new ValueMap();
-//    	String msg = egovMessageSource.getMessage("success.common.insert");
-//    	//*****************************************************************************
-//		// 입력부 로그 출력 
-//		//*****************************************************************************
-//		logger.debug("===================================================================");
-//		logger.debug("[MenuMngController.insertMenuMng() ================== start]");
-//
-//		//*****************************************************************************
-//		// 변수 및 객체 선언 및 초기화 
-//		//*****************************************************************************
-//		
-//		Map<String,Object> params = CommonUtils.getRequestMap(request);
-//		log.info("param >>>>> :: " + params);
-//		
-//		//*****************************************************************************
-//		// 비지니스 처리
-//		//*****************************************************************************
-//    	try{
-//    		int insertCnt =  menuMngService.insertMenu(params);
-//
-//    		if ( insertCnt == 0) {
-//    			success = false;
-//    			msg = egovMessageSource.getMessage("fail.common.insert");    	
-//    		}
-//    	}
-//    	catch(Exception e){
-//			msg = egovMessageSource.getMessage("fail.common.insert");    	
-//    		
-//    		success = false;
-//    		e.printStackTrace();
-//    		System.out.println(e.getMessage());
-//    	}
-//		//*****************************************************************************
-//		// 화면 출력 데이터 셋팅
-//		//*****************************************************************************
-//		result.put("msg", msg);
-//    	result.put("success", success);
-//    	response.setContentType("text/xml;charset=UTF-8");
-//    	response.getWriter().println(CommonUtils.setJsonResult(result));
-//
-//		log.info("result result :: " + result);
-//    	return null;
-//		
-//    }
+    /**
+     * 메뉴 등록 
+     */
+    @RequestMapping(value="/menu/insertMenu.do")
+    public String insertMenuMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    			
+		boolean success = true;
+    	ValueMap result = new ValueMap();
+    	String msg = egovMessageSource.getMessage("success.common.insert");
+    	//*****************************************************************************
+		// 입력부 로그 출력 
+		//*****************************************************************************
+		logger.debug("===================================================================");
+		logger.debug("[MenuMngController.insertMenuMng() ================== start]");
+
+		//*****************************************************************************
+		// 변수 및 객체 선언 및 초기화 
+		//*****************************************************************************
+		
+		Map<String,Object> params = CommonUtils.getRequestMap(request);
+		log.info("param >>>>> :: " + params);
+		
+		//*****************************************************************************
+		// 비지니스 처리
+		//*****************************************************************************
+		// Transaction Setting(1) 
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		TransactionStatus status = transactionManager.getTransaction(def);
+    	try{
+    		// 신규등록을 위한 기본정보 셋팅
+    		ValueMap ds_detail = cmmService.getCommDbMap(params, "menu.selectInsertedMenu");
+    		params.put("MENU_CODE", ds_detail.get("MENU_CODE"));
+    		params.put("MENU_LEVEL", ds_detail.get("MENU_LEVEL"));
+    		params.put("MENU_ORDER", ds_detail.get("MENU_ORDER"));
+    		
+    		// 테이블 입력
+    		cmmService.insertCommDb(params, "menu.insertMenu");
+    		cmmService.insertCommDb(params, "menu.insertMenuNm");
+    		
+    		// TB_USER_GROUP 자동 등록 필요
+    		cmmService.insertCommDb(params, "menu.insertMenuUserGroup");
+    		
+    		transactionManager.commit(status);
+    	}
+    	catch(Exception e){
+			msg = egovMessageSource.getMessage("fail.common.insert");
+			transactionManager.rollback(status);
+    		
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+		//*****************************************************************************
+		// 화면 출력 데이터 셋팅
+		//*****************************************************************************
+		result.put("msg", msg);
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+
+		log.info("result result :: " + result);
+    	return null;
+		
+    }
 }

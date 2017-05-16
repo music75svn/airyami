@@ -73,15 +73,20 @@
 			   SELECT A.USER_TYPE
 	              	 ,C.CODE_NM USER_TYPE_NAME
 			         ,A.USER_ROLE
+			         ,D.USER_ROLE_NM
 	            FROM TB_MENU_USERGROUP A
 	                ,TB_CODE B
 	                ,TB_CODE_NM C
+	                ,TB_USER_ROLE_MASTER D
 	           WHERE A.MENU_CODE = #MENU_CODE#
 	             AND A.USER_TYPE = B.CODE_ID
                  AND B.CODE_GROUP_ID = 'USER_TYPE'
                  AND B.CODE_GROUP_ID = C.CODE_GROUP_ID
                  AND B.CODE_ID = C.CODE_ID
                  AND C.LANG_CD = #LANG_CD#
+                 AND A.USER_TYPE = D.USER_TYPE 
+                 AND A.USER_ROLE = D.USER_ROLE
+               ORDER BY A.USER_TYPE, D.USER_ROLE_NM
 	</select>
 	
 	<select id="menu.selectMenuOrderMax" parameterClass="Map" resultClass="java.lang.Integer" >
@@ -132,11 +137,10 @@
 	<update id="menu.updateMenuOrderDown" parameterClass="Map" >
 			UPDATE TB_MENU
 			SET    
-				 MENU_ORDER    = MENU_ORDER - 1 
-				,MOD_ID        = #LOGIN_ID#         
-				,MOD_DT        = DATE_FORMAT(now(), '%Y%m%d')          
-				,MOD_TM        = DATE_FORMAT(now(), '%H%i%s')       
-			WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
+				 MENU_ORDER    		= MENU_ORDER - 1 
+				,UPDATE_USER_ID     = #LOGIN_ID#         
+				,UPDATE_DT        	= DATE_FORMAT(now(), '%Y%m%d%H%i%s') 
+			WHERE UPPER_MENU_CODE 	= #UPPER_MENU_CODE#
 			  AND MENU_ORDER <![CDATA[ > ]]> #OLD_MENU_ORDER#
 			  AND MENU_ORDER <![CDATA[ <= ]]> #MENU_ORDER#
 	</update> 
@@ -145,99 +149,94 @@
 	<update id="menu.updateMenuOrderUp" parameterClass="Map" >
 			UPDATE TB_MENU
 			SET    
-				MENU_ORDER    = MENU_ORDER + 1 
-				,MOD_ID        = #LOGIN_ID#         
-				,MOD_DT        = DATE_FORMAT(now(), '%Y%m%d')          
-				,MOD_TM        = DATE_FORMAT(now(), '%H%i%s')       
-			WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
+				MENU_ORDER    		= MENU_ORDER + 1 
+				,UPDATE_USER_ID     = #LOGIN_ID#         
+				,UPDATE_DT        	= DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+			WHERE UPPER_MENU_CODE 	= #UPPER_MENU_CODE#
 			  AND MENU_ORDER <![CDATA[ < ]]>  #OLD_MENU_ORDER#
 			  AND MENU_ORDER  <![CDATA[ >= ]]> #MENU_ORDER#
 	</update> 
 	
-	<insert id="menu.insertSiteMenu" parameterClass="Map" >
-			INSERT INTO TB_MENU
-				(SITE_ID
-				,MENU_CODE
-				,UPPER_MENU_CODE
-				,MENU_NAME
-				,MENU_DESC
-				,MENU_LEVEL
-				,MENU_ORDER
-				,USE_YN
-				,REG_ID
-				,REG_DT
-				,REG_TM
-				,MOD_ID
-				,MOD_DT
-				,MOD_TM) 
-			SELECT 
-				 #NOW_SITE_ID#
-				,CONCAT(#UPPER_MENU_CODE#, IF(IFNULL(MAX(MENU_CODE), '9999') = '9999', '01', LPAD(CONVERT(SUBSTRING(MAX(MENU_CODE), LENGTH(UPPER_MENU_CODE)+1, 2), UNSIGNED) + 1, 2, '0')))
-				,#UPPER_MENU_CODE#
-				,#SITE_NAME#
-				,''
-				,0
-				,1
-				,'Y'
-				,#LOGIN_ID#
-				,DATE_FORMAT(now(), '%Y%m%d')
-				,DATE_FORMAT(now(), '%H%i%s')
-				,#LOGIN_ID#
-				,DATE_FORMAT(now(), '%Y%m%d')
-				,DATE_FORMAT(now(), '%H%i%s')
-			FROM TB_MENU
-			WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
+	<insert id="menu.insertMenu" parameterClass="Map" >
+		INSERT INTO TB_MENU
+			(MENU_TYPE
+			,MENU_CODE
+			,UPPER_MENU_CODE
+			,MENU_LEVEL
+			,LINK_URL
+			,LINK_PARAM
+			,MENU_ORDER
+			,USE_YN
+			,INSERT_USER_ID
+			,INSERT_DT
+			,UPDATE_USER_ID
+			,UPDATE_DT) 
+		VALUES( 
+			 #MENU_TYPE#
+			,#MENU_CODE# 
+			,#UPPER_MENU_CODE#
+			,#MENU_LEVEL#
+			,#LINK_URL#
+			,#LINK_PARAM#
+			,#MENU_ORDER# 
+			,#USE_YN#
+			,#LOGIN_ID#
+			,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+			,#LOGIN_ID#
+			,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+			)
 	</insert>
 	
-	<insert id="menu.insertMenu" parameterClass="Map" >
-			INSERT INTO TB_MENU
-				(SITE_ID
-				,MENU_CODE
-				,UPPER_MENU_CODE
-				,MENU_NAME
-				,MENU_DESC
-				,MENU_LEVEL
-				,LINK_URL
-				,LINK_PARAM
-				,MENU_ORDER
-				,CHARGE_NM
-				,CHARGE_DEPT
-				,CHARGE_PHONE
-				,USE_YN
-				,REG_ID
-				,REG_DT
-				,REG_TM
-				,MOD_ID
-				,MOD_DT
-				,MOD_TM) 
-			SELECT 
-				 #NOW_SITE_ID#
-				 ,#MENU_CODE#
-				<!-- ,CONCAT(#UPPER_MENU_CODE#, IF(IFNULL(MAX(MENU_CODE), '9999') = '9999', '01', LPAD(CONVERT(SUBSTRING(MAX(MENU_CODE), LENGTH(UPPER_MENU_CODE)+1, 2), UNSIGNED) + 1, 2, '0')))   --> 
-				,#UPPER_MENU_CODE#
-				,#MENU_NAME#
-				,#MENU_DESC#
-				,#MENU_LEVEL#
-				,#LINK_URL#
-				,#LINK_PARAM#
-				,IFNULL(MAX(MENU_ORDER), 0) + 1 
-				,#CHARGE_NM#
-				,#CHARGE_DEPT#
-				,#CHARGE_PHONE#
-				,#USE_YN#
-				,#LOGIN_ID#
-				,DATE_FORMAT(now(), '%Y%m%d')
-				,DATE_FORMAT(now(), '%H%i%s')
-				,#LOGIN_ID#
-				,DATE_FORMAT(now(), '%Y%m%d')
-				,DATE_FORMAT(now(), '%H%i%s')				
-			FROM TB_MENU
-			WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
+	<insert id="menu.insertMenuNm" parameterClass="Map" >
+		INSERT 
+		  INTO TB_MENU_NM(
+		       MENU_TYPE
+		      ,MENU_CODE
+		      ,LANG_CD
+		      ,MENU_NAME
+		      ,INSERT_USER_ID
+			  ,INSERT_DT
+			  ,UPDATE_USER_ID
+			  ,UPDATE_DT)
+		VALUES(
+		       #MENU_TYPE#
+		      ,#MENU_CODE#
+		      ,#LANG_CD#
+		      ,#MENU_NAME#
+		      ,#LOGIN_ID#
+			  ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+			  ,#LOGIN_ID#
+			  ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		      )
+	</insert>
+	
+	<insert id="menu.insertMenuUserGroup" parameterClass="Map" >
+		INSERT 
+		  INTO TB_MENU_USERGROUP
+		      (
+			    MENU_TYPE
+			   ,MENU_CODE
+		       ,USER_TYPE
+		       ,USER_ROLE
+		       ,INSERT_USER_ID
+		       ,INSERT_DT
+		      )
+		SELECT #MENU_TYPE#
+		      ,#MENU_CODE#
+		      ,USER_TYPE
+		      ,USER_ROLE
+		      ,#LOGIN_ID#
+			  ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		  FROM TB_USER_ROLE_MASTER
+		 WHERE USER_TYPE = 'M'	
 	</insert>
 	
 	<select id="menu.selectInsertedMenu" parameterClass="Map" resultClass="ValueMap"  >
-			SELECT CONCAT(#UPPER_MENU_CODE#, IF(IFNULL(MAX(MENU_CODE), '9999') = '9999', '01', LPAD(CONVERT(SUBSTRING(MAX(MENU_CODE), LENGTH(UPPER_MENU_CODE)+1, 2), UNSIGNED) + 1, 2, '0'))) AS MENU_CODE
-			FROM TB_MENU
-			WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
+		SELECT CONCAT(#UPPER_MENU_CODE#, IF(IFNULL(MAX(MENU_CODE), '9999') = '9999', '001', LPAD(CONVERT(SUBSTRING(MAX(MENU_CODE), LENGTH(UPPER_MENU_CODE)+1, 3), UNSIGNED) + 1, 3, '0'))) AS MENU_CODE
+		      ,IFNULL(MAX(MENU_LEVEL), 0) AS MENU_LEVEL
+		      ,IFNULL(MAX(MENU_ORDER), 0) + 1 AS MENU_ORDER
+		  FROM TB_MENU
+		 WHERE MENU_TYPE = #MENU_TYPE# 
+		   AND UPPER_MENU_CODE = #UPPER_MENU_CODE#
 	</select>
 </sqlMap>
