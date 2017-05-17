@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="exchangeRate">
+
+<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+
+<select id="exchangeRate.selectExchangeRateListCnt" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT COUNT(1) 
+	  FROM TB_EXCHANGE_RATE_MASTER
+	 WHERE 1=1
+	 <isNotEmpty property="FR_CURRENCY">
+	   AND FR_CURRENCY = #FR_CURRENCY#
+	 </isNotEmpty>
+	 <isNotEmpty property="TO_CURRENCY">
+	   AND TO_CURRENCY = #TO_CURRENCY#
+	 </isNotEmpty>
+	 <isNotEmpty property="FROM_DT">
+	   AND str_to_date(BIZ_DATE,'%Y%m%d') &gt;= str_to_date(#FROM_DT#,'%Y%m%d')
+	 </isNotEmpty>
+	 <isNotEmpty property="END_DT">
+	   AND str_to_date(BIZ_DATE,'%Y%m%d') &lt;= str_to_date(#END_DT#,'%Y%m%d')
+	 </isNotEmpty> 
+</select>
+		
+<select id="exchangeRate.selectExchangeRateList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingPrefixSQL"/>
+	</isEqual>
+	SELECT /* ExchangeRate_Mysql.xml  exchangeRate.selectExchangeRateList */
+		  ,FR_CURRENCY
+	      ,TO_CURRENCY
+	      ,BASIC_EXT_RATE
+	      ,BIZ_EXT_RATE
+	  FROM TB_EXCHANGE_RATE_MASTER
+	 WHERE 1=1
+	 <isNotEmpty property="FR_CURRENCY">
+	   AND FR_CURRENCY = #FR_CURRENCY#
+	 </isNotEmpty>
+	 <isNotEmpty property="TO_CURRENCY">
+	   AND TO_CURRENCY = #TO_CURRENCY#
+	 </isNotEmpty>
+	 <isNotEmpty property="FROM_DT">
+	   AND str_to_date(BIZ_DATE,'%Y%m%d') &gt;= str_to_date(#FROM_DT#,'%Y%m%d')
+	 </isNotEmpty>
+	 <isNotEmpty property="END_DT">
+	   AND str_to_date(BIZ_DATE,'%Y%m%d') &lt;= str_to_date(#END_DT#,'%Y%m%d')
+	 </isNotEmpty> 
+	 <isNotEmpty property="SORT_COL">
+	 	<include refid="orderbySQL"/>
+	 </isNotEmpty>
+	 <isEmpty property="SORT_COL">
+	 ORDER BY A.CODE_GROUP_ID, A.SORT_ORDER
+	 </isEmpty>
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingSuffixSQL"/>
+	</isEqual>
+</select>
+	
+</sqlMap>
