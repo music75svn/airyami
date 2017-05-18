@@ -205,16 +205,16 @@ public class MenuMngController {
     	try{
     		int maxOrder = cmmService.getCommDbInt(params, "menu.selectMenuOrderMax");
     		
-//    		ValueMap ds_detail =  menuMngDAO.selectMenu ( params );
-//    		int oldMenuOrder = ds_detail.getInteger("MENU_ORDER");
-//    		int menuOder = Integer.parseInt((String)params.get("MENU_ORDER"));
-//    		params.put("OLD_MENU_ORDER", oldMenuOrder);
-//    		
-//    		if(oldMenuOrder > menuOder) {
-//    			menuMngDAO.updateMenuOrderUp( params );
-//    		} else if(oldMenuOrder < menuOder) {
-//    			menuMngDAO.updateMenuOrderDown( params );			
-//    		}
+    		ValueMap ds_detail =  cmmService.getCommDbMap(params, "menu.selectMenu");
+    		int oldMenuOrder = ds_detail.getInteger("MENU_ORDER");
+    		int menuOder = Integer.parseInt((String)params.get("MENU_ORDER"));
+    		params.put("OLD_MENU_ORDER", oldMenuOrder);
+    		
+    		if(oldMenuOrder > menuOder) {
+    			cmmService.updateCommDb(params, "menu.updateMenuOrderUp");
+    		} else if(oldMenuOrder < menuOder) {
+    			cmmService.updateCommDb(params, "menu.updateMenuOrderDown");			
+    		}
     		
     		if(Integer.parseInt((String)params.get("MENU_ORDER")) < 1) {
     			success = false;
