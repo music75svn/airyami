@@ -159,7 +159,7 @@ function fn_goCreate(){
 	<!--// menu -->
   
 	<div id="contents">
-		<h3><spring:message code="word.codeList"/></h3>
+		<h3><spring:message code="word.exchangeRate"/></h3>
 		<form id="myParams" name="myParams">
 			<ppe:makeHidden var="${findParams}" filter="FIND_" />
 			<ppe:makeHidden var="${findParams}" filter="FIND2_" />

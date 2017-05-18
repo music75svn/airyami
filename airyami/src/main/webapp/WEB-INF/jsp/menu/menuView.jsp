@@ -71,6 +71,20 @@ function fn_callRegist(){
 
 	gfn_commonGo("/menu/goInsertMenu", registParam, "Y");
 }
+
+// 최상위 메뉴등록
+function fn_callRegistFirst(){
+	var registParam = new Object();
+	
+	registParam.NOW_MENU_TYPE = $("#NOW_MENU_TYPE").val();
+	registParam.UPPER_MENU_CODE = "1";
+	registParam.MENU_LEVEL = 1;
+	
+
+	gfn_commonGo("/menu/goInsertMenu", registParam, "Y");
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////
 // BUTTON_Click Event 정의
 ////////////////////////////////////////////////////////////////////////////////////
@@ -381,6 +395,7 @@ function fn_callbackAdminGroup(param) {
 						</table>
 					</div>
 					<div class="btnArea2">
+						<button type="button" class="btn3" onclick="javascript:fn_callRegistFirst()"><span>최상위등록</span></button>&nbsp;
 						<button type="button" class="btn3" onclick="javascript:fn_callRegist()"><span>하위등록</span></button>&nbsp;
 						<button type="button" class="btn3" onclick="javascript:fn_callUserGroup()"><span>사용자그룹</span></button>&nbsp;
 						<button type="button" class="btn3" onclick="javascript:fn_callUpdate()"><span>수정</span></button>

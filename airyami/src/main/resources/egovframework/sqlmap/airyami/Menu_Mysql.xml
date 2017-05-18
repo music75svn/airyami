@@ -7,7 +7,8 @@
 	
 	<select id="menu.getMenuList" parameterClass="Map" resultClass="ValueMap" >
 
-	SELECT  hi.MENU_TYPE
+	SELECT  /* Menu_Mysql.xml  menu.getMenuList */
+	        hi.MENU_TYPE
 	       ,hi.MENU_CODE
 	       ,B.MENU_NAME
 	       ,hi.UPPER_MENU_CODE 
@@ -52,7 +53,8 @@
 	</select>
 	
 	<select id="menu.selectMenu" parameterClass="Map" resultClass="ValueMap" >
-			SELECT  A.MENU_TYPE 
+			SELECT  /* Menu_Mysql.xml  menu.selectMenu */
+			        A.MENU_TYPE 
 				  ,	A.MENU_CODE
 			      , A.UPPER_MENU_CODE
 			      , B.MENU_NAME
@@ -70,7 +72,8 @@
 	</select>
 	
 	<select id="menu.selectMenuUserGroup" parameterClass="Map" resultClass="ValueMap" >
-			   SELECT A.USER_TYPE
+			   SELECT /* Menu_Mysql.xml  menu.selectMenuUserGroup*/
+			          A.USER_TYPE
 	              	 ,C.CODE_NM USER_TYPE_NAME
 			         ,A.USER_ROLE
 			         ,D.USER_ROLE_NM
@@ -90,13 +93,14 @@
 	</select>
 	
 	<select id="menu.selectMenuOrderMax" parameterClass="Map" resultClass="java.lang.Integer" >
-			   SELECT IFNULL(MAX(MENU_ORDER), 1) AS MAX_MENU_ORDER
+			  SELECT /* Menu_Mysql.xml  menu.selectMenuOrderMax */ 
+			         IFNULL(MAX(MENU_ORDER), 1) AS MAX_MENU_ORDER
 	            FROM TB_MENU
 	           WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
 	</select>
 	
 	<update id="menu.updateMenu" parameterClass="Map" >
-			UPDATE TB_MENU
+			UPDATE TB_MENU /* Menu_Mysql.xml  menu.updateMenu */ 
 			SET  
 				 LINK_URL      = #LINK_URL#       
 				,LINK_PARAM    = #LINK_PARAM#
@@ -135,7 +139,7 @@
 	</update> 
 	
 	<update id="menu.updateMenuOrderDown" parameterClass="Map" >
-			UPDATE TB_MENU
+			UPDATE TB_MENU /* Menu_Mysql.xml  menu.updateMenuOrderDown */
 			SET    
 				 MENU_ORDER    		= MENU_ORDER - 1 
 				,UPDATE_USER_ID     = #LOGIN_ID#         
@@ -147,7 +151,7 @@
 	
 	
 	<update id="menu.updateMenuOrderUp" parameterClass="Map" >
-			UPDATE TB_MENU
+			UPDATE TB_MENU /* Menu_Mysql.xml  menu.updateMenuOrderUp */
 			SET    
 				MENU_ORDER    		= MENU_ORDER + 1 
 				,UPDATE_USER_ID     = #LOGIN_ID#         
@@ -158,7 +162,7 @@
 	</update> 
 	
 	<insert id="menu.insertMenu" parameterClass="Map" >
-		INSERT INTO TB_MENU
+		INSERT INTO TB_MENU /* Menu_Mysql.xml  menu.insertMenu */
 			(MENU_TYPE
 			,MENU_CODE
 			,UPPER_MENU_CODE
@@ -188,7 +192,7 @@
 	</insert>
 	
 	<insert id="menu.insertMenuNm" parameterClass="Map" >
-		INSERT 
+		INSERT /* Menu_Mysql.xml  menu.insertMenuNm */
 		  INTO TB_MENU_NM(
 		       MENU_TYPE
 		      ,MENU_CODE
@@ -211,7 +215,7 @@
 	</insert>
 	
 	<insert id="menu.insertMenuUserGroup" parameterClass="Map" >
-		INSERT 
+		INSERT /* Menu_Mysql.xml menu.insertMenuUserGroup */
 		  INTO TB_MENU_USERGROUP
 		      (
 			    MENU_TYPE
@@ -232,11 +236,13 @@
 	</insert>
 	
 	<select id="menu.selectInsertedMenu" parameterClass="Map" resultClass="ValueMap"  >
-		SELECT CONCAT(#UPPER_MENU_CODE#, IF(IFNULL(MAX(MENU_CODE), '9999') = '9999', '001', LPAD(CONVERT(SUBSTRING(MAX(MENU_CODE), LENGTH(UPPER_MENU_CODE)+1, 3), UNSIGNED) + 1, 3, '0'))) AS MENU_CODE
-		      ,IFNULL(MAX(MENU_LEVEL), 0) AS MENU_LEVEL
+		SELECT /* Menu_Mysql.xml menu.selectInsertedMenu */
+		       CONCAT(#UPPER_MENU_CODE#, IF(IFNULL(MAX(MENU_CODE), '9999') = '9999', '001', LPAD(CONVERT(SUBSTRING(MAX(MENU_CODE), LENGTH(UPPER_MENU_CODE)+1, 3), UNSIGNED) + 1, 3, '0'))) AS MENU_CODE
+		      ,(SELECT MENU_LEVEL + 1 FROM TB_MENU WHERE MENU_CODE = #UPPER_MENU_CODE#) AS MENU_LEVEL
 		      ,IFNULL(MAX(MENU_ORDER), 0) + 1 AS MENU_ORDER
 		  FROM TB_MENU
 		 WHERE MENU_TYPE = #MENU_TYPE# 
 		   AND UPPER_MENU_CODE = #UPPER_MENU_CODE#
+		   AND MENU_CODE != '1999'	/*template 메뉴제외 */
 	</select>
 </sqlMap>
