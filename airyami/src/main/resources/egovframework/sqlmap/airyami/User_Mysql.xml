@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="user">
+
+<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+	
+	<select id="user.getUserCount" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT /* Comm_Code_Mysql.xml  user.getUserCount */
+	       COUNT(1) 
+	  FROM TB_USER_MASTER A
+	     , TB_USER_ROLE_MASTER B
+	 WHERE 1 = 1
+	   AND A.USER_TYPE = B.USER_TYPE
+	   AND A.USER_ROLE = B.USER_ROLE
+	   AND A.INSERT_USER_ID = #LOGIN_ID#
+	 <isNotEmpty property="SEARCH_USER_ID">
+	   AND A.USER_ID = #SEARCH_USER_ID#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_ORIGINAL_NM">
+	   AND A.ORIGINAL_NM LIKE CONCAT('%',#SEARCH_ORIGINAL_NM#,'%')
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_USER_TYPE_ROLE">
+	   AND CONCAT(A.USER_TYPE, A.USER_ROLE) = #SEARCH_USER_TYPE_ROLE#
+	 </isNotEmpty>
+	</select>
+	
+	<select id="user.getUserList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingPrefixSQL"/>
+	</isEqual>
+	SELECT /* Comm_Code_Mysql.xml  user.getUserList */
+           A.USER_ID
+         , A.USER_TYPE
+         , A.USER_ROLE
+         , B.USER_ROLE_NM
+         , A.BIZ_ENTITY_ID
+         , A.ORIGINAL_NM
+         , A.PASSPORT_NM
+         , A.SEX
+         , A.BIRTH_YEAR
+         , A.BIRTH_MONTH
+         , A.BIRTH_DAY
+         , A.HOME_ADDR_COUNTRY
+         , A.HOME_ADDR_PROVINCE
+         , A.HOME_ADDR_CITY
+         , A.HOME_ADDR_FULL
+         , A.COMP_ADDR_COUNTRY
+         , A.COMP_ADDR_PROVINCE
+         , A.COMP_ADDR_CITY
+         , A.COMP_ADDR_FULL
+         , A.USE_LANGUAGE_CD
+         , A.SNS_TYPE
+         , A.SNS_ID
+         , A.PHONE_COUNTRY_NO
+         , A.PHONE_NO
+         , A.EMAIL_ID
+         , A.BANK_NAME
+         , A.ACCOUNT_NO
+         , A.RECOMMENDER_ID
+         , A.LAST_ORDER_DATE
+	  FROM TB_USER_MASTER A
+	     , TB_USER_ROLE_MASTER B
+	 WHERE 1 = 1
+	   AND A.USER_TYPE = B.USER_TYPE
+	   AND A.USER_ROLE = B.USER_ROLE
+	   AND A.INSERT_USER_ID = #LOGIN_ID#
+	 <isNotEmpty property="SEARCH_USER_ID">
+	   AND A.USER_ID = #SEARCH_USER_ID#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_ORIGINAL_NM">
+	   AND A.ORIGINAL_NM LIKE CONCAT('%',#SEARCH_ORIGINAL_NM#,'%')
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_USER_TYPE_ROLE">
+	   AND CONCAT(A.USER_TYPE, A.USER_ROLE) = #SEARCH_USER_TYPE_ROLE#
+	 </isNotEmpty>
+	 <isNotEmpty property="SORT_COL">
+	 	<include refid="orderbySQL"/>
+	 </isNotEmpty>
+	 <isEmpty property="SORT_COL">
+	 ORDER BY A.INSERT_DT DESC
+	 </isEmpty>
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingSuffixSQL"/>
+	</isEqual>
+	</select>
+
+	<!-- TB_USER_ROLE_MASTER 사용자구분, 역할 목록조회 -->
+	<select id="user.getTypeRoleList" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* Comm_Code_Mysql.xml  user.getUserDetail */
+	       CONCAT(USER_TYPE, USER_ROLE) USER_TYPE_ROLE
+	     , USER_ROLE_NM
+	  FROM TB_USER_ROLE_MASTER
+	 ORDER BY USER_TYPE, USER_ROLE
+	</select>
+ 
+	<!-- TB_USER_MASTER 상세조회 -->
+	<select id="user.getUserDetail" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* Comm_Code_Mysql.xml  user.getUserDetail */
+           A.USER_ID
+         , CONCAT(USER_TYPE, USER_ROLE) AS USER_TYPE_ROLE
+         , A.BIZ_ENTITY_ID
+         , A.ORIGINAL_NM
+         , A.PASSPORT_NM
+         , A.SEX
+         , A.BIRTH_YEAR
+         , A.BIRTH_MONTH
+         , A.BIRTH_DAY
+         , A.HOME_ADDR_COUNTRY
+         , A.HOME_ADDR_PROVINCE
+         , A.HOME_ADDR_CITY
+         , A.HOME_ADDR_FULL
+         , A.COMP_ADDR_COUNTRY
+         , A.COMP_ADDR_PROVINCE
+         , A.COMP_ADDR_CITY
+         , A.COMP_ADDR_FULL
+         , A.USE_LANGUAGE_CD
+         , A.SNS_TYPE
+         , A.SNS_ID
+         , A.PHONE_COUNTRY_NO
+         , A.PHONE_NO
+         , A.EMAIL_ID
+         , A.BANK_NAME
+         , A.ACCOUNT_NO
+         , A.RECOMMENDER_ID
+         , A.LAST_ORDER_DATE
+	  FROM TB_USER_MASTER A
+	 WHERE A.USER_ID= #SEARCH_USER_ID#
+	</select>
+	
+	<select id="user.getUserExistYn" parameterClass="Map" resultClass="java.lang.String">
+	SELECT /* Comm_Code_Mysql.xml  user.getUserExistYn */
+		   CASE WHEN count(*) = 0 THEN 'N' ELSE 'Y' END EXIST_YN
+	  FROM TB_USER_MASTER
+	 WHERE 1 = 1
+	 <isNotEmpty property="USER_ID">
+	   AND USER_ID= #USER_ID# 
+	 </isNotEmpty>
+	</select>
+	
+	<insert id="user.insertUser" parameterClass="Map">
+	INSERT /* Comm_Code_Mysql.xml  user.insertUser */
+	  INTO TB_USER_MASTER
+		(
+           USER_ID
+         , USER_PSWD
+         , USER_TYPE
+         , USER_ROLE
+         , BIZ_ENTITY_ID
+         , ORIGINAL_NM
+         , PASSPORT_NM
+         , SEX
+         , BIRTH_YEAR
+         , BIRTH_MONTH
+         , BIRTH_DAY
+         , HOME_ADDR_COUNTRY
+         , HOME_ADDR_PROVINCE
+         , HOME_ADDR_CITY
+         , HOME_ADDR_FULL
+         , COMP_ADDR_COUNTRY
+         , COMP_ADDR_PROVINCE
+         , COMP_ADDR_CITY
+         , COMP_ADDR_FULL
+         , USE_LANGUAGE_CD
+         , SNS_TYPE
+         , SNS_ID
+         , PHONE_COUNTRY_NO
+         , PHONE_NO
+         , EMAIL_ID
+         , BANK_NAME
+         , ACCOUNT_NO
+         , RECOMMENDER_ID
+         , LAST_ORDER_DATE
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+           #USER_ID#
+         , PASSWORD(#USER_PSWD#)
+         , #USER_TYPE#
+         , #USER_ROLE#
+         , #BIZ_ENTITY_ID#
+         , #ORIGINAL_NM#
+         , #PASSPORT_NM#
+         , #SEX#
+         , #BIRTH_YEAR#
+         , #BIRTH_MONTH#
+         , #BIRTH_DAY#
+         , #HOME_ADDR_COUNTRY#
+         , #HOME_ADDR_PROVINCE#
+         , #HOME_ADDR_CITY#
+         , #HOME_ADDR_FULL#
+         , #COMP_ADDR_COUNTRY#
+         , #COMP_ADDR_PROVINCE#
+         , #COMP_ADDR_CITY#
+         , #COMP_ADDR_FULL#
+         , #USE_LANGUAGE_CD#
+         , #SNS_TYPE#
+         , #SNS_ID#
+         , #PHONE_COUNTRY_NO#
+         , #PHONE_NO#
+         , #EMAIL_ID#
+         , #BANK_NAME#
+         , #ACCOUNT_NO#
+         , #RECOMMENDER_ID#
+         , #LAST_ORDER_DATE#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+	
+	<update id="user.updateUser" parameterClass="Map">
+	UPDATE /* Comm_Code_Mysql.xml  user.updateUser */
+	       TB_USER_MASTER
+	   SET USER_PSWD              = PASSWORD(#USER_PSWD#)
+         , USER_TYPE              = #USER_TYPE#
+         , USER_ROLE              = #USER_ROLE#
+         , BIZ_ENTITY_ID          = #BIZ_ENTITY_ID#
+         , ORIGINAL_NM            = #ORIGINAL_NM#
+         , PASSPORT_NM            = #PASSPORT_NM#
+         , SEX                    = #SEX#
+         , BIRTH_YEAR             = #BIRTH_YEAR#
+         , BIRTH_MONTH            = #BIRTH_MONTH#
+         , BIRTH_DAY              = #BIRTH_DAY#
+         , HOME_ADDR_COUNTRY      = #HOME_ADDR_COUNTRY#
+         , HOME_ADDR_PROVINCE     = #HOME_ADDR_PROVINCE#
+         , HOME_ADDR_CITY         = #HOME_ADDR_CITY#
+         , HOME_ADDR_FULL         = #HOME_ADDR_FULL#
+         , COMP_ADDR_COUNTRY      = #COMP_ADDR_COUNTRY#
+         , COMP_ADDR_PROVINCE     = #COMP_ADDR_PROVINCE#
+         , COMP_ADDR_CITY         = #COMP_ADDR_CITY#
+         , COMP_ADDR_FULL         = #COMP_ADDR_FULL#
+         , USE_LANGUAGE_CD        = #USE_LANGUAGE_CD#
+         , SNS_TYPE               = #SNS_TYPE#
+         , SNS_ID                 = #SNS_ID#
+         , PHONE_COUNTRY_NO       = #PHONE_COUNTRY_NO#
+         , PHONE_NO               = #PHONE_NO#
+         , EMAIL_ID               = #EMAIL_ID#
+         , BANK_NAME              = #BANK_NAME#
+         , ACCOUNT_NO             = #ACCOUNT_NO#
+         , RECOMMENDER_ID         = #RECOMMENDER_ID#
+         , LAST_ORDER_DATE        = #LAST_ORDER_DATE#
+	     , UPDATE_USER_ID         = #LOGIN_ID#
+	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	 WHERE USER_ID                = #USER_ID#
+	</update>
+	
+	<delete id="user.deleteUser" parameterClass="Map">
+	DELETE /* Comm_Code_Mysql.xml  user.deleteUser */
+	  FROM TB_USER_MASTER
+	 WHERE USER_ID = #USER_ID#
+	</delete>
+</sqlMap>

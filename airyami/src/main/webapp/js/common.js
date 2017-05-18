@@ -111,8 +111,16 @@ function gfn_validationForm(formObj){
 			// 숫자알파벳 체크
 			if( depends.indexOf("|englishNumeric|") > -1){
 				if (!gfn_checkEnglishNumeric(val)) {
-//					alert(title + " 영숫자 조합이여야 합니다.");
 					alert(gfn_getMsg("errors.english_numeric", title));
+					conObj.focus();
+					return false;
+				}
+			}
+			
+			// 알파벳 체크
+			if( depends.indexOf("|English|") > -1){
+				if (!gfn_checkEnglish(val)) {
+					alert(gfn_getMsg("errors.english", title));
 					conObj.focus();
 					return false;
 				}
@@ -3338,6 +3346,15 @@ function gfn_checkEnglishNumeric(englishNumericStr){
 	var alpha_numeric = /^[a-zA-Z0-9_]+$/;
 	
 	if(!alpha_numeric.test(englishNumericStr)){
+		return false;
+	}
+	return true;
+}
+
+function gfn_checkEnglish(englishStr){
+	var alpha = /^[a-zA-Z ]+$/;
+	
+	if(!alpha.test(englishStr)){
 		return false;
 	}
 	return true;

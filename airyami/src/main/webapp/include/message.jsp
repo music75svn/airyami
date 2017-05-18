@@ -20,6 +20,9 @@ function gfn_getMsg(id, params){
 		// {0}은(는) 영문, 숫자를 입력하셔야 합니다.
 		case "errors.english_numeric" : msg = "<spring:message code='errors.english_numeric' javaScriptEscape='true'/>"; 
 			break;
+		// {0}은(는) 영문을를 입력하셔야 합니다.
+		case "errors.english" : msg = "<spring:message code='errors.english' javaScriptEscape='true'/>"; 
+			break;
 		// 유효하지 않은 이메일 주소입니다.
 		case "errors.email" : msg = "<spring:message code='errors.email' javaScriptEscape='true'/>"; 
 			break;
