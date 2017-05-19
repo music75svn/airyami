@@ -49,15 +49,35 @@ function fn_callUpdate(){
 	gfn_Transaction( updateParam );
 }
 
+function fn_callDelete(){
+
+	if("Y" != $("#ISLEAF_YN").val()){
+		// 자식이없는 메뉴만 삭제 가능합니다.
+		alert("<spring:message code="errors.allowdeleteMenuChildMsg.msg"/>");
+		return;
+	}
+	
+	if(!confirm("<spring:message code="common.delete.msg"/>")){
+		return false;
+	}
+
+	var updateParam = new Object();
+	updateParam.sid 		= "deleteMenu";
+	updateParam.url 		= "/menu/deleteMenu.do";
+	updateParam.data 		= gfn_makeInputData($("#dataForm"));
+	
+	gfn_Transaction( updateParam );
+}
+
 
 function fn_callUserGroup(){
-	var usergrpParam = new Object();
+	var inputParam = new Object();
 	
-	usergrpParam.MODE = "menu";
-	//usergrpParam.MODE = "board";
-	usergrpParam.BASE_CD = $("#MENU_CODE").val();	
-	usergrpParam.ADMIN_YN = "Y";
-	gfn_commonGo("/usergrp/goChooseUserGrp", usergrpParam, "Y");
+	inputParam.MENU_TYPE = $("#MENU_TYPE").val();	
+	inputParam.MENU_CODE = $("#MENU_CODE").val();	
+	inputParam.MENU_NAME = $("#MENU_NAME").val();
+	
+	gfn_commonGo("/menu/menuUserGrp", inputParam, "Y");
 }
 
 
@@ -197,19 +217,7 @@ function fn_callBack(sid, result, data){
 		
 		fn_menuView(result.ds_menulist[0].MENU_CODE);
 	} else if (sid == "selectMenu") {
-		$("#NOW_MENU_TYPE").val(result.ds_detail.NOW_MENU_TYPE);
-		$("#MENU_CODE").val(result.ds_detail.MENU_CODE);
-		$("#UPPER_MENU_CODE").val(result.ds_detail.UPPER_MENU_CODE);
-		$("#MENU_NAME").val(result.ds_detail.MENU_NAME);
-		$("#MENU_DESC").val(result.ds_detail.MENU_DESC);
-		$("#MENU_LEVEL").val(result.ds_detail.MENU_LEVEL);
-		$("#LINK_URL").val(result.ds_detail.LINK_URL);
-		$("#LINK_PARAM").val(result.ds_detail.LINK_PARAM);
-		$("#MENU_ORDER").val(result.ds_detail.MENU_ORDER);
-		$("#CHARGE_NM").val(result.ds_detail.CHARGE_NM);
-		$("#CHARGE_DEPT").val(result.ds_detail.CHARGE_DEPT);
-		$("#CHARGE_PHONE").val(result.ds_detail.CHARGE_PHONE);
-		$("#USE_YN").val(result.ds_detail.USE_YN);		
+		gfn_setDetails(result.ds_detail, $("#dataForm"));
 		
 		var usergrpHtml = "";
 		for(var i = 0; i < result.ds_menuUsergrplist.length; i++) {
@@ -220,6 +228,9 @@ function fn_callBack(sid, result, data){
 		$("#menuUsergrp").html(usergrpHtml);
 	} else if(sid == "updateMenu") {
 		alert("수정하였습니다.");
+		fn_srch();
+	} else if(sid == "deleteMenu") {
+		alert("삭제하였습니다.");
 		fn_srch();
 	}
 }
@@ -330,6 +341,7 @@ function fn_callbackAdminGroup(param) {
 						<li>
 							<label for="">메뉴타입</label>
 							<input type="hidden" id="NOW_MENU_TYPE" name="NOW_MENU_TYPE"/>
+							<input type="hidden" id="ISLEAF_YN" name="ISLEAF_YN"/>
 							<select id="MENU_TYPE" name="MENU_TYPE">
 		                        <c:forEach var="MENU_TYPE" items="${ds_cd_MENU_TYPE}">
 		                            <option value="${MENU_TYPE.CD}">${MENU_TYPE.CD_NM}</option>
@@ -398,7 +410,8 @@ function fn_callbackAdminGroup(param) {
 						<button type="button" class="btn3" onclick="javascript:fn_callRegistFirst()"><span>최상위등록</span></button>&nbsp;
 						<button type="button" class="btn3" onclick="javascript:fn_callRegist()"><span>하위등록</span></button>&nbsp;
 						<button type="button" class="btn3" onclick="javascript:fn_callUserGroup()"><span>사용자그룹</span></button>&nbsp;
-						<button type="button" class="btn3" onclick="javascript:fn_callUpdate()"><span>수정</span></button>
+						<button type="button" class="btn3" style="width:46px;" onclick="javascript:fn_callDelete()"><span>삭제</span></button>
+						<button type="button" class="btn3" style="width:46px;" onclick="javascript:fn_callUpdate()"><span>수정</span></button>
 					</div>				
 				</div>
 				</form>

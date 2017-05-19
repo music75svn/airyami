@@ -62,7 +62,10 @@
 			      , IFNULL(A.LINK_URL, '') AS LINK_URL
 			      , IFNULL(A.LINK_PARAM, '') AS LINK_PARAM
 			      , A.MENU_ORDER
-			      , A.USE_YN      
+			      , A.USE_YN
+			      , IF((SELECT COUNT(1) 
+	                      FROM TB_MENU C 
+						 WHERE C.MENU_TYPE = A.MENU_TYPE AND C.MENU_CODE LIKE CONCAT(A.MENU_CODE, '%')) = 1, 'Y', 'N') AS ISLEAF_YN      
 			  FROM TB_MENU A
 				  ,TB_MENU_NM B
 			 WHERE A.MENU_TYPE = B.MENU_TYPE
@@ -245,4 +248,89 @@
 		   AND UPPER_MENU_CODE = #UPPER_MENU_CODE#
 		   AND MENU_CODE != '1999'	/*template 메뉴제외 */
 	</select>
+	
+	<delete id="menu.deleteMenuGroup" parameterClass="Map">
+	DELETE /* Menu_Mysql.xml  menu.deleteMenuGroup */
+	  FROM TB_MENU_USERGROUP
+	 WHERE MENU_TYPE = #MENU_TYPE#
+	   AND MENU_CODE = #MENU_CODE#
+	</delete>
+	
+	<delete id="menu.deleteMenuNm" parameterClass="Map">
+	DELETE /* Menu_Mysql.xml  menu.deleteMenuNm */
+	  FROM TB_MENU_NM
+	 WHERE MENU_TYPE = #MENU_TYPE#
+	   AND MENU_CODE = #MENU_CODE#
+	</delete>
+	
+	<delete id="menu.deleteMenu" parameterClass="Map">
+	DELETE /* Menu_Mysql.xml  menu.deleteMenu */
+	  FROM TB_MENU_NM
+	 WHERE MENU_TYPE = #MENU_TYPE#
+	   AND MENU_CODE = #MENU_CODE#
+	</delete>
+	
+	<select id="menu.selectMenuUserGrpList" parameterClass="Map" resultClass="ValueMap"  >
+		SELECT /* Menu_Mysql.xml menu.selectMenuUserGrp */
+		       A.USER_TYPE
+		      ,CD.CODE_NM AS USER_TYPE_NM
+		      ,A.USER_ROLE
+		      ,A.USER_ROLE_NM
+		      ,IF(A.MENU_CODE IS NULL, 'N', 'Y') AS USE_YN
+		  FROM (   
+				SELECT A.USER_TYPE
+		              ,A.USER_ROLE
+		              ,A.USER_ROLE_NM
+		              ,B.MENU_TYPE
+		              ,B.MENU_CODE
+				  FROM TB_USER_ROLE_MASTER A
+					   LEFT JOIN TB_MENU_USERGROUP B
+					   ON A.USER_TYPE = B.USER_TYPE AND A.USER_ROLE = B.USER_ROLE
+		               AND B.MENU_TYPE = #MENU_TYPE# AND MENU_CODE = #MENU_CODE#
+		       ) A
+			   LEFT OUTER JOIN TB_MENU B
+						    ON A.MENU_TYPE = B.MENU_TYPE AND A.MENU_CODE = B.MENU_CODE
+			  ,TB_CODE_NM CD
+		 WHERE A.USER_TYPE 		= CD.CODE_ID
+		   AND CD.CODE_GROUP_ID = 'USER_TYPE'
+		   AND CD.LANG_CD 		= #LANG_CD#
+		 ORDER BY A.USER_TYPE, A.USER_ROLE
+	</select>
+	
+	
+	<insert id="menu.saveMenuUserGrp" parameterClass="Map">
+	INSERT /* Menu_Mysql.xml  menu.saveMenuUserGrp */
+	  INTO TB_MENU_USERGROUP
+		(
+		MENU_TYPE,
+		MENU_CODE,
+		USER_TYPE,
+		USER_ROLE,
+		INSERT_USER_ID,
+		INSERT_DT)
+		VALUES
+		(
+		#MENU_TYPE#,
+		#MENU_CODE#,
+		#USER_TYPE#,
+		#USER_ROLE#,
+		#LOGIN_ID#,
+		DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	ON DUPLICATE KEY UPDATE
+		UPDATE_USER_ID = #LOGIN_ID#,
+		UPDATE_DT = DATE_FORMAT(now(), '%Y%m%d%H%i%s'
+		)
+	</insert>
+	
+	<delete id="menu.deleteMenuUserGrp" parameterClass="Map">
+	DELETE /* Menu_Mysql.xml  menu.deleteMenuUserGrp */
+	  FROM TB_MENU_USERGROUP
+	 WHERE MENU_TYPE = #MENU_TYPE#
+	   AND MENU_CODE = #MENU_CODE#
+	   AND USER_TYPE = #USER_TYPE#
+	   AND USER_ROLE = #USER_ROLE#
+	   
+	</delete>
+	
 </sqlMap>

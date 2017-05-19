@@ -84,7 +84,7 @@ public class MenuMngController {
 		model.put("ds_cd_USER_TYPE", code_USER_TYPE);
         
     	return "/menu/menuView";
-    }
+    }    
     
     /**
      * 메뉴 목록조회 
@@ -262,6 +262,69 @@ public class MenuMngController {
 		log.info("result result :: " + result);
     	return null;
     }
+    
+    
+    /**
+     * 메뉴 삭제 
+     */
+    @RequestMapping(value="/menu/deleteMenu.do")
+    public String deleteMenuMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	String msg = egovMessageSource.getMessage("success.common.update");
+    	//*****************************************************************************
+    	// 입력부 로그 출력 
+    	//*****************************************************************************
+    	logger.debug("===================================================================");
+    	logger.debug("[MenuMngController.deleteMenuMng() ================== start]");
+    	
+    	//*****************************************************************************
+    	// 변수 및 객체 선언 및 초기화 
+    	//*****************************************************************************
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param >>>>> :: " + params);
+    	
+    	//*****************************************************************************
+    	// 비지니스 처리
+    	//*****************************************************************************
+    	// Transaction Setting(1) 
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		TransactionStatus status = transactionManager.getTransaction(def);
+    	try{
+    		// tb_menu_group 삭제
+    		int delCnt = cmmService.deleteCommDb(params, "menu.deleteMenuGroup");
+    		
+    		// tb_menu_nm 삭제
+    		delCnt = cmmService.deleteCommDb(params, "menu.deleteMenuNm");
+    		
+    		// tb_menu 삭제
+    		delCnt = cmmService.deleteCommDb(params, "menu.deleteMenu");
+    		
+    		transactionManager.commit(status);
+    	}
+    	catch(Exception e){
+    		msg = egovMessageSource.getMessage("fail.common.delete");
+    		transactionManager.rollback(status);
+    		
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	//*****************************************************************************
+    	// 화면 출력 데이터 셋팅
+    	//*****************************************************************************
+    	result.put("msg", msg);    		
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	log.info("result result :: " + result);
+    	return null;
+    }
 
     /**
      * 메뉴 등록 페이지 이동 
@@ -348,4 +411,188 @@ public class MenuMngController {
     	return null;
 		
     }
+    
+    
+    /**
+     * 메뉴 사용자그룹 관리 이동 /menu/goChooseUserGrp 
+     */
+    @RequestMapping(value="/menu/menuUserGrp.do")
+    public String menuUserGrp(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    	//사이트 목록을 가져와서 모델에 넣는다.
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param >>>>> :: " + params);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	return "/menu/menuUserGrp";
+    }
+    
+    /**
+     * 메뉴 목록조회 
+     */
+    @RequestMapping(value="/menu/menuUserGrpList.do")
+    public String menuUserGrpList(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+
+		boolean success = true;
+    	ValueMap result = new ValueMap();
+    	//*****************************************************************************
+		// 입력부 로그 출력 
+		//*****************************************************************************
+		logger.debug("===================================================================");
+		logger.debug("[MenuMngController.menuUserGrpList() ================== start]");
+		
+    	
+		//*****************************************************************************
+		// 변수 및 객체 선언 및 초기화 
+		//*****************************************************************************
+		
+		Map<String,Object> params = CommonUtils.getRequestMap(request);
+		log.info("param >>>>> :: " + params);
+		
+		//*****************************************************************************
+		// 비지니스 처리
+		//*****************************************************************************		
+    	
+    	try{  	        
+    		List<ValueMap> ds_list = cmmService.getCommDbList(params, "menu.selectMenuUserGrpList");
+    		result.put("ds_list", ds_list);
+    	} catch(Exception e){
+    		
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	return null;
+    }
+    
+    /***
+	 * 메뉴사용자그룹 다건 등록 수행
+	 */
+	@RequestMapping(value="/menu/menuUserGrpInsert.do")
+	public String menuUserGrpInsert ( HttpServletRequest request, HttpServletResponse response, ModelMap model ) throws Exception {
+		
+		//*****************************************************************************
+		// 입력부 로그 출력 
+		//*****************************************************************************
+		log.debug("===================================================================");
+		log.debug("[MenuMngController.menuUserGrpInsert() ================== start]");
+		Map<String,Object> params = CommonUtils.getRequestMap(request);
+		log.info("input param :: " + params);
+		
+		//*****************************************************************************
+		// 변수 및 객체 선언 및 초기화 
+		//*****************************************************************************
+		String msg 	= ""; // 리턴 메시지
+		Map<String,Object> paramMap = null;
+		
+		//*****************************************************************************
+		// 비지니스 처리
+		//*****************************************************************************
+		boolean success = true;
+		ValueMap result = new ValueMap();
+
+		String pReqKey 	= (String) params.get("REQKEY");
+		String[] arrTmp 	= pReqKey.split("@@");
+
+		// Transaction Setting(1) 
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		TransactionStatus status = transactionManager.getTransaction(def);
+
+		try {
+			for (int i = 0; i < arrTmp.length; i++) {
+				paramMap = CommonUtils.getParamsBydelimiter(arrTmp[i], ";");
+				paramMap.put("MENU_TYPE", params.get("MENU_TYPE"));
+				paramMap.put("MENU_CODE", params.get("MENU_CODE"));
+				cmmService.updateCommDb(paramMap, "menu.saveMenuUserGrp");
+			}
+			transactionManager.commit(status);
+			
+		} catch (Exception e) {
+			transactionManager.rollback(status);
+			success = false;
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+		}
+		
+		//*****************************************************************************
+		// 화면 출력 데이터 셋팅
+		//*****************************************************************************
+		if (success) { msg = egovMessageSource.getMessage("success.common.insert"); 
+		} else msg = egovMessageSource.getMessage("fail.common.insert");
+		
+		result.put("msg", msg);
+		result.put("success", success);
+		response.setContentType("text/xml;charset=UTF-8");
+		response.getWriter().println(CommonUtils.setJsonResult(result));
+		return null;
+	}
+	
+	/***
+	 * 메뉴사용자그룹 다건 삭제
+	 */
+	@RequestMapping(value="/menu/menuUserGrpDelete.do")
+	public String menuUserGrpDelete ( HttpServletRequest request, HttpServletResponse response, ModelMap model ) throws Exception {
+		
+		//*****************************************************************************
+		// 입력부 로그 출력 
+		//*****************************************************************************
+		log.debug("===================================================================");
+		log.debug("[MenuMngController.menuUserGrpDelete() ================== start]");
+		Map<String,Object> params = CommonUtils.getRequestMap(request);
+		log.info("input param :: " + params);
+		
+		//*****************************************************************************
+		// 변수 및 객체 선언 및 초기화 
+		//*****************************************************************************
+		String msg 	= ""; // 리턴 메시지
+		Map<String,Object> paramMap = null;
+		
+		//*****************************************************************************
+		// 비지니스 처리
+		//*****************************************************************************
+		boolean success = true;
+		ValueMap result = new ValueMap();
+		
+		String pReqKey 	= (String) params.get("REQKEY");
+		String[] arrTmp 	= pReqKey.split("@@");
+		
+		// Transaction Setting(1) 
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		TransactionStatus status = transactionManager.getTransaction(def);
+		
+		try {
+			for (int i = 0; i < arrTmp.length; i++) {
+				paramMap = CommonUtils.getParamsBydelimiter(arrTmp[i], ";");
+				paramMap.put("MENU_TYPE", params.get("MENU_TYPE"));
+				paramMap.put("MENU_CODE", params.get("MENU_CODE"));
+				cmmService.updateCommDb(paramMap, "menu.deleteMenuUserGrp");
+			}
+			transactionManager.commit(status);
+			
+		} catch (Exception e) {
+			transactionManager.rollback(status);
+			success = false;
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+		}
+		
+		//*****************************************************************************
+		// 화면 출력 데이터 셋팅
+		//*****************************************************************************
+		if (success) { msg = egovMessageSource.getMessage("success.common.delete"); 
+		} else msg = egovMessageSource.getMessage("fail.common.delete");
+		
+		result.put("msg", msg);
+		result.put("success", success);
+		response.setContentType("text/xml;charset=UTF-8");
+		response.getWriter().println(CommonUtils.setJsonResult(result));
+		return null;
+	}
+    
 }
