@@ -295,11 +295,11 @@ function fn_userNmChange() {
 			<dl>
 				<dt>&nbsp;</dt>
 				<dd>
-					<label for="FROM_DT" id="SDT1">시작일자</label>
-					<input type="text" size="8" name="FROM_DT" id="FROM_DT" title="시작일자" class="datepicker">
+					<label for="FROM_DT" id="SDT1"><spring:message code="word.startDate"/></label>
+					<input type="text" size="8" name="FROM_DT" id="FROM_DT" class="datepicker">
 					~
-					<label for="TO_DT" id="SDT1">종료일자</label>
-					<input type="text" size="8" name="TO_DT" id="TO_DT" title="종료일자" class="datepicker"/>
+					<label for="TO_DT" id="SDT1"><spring:message code="word.endDate"/></label>
+					<input type="text" size="8" name="TO_DT" id="TO_DT" class="datepicker"/>
 					<label for="RULE_CD" id="S1">그룹코드</label>
 					<select id="RULE_CD" name="RULE_CD" title="그룹코드" onchange="javascript:fn_selectLink(this.value);">
                         <c:forEach var="GROUP" items="${ds_cd_GROUP}">

@@ -89,6 +89,10 @@ public class ExchangeRateController {
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
     	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
     	
+    	params.put( "CODE_GROUP_ID", "CURRENCY" ); //
+		List<ValueMap> code_CURRENCY = commCodeService.selectCommCode(params);
+		model.put("ds_cd_CURRENCY", code_CURRENCY);
+    	
     	return "/exchangeRate/exchangeRateList";
     }
     

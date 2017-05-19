@@ -28,10 +28,12 @@
 	<include refid="pagingPrefixSQL"/>
 	</isEqual>
 	SELECT /* ExchangeRate_Mysql.xml  exchangeRate.selectExchangeRateList */
+	       SEQ
+		  ,BIZ_DATE
 		  ,FR_CURRENCY
 	      ,TO_CURRENCY
-	      ,BASIC_EXT_RATE
 	      ,BIZ_EXT_RATE
+	      ,BASIC_EXT_RATE
 	  FROM TB_EXCHANGE_RATE_MASTER
 	 WHERE 1=1
 	 <isNotEmpty property="FR_CURRENCY">
@@ -43,14 +45,14 @@
 	 <isNotEmpty property="FROM_DT">
 	   AND str_to_date(BIZ_DATE,'%Y%m%d') &gt;= str_to_date(#FROM_DT#,'%Y%m%d')
 	 </isNotEmpty>
-	 <isNotEmpty property="END_DT">
-	   AND str_to_date(BIZ_DATE,'%Y%m%d') &lt;= str_to_date(#END_DT#,'%Y%m%d')
+	 <isNotEmpty property="TO_DT">
+	   AND str_to_date(BIZ_DATE,'%Y%m%d') &lt;= str_to_date(#TO_DT#,'%Y%m%d')
 	 </isNotEmpty> 
 	 <isNotEmpty property="SORT_COL">
 	 	<include refid="orderbySQL"/>
 	 </isNotEmpty>
 	 <isEmpty property="SORT_COL">
-	 ORDER BY A.CODE_GROUP_ID, A.SORT_ORDER
+	 ORDER BY SEQ DESC
 	 </isEmpty>
 	<isEqual property="EXCEL_YN" compareValue="N">
 	<include refid="pagingSuffixSQL"/>
