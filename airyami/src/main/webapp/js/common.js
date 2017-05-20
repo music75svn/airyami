@@ -118,9 +118,18 @@ function gfn_validationForm(formObj){
 			}
 			
 			// 알파벳 체크
-			if( depends.indexOf("|English|") > -1){
+			if( depends.indexOf("|english|") > -1){
 				if (!gfn_checkEnglish(val)) {
 					alert(gfn_getMsg("errors.english", title));
+					conObj.focus();
+					return false;
+				}
+			}
+			
+			// 숫자 체크
+			if( depends.indexOf("|numeric|") > -1){
+				if (!gfn_checkNumber(val)) {
+					alert(gfn_getMsg("errors.numeric", title));
 					conObj.focus();
 					return false;
 				}
@@ -130,7 +139,7 @@ function gfn_validationForm(formObj){
 			if( depends.indexOf("|email|") > -1){
 				if(!gfn_checkEmail(val)) {
 //					alert("올바른 형식의 이메일주소가 아닙니다.");
-					alert(gfn_getMsg("errors.email"));
+					alert(gfn_getMsg("errors.email", title));
 					conObj.focus();
 					return false;
 				}
@@ -3343,7 +3352,10 @@ function gfn_isCheckOk(fieldlist){
 }
 
 function gfn_checkEnglishNumeric(englishNumericStr){
-	var alpha_numeric = /^[a-zA-Z0-9_]+$/;
+	if(englishNumericStr == ''){
+		return true;
+	}
+	var alpha_numeric = /^[a-zA-Z0-9_-]+$/;
 	
 	if(!alpha_numeric.test(englishNumericStr)){
 		return false;
@@ -3352,6 +3364,9 @@ function gfn_checkEnglishNumeric(englishNumericStr){
 }
 
 function gfn_checkEnglish(englishStr){
+	if(englishStr == ''){
+		return true;
+	}
 	var alpha = /^[a-zA-Z ]+$/;
 	
 	if(!alpha.test(englishStr)){
@@ -3360,8 +3375,23 @@ function gfn_checkEnglish(englishStr){
 	return true;
 }
 
+function gfn_checkNumber(numericStr){
+	if(numericStr == ''){
+		return true;
+	}
+	var alpha = /^[0-9]+$/;
+	
+	if(!alpha.test(numericStr)){
+		return false;
+	}
+	return true;
+}
+
 //이메일 유효성 체크
 function gfn_checkEmail(emailAddr){
+	if(emailAddr == ''){
+		return true;
+	}
 	var format = /^((\w|[\-\.])+)@((\w|[\-\.])+)\.([A-Za-z]+)$/;
 	
 	if (!format.test(emailAddr)) {

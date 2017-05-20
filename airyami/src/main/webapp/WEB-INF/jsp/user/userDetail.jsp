@@ -176,7 +176,7 @@ function fn_clearData(){
 				<td colspan="3"><input type="text" name="USER_ID" id="USER_ID" disabled /></td>
 				</c:when>
 				<c:when test="${MODE=='CREATE'}">
-				<td colspan="3"><input type="text" name="USER_ID" id="USER_ID" maxlength="20" title="<spring:message code="word.userId"/>" depends="required"/></td>
+				<td colspan="3"><input type="text" name="USER_ID" id="USER_ID" maxlength="20" title="<spring:message code="word.userId"/>" depends="required,englishNumeric"/></td>
 				</c:when>
 			</c:choose>
 			</tr>
@@ -186,7 +186,7 @@ function fn_clearData(){
 			</tr>
 			<tr>
 				<th colspan="2"><spring:message code="word.passportNm"/></th>
-				<td colspan="3"><input type="text" name="PASSPORT_NM" id="PASSPORT_NM" maxlength="20" title="<spring:message code="word.passportNm"/>" depends="required,English" /></td>
+				<td colspan="3"><input type="text" name="PASSPORT_NM" id="PASSPORT_NM" maxlength="20" title="<spring:message code="word.passportNm"/>" depends="required,english" /></td>
 			</tr>
 	<c:choose>
 		<c:when test="${MODE=='CREATE'}">
@@ -250,12 +250,12 @@ function fn_clearData(){
 			</tr>
 			<tr>
 				<th rowspan="2"><spring:message code="word.userHomeAddr"/></th>
-				<th><spring:message code="word.userAddrContry"/></th>
+				<th><spring:message code="word.userAddrCountry"/></th>
 				<td>
-                   <select id="HOME_ADDR_COUNTRY" name="HOME_ADDR_COUNTRY" title="<spring:message code="word.userAddrContry"/>" depends="" style="width:150px">
+                   <select id="HOME_ADDR_COUNTRY" name="HOME_ADDR_COUNTRY" title="<spring:message code="word.userAddrCountry"/>" depends="" style="width:150px">
 						<option value=""><spring:message code="word.select"/></option>
-                        <c:forEach var="addrContryList" items="${ds_addrContryList}">
-                            <option value="${addrContryList.CD}">${addrContryList.CD_NM}</option>
+                        <c:forEach var="addrCountryList" items="${ds_addrCountryList}">
+                            <option value="${addrCountryList.CD}">${addrCountryList.CD_NM}</option>
                         </c:forEach>
 					</select>
 				</td>
@@ -270,12 +270,12 @@ function fn_clearData(){
 			</tr>
 			<tr>
 				<th rowspan="2"><spring:message code="word.userCompAddr"/></th>
-				<th><spring:message code="word.userAddrContry"/></th>
+				<th><spring:message code="word.userAddrCountry"/></th>
 				<td>
-                   <select id="COMP_ADDR_COUNTRY" name="COMP_ADDR_COUNTRY" title="<spring:message code="word.userAddrContry"/>" depends="" style="width:150px">
+                   <select id="COMP_ADDR_COUNTRY" name="COMP_ADDR_COUNTRY" title="<spring:message code="word.userAddrCountry"/>" depends="" style="width:150px">
 						<option value=""><spring:message code="word.select"/></option>
-                        <c:forEach var="addrContryList" items="${ds_addrContryList}">
-                            <option value="${addrContryList.CD}">${addrContryList.CD_NM}</option>
+                        <c:forEach var="addrCountryList" items="${ds_addrCountryList}">
+                            <option value="${addrCountryList.CD}">${addrCountryList.CD_NM}</option>
                         </c:forEach>
 					</select>
 				</td>
@@ -299,6 +299,56 @@ function fn_clearData(){
 					</select>
 				</td>
 			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.snsType"/></th>
+				<td colspan="3">
+					<select id="SNS_TYPE" name=""SNS_TYPE"" title="<spring:message code="word.snsType"/>" depends="" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="snsTypeList" items="${ds_snsTypeList}">
+                            <option value="${snsTypeList.CD}">${snsTypeList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.snsId"/></th>
+				<td colspan="3"><input type="text" name="SNS_ID" id="SNS_ID" maxlength="20" title="<spring:message code="word.snsId"/>" depends="englishNumeric"/></td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.snsId"/></th>
+				<td colspan="3"><input type="text" name="SNS_ID" id="SNS_ID" maxlength="20" title="<spring:message code="word.snsId"/>" depends="englishNumeric"/></td>
+			</tr>
+			<tr>
+				<th><spring:message code="word.phone"/></th>
+				<th><spring:message code="word.countryNo"/></th>
+				<td><input type="text" name="PHONE_COUNTRY_NO" id="PHONE_COUNTRY_NO" maxlength="3" style="width:50px" title="<spring:message code="word.countryNo"/>" depends="required,numeric"/></td>
+				<th><spring:message code="cop.mbtlNum"/></th>
+				<td><input type="text" name="PHONE_NO" id="PHONE_NO" maxlength="11" style="width:100px" title="<spring:message code="cop.mbtlNum"/>" depends="required,numeric"/> <spring:message code="info.tel.msg"/></td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="cop.emailAdres"/></th>
+				<td colspan="3"><input type="text" name="EMAIL_ID" id="EMAIL_ID" maxlength="30" style="width:200px" title="<spring:message code="cop.emailAdres"/>" depends="required,email"/></td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.bankNm"/></th>
+				<td colspan="3"><input type="text" name="BANK_NAME" id="BANK_NAME" maxlength="80" style="width:500px" title="<spring:message code="word.bankNm"/>" depends=""/></td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.accountNo"/></th>
+				<td colspan="3"><input type="text" name="ACCOUNT_NO" id="ACCOUNT_NO" maxlength="20" style="width:150px" title="<spring:message code="word.accountNo"/>" depends="englishNumeric"/></td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.recommenderId"/></th>
+				<td colspan="3"><input type="text" name="RECOMMENDER_ID" id="RECOMMENDER_ID" maxlength="20" title="<spring:message code="word.recommenderId"/>" depends="englishNumeric"/></td>
+			</tr>
+		<c:choose>
+			<c:when test="${MODE=='DETAIL'}">
+			<tr>
+				<th colspan="2"><spring:message code="word.lastOrderDate"/></th>
+				<td colspan="3"><input type="text" name="LAST_ORDER_DATE" id="LAST_ORDER_DATE" title="<spring:message code="word.lastOrderDate"/>" disabled/></td>
+			</tr>
+			</c:when>
+		</c:choose>
 		</table>
 		</form>
 		
