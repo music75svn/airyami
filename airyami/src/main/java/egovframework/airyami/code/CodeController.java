@@ -514,14 +514,18 @@ public class CodeController {
     		}else if("DELETE".equals(params.get("PROC_MODE"))){
     			// 코드 삭제
     			List queryList = new ArrayList();
-    			params.put("queryGubun", "DELETE");
-    			params.put("query", "commcode.deleteCode");
-    			queryList.add(params);
+    			Map<String,Object> queryMap = new HashMap();
+    			queryMap.putAll(params);
+    			queryMap.put("queryGubun", "DELETE");
+    			queryMap.put("query", "commcode.deleteCode");
+    			queryList.add(queryMap);
     			
     			// 메시지 삭제
-    			params.put("queryGubun", "DELETE");
-    			params.put("query", "commcode.deleteCodeNm");
-    			queryList.add(params);
+    			queryMap = new HashMap();
+    			queryMap.putAll(params);
+    			queryMap.put("queryGubun", "DELETE");
+    			queryMap.put("query", "commcode.deleteCodeNm");
+    			queryList.add(queryMap);
     			cmmService.saveCommDbList(queryList);
     		}
     	}

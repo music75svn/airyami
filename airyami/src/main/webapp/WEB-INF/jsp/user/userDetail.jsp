@@ -163,43 +163,46 @@ function fn_clearData(){
 			<input type="hidden" name="PROC_MODE" id="PROC_MODE" value=''/>
 		<table summary="<spring:message code="word.userDetail"/>" cellspacing="0" border="0" class="tbl_list_type2">
 			<colgroup>
+			<col width="12%">
+			<col width="15%">
 			<col width="20%">
-			<col width="80%">
+			<col width="15%">
+			<col width="38%">
 			</colgroup>
 			<tr>
-				<th><spring:message code="word.userId"/></th>
+				<th colspan="2"><spring:message code="word.userId"/></th>
 			<c:choose>
 				<c:when test="${MODE=='DETAIL'}">
-				<td><input type="text" name="USER_ID" id="USER_ID" disabled /></td>
+				<td colspan="3"><input type="text" name="USER_ID" id="USER_ID" disabled /></td>
 				</c:when>
 				<c:when test="${MODE=='CREATE'}">
-				<td><input type="text" name="USER_ID" id="USER_ID" maxlength="20" title="<spring:message code="word.userId"/>" depends="required"/></td>
+				<td colspan="3"><input type="text" name="USER_ID" id="USER_ID" maxlength="20" title="<spring:message code="word.userId"/>" depends="required"/></td>
 				</c:when>
 			</c:choose>
 			</tr>
 			<tr>
-				<th><spring:message code="word.userNm"/></th>
-				<td><input type="text" name="ORIGINAL_NM" id="ORIGINAL_NM" maxlength="20" title="<spring:message code="word.userNm"/>" depends="required"/></td>
+				<th colspan="2"><spring:message code="word.userNm"/></th>
+				<td colspan="3"><input type="text" name="ORIGINAL_NM" id="ORIGINAL_NM" maxlength="20" title="<spring:message code="word.userNm"/>" depends="required"/></td>
 			</tr>
 			<tr>
-				<th><spring:message code="word.passportNm"/></th>
-				<td><input type="text" name="PASSPORT_NM" id="PASSPORT_NM" maxlength="20" title="<spring:message code="word.passportNm"/>" depends="required,English" /></td>
+				<th colspan="2"><spring:message code="word.passportNm"/></th>
+				<td colspan="3"><input type="text" name="PASSPORT_NM" id="PASSPORT_NM" maxlength="20" title="<spring:message code="word.passportNm"/>" depends="required,English" /></td>
 			</tr>
 	<c:choose>
 		<c:when test="${MODE=='CREATE'}">
 			<tr>
-				<th><spring:message code="word.userPass"/></th>
-				<td><input type="password" name="USER_PSWD" id="USER_PSWD" maxlength="20" title="<spring:message code="word.userPass"/>" depends="required"/></td>
+				<th colspan="2"><spring:message code="word.userPass"/></th>
+				<td colspan="3"><input type="password" name="USER_PSWD" id="USER_PSWD" maxlength="20" title="<spring:message code="word.userPass"/>" depends="required"/></td>
 			</tr>
 			<tr>
-				<th><spring:message code="word.userPassConfirm"/></th>
-				<td><input type="password" name="USER_PSWD_CONFIRM" id="USER_PSWD_CONFIRM" maxlength="20" title="<spring:message code="word.userPassConfirm"/>" depends="required"/></td>
+				<th colspan="2"><spring:message code="word.userPassConfirm"/></th>
+				<td colspan="3"><input type="password" name="USER_PSWD_CONFIRM" id="USER_PSWD_CONFIRM" maxlength="20" title="<spring:message code="word.userPassConfirm"/>" depends="required"/></td>
 			</tr>
 		</c:when>
 	</c:choose>
 			<tr>
-				<th><spring:message code="word.userTypeRole"/></th>
-				<td>
+				<th colspan="2"><spring:message code="word.userTypeRole"/></th>
+				<td colspan="3">
 					<select id="USER_TYPE_ROLE" name="USER_TYPE_ROLE" title="<spring:message code="word.userTypeRole"/>" depends="required" style="width:150px">
 						<option value=""><spring:message code="word.select"/></option>
                         <c:forEach var="typeRoleList" items="${ds_typeRoleList}">
@@ -209,8 +212,92 @@ function fn_clearData(){
 				</td>
 			</tr>
 			<tr>
-				<th><spring:message code="word.bizEntityId"/></th>
-				<td><input type="text" name="BIZ_ENTITY_ID" id="BIZ_ENTITY_ID" maxlength="8" title="<spring:message code="word.bizEntityId"/>" depends=""/></td>
+				<th colspan="2"><spring:message code="word.bizEntityId"/></th>
+				<td colspan="3"><input type="text" name="BIZ_ENTITY_ID" id="BIZ_ENTITY_ID" maxlength="8" title="<spring:message code="word.bizEntityId"/>" depends=""/></td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.userSex"/></th>
+				<td colspan="3">
+					<select id="SEX" name="SEX" title="<spring:message code="word.userSex"/>" depends="required" style="width:80px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <option value="M"><spring:message code="word.man"/></option>
+                        <option value="F"><spring:message code="word.female"/></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.userBirth"/></th>
+				<td colspan="3">
+					<select id="BIRTH_YEAR" name="BIRTH_YEAR" title="<spring:message code="word.year"/>" depends="required" style="width:80px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="birthYearList" items="${ds_birthYearList}">
+                            <option value="${birthYearList.YEAR}">${birthYearList.YEAR}<spring:message code="word.year"/></option>
+                        </c:forEach>
+					</select>
+					<select id="BIRTH_MONTH" name="BIRTH_MONTH" title="<spring:message code="word.month"/>" depends="required" style="width:80px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="birthMonthList" items="${ds_birthMonthList}">
+                            <option value="${birthMonthList.MONTH}">${birthMonthList.MONTH}<spring:message code="word.month"/></option>
+                        </c:forEach>
+					</select>
+					<select id="BIRTH_DAY" name="BIRTH_DAY" title="<spring:message code="word.day"/>" depends="required" style="width:80px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="birthDayList" items="${ds_birthDayList}">
+                            <option value="${birthDayList.DAY}">${birthDayList.DAY}<spring:message code="word.day"/></option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th rowspan="2"><spring:message code="word.userHomeAddr"/></th>
+				<th><spring:message code="word.userAddrContry"/></th>
+				<td>
+                   <select id="HOME_ADDR_COUNTRY" name="HOME_ADDR_COUNTRY" title="<spring:message code="word.userAddrContry"/>" depends="" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="addrContryList" items="${ds_addrContryList}">
+                            <option value="${addrContryList.CD}">${addrContryList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+				<th><spring:message code="word.userAddrProvince"/></th>
+				<td><input type="text" name="HOME_ADDR_PROVINCE" id="HOME_ADDR_PROVINCE" maxlength="20" title="<spring:message code="word.userAddrProvince"/>" depends=""/></td>
+			</tr>
+			<tr>
+				<th><spring:message code="word.userAddrCity"/></th>
+				<td><input type="text" name="HOME_ADDR_CITY" id="HOME_ADDR_CITY" maxlength="20" title="<spring:message code="word.userAddrCity"/>" depends=""/></td>
+				<th><spring:message code="word.userAddrFull"/></th>
+				<td><input type="text" name="HOME_ADDR_FULL" id="HOME_ADDR_FULL" maxlength="100" style="width:300px"  title="<spring:message code="word.userAddrFull"/>" depends=""/></td>
+			</tr>
+			<tr>
+				<th rowspan="2"><spring:message code="word.userCompAddr"/></th>
+				<th><spring:message code="word.userAddrContry"/></th>
+				<td>
+                   <select id="COMP_ADDR_COUNTRY" name="COMP_ADDR_COUNTRY" title="<spring:message code="word.userAddrContry"/>" depends="" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="addrContryList" items="${ds_addrContryList}">
+                            <option value="${addrContryList.CD}">${addrContryList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+				<th><spring:message code="word.userAddrProvince"/></th>
+				<td><input type="text" name="COMP_ADDR_PROVINCE" id="COMP_ADDR_PROVINCE" maxlength="20" title="<spring:message code="word.userAddrProvince"/>" depends=""/></td>
+			</tr>
+			<tr>
+				<th><spring:message code="word.userAddrCity"/></th>
+				<td><input type="text" name="COMP_ADDR_CITY" id="COMP_ADDR_CITY" maxlength="20" title="<spring:message code="word.userAddrCity"/>" depends=""/></td>
+				<th><spring:message code="word.userAddrFull"/></th>
+				<td><input type="text" name="COMP_ADDR_FULL" id="COMP_ADDR_FULL" maxlength="100" style="width:300px"  title="<spring:message code="word.userAddrFull"/>" depends=""/></td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.useLanguageCd"/></th>
+				<td colspan="3">
+					<select id="USE_LANGUAGE_CD" name="USE_LANGUAGE_CD" title="<spring:message code="word.useLanguageCd"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="useLanguageList" items="${ds_useLanguageList}">
+                            <option value="${useLanguageList.CD}">${useLanguageList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
 			</tr>
 		</table>
 		</form>

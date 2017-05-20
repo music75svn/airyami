@@ -15,8 +15,9 @@
  */
 package egovframework.airyami.user;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -198,6 +199,44 @@ public class UserController {
     	
     	List<ValueMap> typeRoleList = cmmService.getCommDbList(params, "user.getTypeRoleList");
     	model.put("ds_typeRoleList", typeRoleList);
+    	
+    	// 국가코드 조회
+    	params.put( "CODE_GROUP_ID", "CONTRY" ); //국가 대분류
+    	List<ValueMap> addrContryList = commCodeService.selectCommCode(params);
+    	model.put("ds_addrContryList", addrContryList);
+    	
+    	// 사용언어 조회
+    	params.put( "CODE_GROUP_ID", "LANG" ); //언어 대분류
+    	List<ValueMap> useLanguageList = commCodeService.selectCommCode(params);
+    	model.put("ds_useLanguageList", useLanguageList);
+    	
+    	
+    	// 출생년월일 목록 생성
+    	List<ValueMap> birthYearList = new ArrayList();
+    	List<ValueMap> birthMonthList = new ArrayList();
+    	List<ValueMap> birthDayList = new ArrayList();
+    	
+    	Date now = new Date(); 
+    	SimpleDateFormat sdf = new SimpleDateFormat("yyyy"); 
+    	int nowYear = Integer.parseInt(sdf.format(now));
+    	for(int i = nowYear; i >= nowYear - 80; i--){
+    		ValueMap map = new ValueMap();
+    		map.put("YEAR", i);
+    		birthYearList.add(map);
+    	}
+    	for(int i = 1; i <= 12; i++){
+    		ValueMap map = new ValueMap();
+    		map.put("MONTH", i);
+    		birthMonthList.add(map);
+    	}
+    	for(int i = 1; i <= 31; i++){
+    		ValueMap map = new ValueMap();
+    		map.put("DAY", i);
+    		birthDayList.add(map);
+    	}
+    	model.put("ds_birthYearList", birthYearList);
+    	model.put("ds_birthMonthList", birthMonthList);
+    	model.put("ds_birthDayList", birthDayList);
     	
     	return "/user/userDetail";
     }

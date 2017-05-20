@@ -201,7 +201,7 @@ function fn_goCodeList(pObj){
 					<th cid="USER_ID" alg="center" clickevent="fn_goDetail(this);" url="/user/userList.do"><spring:message code="word.userId"/></th>
 					<th cid="ORIGINAL_NM" alg="center"><spring:message code="word.userNm"/></th>
 					<th cid="USER_ROLE_NM" alg="center"><spring:message code="word.userTypeRole"/></th>
-					<th cid="USE_LANGUAGE_CD" alg="center"><spring:message code="word.useLanguageCd"/></th>
+					<th cid="USE_LANGUAGE_NM" alg="center"><spring:message code="word.useLanguageCd"/></th>
 					<th cid="RECOMMENDER_ID" alg="center"><spring:message code="word.recommenderId"/></th>
 					<th cid="LAST_ORDER_DATE" alg="center"><spring:message code="word.lastOrderDate"/></th>
 				</tr> 
