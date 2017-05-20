@@ -301,7 +301,7 @@ function fn_clearData(){
 			</tr>
 			<tr>
 				<th colspan="2"><spring:message code="word.snsType"/></th>
-				<td colspan="3">
+				<td>
 					<select id="SNS_TYPE" name=""SNS_TYPE"" title="<spring:message code="word.snsType"/>" depends="" style="width:150px">
 						<option value=""><spring:message code="word.select"/></option>
                         <c:forEach var="snsTypeList" items="${ds_snsTypeList}">
@@ -309,14 +309,8 @@ function fn_clearData(){
                         </c:forEach>
 					</select>
 				</td>
-			</tr>
-			<tr>
-				<th colspan="2"><spring:message code="word.snsId"/></th>
-				<td colspan="3"><input type="text" name="SNS_ID" id="SNS_ID" maxlength="20" title="<spring:message code="word.snsId"/>" depends="englishNumeric"/></td>
-			</tr>
-			<tr>
-				<th colspan="2"><spring:message code="word.snsId"/></th>
-				<td colspan="3"><input type="text" name="SNS_ID" id="SNS_ID" maxlength="20" title="<spring:message code="word.snsId"/>" depends="englishNumeric"/></td>
+				<th><spring:message code="word.snsId"/></th>
+				<td><input type="text" name="SNS_ID" id="SNS_ID" maxlength="20" title="<spring:message code="word.snsId"/>" depends="englishNumeric"/></td>
 			</tr>
 			<tr>
 				<th><spring:message code="word.phone"/></th>
