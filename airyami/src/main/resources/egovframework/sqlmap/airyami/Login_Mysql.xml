@@ -29,6 +29,22 @@
 	<select id="login.getAdminLoginInfo" parameterClass="Map" resultClass="ValueMap" >
 		<![CDATA[
 		SELECT 
+			   USER_ID 
+			  ,ORIGINAL_NM		AS USER_NM
+              ,USER_TYPE
+              ,USER_ROLE
+			  ,EMAIL_ID			AS USER_EMAIL
+			  ,USER_TYPE		AS RULE_CD
+		  FROM TB_USER_MASTER
+		 WHERE USER_ID		= #LOGIN_ID#
+		   AND USER_PSWD 	= PASSWORD(#PW#)
+		]]>
+	</select>
+	
+	
+	<select id="login.getAdminLoginInfo_back" parameterClass="Map" resultClass="ValueMap" >
+		<![CDATA[
+		SELECT 
 			   ADMIN_ID			AS USER_ID 
 			  ,NAME				AS USER_NM 
 			  ,EMAIL			AS USER_EMAIL
@@ -42,7 +58,6 @@
 		 WHERE ADMIN_ID=#LOGIN_ID#
 		   AND PASSWORD = PASSWORD(#PW#)
 		   AND USE_YN = 'Y'
-			
 		]]>
 	</select>
 	
