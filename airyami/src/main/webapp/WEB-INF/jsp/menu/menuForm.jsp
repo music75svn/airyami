@@ -42,7 +42,6 @@ function fn_insert(){
 ////////////////////////////////////////////////////////////////////////////////////
 //콜백 함수
 function fn_callBack(sid, result, data){
-	debugger;
 	
 	if (!result.success) {
 		alert(result.msg);
@@ -50,7 +49,7 @@ function fn_callBack(sid, result, data){
 	}
 		
 	if(sid == "insertMenu"){
-		alert("등록하였습니다.");
+		alert('<spring:message code="common.save.msg" />');
 		opener.fn_srch();
 		self.close();
 	}

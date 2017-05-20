@@ -7,7 +7,8 @@ function gfn_OnLoad(bNeedLogin){
 	if(bNeedLogin)
 		if(!gfn_checkLogin()) return;
 	//gfn_setNavi();
-
+	
+	gfn_setType();		// 숫자, 영문 입력만 가능하도록 셋팅하는 부분
 	
 	gfn_SetCommInit();	// 검색조건중 연도,중 업체명, 사업자번호  
 
@@ -22,6 +23,13 @@ function gfn_OnLoad(bNeedLogin){
 		}
 	}catch(e){}
 }
+
+function gfn_setType(){
+	$(".onlynum").keyup(function(){$(this).val( $(this).val().replace(/[^0-9]/g,"") );} );		// 숫자만
+	$(".onlynum2").keyup(function(){$(this).val( $(this).val().replace(/[^\.0-9]/g,"") );} );	// 소수점 포함
+	$(".onlyeng").keyup(function(){$(this).val( $(this).val().replace(/[^\!-z]/g,"") );} );		// 영문만
+}
+
 
 function gfn_checkLogin(){
 	if(!gfn_isLogin())

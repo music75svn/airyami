@@ -175,8 +175,9 @@ var fa_POP_STYLE = new Object();
 
 fa_POP_STYLE["DEFAULT"] = "width=700,height=660,center=true,scrollbars=true,status=yes";
 fa_POP_STYLE["/board/ArticleHistoryList"] = "width=700,height=660,center=true,scrollbars=true,status=yes";
+fa_POP_STYLE["/exchangeRate/exchangeRateDetailPop"] = "width=600,height=400,center=true,scrollbars=false,status=yes";
 
-fa_POP_STYLE["/MCS/MCS0011P"] = "status=yes,scrollbars=yes,resizable=yes,top=50,left=400,width=830,height=760";
+//fa_POP_STYLE["/MCS/MCS0011P"] = "status=yes,scrollbars=yes,resizable=yes,top=50,left=400,width=830,height=760";
 //==============================================================================================
 
 /**************************************************************** 
@@ -1496,7 +1497,7 @@ function gfn_displayList(list, tbID, HiddenInfo){
             			continue;
         			}
         			if(tbTypeInfo[CID] == "NUM"){
-        				valText = gfn_maskAmt(valText);
+        				valText = gfn_maskAmt(valText, true);
         			}
         			else if(tbTypeInfo[CID] == "DATE"){
         				valText = gfn_maskDate(valText);
@@ -1910,7 +1911,8 @@ function gfn_setDetails(oJsonObj, pArea){
 					}
 					
 					if($('#' + skey).attr("isNum") == "Y"){
-						$('#' + skey).toPrice();
+						//$('#' + skey).toPrice();
+						$('#' + skey).val(gfn_maskAmt(svalue, ture));
 					}
 					
 					if($('#' + skey).attr("isDate") == "Y"){
@@ -1968,7 +1970,7 @@ function gfn_setDetails(oJsonObj, pArea){
 					}
 					
 					if($('#' + skey).attr("isNum") == "Y"){
-						svalue = gfn_maskAmt(svalue);
+						svalue = gfn_maskAmt(svalue, true);
 					}
 					if($('#' + skey).attr("isDate") == "Y"){
 						svalue =  gfn_maskDate(svalue);
@@ -3459,6 +3461,7 @@ $.fn.toPrice = function(cipher) {
 	 };
 	 
  $.fn.getOnlyNumeric = function(data) {
+	 debugger;
 	  var chrTmp, strTmp;
 	  var len, str;
 	  
@@ -3472,9 +3475,11 @@ $.fn.toPrice = function(cipher) {
 	  len = str.length;
 	  strTmp = '';
 	  
+	  
 	  for(var i=0; i<len; ++i) {
 	   chrTmp = str.charCodeAt(i);
-	   if((chrTmp > 47 || chrTmp <= 31) && chrTmp < 58) {
+	   //if((chrTmp > 47 || chrTmp <= 31) && chrTmp < 58) {
+		if((chrTmp > 47 || chrTmp <= 31 || chrTmp==46) && chrTmp < 58) { // 소수점포함
 	    strTmp = strTmp + String.fromCharCode(chrTmp);
 	   }
 	  }

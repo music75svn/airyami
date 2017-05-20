@@ -16,10 +16,10 @@
 	   AND TO_CURRENCY = #TO_CURRENCY#
 	 </isNotEmpty>
 	 <isNotEmpty property="FROM_DT">
-	   AND str_to_date(BIZ_DATE,'%Y%m%d') &gt;= str_to_date(#FROM_DT#,'%Y%m%d')
+	   AND str_to_date(BIZ_DT,'%Y%m%d') &gt;= str_to_date(#FROM_DT#,'%Y%m%d')
 	 </isNotEmpty>
 	 <isNotEmpty property="END_DT">
-	   AND str_to_date(BIZ_DATE,'%Y%m%d') &lt;= str_to_date(#END_DT#,'%Y%m%d')
+	   AND str_to_date(BIZ_DT,'%Y%m%d') &lt;= str_to_date(#END_DT#,'%Y%m%d')
 	 </isNotEmpty> 
 </select>
 		
@@ -29,7 +29,7 @@
 	</isEqual>
 	SELECT /* ExchangeRate_Mysql.xml  exchangeRate.selectExchangeRateList */
 	       SEQ
-		  ,BIZ_DATE
+		  ,BIZ_DT
 		  ,FR_CURRENCY
 	      ,TO_CURRENCY
 	      ,BIZ_EXT_RATE
@@ -43,10 +43,10 @@
 	   AND TO_CURRENCY = #TO_CURRENCY#
 	 </isNotEmpty>
 	 <isNotEmpty property="FROM_DT">
-	   AND str_to_date(BIZ_DATE,'%Y%m%d') &gt;= str_to_date(#FROM_DT#,'%Y%m%d')
+	   AND str_to_date(BIZ_DT,'%Y%m%d') &gt;= str_to_date(#FROM_DT#,'%Y%m%d')
 	 </isNotEmpty>
 	 <isNotEmpty property="TO_DT">
-	   AND str_to_date(BIZ_DATE,'%Y%m%d') &lt;= str_to_date(#TO_DT#,'%Y%m%d')
+	   AND str_to_date(BIZ_DT,'%Y%m%d') &lt;= str_to_date(#TO_DT#,'%Y%m%d')
 	 </isNotEmpty> 
 	 <isNotEmpty property="SORT_COL">
 	 	<include refid="orderbySQL"/>
@@ -58,5 +58,62 @@
 	<include refid="pagingSuffixSQL"/>
 	</isEqual>
 </select>
+
+
+
+<select id="exchangeRate.getExchangeRateDetail" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* ExchangeRate_Mysql.xml  "exchangeRate.getExchangeRateDetail" */
+	       SEQ
+		  ,BIZ_DT
+		  ,FR_CURRENCY
+	      ,TO_CURRENCY
+	      ,BIZ_EXT_RATE
+	      ,BASIC_EXT_RATE
+	  FROM TB_EXCHANGE_RATE_MASTER
+	 WHERE SEQ = #SEQ#
+</select>
+
+
+
+<insert id="exchangeRate.insertExchangeRate" parameterClass="Map">
+	INSERT /* ExchangeRate_Mysql.xml  exchangeRate.insertExchangeRate */
+	  INTO TB_EXCHANGE_RATE_MASTER
+		(
+		BIZ_DT,
+		FR_CURRENCY,
+		TO_CURRENCY,
+		BASIC_EXT_RATE,
+		BIZ_EXT_RATE,
+		INSERT_USER_ID,
+		INSERT_DT)
+		VALUES
+		(
+		#BIZ_DT#,
+		#FR_CURRENCY#,
+		#TO_CURRENCY#,
+		#BASIC_EXT_RATE#,
+		#BIZ_EXT_RATE#,
+		#LOGIN_ID#,
+		DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	
+</insert>
+
+<update id="exchangeRate.updateExchangeRate" parameterClass="Map">
+	UPDATE TB_EXCHANGE_RATE_MASTER /* ExchangeRate_Mysql.xml  exchangeRate.saveExchangeRate */
+	   SET BASIC_EXT_RATE 	= #BASIC_EXT_RATE#,
+		   BIZ_EXT_RATE 	= #BIZ_EXT_RATE#,
+		   UPDATE_USER_ID 	= #LOGIN_ID#,
+		   UPDATE_DT 		= DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	 WHERE SEQ = #SEQ#
+</update>
+
+<delete id="exchangeRate.deleteExchangeRate" parameterClass="Map">
+	DELETE /* ExchangeRate_Mysql.xml  exchangeRate.deleteExchangeRate */
+	  FROM TB_EXCHANGE_RATE_MASTER
+	 WHERE SEQ = #SEQ#
+</delete>
+
+
 	
 </sqlMap>
