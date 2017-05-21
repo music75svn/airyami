@@ -7,26 +7,23 @@
 	
 	<insert id="cmm.insertMenuLog" parameterClass="map">
 	INSERT INTO	TB_MENU_LOG(
-	    SITE_ID
+	    MENU_TYPE
 	   ,MENU_CODE
-	   ,REG_ID
-	   ,REG_DT
-	   ,REG_TM
-	   ,MOD_ID
-	   ,MOD_DT
-	   ,MOD_TM)
+	   ,INSERT_USER_ID
+	   ,INSERT_DT
+	   ,UPDATE_USER_ID
+	   ,UPDATE_DT
+	   )
 	VALUES
 	  (
-	    #SITE_ID#
+	    #MENU_TYPE#
 	   ,#MENU_CODE#
 	   <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
 	   <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
-	   ,DATE_FORMAT(now(), '%Y%m%d')
-	   ,DATE_FORMAT(now(), '%H%i%s')
+	   ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 	   <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
 	   <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
-	   ,DATE_FORMAT(now(), '%Y%m%d')
-	   ,DATE_FORMAT(now(), '%H%i%s')
+	   ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 	  )
 	
 	</insert>

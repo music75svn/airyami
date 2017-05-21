@@ -34,8 +34,6 @@
 	    
 	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver" p:order="0"></bean>
 	
-	<bean id="excelView" class="egovframework.airyami.cmm.excel.ExcelView"></bean>
-	<bean id="downloadView" class="egovframework.airyami.cmm.util.DownloadView"></bean>
 
     <!-- 로그인 체크가 필요한 URL과 로그인 여부를 체크해준다 -->
     <!-- <mvc:interceptors>
