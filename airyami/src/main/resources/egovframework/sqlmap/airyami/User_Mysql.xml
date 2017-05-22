@@ -6,7 +6,7 @@
 <typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
 	
 	<select id="user.getUserCount" parameterClass="Map" resultClass="java.lang.Integer">
-	SELECT /* Comm_Code_Mysql.xml  user.getUserCount */
+	SELECT /* User_Mysql.xml  user.getUserCount */
 	       COUNT(1) 
 	  FROM TB_USER_MASTER A
 	     , TB_USER_ROLE_MASTER B
@@ -29,7 +29,7 @@
 	<isEqual property="EXCEL_YN" compareValue="N">
 	<include refid="pagingPrefixSQL"/>
 	</isEqual>
-	SELECT /* Comm_Code_Mysql.xml  user.getUserList */
+	SELECT /* User_Mysql.xml  user.getUserList */
            A.USER_ID
          , A.USER_TYPE
          , A.USER_ROLE
@@ -88,7 +88,7 @@
 
 	<!-- TB_USER_ROLE_MASTER 사용자구분, 역할 목록조회 -->
 	<select id="user.getTypeRoleList" parameterClass="Map" resultClass="ValueMap">
-	SELECT /* Comm_Code_Mysql.xml  user.getUserDetail */
+	SELECT /* User_Mysql.xml  user.getUserDetail */
 	       CONCAT(USER_TYPE, USER_ROLE) USER_TYPE_ROLE
 	     , USER_ROLE_NM
 	  FROM TB_USER_ROLE_MASTER
@@ -97,7 +97,7 @@
  
 	<!-- TB_USER_MASTER 상세조회 -->
 	<select id="user.getUserDetail" parameterClass="Map" resultClass="ValueMap">
-	SELECT /* Comm_Code_Mysql.xml  user.getUserDetail */
+	SELECT /* User_Mysql.xml  user.getUserDetail */
            A.USER_ID
          , CONCAT(USER_TYPE, USER_ROLE) AS USER_TYPE_ROLE
          , A.BIZ_ENTITY_ID
@@ -130,7 +130,7 @@
 	</select>
 	
 	<select id="user.getUserExistYn" parameterClass="Map" resultClass="java.lang.String">
-	SELECT /* Comm_Code_Mysql.xml  user.getUserExistYn */
+	SELECT /* User_Mysql.xml  user.getUserExistYn */
 		   CASE WHEN count(*) = 0 THEN 'N' ELSE 'Y' END EXIST_YN
 	  FROM TB_USER_MASTER
 	 WHERE 1 = 1
@@ -140,7 +140,7 @@
 	</select>
 	
 	<insert id="user.insertUser" parameterClass="Map">
-	INSERT /* Comm_Code_Mysql.xml  user.insertUser */
+	INSERT /* User_Mysql.xml  user.insertUser */
 	  INTO TB_USER_MASTER
 		(
            USER_ID
@@ -211,7 +211,7 @@
 	</insert>
 	
 	<update id="user.updateUser" parameterClass="Map">
-	UPDATE /* Comm_Code_Mysql.xml  user.updateUser */
+	UPDATE /* User_Mysql.xml  user.updateUser */
 	       TB_USER_MASTER
 	   SET USER_PSWD              = PASSWORD(#USER_PSWD#)
          , USER_TYPE              = #USER_TYPE#
@@ -247,7 +247,7 @@
 	</update>
 	
 	<delete id="user.deleteUser" parameterClass="Map">
-	DELETE /* Comm_Code_Mysql.xml  user.deleteUser */
+	DELETE /* User_Mysql.xml  user.deleteUser */
 	  FROM TB_USER_MASTER
 	 WHERE USER_ID = #USER_ID#
 	</delete>
