@@ -91,7 +91,7 @@
 	SELECT /* Company_Mysql.xml  company.getBizEntityId */
 		   CONCAT(#BIZ_ENTITY_TYPE#, DATE_FORMAT(now(), '%y%m'), 
 	              IFNULL((SELECT 
-	                            SUBSTR(BIZ_ENTITY_ID, 6, 3) AS SERIAL_NO
+	                            MAX(SUBSTR(BIZ_ENTITY_ID, 6, 3)) AS SERIAL_NO
 	                        FROM
 	                            TB_COMPANY_MASTER), '001'))
       FROM DUAL;
