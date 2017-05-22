@@ -202,8 +202,8 @@ public class UserController {
     	
     	// 국가코드 조회
     	params.put( "CODE_GROUP_ID", "COUNTRY" ); //국가 대분류
-    	List<ValueMap> addrContryList = commCodeService.selectCommCode(params);
-    	model.put("ds_addrContryList", addrContryList);
+    	List<ValueMap> addrCountryList = commCodeService.selectCommCode(params);
+    	model.put("ds_addrCountryList", addrCountryList);
     	
     	// 사용언어 조회
     	params.put( "CODE_GROUP_ID", "LANG" ); //언어 대분류
