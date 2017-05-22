@@ -11,4 +11,5 @@
 	<sqlMap resource="egovframework/sqlmap/airyami/Login_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/Menu_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/User_Mysql.xml"/>
+	<sqlMap resource="egovframework/sqlmap/airyami/Company_Mysql.xml"/>
 </sqlMapConfig>

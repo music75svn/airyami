@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="company">
+
+<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+	
+	<select id="company.getCompanyCount" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT /* Company_Mysql.xml  company.getCompanyCount */
+	       COUNT(1) 
+	  FROM TB_COMPANY_MASTER A
+	 WHERE 1 = 1
+	   AND A.INSERT_USER_ID = #LOGIN_ID#
+	 <isNotEmpty property="SEARCH_BIZ_ENTITY_ID">
+	   AND A.BIZ_ENTITY_ID = #SEARCH_BIZ_ENTITY_ID#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_COMP_NM">
+	   AND A.COMP_NM LIKE CONCAT('%',#SEARCH_COMP_NM#,'%')
+	 </isNotEmpty>
+	</select>
+	
+	<select id="company.getCompanyList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingPrefixSQL"/>
+	</isEqual>
+	SELECT /* Company_Mysql.xml  company.getCompanyList */
+		   BIZ_ENTITY_ID   
+		 , BIZ_ENTITY_TYPE 
+		 , BIZ_TYPE        
+		 , BIZ_LICENSE_NO  
+		 , COMP_NM         
+		 , COMP_CEO_ID     
+		 , ADDR_COUNTRY    
+		 , ADDR_PROVINCE   
+		 , ADDR_CITY       
+		 , ADDR_FULL       
+		 , PHONE_COUNTRY_NO
+		 , PHONE_NO        
+		 , SMART_PHONE_NO  
+		 , EMAIL_ID        
+		 , VALID_YN        
+		 , EXPIRED_DATE     
+		 , SNS_TYPE        
+		 , SNS_ID
+	  FROM TB_COMPANY_MASTER A
+	 WHERE 1 = 1
+	   AND A.INSERT_USER_ID = #LOGIN_ID#
+	 <isNotEmpty property="SEARCH_BIZ_ENTITY_ID">
+	   AND A.BIZ_ENTITY_ID = #SEARCH_BIZ_ENTITY_ID#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_COMP_NM">
+	   AND A.COMP_NM LIKE CONCAT('%',#SEARCH_COMP_NM#,'%')
+	 </isNotEmpty>
+	 <isNotEmpty property="SORT_COL">
+	 	<include refid="orderbySQL"/>
+	 </isNotEmpty>
+	 <isEmpty property="SORT_COL">
+	 ORDER BY A.INSERT_DT DESC
+	 </isEmpty>
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingSuffixSQL"/>
+	</isEqual>
+	</select>
+ 
+	<!-- TB_COMPANY_MASTER 상세조회 -->
+	<select id="company.getCompanyDetail" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* Company_Mysql.xml  company.getCompanyDetail */
+		   BIZ_ENTITY_ID   
+		 , BIZ_ENTITY_TYPE 
+		 , BIZ_TYPE        
+		 , BIZ_LICENSE_NO  
+		 , COMP_NM         
+		 , COMP_CEO_ID     
+		 , ADDR_COUNTRY    
+		 , ADDR_PROVINCE   
+		 , ADDR_CITY       
+		 , ADDR_FULL       
+		 , PHONE_COUNTRY_NO
+		 , PHONE_NO        
+		 , SMART_PHONE_NO  
+		 , EMAIL_ID        
+		 , VALID_YN        
+		 , EXPIRED_DATE     
+		 , SNS_TYPE        
+		 , SNS_ID
+	  FROM TB_COMPANY_MASTER A
+	 WHERE A.BIZ_ENTITY_ID= #SEARCH_BIZ_ENTITY_ID#
+	</select>
+	
+	<select id="company.getBizEntityId" parameterClass="Map" resultClass="java.lang.String">
+	SELECT /* Company_Mysql.xml  company.getBizEntityId */
+		   CONCAT(#BIZ_ENTITY_TYPE#, DATE_FORMAT(now(), '%y%m'), 
+					CASE WHEN (select SUBSTR(BIZ_ENTITY_ID, 6, 3) AS SERIAL_NO from TB_COMPANY_MASTER) IS NULL 
+				         THEN '001'
+				         ELSE (select SUBSTR(BIZ_ENTITY_ID, 6, 3) AS SERIAL_NO from TB_COMPANY_MASTER)
+				         END) 
+      FROM DUAL;
+	</select>
+	
+	<insert id="company.insertCompany" parameterClass="Map">
+	INSERT /* Company_Mysql.xml  company.insertCompany */
+	  INTO TB_COMPANY_MASTER
+		(
+ 		   BIZ_ENTITY_ID   
+		 , BIZ_ENTITY_TYPE 
+		 , BIZ_TYPE        
+		 , BIZ_LICENSE_NO  
+		 , COMP_NM         
+		 , COMP_CEO_ID     
+		 , ADDR_COUNTRY    
+		 , ADDR_PROVINCE   
+		 , ADDR_CITY       
+		 , ADDR_FULL       
+		 , PHONE_COUNTRY_NO
+		 , PHONE_NO        
+		 , SMART_PHONE_NO  
+		 , EMAIL_ID        
+		 , VALID_YN        
+		 , EXPIRED_DATE     
+		 , SNS_TYPE        
+		 , SNS_ID
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+		   #BIZ_ENTITY_ID#
+		 , #BIZ_ENTITY_TYPE#
+		 , #BIZ_TYPE#
+		 , #BIZ_LICENSE_NO#
+		 , #COMP_NM#
+		 , #COMP_CEO_ID#
+		 , #ADDR_COUNTRY#
+		 , #ADDR_PROVINCE#
+		 , #ADDR_CITY#
+		 , #ADDR_FULL#
+		 , #PHONE_COUNTRY_NO#
+		 , #PHONE_NO#
+		 , #SMART_PHONE_NO#
+		 , #EMAIL_ID#
+		 , #VALID_YN#
+		 , #EXPIRED_DATE#
+		 , #SNS_TYPE#
+		 , #SNS_ID#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+	
+	<update id="company.updateCompany" parameterClass="Map">
+	UPDATE /* Company_Mysql.xml  company.updateCompany */
+	       TB_COMPANY_MASTER
+	   SET BIZ_ENTITY_ID                = #BIZ_ENTITY_ID#
+		 , BIZ_ENTITY_TYPE              = #BIZ_ENTITY_TYPE#
+		 , BIZ_TYPE                     = #BIZ_TYPE#
+		 , BIZ_LICENSE_NO               = #BIZ_LICENSE_NO#
+		 , COMP_NM                      = #COMP_NM#
+		 , COMP_CEO_ID                  = #COMP_CEO_ID#
+		 , ADDR_COUNTRY                 = #ADDR_COUNTRY#
+		 , ADDR_PROVINCE                = #ADDR_PROVINCE#
+		 , ADDR_CITY                    = #ADDR_CITY#
+		 , ADDR_FULL                    = #ADDR_FULL#
+		 , PHONE_COUNTRY_NO             = #PHONE_COUNTRY_NO#
+		 , PHONE_NO                     = #PHONE_NO#
+		 , SMART_PHONE_NO               = #SMART_PHONE_NO#
+		 , EMAIL_ID                     = #EMAIL_ID#
+		 , VALID_YN                     = #VALID_YN#
+		 , EXPIRED_DATE                 = #EXPIRED_DATE#
+		 , SNS_TYPE                     = #SNS_TYPE#
+		 , SNS_ID                       = #SNS_ID#
+	     , UPDATE_BIZ_ENTITY_ID         = #LOGIN_ID#
+	     , UPDATE_DT                    = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	 WHERE BIZ_ENTITY_ID                = #BIZ_ENTITY_ID#
+	</update>
+	
+	<delete id="company.deleteCompany" parameterClass="Map">
+	DELETE /* Company_Mysql.xml  company.deleteCompany */
+	  FROM TB_COMPANY_MASTER
+	 WHERE BIZ_ENTITY_ID = #BIZ_ENTITY_ID#
+	</delete>
+</sqlMap>
