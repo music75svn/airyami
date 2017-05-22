@@ -42,20 +42,6 @@
 	<bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
         <property name="paramName" value="lang" />
     </bean>
-    
-    <!-- 인터셉터 설정 -->
-    <bean id="interceptor" class="egovframework.airyami.cmm.web.InterceptorController"/>
-    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
-		<property name="interceptors">
-			<list>
-				<ref bean="interceptor" />
-			</list>
-		</property> 
-	</bean>
-	
-	<bean id="excelView" class="egovframework.airyami.cmm.excel.ExcelView"></bean>
-	<bean id="downloadView" class="egovframework.airyami.cmm.util.DownloadView"></bean>
-	
     	
 	
 	<!-- Exception 발생시 후처리용 별도작업을 위해 실행환경의 LeveaTrace를 활용하도록 설정 -->

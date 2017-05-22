@@ -18,7 +18,8 @@ function fn_getLeftMenuList() {
 	inputParam.url 			= "/CMM/lMenuList.do";
 	inputParam.data 		= gfn_makeInputData($("#menuForm"));
 	//inputParam.data.MENU_SITE_ID = gfn_getSiteID();
-	inputParam.data.MENU_TYPE = "A";
+	//inputParam.data.MENU_TYPE = "A";
+	inputParam.data.MENU_TYPE = SES_MENU_TYPE;
 	
 	inputParam.callback		= fn_callBackLMenu;
 	
@@ -54,7 +55,7 @@ function fn_setLeftMenu(menu_list) {
 		L_MENU_CD = menu_list[0].MENU_CODE;
 	}
 	for(var i = 0 ; i < menu_list.length; i++){
-		var linkUrl = menu_list[i].LINK_URL + "?H_MENU_CD=" + $("#H_MENU_CD").val() + "&L_MENU_CD=" + menu_list[i].MENU_CODE + site_id + "&MENUON=Y&" + menu_list[i].LINK_PARAM;
+		var linkUrl = menu_list[i].LINK_URL + "?H_MENU_CD=" + $("#H_MENU_CD").val() + "&L_MENU_CD=" + menu_list[i].MENU_CODE + site_id + "&MENUON=Y&MENU_TYPE="+ menu_list[i].MENU_TYPE +"&" + menu_list[i].LINK_PARAM;
 		var selected = "";
 		if(L_MENU_CD == menu_list[i].MENU_CODE) {
 			selected = "on";

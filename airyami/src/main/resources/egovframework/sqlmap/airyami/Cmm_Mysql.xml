@@ -60,7 +60,8 @@
 		
 	<select id="cmm.getHeadMenuList" parameterClass="Map" resultClass="ValueMap" >
 		SELECT 
-			   A.MENU_CODE
+			   A.MENU_TYPE
+			  ,A.MENU_CODE
 			  ,B.MENU_NAME
 		  FROM TB_MENU A
 		      ,TB_MENU_NM B
@@ -80,7 +81,8 @@
 	
 	<select id="cmm.getLeftMenuList" parameterClass="Map" resultClass="ValueMap" >
 		SELECT 
-			   A.MENU_CODE
+			   A.MENU_TYPE
+			  ,A.MENU_CODE
 			  ,B.MENU_NAME
 			  ,A.UPPER_MENU_CODE
 			  ,LINK_URL

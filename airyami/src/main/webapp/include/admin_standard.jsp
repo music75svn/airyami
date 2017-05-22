@@ -14,7 +14,7 @@
 
 <link rel="stylesheet" href="/css/admin/admin.css" type="text/css">
 <link href="<c:url value='/'/>css/common.css" rel="stylesheet" type="text/css" >
-<link href="<c:url value='/'/>css/admin.css" rel="stylesheet" type="text/css" >
+<link href="<c:url value='/'/>css/admin/admin.css" rel="stylesheet" type="text/css" >
 <!-- 달력관련 -->
 <link rel="stylesheet" href="/js/lib/DatePicker/themes/base/jquery.ui.all.css"  media="screen" />
 	
@@ -39,3 +39,6 @@
 <script src="http://code.jquery.com/ui/1.8.18/jquery-ui.min.js" ></script>
 <!-- <script type="text/javascript" src="/js/lib/modernizr.custom.js"></script> -->
 
+<script type="text/javascript">
+SES_MENU_TYPE = "A";
+</script>
