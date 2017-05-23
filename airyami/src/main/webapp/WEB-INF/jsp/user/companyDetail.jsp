@@ -59,7 +59,7 @@ function fn_callBack(sid, result, data){
 		alert("<spring:message code="success.request.msg"/>");
 		
 		var inputParam = gfn_makeInputData($("#findForm"));
-		gfn_commonGo("/user/userList", inputParam, "N");
+		gfn_commonGo("/user/companyList", inputParam, "N");
 	}
 }
 
@@ -71,14 +71,21 @@ function fn_goSave(){
 	if(!gfn_validationForm($("#dataForm"))){
 		return;
 	}
-<c:choose>
-	<c:when test="${MODE=='CREATE'}">
-		if($('#USER_PSWD').val() != $('#USER_PSWD_CONFIRM').val()){
-			alert("비밀번호와 비밀번호확인이 틀립니다.");
+	
+	// 법인일 경우 법인등록번호, 법인명 필수체크
+	if($('#BIZ_TYPE').val() == "2"){
+		if($('#BIZ_LICENSE_NO').val() == ""){
+			alert("<spring:message code="word.bizLicenseNo"/><spring:message code="common.required.msg"/>");
+			$('#BIZ_LICENSE_NO').focus();
 			return;
 		}
-	</c:when>
-</c:choose>
+		if($('#COMP_NM').val() == ""){
+			alert("<spring:message code="word.compNm"/><spring:message code="common.required.msg"/>");
+			$('#COMP_NM').focus();
+			return;
+		}
+	}
+	
 	if(!confirm("<spring:message code="common.save.msg"/>")){
 		return false;
 	}
@@ -181,11 +188,41 @@ function fn_clearData(){
 			</c:choose>
 			</tr>
 			<tr>
+				<th colspan="2"><spring:message code="word.bizEntityType"/></th>
+				<td colspan="3">
+					<select id="BIZ_ENTITY_TYPE" name="BIZ_ENTITY_TYPE" title="<spring:message code="word.bizEntityType"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="bizEntityTypeList" items="${ds_bizEntityTypeList}">
+                            <option value="${bizEntityTypeList.CD}">${bizEntityTypeList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.bizType"/></th>
+				<td colspan="3">
+					<select id="BIZ_TYPE" name="BIZ_TYPE" title="<spring:message code="word.bizType"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="bizTypeList" items="${ds_bizTypeList}">
+                            <option value="${bizTypeList.CD}">${bizTypeList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.bizLicenseNo"/></th>
+				<td colspan="3"><input type="text" name="BIZ_LICENSE_NO" id="BIZ_LICENSE_NO" maxlength="20" title="<spring:message code="word.bizLicenseNo"/>" depends="numeric"/></td>
+			</tr>
+			<tr>
 				<th colspan="2"><spring:message code="word.compNm"/></th>
 				<td colspan="3"><input type="text" name="COMP_NM" id="COMP_NM" maxlength="20" title="<spring:message code="word.compNm"/>" depends="required"/></td>
 			</tr>
 			<tr>
-				<th rowspan="2"><spring:message code="word.userCompAddr"/></th>
+				<th colspan="2"><spring:message code="word.compCeoId"/></th>
+				<td colspan="3"><input type="text" name="COMP_CEO_ID" id="COMP_CEO_ID" maxlength="20" title="<spring:message code="word.compCeoId"/>" depends="required"/></td>
+			</tr>
+			<tr>
+				<th rowspan="2"><spring:message code="cop.adres"/></th>
 				<th><spring:message code="word.userAddrCountry"/></th>
 				<td>
                    <select id="ADDR_COUNTRY" name="ADDR_COUNTRY" title="<spring:message code="word.userAddrCountry"/>" depends="" style="width:150px">
@@ -205,9 +242,28 @@ function fn_clearData(){
 				<td><input type="text" name="ADDR_FULL" id="ADDR_FULL" maxlength="100" style="width:300px"  title="<spring:message code="word.userAddrFull"/>" depends=""/></td>
 			</tr>
 			<tr>
+				<th rowspan="3"><spring:message code="word.phone"/></th>
+				<th><spring:message code="word.countryNo"/></th>
+				<td><input type="text" name="PHONE_COUNTRY_NO" id="PHONE_COUNTRY_NO" maxlength="3" style="width:50px" title="<spring:message code="word.countryNo"/>" depends="required,numeric"/></td>
+				<th><spring:message code="cop.telNo"/></th>
+				<td><input type="text" name="PHONE_NO" id="PHONE_NO" maxlength="11" style="width:100px" title="<spring:message code="cop.mbtlNum"/>" depends="required,numeric"/> <spring:message code="info.tel.msg"/></td>
+			</tr>
+			<tr>
+				<th><spring:message code="cop.telNo"/></th>
+				<td colspan="3"><input type="text" name="PHONE_NO" id="PHONE_NO" maxlength="11" style="width:100px" title="<spring:message code="cop.telNo"/>" depends="required,numeric"/> <spring:message code="info.tel.msg"/></td>
+			</tr>
+			<tr>
+				<th><spring:message code="cop.mbtlNum"/></th>
+				<td colspan="3"><input type="text" name="SMART_PHONE_NO" id="SMART_PHONE_NO" maxlength="11" style="width:100px" title="<spring:message code="cop.mbtlNum"/>" depends="required,numeric"/> <spring:message code="info.tel.msg"/></td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="cop.emailAdres"/></th>
+				<td colspan="3"><input type="text" name="EMAIL_ID" id="EMAIL_ID" maxlength="30" style="width:200px" title="<spring:message code="cop.emailAdres"/>" depends="required,email"/></td>
+			</tr>
+			<tr>
 				<th colspan="2"><spring:message code="word.snsType"/></th>
 				<td>
-					<select id="SNS_TYPE" name=""SNS_TYPE"" title="<spring:message code="word.snsType"/>" depends="" style="width:150px">
+					<select id="SNS_TYPE" name="SNS_TYPE" title="<spring:message code="word.snsType"/>" depends="" style="width:150px">
 						<option value=""><spring:message code="word.select"/></option>
                         <c:forEach var="snsTypeList" items="${ds_snsTypeList}">
                             <option value="${snsTypeList.CD}">${snsTypeList.CD_NM}</option>
@@ -218,15 +274,20 @@ function fn_clearData(){
 				<td><input type="text" name="SNS_ID" id="SNS_ID" maxlength="20" title="<spring:message code="word.snsId"/>" depends="englishNumeric"/></td>
 			</tr>
 			<tr>
-				<th><spring:message code="word.phone"/></th>
-				<th><spring:message code="word.countryNo"/></th>
-				<td><input type="text" name="PHONE_COUNTRY_NO" id="PHONE_COUNTRY_NO" maxlength="3" style="width:50px" title="<spring:message code="word.countryNo"/>" depends="required,numeric"/></td>
-				<th><spring:message code="cop.mbtlNum"/></th>
-				<td><input type="text" name="PHONE_NO" id="PHONE_NO" maxlength="11" style="width:100px" title="<spring:message code="cop.mbtlNum"/>" depends="required,numeric"/> <spring:message code="info.tel.msg"/></td>
+				<th colspan="2"><spring:message code="word.validYn"/></th>
+				<td colspan="3">
+					<select id="VALID_YN" name="VALID_YN" title="<spring:message code="word.validYn"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+						<option value="Y">Y</option>
+						<option value="N">N</option>
+					</select>
+				</td>
 			</tr>
 			<tr>
-				<th colspan="2"><spring:message code="cop.emailAdres"/></th>
-				<td colspan="3"><input type="text" name="EMAIL_ID" id="EMAIL_ID" maxlength="30" style="width:200px" title="<spring:message code="cop.emailAdres"/>" depends="required,email"/></td>
+				<th colspan="2"><spring:message code="word.expiredDate"/></th>
+				<td colspan="3">
+					<input type="text" style="width:100px" maxlength="10" readonly name="EXPIRED_DATE" id="EXPIRED_DATE" isDate="Y" class="datepicker" title="<spring:message code="word.expiredDate"/>" depends="">
+				</td>
 			</tr>
 		</table>
 		</form>

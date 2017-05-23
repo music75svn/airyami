@@ -90,6 +90,16 @@ public class CompanyController {
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
     	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
     	
+    	// 사업체유형
+    	params.put( "CODE_GROUP_ID", "BIZ_ENTITY_TYPE" ); //사업체유형 대분류
+    	List<ValueMap> bizEntityTypeList = commCodeService.selectCommCode(params);
+    	model.put("ds_bizEntityTypeList", bizEntityTypeList);
+    	
+    	// 사업자구분
+    	params.put( "CODE_GROUP_ID", "BIZ_TYPE" ); //사업자구분 대분류
+    	List<ValueMap> bizTypeList = commCodeService.selectCommCode(params);
+    	model.put("ds_bizTypeList", bizTypeList);
+    	
     	return "/user/companyList";
     }
     
@@ -204,6 +214,16 @@ public class CompanyController {
     	List<ValueMap> snsTypeList = commCodeService.selectCommCode(params);
     	model.put("ds_snsTypeList", snsTypeList);
  
+    	// 사업체유형
+    	params.put( "CODE_GROUP_ID", "BIZ_ENTITY_TYPE" ); //사업체유형 대분류
+    	List<ValueMap> bizEntityTypeList = commCodeService.selectCommCode(params);
+    	model.put("ds_bizEntityTypeList", bizEntityTypeList);
+    	
+    	// 사업자구분
+    	params.put( "CODE_GROUP_ID", "BIZ_TYPE" ); //사업자구분 대분류
+    	List<ValueMap> bizTypeList = commCodeService.selectCommCode(params);
+    	model.put("ds_bizTypeList", bizTypeList);
+    	
     	return "/user/companyDetail";
     }
     

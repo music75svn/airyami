@@ -147,7 +147,7 @@ function fn_goCodeList(pObj){
 		<form id="myParams" name="myParams">
 			<ppe:makeHidden var="${findParams}" filter="FIND_" />
 		</form>
-		<form id="srchForm" name="srchForm" method="post" action="<c:url value='/commCode/codeList.do'/>" onsubmit="return false;">
+		<form id="srchForm" name="srchForm" method="post" action="<c:url value='/user/companyList.do'/>" onsubmit="return false;">
 			<input type="hidden" name="pageNo" id="pageNo" value="1"/>
 			<input type="hidden" name="EXCEL_YN" id="EXCEL_YN" />
 			<input type="hidden" name="SORT_COL" id="SORT_COL" value="INSERT_DT DESC"/>
@@ -157,14 +157,21 @@ function fn_goCodeList(pObj){
 				<dt>&nbsp;</dt>
 				<dd>
 					<label for="SEARCH_BIZ_ENTITY_ID" id="S1"><spring:message code="word.bizEntityId"/></label>
-					<input type="text" id="SEARCH_BIZ_ENTITY_ID" name="SEARCH_BIZ_ENTITY_ID" value="" title="<spring:message code="word.bizEntityId"/>" maxlength=20/>
+					<input type="text" id="SEARCH_BIZ_ENTITY_ID" name="SEARCH_BIZ_ENTITY_ID" value="" style="width:80px" title="<spring:message code="word.bizEntityId"/>" maxlength=20/>
 					<label for="SEARCH_COMP_NM" id="S2"><spring:message code="word.compNm"/></label>
 					<input type="text" id="SEARCH_COMP_NM" name="SEARCH_COMP_NM" value="" title="<spring:message code="word.compNm"/>" maxlength=20/>
-					<label for="SEARCH_USER_TYPE_ROLE" id="S2"><spring:message code="word.bizEntityType"/></label>
-					<select id="SEARCH_USER_TYPE_ROLE" name="SEARCH_USER_TYPE_ROLE" style="width:150px">
+					<label for="SEARCH_BIZ_ENTITY_TYPE" id="S3"><spring:message code="word.bizEntityType"/></label>
+					<select id="SEARCH_BIZ_ENTITY_TYPE" name="SEARCH_BIZ_ENTITY_TYPE" style="width:100px">
 						<option value=""><spring:message code="word.all"/></option>
-                        <c:forEach var="typeRoleList" items="${ds_typeRoleList}">
-                            <option value="${typeRoleList.USER_TYPE_ROLE}">${typeRoleList.USER_ROLE_NM}</option>
+                        <c:forEach var="bizEntityTypeList" items="${ds_bizEntityTypeList}">
+                            <option value="${bizEntityTypeList.CD}">${bizEntityTypeList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+					<label for="SEARCH_BIZ_TYPE" id="S4"><spring:message code="word.bizType"/></label>
+					<select id="SEARCH_BIZ_TYPE" name="SEARCH_BIZ_TYPE" style="width:100px">
+						<option value=""><spring:message code="word.all"/></option>
+                        <c:forEach var="bizTypeList" items="${ds_bizTypeList}">
+                            <option value="${bizTypeList.CD}">${bizTypeList.CD_NM}</option>
                         </c:forEach>
 					</select>
 					<input type="submit" value="<spring:message code="button.search"/>" onclick="javascript:gfn_fn_srch(); return false;"/>

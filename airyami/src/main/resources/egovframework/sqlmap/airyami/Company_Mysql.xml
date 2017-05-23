@@ -17,6 +17,12 @@
 	 <isNotEmpty property="SEARCH_COMP_NM">
 	   AND A.COMP_NM LIKE CONCAT('%',#SEARCH_COMP_NM#,'%')
 	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_BIZ_ENTITY_TYPE">
+	   AND A.BIZ_ENTITY_TYPE = #SEARCH_BIZ_ENTITY_TYPE#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_BIZ_TYPE">
+	   AND A.BIZ_TYPE = #SEARCH_BIZ_TYPE#
+	 </isNotEmpty>
 	</select>
 	
 	<select id="company.getCompanyList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
@@ -25,8 +31,8 @@
 	</isEqual>
 	SELECT /* Company_Mysql.xml  company.getCompanyList */
 		   BIZ_ENTITY_ID   
-		 , BIZ_ENTITY_TYPE 
-		 , BIZ_TYPE        
+		 , FN_GET_CODE_NM('BIZ_ENTITY_TYPE', A.BIZ_ENTITY_TYPE, #LANG_CD#) AS BIZ_ENTITY_TYPE 
+		 , FN_GET_CODE_NM('BIZ_TYPE', A.BIZ_TYPE, #LANG_CD#) AS BIZ_TYPE        
 		 , BIZ_LICENSE_NO  
 		 , COMP_NM         
 		 , COMP_CEO_ID     
@@ -39,7 +45,7 @@
 		 , SMART_PHONE_NO  
 		 , EMAIL_ID        
 		 , VALID_YN        
-		 , EXPIRED_DATE     
+		 , DATE_FORMAT(str_to_date(A.EXPIRED_DATE, '%y%m%d'), '%Y-%m-%d') AS EXPIRED_DATE     
 		 , SNS_TYPE        
 		 , SNS_ID
 	  FROM TB_COMPANY_MASTER A
@@ -50,6 +56,12 @@
 	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_COMP_NM">
 	   AND A.COMP_NM LIKE CONCAT('%',#SEARCH_COMP_NM#,'%')
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_BIZ_ENTITY_TYPE">
+	   AND A.BIZ_ENTITY_TYPE = #SEARCH_BIZ_ENTITY_TYPE#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_BIZ_TYPE">
+	   AND A.BIZ_TYPE = #SEARCH_BIZ_TYPE#
 	 </isNotEmpty>
 	 <isNotEmpty property="SORT_COL">
 	 	<include refid="orderbySQL"/>
@@ -80,7 +92,7 @@
 		 , SMART_PHONE_NO  
 		 , EMAIL_ID        
 		 , VALID_YN        
-		 , EXPIRED_DATE     
+		 , DATE_FORMAT(str_to_date(A.EXPIRED_DATE, '%y%m%d'), '%Y-%m-%d') AS EXPIRED_DATE  
 		 , SNS_TYPE        
 		 , SNS_ID
 	  FROM TB_COMPANY_MASTER A
@@ -91,7 +103,7 @@
 	SELECT /* Company_Mysql.xml  company.getBizEntityId */
 		   CONCAT(#BIZ_ENTITY_TYPE#, DATE_FORMAT(now(), '%y%m'), 
 	              IFNULL((SELECT 
-	                            MAX(SUBSTR(BIZ_ENTITY_ID, 6, 3)) AS SERIAL_NO
+	                            LPAD(MAX(SUBSTR(BIZ_ENTITY_ID, 6, 3))+1, 3, '0') AS SERIAL_NO
 	                        FROM
 	                            TB_COMPANY_MASTER), '001'))
       FROM DUAL;
@@ -138,7 +150,7 @@
 		 , #SMART_PHONE_NO#
 		 , #EMAIL_ID#
 		 , #VALID_YN#
-		 , #EXPIRED_DATE#
+		 , DATE_FORMAT(str_to_date(#EXPIRED_DATE#, '%Y-%m-%d'), '%y%m%d')
 		 , #SNS_TYPE#
 		 , #SNS_ID#
 		 , #LOGIN_ID#
@@ -164,10 +176,10 @@
 		 , SMART_PHONE_NO               = #SMART_PHONE_NO#
 		 , EMAIL_ID                     = #EMAIL_ID#
 		 , VALID_YN                     = #VALID_YN#
-		 , EXPIRED_DATE                 = #EXPIRED_DATE#
+		 , EXPIRED_DATE                 = DATE_FORMAT(str_to_date(#EXPIRED_DATE#, '%Y-%m-%d'), '%y%m%d')
 		 , SNS_TYPE                     = #SNS_TYPE#
 		 , SNS_ID                       = #SNS_ID#
-	     , UPDATE_BIZ_ENTITY_ID         = #LOGIN_ID#
+	     , UPDATE_USER_ID               = #LOGIN_ID#
 	     , UPDATE_DT                    = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 	 WHERE BIZ_ENTITY_ID                = #BIZ_ENTITY_ID#
 	</update>
