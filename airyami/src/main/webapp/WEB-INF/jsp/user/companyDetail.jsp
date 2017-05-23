@@ -121,7 +121,7 @@ function goDelete(){
 function fn_goBack(){
 	var inputParam = gfn_makeInputData($("#findForm"));
 	
-	gfn_commonGo("/user/userList", inputParam, "N");
+	gfn_commonGo("/user/companyList", inputParam, "N");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
