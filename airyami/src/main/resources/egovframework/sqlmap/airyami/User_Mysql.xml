@@ -59,7 +59,7 @@
          , A.BANK_NAME
          , A.ACCOUNT_NO
          , A.RECOMMENDER_ID
-         , A.LAST_ORDER_DATE
+         , DATE_FORMAT(str_to_date(A.LAST_ORDER_DATE, '%Y%m%d'), '%Y-%m-%d') AS LAST_ORDER_DATE
 	  FROM TB_USER_MASTER A
 	     , TB_USER_ROLE_MASTER B
 	 WHERE 1 = 1
@@ -124,7 +124,7 @@
          , A.BANK_NAME
          , A.ACCOUNT_NO
          , A.RECOMMENDER_ID
-         , A.LAST_ORDER_DATE
+         , DATE_FORMAT(str_to_date(A.LAST_ORDER_DATE, '%Y%m%d'), '%Y-%m-%d') AS LAST_ORDER_DATE
 	  FROM TB_USER_MASTER A
 	 WHERE A.USER_ID= #SEARCH_USER_ID#
 	</select>

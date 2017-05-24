@@ -45,7 +45,7 @@
 		 , SMART_PHONE_NO  
 		 , EMAIL_ID        
 		 , VALID_YN        
-		 , DATE_FORMAT(str_to_date(A.EXPIRED_DATE, '%y%m%d'), '%Y-%m-%d') AS EXPIRED_DATE     
+		 , DATE_FORMAT(str_to_date(A.EXPIRED_DATE, '%Y%m%d'), '%Y-%m-%d') AS EXPIRED_DATE     
 		 , SNS_TYPE        
 		 , SNS_ID
 	  FROM TB_COMPANY_MASTER A
@@ -92,7 +92,7 @@
 		 , SMART_PHONE_NO  
 		 , EMAIL_ID        
 		 , VALID_YN        
-		 , DATE_FORMAT(str_to_date(A.EXPIRED_DATE, '%y%m%d'), '%Y-%m-%d') AS EXPIRED_DATE  
+		 , DATE_FORMAT(str_to_date(A.EXPIRED_DATE, '%Y%m%d'), '%Y-%m-%d') AS EXPIRED_DATE  
 		 , SNS_TYPE        
 		 , SNS_ID
 	  FROM TB_COMPANY_MASTER A
@@ -176,7 +176,7 @@
 		 , SMART_PHONE_NO               = #SMART_PHONE_NO#
 		 , EMAIL_ID                     = #EMAIL_ID#
 		 , VALID_YN                     = #VALID_YN#
-		 , EXPIRED_DATE                 = DATE_FORMAT(str_to_date(#EXPIRED_DATE#, '%Y-%m-%d'), '%y%m%d')
+		 , EXPIRED_DATE                 = DATE_FORMAT(str_to_date(#EXPIRED_DATE#, '%Y-%m-%d'), '%Y%m%d')
 		 , SNS_TYPE                     = #SNS_TYPE#
 		 , SNS_ID                       = #SNS_ID#
 	     , UPDATE_USER_ID               = #LOGIN_ID#
