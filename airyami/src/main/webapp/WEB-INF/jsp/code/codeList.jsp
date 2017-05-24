@@ -70,9 +70,7 @@ function fn_callBack(sid, result){
 		
 		gfn_addPaging(result.pageInfo, 'gfn_clickPageNo');
 		
-		
-		//gfn_addRowClickEvent("tb_list");
-		//gfn_addRowClickEvent("tb_list", "fn_clickRow"); // ==>동일하다
+		gfn_addRowClickEvent("tb_list", "fn_clickRow"); // ==>동일하다
 	}
 	
 	// fn_srch
@@ -89,6 +87,11 @@ function fn_goBack(){
 	var inputParam = gfn_makeInputData($("#myParams"));
 	
 	gfn_commonGo("/code/codeGroupList", inputParam, "N");
+}
+
+//row click event
+function fn_clickRow(pObj){
+	fn_goDetail(pObj);
 }
 
 function fn_goDetail(pObj){
@@ -203,7 +206,7 @@ function fn_goCreate(){
 			<caption>리스트</caption>
 			<colgroup>
 				<col width="5%"/>
-				<col width="8%"/>
+				<col width="15%"/>
 				<col width="20%"/>
 				<col width="8%"/>
 				<col width="20%"/>
