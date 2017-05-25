@@ -70,9 +70,7 @@ function fn_callBack(sid, result){
 		
 		gfn_addPaging(result.pageInfo, 'gfn_clickPageNo');
 		
-		
-		//gfn_addRowClickEvent("tb_list");
-		//gfn_addRowClickEvent("tb_list", "fn_clickRow"); // ==>동일하다
+		gfn_addRowClickEvent("tb_list", "fn_clickRow"); // ==>동일하다
 	}
 	
 	// fn_srch
@@ -82,10 +80,14 @@ function fn_callBack(sid, result){
 	
 }
 
+//row click event
+function fn_clickRow(pObj){
+	fn_goDetail(pObj);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 // Click evnet
-function fn_goDetail(pObj){
-	var rowObj = $(pObj).parent();
+function fn_goDetail(rowObj){
 	var USER_ID = $('input[name=USER_ID]', rowObj).val();
 
 	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND_");
@@ -106,19 +108,6 @@ function fn_goCreate(){
 	//inputParam.LISTURL = gfn_getListUrl();
 	
 	gfn_commonGo("/user/userDetail", inputParam, "N");
-}
-
-function fn_goCodeList(pObj){
-	var rowObj = $(pObj).parent();
-	var USER_ID = $('input[name=USER_ID]', rowObj).val();
-	
-	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND_");
-	inputParam.USER_ID 	= USER_ID;
-	
-	//inputParam.LISTPARAMS = gfn_replaceAll($("#srchForm").serialize(), "&", "|");
-	//inputParam.LISTURL = gfn_getListUrl();
-	
-	gfn_commonGo("/user/codeList", inputParam, "N");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -198,7 +187,7 @@ function fn_goCodeList(pObj){
 			<thead>
 				<tr>
 					<th cid="ROWNUM" cClass="num" cType="NUM"><spring:message code="word.num"/></th>
-					<th cid="USER_ID" alg="center" clickevent="fn_goDetail(this);" url="/user/userList.do"><spring:message code="word.userId"/></th>
+					<th cid="USER_ID" alg="center"><spring:message code="word.userId"/></th>
 					<th cid="ORIGINAL_NM" alg="center"><spring:message code="word.userNm"/></th>
 					<th cid="USER_ROLE_NM" alg="center"><spring:message code="word.userTypeRole"/></th>
 					<th cid="USE_LANGUAGE_NM" alg="center"><spring:message code="word.useLanguageCd"/></th>

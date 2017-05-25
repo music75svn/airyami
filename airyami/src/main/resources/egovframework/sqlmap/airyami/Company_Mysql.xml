@@ -97,9 +97,8 @@
 		 , A.SNS_TYPE        
 		 , A.SNS_ID
 	  FROM TB_COMPANY_MASTER A
-	     , TB_USER_MASTER B
-	 WHERE A.COMP_CEO_ID = B.USER_ID
-	   AND A.BIZ_ENTITY_ID= #SEARCH_BIZ_ENTITY_ID#
+	  LEFT OUTER JOIN TB_USER_MASTER B ON A.COMP_CEO_ID = B.USER_ID
+	  WHERE A.BIZ_ENTITY_ID = #SEARCH_BIZ_ENTITY_ID#
 	</select>
 	
 	<select id="company.getBizEntityId" parameterClass="Map" resultClass="java.lang.String">

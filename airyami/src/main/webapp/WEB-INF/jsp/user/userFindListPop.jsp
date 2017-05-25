@@ -81,8 +81,7 @@ function fn_callBack(sid, result){
 }
 
 //row click event
-function fn_clickRow(pObj){
-	var rowObj = $(pObj).parent();
+function fn_clickRow(rowObj){
 	var USER_ID = $('input[name=USER_ID]', rowObj).val();
 	var USER_NM = $('input[name=ORIGINAL_NM]', rowObj).val();
 

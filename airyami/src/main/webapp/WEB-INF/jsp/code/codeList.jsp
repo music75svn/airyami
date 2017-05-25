@@ -94,8 +94,7 @@ function fn_clickRow(pObj){
 	fn_goDetail(pObj);
 }
 
-function fn_goDetail(pObj){
-	var rowObj = $(pObj).parent();
+function fn_goDetail(rowObj){
 	var CODE_GROUP_ID = $('input[name=CODE_GROUP_ID]', rowObj).val();
 	var CODE_ID = $('input[name=CODE_ID]', rowObj).val();
 
@@ -218,7 +217,7 @@ function fn_goCreate(){
 					<th cid="ROWNUM" cClass="num" cType="NUM"><spring:message code="word.num"/></th>
 					<th cid="CODE_GROUP_ID" alg="center"><spring:message code="word.codeGroupCd"/></th>
 					<th cid="CODE_GROUP_NM" alg="left"><spring:message code="word.codeGroupNm"/></th>
-					<th cid="CODE_ID" alg="center" clickevent="fn_goDetail(this);" url="/code/codeList.do"><spring:message code="word.code"/></th>
+					<th cid="CODE_ID" alg="center"><spring:message code="word.code"/></th>
 					<th cid="CODE_NM" alg="left"><spring:message code="word.codeNm"/></th>
 					<th cid="REMARKS" alg="left"><spring:message code="cop.remark"/></th>
 					<th cid="USE_YN" alg="center"><spring:message code="cop.useAt"/></th>

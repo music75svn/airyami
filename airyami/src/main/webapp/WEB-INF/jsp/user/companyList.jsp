@@ -70,9 +70,7 @@ function fn_callBack(sid, result){
 		
 		gfn_addPaging(result.pageInfo, 'gfn_clickPageNo');
 		
-		
-		//gfn_addRowClickEvent("tb_list");
-		//gfn_addRowClickEvent("tb_list", "fn_clickRow"); // ==>동일하다
+		gfn_addRowClickEvent("tb_list", "fn_clickRow"); // ==>동일하다
 	}
 	
 	// fn_srch
@@ -82,10 +80,14 @@ function fn_callBack(sid, result){
 	
 }
 
+//row click event
+function fn_clickRow(pObj){
+	fn_goDetail(pObj);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 // Click evnet
-function fn_goDetail(pObj){
-	var rowObj = $(pObj).parent();
+function fn_goDetail(rowObj){
 	var BIZ_ENTITY_ID = $('input[name=BIZ_ENTITY_ID]', rowObj).val();
 
 	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND_");
@@ -106,19 +108,6 @@ function fn_goCreate(){
 	//inputParam.LISTURL = gfn_getListUrl();
 	
 	gfn_commonGo("/user/companyDetail", inputParam, "N");
-}
-
-function fn_goCodeList(pObj){
-	var rowObj = $(pObj).parent();
-	var BIZ_ENTITY_ID = $('input[name=BIZ_ENTITY_ID]', rowObj).val();
-	
-	var inputParam				= gfn_makeInputData($("#srchForm"), null, "FIND_");
-	inputParam.BIZ_ENTITY_ID 	= BIZ_ENTITY_ID;
-	
-	//inputParam.LISTPARAMS = gfn_replaceAll($("#srchForm").serialize(), "&", "|");
-	//inputParam.LISTURL = gfn_getListUrl();
-	
-	gfn_commonGo("/user/codeList", inputParam, "N");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -206,7 +195,7 @@ function fn_goCodeList(pObj){
 			<thead>
 				<tr>
 					<th cid="ROWNUM" cClass="num" cType="NUM"><spring:message code="word.num"/></th>
-					<th cid="BIZ_ENTITY_ID" alg="center" clickevent="fn_goDetail(this);" url="/user/companyList.do"><spring:message code="word.bizEntityId"/></th>
+					<th cid="BIZ_ENTITY_ID" alg="center"><spring:message code="word.bizEntityId"/></th>
 					<th cid="COMP_NM" alg="center"><spring:message code="word.compNm"/></th>
 					<th cid="BIZ_ENTITY_TYPE" alg="center"><spring:message code="word.bizEntityType"/></th>
 					<th cid="BIZ_TYPE" alg="center"><spring:message code="word.bizType"/></th>
