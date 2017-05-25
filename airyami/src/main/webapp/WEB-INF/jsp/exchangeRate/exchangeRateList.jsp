@@ -92,8 +92,9 @@ function fn_clickRow(pObj){
 	fn_goDetail(pObj);
 }
 
-function fn_goDetail(pObj){
-	var rowObj = $(pObj).parent();
+function fn_goDetail(rowObj){
+	//debugger;
+	//var rowObj = $(pObj).parent();
 	var SEQ = $('input[name=SEQ]', rowObj).val();
 
 	var inputParam				= {};
