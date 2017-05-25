@@ -77,26 +77,29 @@
 	<!-- TB_COMPANY_MASTER 상세조회 -->
 	<select id="company.getCompanyDetail" parameterClass="Map" resultClass="ValueMap">
 	SELECT /* Company_Mysql.xml  company.getCompanyDetail */
-		   BIZ_ENTITY_ID   
-		 , BIZ_ENTITY_TYPE 
-		 , BIZ_TYPE        
-		 , BIZ_LICENSE_NO  
-		 , COMP_NM         
-		 , COMP_CEO_ID     
-		 , ADDR_COUNTRY    
-		 , ADDR_PROVINCE   
-		 , ADDR_CITY       
-		 , ADDR_FULL       
-		 , PHONE_COUNTRY_NO
-		 , PHONE_NO        
-		 , SMART_PHONE_NO  
-		 , EMAIL_ID        
-		 , VALID_YN        
+		   A.BIZ_ENTITY_ID   
+		 , A.BIZ_ENTITY_TYPE 
+		 , A.BIZ_TYPE        
+		 , A.BIZ_LICENSE_NO  
+		 , A.COMP_NM         
+		 , A.COMP_CEO_ID
+		 , B.ORIGINAL_NM AS COMP_CEO_NM  
+		 , A.ADDR_COUNTRY    
+		 , A.ADDR_PROVINCE   
+		 , A.ADDR_CITY       
+		 , A.ADDR_FULL       
+		 , A.PHONE_COUNTRY_NO
+		 , A.PHONE_NO        
+		 , A.SMART_PHONE_NO  
+		 , A.EMAIL_ID        
+		 , A.VALID_YN        
 		 , DATE_FORMAT(str_to_date(A.EXPIRED_DATE, '%Y%m%d'), '%Y-%m-%d') AS EXPIRED_DATE  
-		 , SNS_TYPE        
-		 , SNS_ID
+		 , A.SNS_TYPE        
+		 , A.SNS_ID
 	  FROM TB_COMPANY_MASTER A
-	 WHERE A.BIZ_ENTITY_ID= #SEARCH_BIZ_ENTITY_ID#
+	     , TB_USER_MASTER B
+	 WHERE A.COMP_CEO_ID = B.USER_ID
+	   AND A.BIZ_ENTITY_ID= #SEARCH_BIZ_ENTITY_ID#
 	</select>
 	
 	<select id="company.getBizEntityId" parameterClass="Map" resultClass="java.lang.String">

@@ -40,8 +40,6 @@ import egovframework.airyami.cmm.util.ValueMap;
 import egovframework.com.cmm.EgovMessageSource;
 import egovframework.com.cmm.service.EgovProperties;
 
-
-
 /**
  * 
  * 사용자 Controller를 정의한다.
@@ -81,10 +79,23 @@ public class UserController {
     PlatformTransactionManager transactionManager;
     
     /**
+     * 사용자 찾기 팝업 이동 
+     */
+    @RequestMapping(value="/user/userFindListPop.do")
+    public String userFindListPop(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
+    	
+    	return "/user/userFindListPop";
+    }
+    
+    /**
      * 사용자 리스트 이동 
      */
     @RequestMapping(value="/user/userList.do")
-    public String codeGroupList(HttpServletRequest request, HttpServletResponse response, 
+    public String userList(HttpServletRequest request, HttpServletResponse response, 
     		ModelMap model) throws Exception {
     	
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
@@ -191,7 +202,7 @@ public class UserController {
      * 사용자 detail 호출 
      */
     @RequestMapping(value="/user/userDetail.do")
-    public String codeGroupDetail(HttpServletRequest request, HttpServletResponse response, 
+    public String userDetail(HttpServletRequest request, HttpServletResponse response, 
     		ModelMap model) throws Exception {
     	
     	Map<String,Object> params = CommonUtils.getRequestMap(request);

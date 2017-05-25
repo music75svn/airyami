@@ -126,7 +126,13 @@ function fn_goBack(){
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출
+function go_UserPop(){
+	var inputParam				= {};
+	inputParam.SEARCH_USER_NM 	= $('#COMP_CEO_NM').val();
+	inputParam.sid 	= "FIND_USER";
 
+	gfn_commonGo("/user/userFindListPop", inputParam, "Y");
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 기타 기능 함수
@@ -219,7 +225,11 @@ function fn_clearData(){
 			</tr>
 			<tr>
 				<th colspan="2"><spring:message code="word.compCeoId"/></th>
-				<td colspan="3"><input type="text" name="COMP_CEO_ID" id="COMP_CEO_ID" maxlength="20" title="<spring:message code="word.compCeoId"/>" depends="required"/></td>
+				<td colspan="3">
+					<input type="text" name="COMP_CEO_NM" id="COMP_CEO_NM" maxlength="20" title="<spring:message code="word.compCeoId"/>" depends=""/>
+					<button type="button" id="btnW_userPop" onClick="javascript:go_UserPop()"><spring:message code="button.search"/></button>
+					<input type="text" name="COMP_CEO_ID" id="COMP_CEO_ID" maxlength="20" title="<spring:message code="word.compCeoId"/>" depends="required" disabled/>
+				</td>
 			</tr>
 			<tr>
 				<th rowspan="2"><spring:message code="cop.adres"/></th>
