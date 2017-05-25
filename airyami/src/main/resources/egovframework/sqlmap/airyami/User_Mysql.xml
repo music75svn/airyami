@@ -13,7 +13,9 @@
 	 WHERE 1 = 1
 	   AND A.USER_TYPE = B.USER_TYPE
 	   AND A.USER_ROLE = B.USER_ROLE
+	 <isNotEqual property="SEARCH_POP_YN" compareValue="Y">
 	   AND A.INSERT_USER_ID = #LOGIN_ID#
+	 </isNotEqual>
 	 <isNotEmpty property="SEARCH_USER_ID">
 	   AND A.USER_ID = #SEARCH_USER_ID#
 	 </isNotEmpty>
@@ -65,7 +67,9 @@
 	 WHERE 1 = 1
 	   AND A.USER_TYPE = B.USER_TYPE
 	   AND A.USER_ROLE = B.USER_ROLE
+	 <isNotEqual property="SEARCH_POP_YN" compareValue="Y">
 	   AND A.INSERT_USER_ID = #LOGIN_ID#
+	 </isNotEqual>
 	 <isNotEmpty property="SEARCH_USER_ID">
 	   AND A.USER_ID = #SEARCH_USER_ID#
 	 </isNotEmpty>

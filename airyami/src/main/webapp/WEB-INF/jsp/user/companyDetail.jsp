@@ -129,16 +129,24 @@ function fn_goBack(){
 function go_UserPop(){
 	var inputParam				= {};
 	inputParam.SEARCH_USER_NM 	= $('#COMP_CEO_NM').val();
-	inputParam.sid 	= "FIND_USER";
+	inputParam.sid 	= "findUser";
 
 	gfn_commonGo("/user/userFindListPop", inputParam, "Y");
 }
 
+//팝업콜백 함수
+function fn_popCallBack(sid, data){
+	// fn_srch
+	if(sid == "findUser"){
+		$('#COMP_CEO_ID').val(data.USER_ID);
+		$('#COMP_CEO_NM').val(data.USER_NM);
+	}
+}
 ////////////////////////////////////////////////////////////////////////////////////
 // 기타 기능 함수
 // 팝업 내용 변경시 초기화
 function fn_userNmChange() {
-    $('#BIZ_ENTITY_ID').val('');
+    $('#COMP_CEO_ID').val('');
 }
 
 
@@ -226,9 +234,9 @@ function fn_clearData(){
 			<tr>
 				<th colspan="2"><spring:message code="word.compCeoId"/></th>
 				<td colspan="3">
-					<input type="text" name="COMP_CEO_NM" id="COMP_CEO_NM" maxlength="20" title="<spring:message code="word.compCeoId"/>" depends=""/>
+					<input type="text" name="COMP_CEO_NM" id="COMP_CEO_NM" maxlength="20" title="<spring:message code="word.compCeoId"/>" depends="" onChange="fn_userNmChange();"/>
 					<button type="button" id="btnW_userPop" onClick="javascript:go_UserPop()"><spring:message code="button.search"/></button>
-					<input type="text" name="COMP_CEO_ID" id="COMP_CEO_ID" maxlength="20" title="<spring:message code="word.compCeoId"/>" depends="required" disabled/>
+					<input type="text" name="COMP_CEO_ID" id="COMP_CEO_ID" maxlength="20" title="<spring:message code="word.compCeoId"/>" depends="required" readOnly/>
 				</td>
 			</tr>
 			<tr>

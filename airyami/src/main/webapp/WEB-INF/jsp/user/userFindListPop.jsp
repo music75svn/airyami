@@ -9,93 +9,50 @@
 <jsp:include page="/include/common.jsp"/>
 
 <script type="text/javascript">
-
+var onload = true;
 $(function() {  //onready
 	//여기에 최초 실행될 자바스크립트 코드를 넣어주세요
+	//alert("LOGIN_ID " + '<c:out value="${LOGIN_ID}"/>');
+	
 	gfn_OnLoad();
 	
 	fn_init();
 	
-	if("DETAIL" == $("#MODE").val())
-		fn_srch();
+	fn_srch();
 });
 
-
-//화면내 초기화 부분
+// 화면내 초기화 부분
 function fn_init(){
-	// 상세일때 컨트롤 비활성화
-	if("DETAIL" == $("#MODE").val()){
-		$("#BIZ_DT").attr("readonly",true);
-		$("#FR_CURRENCY").attr("readonly",true);
-		$("#TO_CURRENCY").attr("readonly",true);
-	}
-	else{
-		$('#BIZ_DT').val(gfn_getToday(true));
-	}
-
+	// 그리드에 소트 기능 추가한다.
+	gfn_addGridSort("tb_list");
+	
+	// myParams 에 넘어온 값이 있으면 이전 검색조건 셋팅한다.
+	gfn_setMyParams();
+	
+	$("#SEARCH_ORIGINAL_NM").val($("#SEARCH_USER_NM").val());
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////
-//호출부분 정의
-//조회
+// 호출부분 정의
+// 리스트 조회
 function fn_srch(){
 	
-	if(gfn_isNull($("#SEQ").val()))
-		return;
-	
-	var inputParam = new Object();
-	inputParam.sid 				= "getExchangeRateDetail";
-	inputParam.url 				= "/exchangeRate/getExchangeRateDetail.do";
-	inputParam.data 			= gfn_makeInputData($("#srchForm"));
-	
-	gfn_Transaction( inputParam );
-}
-
-
-//저장
-function fn_save(){
-	// 필수체크
+	// 파라미터 validation
 	if(!gfn_validationForm($("#srchForm"))){
 		return;
 	}
 	
-	if($("#FR_CURRENCY").val() == $("#TO_CURRENCY").val()){
-		alert("<spring:message code="errors.sameCurrency.msg"/>");
-		return false;
-	}
-	
-	if(!confirm("<spring:message code="common.save.msg"/>")){
-		return false;
-	}
-	
 	var inputParam = new Object();
-	inputParam.sid 				= "saveExchangeRate";
-	inputParam.url 				= "/exchangeRate/saveExchangeRate.do";
+	inputParam.sid 				= "userList";
+	inputParam.url 				= "/user/selectUserList.do";
 	inputParam.data 			= gfn_makeInputData($("#srchForm"));
-	inputParam.data.PROC_MODE	= $("#MODE").val()=="CREATE" ? "CREATE" : "UPDATE";
-	
-	gfn_Transaction( inputParam );
-}
-
-//삭제
-function fn_delete(){
-	
-	if(!confirm("<spring:message code="common.delete.msg"/>")){
-		return false;
-	}
-	
-	var inputParam = new Object();
-	inputParam.sid 				= "deleteExchangeRate";
-	inputParam.url 				= "/exchangeRate/saveExchangeRate.do";
-	inputParam.data 			= gfn_makeInputData($("#srchForm"));
-	inputParam.data.PROC_MODE	= "DELETE";
+	//inputParam.callback			= fn_callBackA;
 	
 	gfn_Transaction( inputParam );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-//콜백 함수
+// 콜백 함수
 function fn_callBack(sid, result){
 	//debugger;
 	
@@ -104,85 +61,109 @@ function fn_callBack(sid, result){
 		return;
 	}
 	
-	if(sid == "getExchangeRateDetail"){
-		gfn_setDetails(result.ds_detail, $("#srchForm"));	// 지역내 상세 내용 셋업
+	
+	// fn_srch
+	if(sid == "userList"){
+		var tbHiddenInfo = ["USER_ID", "ORIGINAL_NM"]; // row에 추가할 히든 컬럼 설정  없으면 삭제
+		
+		gfn_displayList(result.ds_list, "tb_list", tbHiddenInfo);
+		gfn_displayTotCnt(result.totCnt);
+		
+		gfn_addPaging(result.pageInfo, 'gfn_clickPageNo');
+		gfn_addRowClickEvent("tb_list", "fn_clickRow"); // ==>동일하다
 	}
-	else if(sid == "saveExchangeRate"){
-		// 창을 닫던지. 부모 재조회를 하던지 
-		alert('<spring:message code="success.common.update" />');
-		opener.fn_srch();
-		self.close();
+	
+	// fn_srch
+	if(sid == "delCd"){
+		alert(sid);
 	}
-	else if(sid == "deleteExchangeRate"){
-		alert('<spring:message code="success.common.delete" />');
-		opener.fn_srch();
-		self.close();
-	}
+	
 }
 
+//row click event
+function fn_clickRow(pObj){
+	var rowObj = $(pObj).parent();
+	var USER_ID = $('input[name=USER_ID]', rowObj).val();
+	var USER_NM = $('input[name=ORIGINAL_NM]', rowObj).val();
 
+	var inputParam				= {};
+	inputParam.USER_ID 			= USER_ID;
+	inputParam.USER_NM 			= USER_NM;
+	inputParam.sid				= $("#sid").val();
+	
+	opener.fn_popCallBack(inputParam.sid, inputParam);
+	
+	self.close();
+}
 
 </script>
 </head>
 <body class="popup">
-<h1><spring:message code="word.exchangeRate"/>&nbsp;<spring:message code="word.detail"/><a onClick="self.close();" class="close">X</a></h1>
-
-<div class="content">
-	<h4><spring:message code="word.exchangeRate"/>&nbsp;<spring:message code="word.detail"/></h4>
-	<form id="srchForm" name="srchForm" method="post" onsubmit="return false;">
-		<input type="hidden" name="SEQ" id="SEQ" value='<c:out value="${SEQ}"/>'/>
-		<input type="hidden" name="MODE" id="MODE" value='<c:out value="${MODE}"/>'/>
-		<table cellspacing="0" border="0" class="tbl_list_type2">
-			<colgroup>
-			<col width="30%">
-			<col width="70%">
-			</colgroup>
-			<tr>
-				<th><spring:message code="word.dateOfTransaction"/></th>
-				<td>
-					<input type="text" size="8" name="BIZ_DT" id="BIZ_DT" isDate="Y" class="datepicker" title="<spring:message code="word.dateOfTransaction"/>" depends="required">
-				</td>
-			</tr>
-			<tr>
-				<th><spring:message code="word.beforeCurrency"/></th>
-				<td>
-					<select id="FR_CURRENCY" name="FR_CURRENCY" title="<spring:message code="word.beforeCurrency"/>" depends="required">
-                        <c:forEach var="CURRENCY" items="${ds_cd_CURRENCY}">
-                            <option value="${CURRENCY.CD}">${CURRENCY.CD_NM}</option>
-                        </c:forEach>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<th><spring:message code="word.afterCurrency"/></th>
-				<td>
-					<select id="TO_CURRENCY" name="TO_CURRENCY" title="<spring:message code="word.afterCurrency"/>" depends="required">
-                        <c:forEach var="CURRENCY" items="${ds_cd_CURRENCY}">
-                            <option value="${CURRENCY.CD}">${CURRENCY.CD_NM}</option>
-                        </c:forEach>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<th><spring:message code="word.baseExchangeRate"/></th>
-				<td><input type="text" name="BASIC_EXT_RATE" id="BASIC_EXT_RATE" isNum="Y" class="onlynum2" maxlength="7" title="<spring:message code="word.baseExchangeRate"/>" depends="required"/></td>
-			</tr>
-			<tr>
-				<th><spring:message code="word.tranExchangeRate"/></th>
-				<td><input type="text" name="BIZ_EXT_RATE" id="BIZ_EXT_RATE" isNum="Y" class="onlynum2" maxlength="7" title="<spring:message code="word.tranExchangeRate"/>" depends="required"/></td>
-			</tr>
-		</table>
+<h1><spring:message code="word.userFindList"/>&nbsp;<a onClick="self.close();" class="close">X</a></h1>
+	<div class="content">
+		<form id="myParams" name="myParams">
+			<ppe:makeHidden var="${findParams}" filter="FIND_" />
 		</form>
-		<div class="btn_zone">
-		<c:choose>
-			<c:when test="${MODE=='DETAIL'}">
-			<button type="button" onClick="javascript:fn_delete()"><spring:message code="button.delete"/></button>
-			<button type="button" onClick="javascript:fn_save()"><spring:message code="button.update"/></button>
-			</c:when>
-			<c:when test="${MODE=='CREATE'}">
-			<button type="button" onClick="javascript:fn_save()"><spring:message code="button.create"/></button>
-			</c:when>
-		</c:choose>
-	    </div>
-</div>
+		<form id="srchForm" name="srchForm" method="post" action="<c:url value='/commCode/codeList.do'/>" onsubmit="return false;">
+			<input type="hidden" name="pageNo" id="pageNo" value="1"/>
+			<input type="hidden" name="EXCEL_YN" id="EXCEL_YN" />
+			<input type="hidden" name="SORT_COL" id="SORT_COL" value="INSERT_DT DESC"/>
+			<input type="hidden" name="SORT_ACC" id="SORT_ACC" />
+			<input type="hidden" name="SEARCH_POP_YN" id="Y" />
+			<input type="hidden" name="SEARCH_USER_NM" id="SEARCH_USER_NM" value='<c:out value="${SEARCH_USER_NM}"/>'/>
+			<input type="hidden" name="sid" id="sid" value='<c:out value="${sid}"/>'/>
+		<div id="search" style="width:100%">
+			<dl>
+				<dt>&nbsp;</dt>
+				<dd>
+					<label for="SEARCH_USER_ID" id="S1"><spring:message code="word.userId"/></label>
+					<input type="text" id="SEARCH_USER_ID" name="SEARCH_USER_ID" value="" title="<spring:message code="word.userId"/>" maxlength=20/>
+					<label for="SEARCH_ORIGINAL_NM" id="S2"><spring:message code="word.userNm"/></label>
+					<input type="text" id="SEARCH_ORIGINAL_NM" name="SEARCH_ORIGINAL_NM" value="" title="<spring:message code="word.userNm"/>" maxlength=20/>
+					<input type="submit" value="<spring:message code="button.search"/>" onclick="javascript:gfn_fn_srch(); return false;"/>
+				</dd>
+			</dl>
+		</div>
+		<div class="tableInfoArea">
+			<!-- total 총건수 -->
+	        <span id="totCnt"></span>
+		    <!--// total 총건수 -->
+			<!-- 출력건수 -->
+			<div class="tablelistQuantity" id="pageUnit"></div>
+			<!--// 출력건수 -->
+		</div>
+		<!-- //출력건수및 리스트 페이지당 갯수 -->
+		</form>
+		
+		<!-- table list -->
+		<div class="aTypeListTbl">
+		<table id="tb_list" summary="<spring:message code="word.userList"/>">
+			<caption>리스트</caption>
+			<colgroup>
+				<col width="5%"/>
+				<col width="15%"/>
+				<col width=""/>
+				<col width="15%"/>
+				<col width="15%"/>
+				<col width="15%"/>
+				<col width="15%"/>
+			</colgroup>
+			<thead>
+				<tr>
+					<th cid="ROWNUM" cClass="num" cType="NUM"><spring:message code="word.num"/></th>
+					<th cid="USER_ID" alg="center"><spring:message code="word.userId"/></th>
+					<th cid="ORIGINAL_NM" alg="center"><spring:message code="word.userNm"/></th>
+					<th cid="USER_ROLE_NM" alg="center"><spring:message code="word.userTypeRole"/></th>
+					<th cid="USE_LANGUAGE_NM" alg="center"><spring:message code="word.useLanguageCd"/></th>
+					<th cid="RECOMMENDER_ID" alg="center"><spring:message code="word.recommenderId"/></th>
+					<th cid="LAST_ORDER_DATE" alg="center"><spring:message code="word.lastOrderDate"/></th>
+				</tr> 
+			</thead> 
+			<tbody>
+				<tr></tr>
+			</tbody>
+		</table>
+		</div>
+		<!--// table list -->
+		<span id="pagingNav"></span>
 </body>
