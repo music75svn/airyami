@@ -9,6 +9,7 @@
 	SELECT /* Company_Mysql.xml  company.getCompanyCount */
 	       COUNT(1) 
 	  FROM TB_COMPANY_MASTER A
+	  LEFT OUTER JOIN TB_USER_MASTER B ON A.COMP_CEO_ID = B.USER_ID
 	 WHERE 1 = 1
 	   AND A.INSERT_USER_ID = #LOGIN_ID#
 	 <isNotEmpty property="SEARCH_BIZ_ENTITY_ID">
@@ -23,6 +24,20 @@
 	 <isNotEmpty property="SEARCH_BIZ_TYPE">
 	   AND A.BIZ_TYPE = #SEARCH_BIZ_TYPE#
 	 </isNotEmpty>
+	 <isEqual property="USER_ROLE" compareValue="ADM">
+		 <isNotEmpty property="SEARCH_BIZ_LICENSE_NO">
+	   AND A.BIZ_LICENSE_NO = #SEARCH_BIZ_LICENSE_NO#
+		 </isNotEmpty>
+		 <isNotEmpty property="SEARCH_ORIGINAL_NM">
+	   AND B.ORIGINAL_NM = LIKE CONCAT('%',#SEARCH_ORIGINAL_NM#,'%')
+		 </isNotEmpty>
+	 </isEqual>
+	 <isNotEqual property="USER_ROLE" compareValue="ADM">
+	   AND (A.BIZ_ENTITY_ID IN (SELECT BIZ_ENTITY_ID FROM TB_USER_MASTER WHERE USER_ID = #LOGIN_ID#)
+	        OR
+	        A.COMP_CEO_ID = #LOGIN_ID#)
+	   AND A.VALID_YN = 'Y'
+	 </isNotEqual>
 	</select>
 	
 	<select id="company.getCompanyList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
@@ -30,25 +45,26 @@
 	<include refid="pagingPrefixSQL"/>
 	</isEqual>
 	SELECT /* Company_Mysql.xml  company.getCompanyList */
-		   BIZ_ENTITY_ID   
+		   A.BIZ_ENTITY_ID   
 		 , FN_GET_CODE_NM('BIZ_ENTITY_TYPE', A.BIZ_ENTITY_TYPE, #LANG_CD#) AS BIZ_ENTITY_TYPE 
 		 , FN_GET_CODE_NM('BIZ_TYPE', A.BIZ_TYPE, #LANG_CD#) AS BIZ_TYPE        
-		 , BIZ_LICENSE_NO  
-		 , COMP_NM         
-		 , COMP_CEO_ID     
-		 , ADDR_COUNTRY    
-		 , ADDR_PROVINCE   
-		 , ADDR_CITY       
-		 , ADDR_FULL       
-		 , PHONE_COUNTRY_NO
-		 , PHONE_NO        
-		 , SMART_PHONE_NO  
-		 , EMAIL_ID        
-		 , VALID_YN        
+		 , A.BIZ_LICENSE_NO  
+		 , A.COMP_NM         
+		 , A.COMP_CEO_ID     
+		 , A.ADDR_COUNTRY    
+		 , A.ADDR_PROVINCE   
+		 , A.ADDR_CITY       
+		 , A.ADDR_FULL       
+		 , A.PHONE_COUNTRY_NO
+		 , A.PHONE_NO        
+		 , A.SMART_PHONE_NO  
+		 , A.EMAIL_ID        
+		 , A.VALID_YN        
 		 , DATE_FORMAT(str_to_date(A.EXPIRED_DATE, '%Y%m%d'), '%Y-%m-%d') AS EXPIRED_DATE     
-		 , SNS_TYPE        
-		 , SNS_ID
+		 , A.SNS_TYPE        
+		 , A.SNS_ID
 	  FROM TB_COMPANY_MASTER A
+	  LEFT OUTER JOIN TB_USER_MASTER B ON A.COMP_CEO_ID = B.USER_ID
 	 WHERE 1 = 1
 	   AND A.INSERT_USER_ID = #LOGIN_ID#
 	 <isNotEmpty property="SEARCH_BIZ_ENTITY_ID">
@@ -63,6 +79,20 @@
 	 <isNotEmpty property="SEARCH_BIZ_TYPE">
 	   AND A.BIZ_TYPE = #SEARCH_BIZ_TYPE#
 	 </isNotEmpty>
+	 <isEqual property="USER_ROLE" compareValue="ADM">
+		 <isNotEmpty property="SEARCH_BIZ_LICENSE_NO">
+	   AND A.BIZ_LICENSE_NO = #SEARCH_BIZ_LICENSE_NO#
+		 </isNotEmpty>
+		 <isNotEmpty property="SEARCH_ORIGINAL_NM">
+	   AND B.ORIGINAL_NM = LIKE CONCAT('%',#SEARCH_ORIGINAL_NM#,'%')
+		 </isNotEmpty>
+	 </isEqual>
+	 <isNotEqual property="USER_ROLE" compareValue="ADM">
+	   AND (A.BIZ_ENTITY_ID IN (SELECT BIZ_ENTITY_ID FROM TB_USER_MASTER WHERE USER_ID = #LOGIN_ID#)
+	        OR
+	        A.COMP_CEO_ID = #LOGIN_ID#)
+	   AND A.VALID_YN = 'Y'
+	 </isNotEqual>
 	 <isNotEmpty property="SORT_COL">
 	 	<include refid="orderbySQL"/>
 	 </isNotEmpty>
