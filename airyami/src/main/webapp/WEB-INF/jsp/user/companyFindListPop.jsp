@@ -29,7 +29,7 @@ function fn_init(){
 	// myParams 에 넘어온 값이 있으면 이전 검색조건 셋팅한다.
 	gfn_setMyParams();
 	
-	$("#SEARCH_ORIGINAL_NM").val($("#POP_USER_NM").val());
+	$("#SEARCH_COMP_NM").val($("#POP_COMP_NM").val());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -43,8 +43,8 @@ function fn_srch(){
 	}
 	
 	var inputParam = new Object();
-	inputParam.sid 				= "userList";
-	inputParam.url 				= "/user/selectUserList.do";
+	inputParam.sid 				= "companyList";
+	inputParam.url 				= "/user/selectCompanyList.do";
 	inputParam.data 			= gfn_makeInputData($("#srchForm"));
 	//inputParam.callback			= fn_callBackA;
 	
@@ -63,8 +63,8 @@ function fn_callBack(sid, result){
 	
 	
 	// fn_srch
-	if(sid == "userList"){
-		var tbHiddenInfo = ["USER_ID", "ORIGINAL_NM"]; // row에 추가할 히든 컬럼 설정  없으면 삭제
+	if(sid == "companyList"){
+		var tbHiddenInfo = ["BIZ_ENTITY_ID", "COMP_NM"]; // row에 추가할 히든 컬럼 설정  없으면 삭제
 		
 		gfn_displayList(result.ds_list, "tb_list", tbHiddenInfo);
 		gfn_displayTotCnt(result.totCnt);
@@ -82,12 +82,12 @@ function fn_callBack(sid, result){
 
 //row click event
 function fn_clickRow(rowObj){
-	var USER_ID = $('input[name=USER_ID]', rowObj).val();
-	var USER_NM = $('input[name=ORIGINAL_NM]', rowObj).val();
+	var BIZ_ENTITY_ID = $('input[name=BIZ_ENTITY_ID]', rowObj).val();
+	var BIZ_ENTITY_NM = $('input[name=COMP_NM]', rowObj).val();
 
 	var inputParam				= {};
-	inputParam.USER_ID 			= USER_ID;
-	inputParam.USER_NM 			= USER_NM;
+	inputParam.BIZ_ENTITY_ID 	= BIZ_ENTITY_ID;
+	inputParam.BIZ_ENTITY_NM 	= BIZ_ENTITY_NM;
 	inputParam.sid				= $("#sid").val();
 	
 	opener.fn_popCallBack(inputParam.sid, inputParam);
@@ -98,7 +98,7 @@ function fn_clickRow(rowObj){
 </script>
 </head>
 <body class="popup">
-<h1><spring:message code="word.userFindList"/>&nbsp;<a onClick="self.close();" class="close">X</a></h1>
+<h1><spring:message code="word.companyFindList"/>&nbsp;<a onClick="self.close();" class="close">X</a></h1>
 	<div class="content">
 		<form id="myParams" name="myParams">
 			<ppe:makeHidden var="${findParams}" filter="FIND_" />
@@ -106,19 +106,19 @@ function fn_clickRow(rowObj){
 		<form id="srchForm" name="srchForm" method="post" action="<c:url value='/commCode/codeList.do'/>" onsubmit="return false;">
 			<input type="hidden" name="pageNo" id="pageNo" value="1"/>
 			<input type="hidden" name="EXCEL_YN" id="EXCEL_YN" />
-			<input type="hidden" name="SORT_COL" id="SORT_COL" value="INSERT_DT DESC"/>
+			<input type="hidden" name="SORT_COL" id="SORT_COL" value="A.INSERT_DT DESC"/>
 			<input type="hidden" name="SORT_ACC" id="SORT_ACC" />
 			<input type="hidden" name="SEARCH_POP_YN" id="Y" />
-			<input type="hidden" name="POP_USER_NM" id="POP_USER_NM" value='<c:out value="${POP_USER_NM}"/>'/>
+			<input type="hidden" name=POP_COMP_NM id="POP_COMP_NM" value='<c:out value="${POP_COMP_NM}"/>'/>
 			<input type="hidden" name="sid" id="sid" value='<c:out value="${sid}"/>'/>
 		<div id="search" style="width:100%">
 			<dl>
 				<dt>&nbsp;</dt>
 				<dd>
-					<label for="SEARCH_USER_ID" id="S1"><spring:message code="word.userId"/></label>
-					<input type="text" id="SEARCH_USER_ID" name="SEARCH_USER_ID" value="" title="<spring:message code="word.userId"/>" maxlength=20/>
-					<label for="SEARCH_ORIGINAL_NM" id="S2"><spring:message code="word.userNm"/></label>
-					<input type="text" id="SEARCH_ORIGINAL_NM" name="SEARCH_ORIGINAL_NM" value="" title="<spring:message code="word.userNm"/>" maxlength=20/>
+					<label for="SEARCH_BIZ_ENTITY_ID" id="S1"><spring:message code="word.bizEntityId"/></label>
+					<input type="text" id="SEARCH_BIZ_ENTITY_ID" name="SEARCH_BIZ_ENTITY_ID" value="" title="<spring:message code="word.bizEntityId"/>" maxlength=20/>
+					<label for="SEARCH_COMP_NM" id="S2"><spring:message code="word.compNm"/></label>
+					<input type="text" id="SEARCH_COMP_NM" name="SEARCH_COMP_NM" value="" title="<spring:message code="word.compNm"/>" maxlength=20/>
 					<input type="submit" value="<spring:message code="button.search"/>" onclick="javascript:gfn_fn_srch(); return false;"/>
 				</dd>
 			</dl>
@@ -146,8 +146,8 @@ function fn_clickRow(rowObj){
 			<thead>
 				<tr>
 					<th cid="ROWNUM" cClass="num" cType="NUM"><spring:message code="word.num"/></th>
-					<th cid="USER_ID" alg="center"><spring:message code="word.userId"/></th>
-					<th cid="ORIGINAL_NM" alg="center"><spring:message code="word.userNm"/></th>
+					<th cid="BIZ_ENTITY_ID" alg="center"><spring:message code="word.bizEntityId"/></th>
+					<th cid="COMP_NM" alg="center"><spring:message code="word.compNm"/></th>
 				</tr> 
 			</thead> 
 			<tbody>

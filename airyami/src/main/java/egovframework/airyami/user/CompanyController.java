@@ -15,9 +15,6 @@
  */
 package egovframework.airyami.user;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -79,6 +76,19 @@ public class CompanyController {
     /** Transaction */    
     @Resource(name="txManager")
     PlatformTransactionManager transactionManager;
+    
+    /**
+     * 업체 찾기 팝업 이동 
+     */
+    @RequestMapping(value="/user/companyFindListPop.do")
+    public String companyFindListPop(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
+    	
+    	return "/user/companyFindListPop";
+    }
     
     /**
      * 업체 리스트 이동 

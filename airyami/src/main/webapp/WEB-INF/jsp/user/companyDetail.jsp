@@ -128,7 +128,7 @@ function fn_goBack(){
 // 팝업 호출
 function go_UserPop(){
 	var inputParam				= {};
-	inputParam.SEARCH_USER_NM 	= $('#COMP_CEO_NM').val();
+	inputParam.POP_USER_NM 	= $('#COMP_CEO_NM').val();
 	inputParam.sid 	= "findUser";
 
 	gfn_commonGo("/user/userFindListPop", inputParam, "Y");

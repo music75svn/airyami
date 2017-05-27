@@ -105,6 +105,7 @@
            A.USER_ID
          , CONCAT(USER_TYPE, USER_ROLE) AS USER_TYPE_ROLE
          , A.BIZ_ENTITY_ID
+         , B.COMP_NM AS BIZ_ENTITY_NM
          , A.ORIGINAL_NM
          , A.PASSPORT_NM
          , A.SEX
@@ -130,6 +131,7 @@
          , A.RECOMMENDER_ID
          , DATE_FORMAT(str_to_date(A.LAST_ORDER_DATE, '%Y%m%d'), '%Y-%m-%d') AS LAST_ORDER_DATE
 	  FROM TB_USER_MASTER A
+	  LEFT OUTER JOIN TB_COMPANY_MASTER B ON A.BIZ_ENTITY_ID = B.BIZ_ENTITY_ID
 	 WHERE A.USER_ID= #SEARCH_USER_ID#
 	</select>
 	

@@ -119,13 +119,29 @@ function fn_goBack(){
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출
+// 팝업 호출
+function go_CompanyPop(){
+	var inputParam				= {};
+	inputParam.POP_COMP_NM 	= $('#BIZ_ENTITY_NM').val();
+	inputParam.sid 	= "findCompany";
 
+	gfn_commonGo("/user/companyFindListPop", inputParam, "Y");
+}
+
+//팝업콜백 함수
+function fn_popCallBack(sid, data){
+	// fn_srch
+	if(sid == "findCompany"){
+		$('#BIZ_ENTITY_ID').val(data.BIZ_ENTITY_ID);
+		$('#BIZ_ENTITY_NM').val(data.BIZ_ENTITY_NM);
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 기타 기능 함수
 // 팝업 내용 변경시 초기화
-function fn_userNmChange() {
-    $('#USER_ID').val('');
+function fn_companyNmChange() {
+    $('#BIZ_ENTITY_ID').val('');
 }
 
 
@@ -213,7 +229,11 @@ function fn_clearData(){
 			</tr>
 			<tr>
 				<th colspan="2"><spring:message code="word.bizEntityId"/></th>
-				<td colspan="3"><input type="text" name="BIZ_ENTITY_ID" id="BIZ_ENTITY_ID" maxlength="8" title="<spring:message code="word.bizEntityId"/>" depends=""/></td>
+				<td colspan="3">
+					<input type="text" name="BIZ_ENTITY_NM" id="BIZ_ENTITY_NM" maxlength="20" title="<spring:message code="word.bizEntityId"/>" depends="" onChange="fn_companyNmChange();"/>
+					<button type="button" id="btnW_companyPop" onClick="javascript:go_CompanyPop()"><spring:message code="button.search"/></button>
+					<input type="text" name="BIZ_ENTITY_ID" id="BIZ_ENTITY_ID" maxlength="8" title="<spring:message code="word.bizEntityId"/>" depends="required" readOnly/>
+				</td>
 			</tr>
 			<tr>
 				<th colspan="2"><spring:message code="word.userSex"/></th>
