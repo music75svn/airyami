@@ -11,21 +11,14 @@
 	  FROM TB_COMPANY_MASTER A
 	  LEFT OUTER JOIN TB_USER_MASTER B ON A.COMP_CEO_ID = B.USER_ID
 	 WHERE 1 = 1
-	   AND A.INSERT_USER_ID = #LOGIN_ID#
-	 <isNotEmpty property="SEARCH_BIZ_ENTITY_ID">
-	   AND A.BIZ_ENTITY_ID = #SEARCH_BIZ_ENTITY_ID#
-	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_COMP_NM">
 	   AND A.COMP_NM LIKE CONCAT('%',#SEARCH_COMP_NM#,'%')
 	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_ORIGINAL_NM">
-	   AND B.ORIGINAL_NM = LIKE CONCAT('%',#SEARCH_ORIGINAL_NM#,'%')
+	   AND B.ORIGINAL_NM LIKE CONCAT('%',#SEARCH_ORIGINAL_NM#,'%')
 	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_BIZ_ENTITY_TYPE">
 	   AND A.BIZ_ENTITY_TYPE = #SEARCH_BIZ_ENTITY_TYPE#
-	 </isNotEmpty>
-	 <isNotEmpty property="SEARCH_BIZ_TYPE">
-	   AND A.BIZ_TYPE = #SEARCH_BIZ_TYPE#
 	 </isNotEmpty>
 	 <isNotEqual property="USER_ROLE" compareValue="ADM">
 	   AND (A.BIZ_ENTITY_ID IN (SELECT BIZ_ENTITY_ID FROM TB_USER_MASTER WHERE USER_ID = #LOGIN_ID#)
@@ -61,21 +54,14 @@
 	  FROM TB_COMPANY_MASTER A
 	  LEFT OUTER JOIN TB_USER_MASTER B ON A.COMP_CEO_ID = B.USER_ID
 	 WHERE 1 = 1
-	   AND A.INSERT_USER_ID = #LOGIN_ID#
 	 <isNotEmpty property="SEARCH_BIZ_ENTITY_ID">
 	   AND A.BIZ_ENTITY_ID = #SEARCH_BIZ_ENTITY_ID#
 	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_COMP_NM">
 	   AND A.COMP_NM LIKE CONCAT('%',#SEARCH_COMP_NM#,'%')
 	 </isNotEmpty>
-	 <isNotEmpty property="SEARCH_BIZ_ENTITY_TYPE">
-	   AND A.BIZ_ENTITY_TYPE = #SEARCH_BIZ_ENTITY_TYPE#
-	 </isNotEmpty>
-	 <isNotEmpty property="SEARCH_ORIGINAL_NM">
-	   AND B.ORIGINAL_NM = LIKE CONCAT('%',#SEARCH_ORIGINAL_NM#,'%')
-	 </isNotEmpty>
-	 <isNotEmpty property="SEARCH_BIZ_TYPE">
-	   AND A.BIZ_TYPE = #SEARCH_BIZ_TYPE#
+	 <isNotEmpty property="SEARCH_COMP_CEO_NM">
+	   AND B.ORIGINAL_NM LIKE CONCAT('%',#SEARCH_COMP_CEO_NM#,'%')
 	 </isNotEmpty>
 	 <isNotEqual property="USER_ROLE" compareValue="ADM">
 	   AND (A.BIZ_ENTITY_ID IN (SELECT BIZ_ENTITY_ID FROM TB_USER_MASTER WHERE USER_ID = #LOGIN_ID#)

@@ -28,7 +28,6 @@ function fn_init(){
 	
 	// myParams 에 넘어온 값이 있으면 이전 검색조건 셋팅한다.
 	gfn_setMyParams();
-	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -141,6 +140,8 @@ function fn_goCreate(){
 			<input type="hidden" name="EXCEL_YN" id="EXCEL_YN" />
 			<input type="hidden" name="SORT_COL" id="SORT_COL" value="A.INSERT_DT DESC"/>
 			<input type="hidden" name="SORT_ACC" id="SORT_ACC" />
+<c:choose>
+	<c:when test="${USER_ROLE=='ADM'}">
 		<div id="search">
 			<dl>
 				<dt>&nbsp;</dt>
@@ -149,24 +150,14 @@ function fn_goCreate(){
 					<input type="text" id="SEARCH_BIZ_ENTITY_ID" name="SEARCH_BIZ_ENTITY_ID" value="" style="width:80px" title="<spring:message code="word.bizEntityId"/>" maxlength=20/>
 					<label for="SEARCH_COMP_NM" id="S2"><spring:message code="word.compNm"/></label>
 					<input type="text" id="SEARCH_COMP_NM" name="SEARCH_COMP_NM" value="" title="<spring:message code="word.compNm"/>" maxlength=20/>
-					<label for="SEARCH_BIZ_ENTITY_TYPE" id="S3"><spring:message code="word.bizEntityType"/></label>
-					<select id="SEARCH_BIZ_ENTITY_TYPE" name="SEARCH_BIZ_ENTITY_TYPE" style="width:100px">
-						<option value=""><spring:message code="word.all"/></option>
-                        <c:forEach var="bizEntityTypeList" items="${ds_bizEntityTypeList}">
-                            <option value="${bizEntityTypeList.CD}">${bizEntityTypeList.CD_NM}</option>
-                        </c:forEach>
-					</select>
-					<label for="SEARCH_BIZ_TYPE" id="S4"><spring:message code="word.bizType"/></label>
-					<select id="SEARCH_BIZ_TYPE" name="SEARCH_BIZ_TYPE" style="width:100px">
-						<option value=""><spring:message code="word.all"/></option>
-                        <c:forEach var="bizTypeList" items="${ds_bizTypeList}">
-                            <option value="${bizTypeList.CD}">${bizTypeList.CD_NM}</option>
-                        </c:forEach>
-					</select>
+					<label for="SEARCH_COMP_CEO_NM" id="S3"><spring:message code="word.compCeoId"/></label>
+					<input type="text" id="SEARCH_COMP_CEO_NM" name="SEARCH_COMP_CEO_NM" value="" title="<spring:message code="word.compCeoId"/>" maxlength=20/>
 					<input type="submit" value="<spring:message code="button.search"/>" onclick="javascript:gfn_fn_srch(); return false;"/>
 				</dd>
 			</dl>
 		</div>
+	</c:when>
+</c:choose>
 		<div class="tableInfoArea">
 			<!-- total 총건수 -->
 	        <span id="totCnt"></span>
