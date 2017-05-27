@@ -139,7 +139,7 @@ function fn_goCreate(){
 		<form id="srchForm" name="srchForm" method="post" action="<c:url value='/user/companyList.do'/>" onsubmit="return false;">
 			<input type="hidden" name="pageNo" id="pageNo" value="1"/>
 			<input type="hidden" name="EXCEL_YN" id="EXCEL_YN" />
-			<input type="hidden" name="SORT_COL" id="SORT_COL" value="INSERT_DT DESC"/>
+			<input type="hidden" name="SORT_COL" id="SORT_COL" value="A.INSERT_DT DESC"/>
 			<input type="hidden" name="SORT_ACC" id="SORT_ACC" />
 		<div id="search">
 			<dl>
