@@ -18,20 +18,15 @@
 	 <isNotEmpty property="SEARCH_COMP_NM">
 	   AND A.COMP_NM LIKE CONCAT('%',#SEARCH_COMP_NM#,'%')
 	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_ORIGINAL_NM">
+	   AND B.ORIGINAL_NM = LIKE CONCAT('%',#SEARCH_ORIGINAL_NM#,'%')
+	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_BIZ_ENTITY_TYPE">
 	   AND A.BIZ_ENTITY_TYPE = #SEARCH_BIZ_ENTITY_TYPE#
 	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_BIZ_TYPE">
 	   AND A.BIZ_TYPE = #SEARCH_BIZ_TYPE#
 	 </isNotEmpty>
-	 <isEqual property="USER_ROLE" compareValue="ADM">
-		 <isNotEmpty property="SEARCH_BIZ_LICENSE_NO">
-	   AND A.BIZ_LICENSE_NO = #SEARCH_BIZ_LICENSE_NO#
-		 </isNotEmpty>
-		 <isNotEmpty property="SEARCH_ORIGINAL_NM">
-	   AND B.ORIGINAL_NM = LIKE CONCAT('%',#SEARCH_ORIGINAL_NM#,'%')
-		 </isNotEmpty>
-	 </isEqual>
 	 <isNotEqual property="USER_ROLE" compareValue="ADM">
 	   AND (A.BIZ_ENTITY_ID IN (SELECT BIZ_ENTITY_ID FROM TB_USER_MASTER WHERE USER_ID = #LOGIN_ID#)
 	        OR
@@ -76,17 +71,12 @@
 	 <isNotEmpty property="SEARCH_BIZ_ENTITY_TYPE">
 	   AND A.BIZ_ENTITY_TYPE = #SEARCH_BIZ_ENTITY_TYPE#
 	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_ORIGINAL_NM">
+	   AND B.ORIGINAL_NM = LIKE CONCAT('%',#SEARCH_ORIGINAL_NM#,'%')
+	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_BIZ_TYPE">
 	   AND A.BIZ_TYPE = #SEARCH_BIZ_TYPE#
 	 </isNotEmpty>
-	 <isEqual property="USER_ROLE" compareValue="ADM">
-		 <isNotEmpty property="SEARCH_BIZ_LICENSE_NO">
-	   AND A.BIZ_LICENSE_NO = #SEARCH_BIZ_LICENSE_NO#
-		 </isNotEmpty>
-		 <isNotEmpty property="SEARCH_ORIGINAL_NM">
-	   AND B.ORIGINAL_NM = LIKE CONCAT('%',#SEARCH_ORIGINAL_NM#,'%')
-		 </isNotEmpty>
-	 </isEqual>
 	 <isNotEqual property="USER_ROLE" compareValue="ADM">
 	   AND (A.BIZ_ENTITY_ID IN (SELECT BIZ_ENTITY_ID FROM TB_USER_MASTER WHERE USER_ID = #LOGIN_ID#)
 	        OR
