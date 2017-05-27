@@ -52,7 +52,7 @@
          , A.COMP_ADDR_CITY
          , A.COMP_ADDR_FULL
          , A.USE_LANGUAGE_CD
-         , FN_GET_CODE_NM('LANG', A.USE_LANGUAGE_CD, #LANG_CD#) AS USE_LANGUAGE_NM
+         , FN_GET_CODE_NM('USING_LANG', A.USE_LANGUAGE_CD, #LANG_CD#) AS USE_LANGUAGE_NM
          , A.SNS_TYPE
          , A.SNS_ID
          , A.PHONE_COUNTRY_NO
@@ -175,7 +175,6 @@
          , BANK_NAME
          , ACCOUNT_NO
          , RECOMMENDER_ID
-         , LAST_ORDER_DATE
 		 , INSERT_USER_ID
 		 , INSERT_DT)
 		VALUES
@@ -208,7 +207,6 @@
          , #BANK_NAME#
          , #ACCOUNT_NO#
          , #RECOMMENDER_ID#
-         , #LAST_ORDER_DATE#
 		 , #LOGIN_ID#
 		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 		)
@@ -244,7 +242,6 @@
          , BANK_NAME              = #BANK_NAME#
          , ACCOUNT_NO             = #ACCOUNT_NO#
          , RECOMMENDER_ID         = #RECOMMENDER_ID#
-         , LAST_ORDER_DATE        = #LAST_ORDER_DATE#
 	     , UPDATE_USER_ID         = #LOGIN_ID#
 	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 	 WHERE USER_ID                = #USER_ID#

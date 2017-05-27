@@ -186,7 +186,7 @@ function fn_clearData(){
 			<tr>
 				<th>${LANG.CD_NM}</th>
 				<td>
-					<input type="text" name="CODE_NM_${LANG.CD}" id="CODE_NM_${LANG.CD}" maxlength="50" value="${NAMELIST.CODE_NM}" title="<spring:message code="word.codeNm"/>" depends="required"/>
+					<input type="text" name="CODE_NM_${LANG.CD}" id="CODE_NM_${LANG.CD}" maxlength="50" style="width:200px" value="${NAMELIST.CODE_NM}" title="<spring:message code="word.codeNm"/>" depends="required"/>
 				</td>
 			</tr>
 </c:forEach>

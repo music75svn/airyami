@@ -216,8 +216,13 @@ public class UserController {
     	List<ValueMap> addrCountryList = commCodeService.selectCommCode(params);
     	model.put("ds_addrCountryList", addrCountryList);
     	
+    	// 국가번호 조회
+    	params.put( "CODE_GROUP_ID", "COUNTRY_NUMBER" ); //국가번호 대분류
+    	List<ValueMap> addrCountryNumberList = commCodeService.selectCommCode(params);
+    	model.put("ds_addrCountryNumberList", addrCountryNumberList);
+    	
     	// 사용언어 조회
-    	params.put( "CODE_GROUP_ID", "LANG" ); //언어 대분류
+    	params.put( "CODE_GROUP_ID", "USING_LANG" ); //언어 대분류
     	List<ValueMap> useLanguageList = commCodeService.selectCommCode(params);
     	model.put("ds_useLanguageList", useLanguageList);
     	

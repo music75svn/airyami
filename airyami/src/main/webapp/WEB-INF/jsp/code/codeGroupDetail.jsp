@@ -170,7 +170,7 @@ function fn_clearData(){
 			</tr>
 			<tr>
 				<th><spring:message code="word.codeGroupNm"/></th>
-				<td><input type="text" name="CODE_GROUP_NM" id="CODE_GROUP_NM" maxlength="50" title="<spring:message code="word.codeGroupNm"/>" depends="required"/></td>
+				<td><input type="text" name="CODE_GROUP_NM" id="CODE_GROUP_NM" style="width:200px" maxlength="50" title="<spring:message code="word.codeGroupNm"/>" depends="required"/></td>
 			</tr>
 			<tr>
 				<th><spring:message code="cop.remark"/></th>

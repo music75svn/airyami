@@ -209,6 +209,11 @@ public class CompanyController {
     	List<ValueMap> addrCountryList = commCodeService.selectCommCode(params);
     	model.put("ds_addrCountryList", addrCountryList);
     	
+    	// 국가번호 조회
+    	params.put( "CODE_GROUP_ID", "COUNTRY_NUMBER" ); //국가번호 대분류
+    	List<ValueMap> addrCountryNumberList = commCodeService.selectCommCode(params);
+    	model.put("ds_addrCountryNumberList", addrCountryNumberList);
+    	
     	// SNS유형 조회
     	params.put( "CODE_GROUP_ID", "SNS_TYPE" ); //SNS유형 대분류
     	List<ValueMap> snsTypeList = commCodeService.selectCommCode(params);
