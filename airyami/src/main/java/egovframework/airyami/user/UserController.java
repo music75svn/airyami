@@ -222,7 +222,7 @@ public class UserController {
     	model.put("ds_addrCountryNumberList", addrCountryNumberList);
     	
     	// 사용언어 조회
-    	params.put( "CODE_GROUP_ID", "USING_LANG" ); //언어 대분류
+    	params.put( "CODE_GROUP_ID", "USING_LANGUAGE" ); //언어 대분류
     	List<ValueMap> useLanguageList = commCodeService.selectCommCode(params);
     	model.put("ds_useLanguageList", useLanguageList);
     	
