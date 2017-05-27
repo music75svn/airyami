@@ -140,22 +140,14 @@ function fn_clickRow(rowObj){
 			<caption>리스트</caption>
 			<colgroup>
 				<col width="5%"/>
-				<col width="15%"/>
+				<col width="20%"/>
 				<col width=""/>
-				<col width="15%"/>
-				<col width="15%"/>
-				<col width="15%"/>
-				<col width="15%"/>
 			</colgroup>
 			<thead>
 				<tr>
 					<th cid="ROWNUM" cClass="num" cType="NUM"><spring:message code="word.num"/></th>
 					<th cid="USER_ID" alg="center"><spring:message code="word.userId"/></th>
 					<th cid="ORIGINAL_NM" alg="center"><spring:message code="word.userNm"/></th>
-					<th cid="USER_ROLE_NM" alg="center"><spring:message code="word.userTypeRole"/></th>
-					<th cid="USE_LANGUAGE_NM" alg="center"><spring:message code="word.useLanguageCd"/></th>
-					<th cid="RECOMMENDER_ID" alg="center"><spring:message code="word.recommenderId"/></th>
-					<th cid="LAST_ORDER_DATE" alg="center"><spring:message code="word.lastOrderDate"/></th>
 				</tr> 
 			</thead> 
 			<tbody>
