@@ -205,12 +205,12 @@ public class CompanyController {
     	CommonUtils.setModelByParams(model, params, request);
     	
     	// 국가코드 조회
-    	params.put( "CODE_GROUP_ID", "COUNTRY" ); //국가 대분류
+    	params.put( "CODE_GROUP_ID", "COUNTRY_CODE" ); //국가 대분류
     	List<ValueMap> addrCountryList = commCodeService.selectCommCode(params);
     	model.put("ds_addrCountryList", addrCountryList);
     	
     	// SNS유형 조회
-    	params.put( "CODE_GROUP_ID", "SNS" ); //SNS유형 대분류
+    	params.put( "CODE_GROUP_ID", "SNS_TYPE" ); //SNS유형 대분류
     	List<ValueMap> snsTypeList = commCodeService.selectCommCode(params);
     	model.put("ds_snsTypeList", snsTypeList);
  
