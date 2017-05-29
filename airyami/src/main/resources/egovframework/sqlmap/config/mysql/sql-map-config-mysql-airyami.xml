@@ -12,4 +12,5 @@
 	<sqlMap resource="egovframework/sqlmap/airyami/Menu_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/User_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/Company_Mysql.xml"/>
+	<sqlMap resource="egovframework/sqlmap/airyami/Product_Mysql.xml"/>
 </sqlMapConfig>

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="product">
+
+<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+	
+	<select id="product.getProductCount" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT /* Product_Mysql.xml  product.getProductCount */
+	       COUNT(1) 
+	  FROM TB_PRODUCT_MASTER A
+	     , TB_PRODUCT_NAME B
+	 WHERE 1 = 1
+	   AND A.PROD_NO = B.PROD_NO
+	   AND B.LANG_CD = #LANG_CD#
+	 <isNotEmpty property="SEARCH_PROD_NO">
+	   AND A.PROD_NO = #SEARCH_PROD_NO#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_NM">
+	   AND (
+	   		B.PROD_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
+	   		B.PROD_SHORT_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
+	   		)
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_CATE_CD">
+	   AND A.PROD_CATE_CD = #SEARCH_PROD_CATE_CD#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_MID_CD">
+	   AND A.PROD_MID_CD = #SEARCH_PROD_MID_CD#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_GRP_CD">
+	   AND A.PROD_GRP_CD = #SEARCH_PROD_GRP_CD#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_BRAND_CD">
+	   AND A.BRAND_CD = #SEARCH_BRAND_CD#
+	 </isNotEmpty>
+	</select>
+	
+	<select id="product.getProductList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingPrefixSQL"/>
+	</isEqual>
+	SELECT /* Product_Mysql.xml  product.getProductList */
+           A.PROD_NO             
+         , B.PROD_NM
+         , B.PROD_SHORT_NM  
+         , A.BRAND_CD
+         , FN_GET_CODE_NM('BRAND', A.BRAND_CD, #LANG_CD#) AS BRAND_NM  
+         , A.PROD_CATE_CD 
+         , A.PROD_MID_CD 
+         , A.PROD_GRP_CD
+         , '대분류>중분류>소분류' AS CATEGORY_NM
+         , A.WORKING_YN          
+         , A.SELLER_BIZ_ENTITY_ID
+         , A.MAKE_COUNTRY        
+         , A.SUPPLY_COUNTRY      
+         , A.SUPPLY_CURRENCY     
+         , A.ORG_PRICE           
+         , A.DUTY_FREE_YN        
+         , A.VOLUME_UNIT         
+         , A.VOLUME              
+         , A.WEIGHT_NIT          
+         , A.WEIGHT              
+         , A.SALES_SKU           
+         , A.PER_BOX_PROD_CNT    
+         , A.SELL_VALID_MONTHS   
+         , A.SEEN_CUSTOMER_YN    
+         , A.SEEN_PARTNER_YN     
+         , A.SALES_START_DT      
+         , A.SALES_END_DT      
+	  FROM TB_PRODUCT_MASTER A
+	     , TB_PRODUCT_NAME B
+	 WHERE 1 = 1
+	   AND A.PROD_NO = B.PROD_NO
+	   AND B.LANG_CD = #LANG_CD#
+	 <isNotEmpty property="SEARCH_PROD_NO">
+	   AND A.PROD_NO = #SEARCH_PROD_NO#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_NM">
+	   AND (
+	   		B.PROD_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
+	   		B.PROD_SHORT_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
+	   		)
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_CATE_CD">
+	   AND A.PROD_CATE_CD = #SEARCH_PROD_CATE_CD#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_MID_CD">
+	   AND A.PROD_MID_CD = #SEARCH_PROD_MID_CD#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_GRP_CD">
+	   AND A.PROD_GRP_CD = #SEARCH_PROD_GRP_CD#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_BRAND_CD">
+	   AND A.BRAND_CD = #SEARCH_BRAND_CD#
+	 </isNotEmpty>
+	 <isNotEmpty property="SORT_COL">
+	 	<include refid="orderbySQL"/>
+	 </isNotEmpty>
+	 <isEmpty property="SORT_COL">
+	 ORDER BY A.INSERT_DT DESC
+	 </isEmpty>
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingSuffixSQL"/>
+	</isEqual>
+	</select>
+ 
+	<!-- TB_PRODUCT_MASTER 상세조회 -->
+	<select id="product.getProductDetail" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* Product_Mysql.xml  product.getProductDetail */
+           PROD_NO             
+         , BRAND_CD            
+         , PROD_CATE_CD
+         , PROD_MID_CD      
+         , PROD_GRP_CD         
+         , WORKING_YN          
+         , SELLER_BIZ_ENTITY_ID
+         , MAKE_COUNTRY        
+         , SUPPLY_COUNTRY      
+         , SUPPLY_CURRENCY     
+         , ORG_PRICE           
+         , DUTY_FREE_YN        
+         , VOLUME_UNIT         
+         , VOLUME              
+         , WEIGHT_NIT          
+         , WEIGHT              
+         , SALES_SKU           
+         , PER_BOX_PROD_CNT    
+         , SELL_VALID_MONTHS   
+         , SEEN_CUSTOMER_YN    
+         , SEEN_PARTNER_YN     
+         , SALES_START_DT      
+         , SALES_END_DT     
+	  FROM TB_PRODUCT_MASTER A
+	 WHERE A.PROD_NO= #SEARCH_PROD_NO#
+	</select>
+	
+	<select id="product.getProductExistYn" parameterClass="Map" resultClass="java.lang.String">
+	SELECT /* Product_Mysql.xml  product.getProductExistYn */
+		   CASE WHEN count(*) = 0 THEN 'N' ELSE 'Y' END EXIST_YN
+	  FROM TB_PRODUCT_MASTER
+	 WHERE 1 = 1
+	 <isNotEmpty property="PROD_NO">
+	   AND PROD_NO= #PROD_NO# 
+	 </isNotEmpty>
+	</select>
+	
+	<select id="product.getProdNo" parameterClass="Map" resultClass="java.lang.String">
+	SELECT /* Company_Mysql.xml  product.getProdNo */
+		   CONCAT(#SUPPLY_COUNTRY#,  
+	              IFNULL((SELECT 
+	                            LPAD(MAX(SUBSTR(PROD_NO, 3, 5))+1, 5, '0') AS SERIAL_NO
+	                        FROM
+	                            TB_COMPANY_MASTER), '00001'))
+      FROM DUAL;
+	</select>
+	
+	<insert id="product.insertProduct" parameterClass="Map">
+	INSERT /* Product_Mysql.xml  product.insertProduct */
+	  INTO TB_PRODUCT_MASTER
+		(
+           PROD_NO             
+         , BRAND_CD            
+         , PROD_CATE_CD
+         , PROD_MID_CD      
+         , PROD_GRP_CD         
+         , WORKING_YN          
+         , SELLER_BIZ_ENTITY_ID
+         , MAKE_COUNTRY        
+         , SUPPLY_COUNTRY      
+         , SUPPLY_CURRENCY     
+         , ORG_PRICE           
+         , DUTY_FREE_YN        
+         , VOLUME_UNIT         
+         , VOLUME              
+         , WEIGHT_NIT          
+         , WEIGHT              
+         , SALES_SKU           
+         , PER_BOX_PROD_CNT    
+         , SELL_VALID_MONTHS   
+         , SEEN_CUSTOMER_YN    
+         , SEEN_PARTNER_YN     
+         , SALES_START_DT      
+         , SALES_END_DT     
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+           #PROD_NO#
+         , #BRAND_CD#
+         , #PROD_CATE_CD#
+         , #PROD_MID_CD#
+         , #PROD_GRP_CD#
+         , #WORKING_YN#
+         , #SELLER_BIZ_ENTITY_ID#
+         , #MAKE_COUNTRY#
+         , #SUPPLY_COUNTRY#
+         , #SUPPLY_CURRENCY#
+         , #ORG_PRICE#
+         , #DUTY_FREE_YN#
+         , #VOLUME_UNIT#
+         , #VOLUME#
+         , #WEIGHT_NIT#
+         , #WEIGHT#
+         , #SALES_SKU#
+         , #PER_BOX_PROD_CNT#
+         , #SELL_VALID_MONTHS#
+         , #SEEN_CUSTOMER_YN#
+         , #SEEN_PARTNER_YN#
+         , #SALES_START_DT#
+         , #SALES_END_DT# 
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+	
+	<update id="product.updateProduct" parameterClass="Map">
+	UPDATE /* Product_Mysql.xml  product.updateProduct */
+	       TB_PRODUCT_MASTER
+	   SET USER_PSWD              = PASSWORD(#USER_PSWD#)
+         , USER_TYPE              = #USER_TYPE#
+         , USER_ROLE              = #USER_ROLE#
+         , BIZ_ENTITY_ID          = #BIZ_ENTITY_ID#
+         , PROD_NM                = #PROD_NM#
+         , PASSPORT_NM            = #PASSPORT_NM#
+         , SEX                    = #SEX#
+         , BIRTH_YEAR             = #BIRTH_YEAR#
+         , BIRTH_MONTH            = #BIRTH_MONTH#
+         , BIRTH_DAY              = #BIRTH_DAY#
+         , HOME_ADDR_COUNTRY      = #HOME_ADDR_COUNTRY#
+         , HOME_ADDR_PROVINCE     = #HOME_ADDR_PROVINCE#
+         , HOME_ADDR_CITY         = #HOME_ADDR_CITY#
+         , HOME_ADDR_FULL         = #HOME_ADDR_FULL#
+         , COMP_ADDR_COUNTRY      = #COMP_ADDR_COUNTRY#
+         , COMP_ADDR_PROVINCE     = #COMP_ADDR_PROVINCE#
+         , COMP_ADDR_CITY         = #COMP_ADDR_CITY#
+         , COMP_ADDR_FULL         = #COMP_ADDR_FULL#
+         , USE_LANGUAGE_CD        = #USE_LANGUAGE_CD#
+         , SNS_TYPE               = #SNS_TYPE#
+         , SNS_ID                 = #SNS_ID#
+         , PHONE_COUNTRY_NO       = #PHONE_COUNTRY_NO#
+         , PHONE_NO               = #PHONE_NO#
+         , EMAIL_ID               = #EMAIL_ID#
+         , BANK_NAME              = #BANK_NAME#
+         , ACCOUNT_NO             = #ACCOUNT_NO#
+         , RECOMMENDER_ID         = #RECOMMENDER_ID#
+	     , UPDATE_PROD_NO         = #LOGIN_ID#
+	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	 WHERE PROD_NO                = #PROD_NO#
+	</update>
+	
+	<delete id="product.deleteProduct" parameterClass="Map">
+	DELETE /* Product_Mysql.xml  product.deleteProduct */
+	  FROM TB_PRODUCT_MASTER
+	 WHERE PROD_NO = #PROD_NO#
+	</delete>
+</sqlMap>
