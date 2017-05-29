@@ -135,14 +135,16 @@
 	 WHERE A.PROD_NO= #SEARCH_PROD_NO#
 	</select>
 	
-	<select id="product.getProductExistYn" parameterClass="Map" resultClass="java.lang.String">
-	SELECT /* Product_Mysql.xml  product.getProductExistYn */
-		   CASE WHEN count(*) = 0 THEN 'N' ELSE 'Y' END EXIST_YN
-	  FROM TB_PRODUCT_MASTER
+	<!-- TB_CODE 코드명 조회 -->
+	<select id="product.getProductNameList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeNameList */
+	       LANG_CD
+		 , A.PROD_SHORT_NM
+		 , A.PROD_NM
+		 , A.PRODUCT_EXPL_TEXT
+	  FROM TB_PRODUCT_NAME A
 	 WHERE 1 = 1
-	 <isNotEmpty property="PROD_NO">
-	   AND PROD_NO= #PROD_NO# 
-	 </isNotEmpty>
+	   AND A.PROD_NO= #SEARCH_PROD_NO#
 	</select>
 	
 	<select id="product.getProdNo" parameterClass="Map" resultClass="java.lang.String">
@@ -151,7 +153,7 @@
 	              IFNULL((SELECT 
 	                            LPAD(MAX(SUBSTR(PROD_NO, 3, 5))+1, 5, '0') AS SERIAL_NO
 	                        FROM
-	                            TB_COMPANY_MASTER), '00001'))
+	                            TB_PRODUCT_MASTER), '00001'))
       FROM DUAL;
 	</select>
 	
@@ -159,8 +161,7 @@
 	INSERT /* Product_Mysql.xml  product.insertProduct */
 	  INTO TB_PRODUCT_MASTER
 		(
-           PROD_NO             
-         , BRAND_CD            
+           BRAND_CD            
          , PROD_CATE_CD
          , PROD_MID_CD      
          , PROD_GRP_CD         
@@ -186,8 +187,7 @@
 		 , INSERT_DT)
 		VALUES
 		(
-           #PROD_NO#
-         , #BRAND_CD#
+           #BRAND_CD#
          , #PROD_CATE_CD#
          , #PROD_MID_CD#
          , #PROD_GRP_CD#
@@ -217,41 +217,72 @@
 	<update id="product.updateProduct" parameterClass="Map">
 	UPDATE /* Product_Mysql.xml  product.updateProduct */
 	       TB_PRODUCT_MASTER
-	   SET USER_PSWD              = PASSWORD(#USER_PSWD#)
-         , USER_TYPE              = #USER_TYPE#
-         , USER_ROLE              = #USER_ROLE#
-         , BIZ_ENTITY_ID          = #BIZ_ENTITY_ID#
-         , PROD_NM                = #PROD_NM#
-         , PASSPORT_NM            = #PASSPORT_NM#
-         , SEX                    = #SEX#
-         , BIRTH_YEAR             = #BIRTH_YEAR#
-         , BIRTH_MONTH            = #BIRTH_MONTH#
-         , BIRTH_DAY              = #BIRTH_DAY#
-         , HOME_ADDR_COUNTRY      = #HOME_ADDR_COUNTRY#
-         , HOME_ADDR_PROVINCE     = #HOME_ADDR_PROVINCE#
-         , HOME_ADDR_CITY         = #HOME_ADDR_CITY#
-         , HOME_ADDR_FULL         = #HOME_ADDR_FULL#
-         , COMP_ADDR_COUNTRY      = #COMP_ADDR_COUNTRY#
-         , COMP_ADDR_PROVINCE     = #COMP_ADDR_PROVINCE#
-         , COMP_ADDR_CITY         = #COMP_ADDR_CITY#
-         , COMP_ADDR_FULL         = #COMP_ADDR_FULL#
-         , USE_LANGUAGE_CD        = #USE_LANGUAGE_CD#
-         , SNS_TYPE               = #SNS_TYPE#
-         , SNS_ID                 = #SNS_ID#
-         , PHONE_COUNTRY_NO       = #PHONE_COUNTRY_NO#
-         , PHONE_NO               = #PHONE_NO#
-         , EMAIL_ID               = #EMAIL_ID#
-         , BANK_NAME              = #BANK_NAME#
-         , ACCOUNT_NO             = #ACCOUNT_NO#
-         , RECOMMENDER_ID         = #RECOMMENDER_ID#
+	   SET BRAND_CD               = #BRAND_CD#    
+         , PROD_CATE_CD           = #PROD_CATE_CD#
+         , PROD_MID_CD            = #PROD_MID_CD#
+         , PROD_GRP_CD            = #PROD_GRP_CD#
+         , WORKING_YN             = #WORKING_YN#
+         , SELLER_BIZ_ENTITY_ID   = #SELLER_BIZ_ENTITY_ID#
+         , MAKE_COUNTRY           = #MAKE_COUNTRY#
+         , SUPPLY_COUNTRY         = #SUPPLY_COUNTRY#
+         , SUPPLY_CURRENCY        = #SUPPLY_CURRENCY#
+         , ORG_PRICE              = #ORG_PRICE#
+         , DUTY_FREE_YN           = #DUTY_FREE_YN#
+         , VOLUME_UNIT            = #VOLUME_UNIT#
+         , VOLUME                 = #VOLUME#
+         , WEIGHT_NIT             = #WEIGHT_NIT#
+         , WEIGHT                 = #WEIGHT#
+         , SALES_SKU              = #SALES_SKU#
+         , PER_BOX_PROD_CNT       = #PER_BOX_PROD_CNT#
+         , SELL_VALID_MONTHS      = #SELL_VALID_MONTHS#
+         , SEEN_CUSTOMER_YN       = #SEEN_CUSTOMER_YN#
+         , SEEN_PARTNER_YN        = #SEEN_PARTNER_YN#
+         , SALES_START_DT         = #SALES_START_DT#
+         , SALES_END_DT           = #SALES_END_DT#
 	     , UPDATE_PROD_NO         = #LOGIN_ID#
 	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 	 WHERE PROD_NO                = #PROD_NO#
 	</update>
 	
+	<insert id="product.saveProdNm" parameterClass="Map">
+	INSERT /* Product_Mysql.xml  product.saveProdNm */
+	  INTO TB_PRODUCT_NAME
+		(
+		   PROD_NO
+		 , LANG_CD
+		 , PROD_NM
+		 , PROD_SHORT_NM
+		 , PRODUCT_EXPL_TEX
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+		   #PROD_NO#
+		 , #LANG_CD#
+		 , #PROD_NM#
+		 , #PROD_SHORT_NM#
+		 , #PRODUCT_EXPL_TEX#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	ON DUPLICATE KEY UPDATE
+		   PROD_NM = #PROD_NM#
+		 , PROD_SHORT_NM = #PROD_SHORT_NM#
+		 , PRODUCT_EXPL_TEX = #PRODUCT_EXPL_TEX#
+		 , UPDATE_USER_ID = #LOGIN_ID#,
+		 , UPDATE_DT = DATE_FORMAT(now(), '%Y%m%d%H%i%s'
+		)
+	</insert>
+	
 	<delete id="product.deleteProduct" parameterClass="Map">
 	DELETE /* Product_Mysql.xml  product.deleteProduct */
 	  FROM TB_PRODUCT_MASTER
+	 WHERE PROD_NO = #PROD_NO#
+	</delete>
+	
+	<delete id="product.deleteProductNm" parameterClass="Map">
+	DELETE /* Product_Mysql.xml  product.deleteProductNm */
+	  FROM TB_PRODUCT_NAME
 	 WHERE PROD_NO = #PROD_NO#
 	</delete>
 </sqlMap>

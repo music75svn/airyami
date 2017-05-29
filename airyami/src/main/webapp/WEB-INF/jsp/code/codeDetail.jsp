@@ -182,6 +182,7 @@ function fn_clearData(){
 			<tr>
 <c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
 				<th rowspan="${listSize+1}"><spring:message code="word.codeNm"/></th>
+			</tr>
 <c:forEach var="LANG" items="${ds_cd_LANG}">
 			<tr>
 				<th>${LANG.CD_NM}</th>

@@ -18,6 +18,7 @@ package egovframework.airyami.product;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -197,13 +198,15 @@ public class ProductController {
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
     	CommonUtils.setModelByParams(model, params, request);
     	
-    	List<ValueMap> typeRoleList = cmmService.getCommDbList(params, "product.getTypeRoleList");
-    	model.put("ds_typeRoleList", typeRoleList);
-    	
     	// 브랜드
     	params.put( "CODE_GROUP_ID", "BRAND" ); //브랜드
     	List<ValueMap> brandList = commCodeService.selectCommCode(params);
     	model.put("ds_brandList", brandList);
+    	
+    	// 언어코드
+    	params.put( "CODE_GROUP_ID", "LANG" ); //언어코드 대분류
+    	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_LANG", code_LANG);
     	
     	return "/product/productDetail";
     }
@@ -223,6 +226,10 @@ public class ProductController {
     	try{
     		ValueMap ds_detail = cmmService.getCommDbMap(params, "product.getProductDetail");
     		
+    		// 코드명 목록 조회
+    		List<ValueMap> ds_langNameList = cmmService.getCommDbList(params, "commcode.getCodeNameList");
+    		
+    		result.put("ds_langNameList", ds_langNameList);
     		result.put("ds_detail", ds_detail);
     	}
     	catch(Exception e){
@@ -252,25 +259,88 @@ public class ProductController {
     	ValueMap result = new ValueMap();
     	
     	try{
-    		String productTypeRole = (String)params.get("USER_TYPE_ROLE");
-    		params.put("USER_TYPE", productTypeRole.substring(0, 1));
-    		params.put("USER_ROLE", productTypeRole.substring(1, 4));
     		if("CREATE".equals(params.get("PROC_MODE"))){
-    			// 중복체크
-    			String existYn = cmmService.getCommDbString(params, "product.getProductExistYn");
+    			// 상품코드 발번
+    			String prodNo = cmmService.getCommDbString(params, "product.getProdNo");
+    			params.put("PROD_NO", prodNo);
     			
-    			// 상품 중복
-    			if("Y".equals(existYn)){
-    				// TODO 예외처리
-    		    	result.put("msg", egovMessageSource.getMessage("fail.exist.msg", CommonUtils.getLocale(request)) );
-    		    	throw new Exception();
+    			// 상품 등록
+    			List queryList = new ArrayList();
+    			Map<String,Object> queryMap = new HashMap();
+    			queryMap.putAll(params);
+    			queryMap.put("queryGubun", "INSERT");
+    			queryMap.put("query", "product.insertProduct");
+    			queryList.add(queryMap);
+    			
+    			// 상품명 등록
+    			Map<String,Object> langMap = new HashMap();
+    			langMap.putAll(params);
+    			langMap.put( "CODE_GROUP_ID", "LANG" ); //언어코드 대분류
+    			List<ValueMap> code_LANG = commCodeService.selectCommCode(langMap);
+    			for(int i = 0; i < code_LANG.size(); i++){
+    				queryMap = new HashMap();
+    				queryMap.putAll(params);
+    				Map code_LANGMap = (ValueMap)code_LANG.get(i);
+    				queryMap.put("PROD_NM", params.get("PROD_NM_"+code_LANGMap.get("CD")));
+    				queryMap.put("PROD_SHORT_NM", params.get("PROD_SHORT_NM_"+code_LANGMap.get("CD")));
+    				queryMap.put("PRODUCT_EXPL_TEXT", params.get("PRODUCT_EXPL_TEXT_"+code_LANGMap.get("CD")));
+    				queryMap.put("LANG_CD", code_LANGMap.get("CD"));
+    				queryMap.put("queryGubun", "UPDATE");
+    				queryMap.put("query", "product.saveProdNm");
+        			
+        			log.debug("params : "+queryMap);
+        			
+        			queryList.add(queryMap);
     			}
 
-    			cmmService.insertCommDb(params, "product.insertProduct");
+    			cmmService.saveCommDbList(queryList);
     		}else if("UPDATE".equals(params.get("PROC_MODE"))){
-    			cmmService.updateCommDb(params, "product.updateProduct");
+    			// 상품 수정
+    			List queryList = new ArrayList();
+    			Map<String,Object> queryMap = new HashMap();
+    			queryMap.putAll(params);
+    			queryMap.put("queryGubun", "UPDATE");
+    			queryMap.put("query", "product.updateProduct");
+    			queryList.add(queryMap);
+    			
+    			// 상품명 등록
+    			Map<String,Object> langMap = new HashMap();
+    			langMap.putAll(params);
+    			langMap.put( "CODE_GROUP_ID", "LANG" ); //언어코드 대분류
+    			List<ValueMap> code_LANG = commCodeService.selectCommCode(langMap);
+    			for(int i = 0; i < code_LANG.size(); i++){
+    				queryMap = new HashMap();
+    				queryMap.putAll(params);
+    				Map code_LANGMap = (ValueMap)code_LANG.get(i);
+    				queryMap.put("PROD_NM", params.get("PROD_NM_"+code_LANGMap.get("CD")));
+    				queryMap.put("PROD_SHORT_NM", params.get("PROD_SHORT_NM_"+code_LANGMap.get("CD")));
+    				queryMap.put("PRODUCT_EXPL_TEXT", params.get("PRODUCT_EXPL_TEXT_"+code_LANGMap.get("CD")));
+    				queryMap.put("LANG_CD", code_LANGMap.get("CD"));
+    				queryMap.put("queryGubun", "UPDATE");
+    				queryMap.put("query", "product.saveProdNm");
+        			
+        			log.debug("params : "+queryMap);
+        			
+        			queryList.add(queryMap);
+    			}
+
+    			cmmService.saveCommDbList(queryList);
     		}else if("DELETE".equals(params.get("PROC_MODE"))){
-    			cmmService.deleteCommDb(params, "product.deleteProduct");
+    			// 상품 삭제
+    			List queryList = new ArrayList();
+    			Map<String,Object> queryMap = new HashMap();
+    			queryMap.putAll(params);
+    			queryMap.put("queryGubun", "DELETE");
+    			queryMap.put("query", "product.deleteProduct");
+    			queryList.add(queryMap);
+    			
+    			// 메시지 삭제
+    			queryMap = new HashMap();
+    			queryMap.putAll(params);
+    			queryMap.put("queryGubun", "DELETE");
+    			queryMap.put("query", "product.deleteProductNm");
+    			queryList.add(queryMap);
+    			cmmService.saveCommDbList(queryList);
     		}
     	}
     	catch(Exception e){
