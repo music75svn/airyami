@@ -22,14 +22,14 @@
 	   		B.PROD_SHORT_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
 	   		)
 	 </isNotEmpty>
-	 <isNotEmpty property="SEARCH_PROD_CATE_CD">
-	   AND A.PROD_CATE_CD = #SEARCH_PROD_CATE_CD#
+	 <isNotEmpty property="SEARCH_PROD_LCATE_CD">
+	   AND A.PROD_LCATE_CD = #SEARCH_PROD_LCATE_CD#
 	 </isNotEmpty>
-	 <isNotEmpty property="SEARCH_PROD_MID_CD">
-	   AND A.PROD_MID_CD = #SEARCH_PROD_MID_CD#
+	 <isNotEmpty property="SEARCH_PROD_MCATE_CD">
+	   AND A.PROD_MCATE_CD = #SEARCH_PROD_MCATE_CD#
 	 </isNotEmpty>
-	 <isNotEmpty property="SEARCH_PROD_GRP_CD">
-	   AND A.PROD_GRP_CD = #SEARCH_PROD_GRP_CD#
+	 <isNotEmpty property="SEARCH_PROD_SCATE_CD">
+	   AND A.PROD_SCATE_CD = #SEARCH_PROD_SCATE_CD#
 	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_BRAND_CD">
 	   AND A.BRAND_CD = #SEARCH_BRAND_CD#
@@ -46,9 +46,9 @@
          , B.PROD_SHORT_NM  
          , A.BRAND_CD
          , FN_GET_CODE_NM('BRAND', A.BRAND_CD, #LANG_CD#) AS BRAND_NM  
-         , A.PROD_CATE_CD 
-         , A.PROD_MID_CD 
-         , A.PROD_GRP_CD
+         , A.PROD_LCATE_CD 
+         , A.PROD_MCATE_CD 
+         , A.PROD_SCATE_CD
          , '대분류>중분류>소분류' AS CATEGORY_NM
          , A.WORKING_YN          
          , A.SELLER_BIZ_ENTITY_ID
@@ -82,14 +82,14 @@
 	   		B.PROD_SHORT_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
 	   		)
 	 </isNotEmpty>
-	 <isNotEmpty property="SEARCH_PROD_CATE_CD">
-	   AND A.PROD_CATE_CD = #SEARCH_PROD_CATE_CD#
+	 <isNotEmpty property="SEARCH_PROD_LCATE_CD">
+	   AND A.PROD_LCATE_CD = #SEARCH_PROD_LCATE_CD#
 	 </isNotEmpty>
-	 <isNotEmpty property="SEARCH_PROD_MID_CD">
-	   AND A.PROD_MID_CD = #SEARCH_PROD_MID_CD#
+	 <isNotEmpty property="SEARCH_PROD_MCATE_CD">
+	   AND A.PROD_MCATE_CD = #SEARCH_PROD_MCATE_CD#
 	 </isNotEmpty>
-	 <isNotEmpty property="SEARCH_PROD_GRP_CD">
-	   AND A.PROD_GRP_CD = #SEARCH_PROD_GRP_CD#
+	 <isNotEmpty property="SEARCH_PROD_SCATE_CD">
+	   AND A.PROD_SCATE_CD = #SEARCH_PROD_SCATE_CD#
 	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_BRAND_CD">
 	   AND A.BRAND_CD = #SEARCH_BRAND_CD#
@@ -110,9 +110,9 @@
 	SELECT /* Product_Mysql.xml  product.getProductDetail */
            PROD_NO             
          , BRAND_CD            
-         , PROD_CATE_CD
-         , PROD_MID_CD      
-         , PROD_GRP_CD         
+         , PROD_LCATE_CD
+         , PROD_MCATE_CD      
+         , PROD_SCATE_CD         
          , WORKING_YN          
          , SELLER_BIZ_ENTITY_ID
          , MAKE_COUNTRY        
@@ -162,9 +162,9 @@
 	  INTO TB_PRODUCT_MASTER
 		(
            BRAND_CD            
-         , PROD_CATE_CD
-         , PROD_MID_CD      
-         , PROD_GRP_CD         
+         , PROD_LCATE_CD
+         , PROD_MCATE_CD      
+         , PROD_SCATE_CD         
          , WORKING_YN          
          , SELLER_BIZ_ENTITY_ID
          , MAKE_COUNTRY        
@@ -188,9 +188,9 @@
 		VALUES
 		(
            #BRAND_CD#
-         , #PROD_CATE_CD#
-         , #PROD_MID_CD#
-         , #PROD_GRP_CD#
+         , #PROD_LCATE_CD#
+         , #PROD_MCATE_CD#
+         , #PROD_SCATE_CD#
          , #WORKING_YN#
          , #SELLER_BIZ_ENTITY_ID#
          , #MAKE_COUNTRY#
@@ -218,9 +218,9 @@
 	UPDATE /* Product_Mysql.xml  product.updateProduct */
 	       TB_PRODUCT_MASTER
 	   SET BRAND_CD               = #BRAND_CD#    
-         , PROD_CATE_CD           = #PROD_CATE_CD#
-         , PROD_MID_CD            = #PROD_MID_CD#
-         , PROD_GRP_CD            = #PROD_GRP_CD#
+         , PROD_LCATE_CD          = #PROD_LCATE_CD#
+         , PROD_MCATE_CD          = #PROD_MCATE_CD#
+         , PROD_SCATE_CD          = #PROD_SCATE_CD#
          , WORKING_YN             = #WORKING_YN#
          , SELLER_BIZ_ENTITY_ID   = #SELLER_BIZ_ENTITY_ID#
          , MAKE_COUNTRY           = #MAKE_COUNTRY#
