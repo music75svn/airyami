@@ -135,10 +135,10 @@
 	 WHERE A.PROD_NO= #SEARCH_PROD_NO#
 	</select>
 	
-	<!-- TB_CODE 코드명 조회 -->
+	<!-- TB_PRODUCT_NAME 코드명 조회 -->
 	<select id="product.getProductNameList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
 	SELECT /* Comm_Code_Mysql.xml  commcode.getCodeNameList */
-	       LANG_CD
+	       A.LANG_CD
 		 , A.PROD_SHORT_NM
 		 , A.PROD_NM
 		 , A.PRODUCT_EXPL_TEXT
@@ -161,7 +161,8 @@
 	INSERT /* Product_Mysql.xml  product.insertProduct */
 	  INTO TB_PRODUCT_MASTER
 		(
-           BRAND_CD            
+		   PROD_NO
+         , BRAND_CD            
          , PROD_LCATE_CD
          , PROD_MCATE_CD      
          , PROD_SCATE_CD         
@@ -187,7 +188,8 @@
 		 , INSERT_DT)
 		VALUES
 		(
-           #BRAND_CD#
+		   #PROD_NO#
+         , #BRAND_CD#
          , #PROD_LCATE_CD#
          , #PROD_MCATE_CD#
          , #PROD_SCATE_CD#
@@ -239,7 +241,7 @@
          , SEEN_PARTNER_YN        = #SEEN_PARTNER_YN#
          , SALES_START_DT         = #SALES_START_DT#
          , SALES_END_DT           = #SALES_END_DT#
-	     , UPDATE_PROD_NO         = #LOGIN_ID#
+	     , UPDATE_USER_ID         = #LOGIN_ID#
 	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 	 WHERE PROD_NO                = #PROD_NO#
 	</update>
@@ -252,7 +254,7 @@
 		 , LANG_CD
 		 , PROD_NM
 		 , PROD_SHORT_NM
-		 , PRODUCT_EXPL_TEX
+		 , PRODUCT_EXPL_TEXT
 		 , INSERT_USER_ID
 		 , INSERT_DT)
 		VALUES
@@ -261,15 +263,15 @@
 		 , #LANG_CD#
 		 , #PROD_NM#
 		 , #PROD_SHORT_NM#
-		 , #PRODUCT_EXPL_TEX#
+		 , #PRODUCT_EXPL_TEXT#
 		 , #LOGIN_ID#
 		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 		)
 	ON DUPLICATE KEY UPDATE
 		   PROD_NM = #PROD_NM#
 		 , PROD_SHORT_NM = #PROD_SHORT_NM#
-		 , PRODUCT_EXPL_TEX = #PRODUCT_EXPL_TEX#
-		 , UPDATE_USER_ID = #LOGIN_ID#,
+		 , PRODUCT_EXPL_TEXT = #PRODUCT_EXPL_TEXT#
+		 , UPDATE_USER_ID = #LOGIN_ID#
 		 , UPDATE_DT = DATE_FORMAT(now(), '%Y%m%d%H%i%s'
 		)
 	</insert>

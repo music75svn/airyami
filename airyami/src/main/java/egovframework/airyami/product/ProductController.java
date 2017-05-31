@@ -208,6 +208,11 @@ public class ProductController {
     	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
     	model.put("ds_cd_LANG", code_LANG);
     	
+    	// 국가코드 조회
+    	params.put( "CODE_GROUP_ID", "COUNTRY_CODE" ); //국가 대분류
+    	List<ValueMap> addrCountryList = commCodeService.selectCommCode(params);
+    	model.put("ds_addrCountryList", addrCountryList);
+    	
     	return "/product/productDetail";
     }
     
@@ -226,8 +231,8 @@ public class ProductController {
     	try{
     		ValueMap ds_detail = cmmService.getCommDbMap(params, "product.getProductDetail");
     		
-    		// 코드명 목록 조회
-    		List<ValueMap> ds_langNameList = cmmService.getCommDbList(params, "commcode.getCodeNameList");
+    		// 상품명 목록 조회
+    		List<ValueMap> ds_langNameList = cmmService.getCommDbList(params, "product.getProductNameList");
     		
     		result.put("ds_langNameList", ds_langNameList);
     		result.put("ds_detail", ds_detail);

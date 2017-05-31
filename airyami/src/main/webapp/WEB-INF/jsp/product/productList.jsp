@@ -178,17 +178,17 @@ function fn_goCreate(){
 			<colgroup>
 				<col width="5%"/>
 				<col width="15%"/>
+				<col width="25%"/>
+				<col width="15%"/>
 				<col width=""/>
-				<col width="15%"/>
-				<col width="15%"/>
 			</colgroup>
 			<thead>
 				<tr>
 					<th cid="ROWNUM" cClass="num" cType="NUM"><spring:message code="word.num"/></th>
 					<th cid="PROD_NO" alg="center"><spring:message code="word.prodNo"/></th>
-					<th cid="PROD_NM" alg="center"><spring:message code="word.prodNm"/></th>
-					<th cid="BRAND_NM" alg="center"><spring:message code="word.brand"/></th>
-					<th cid="CATEGORY_NM" alg="center"><spring:message code="word.category"/></th>
+					<th cid="PROD_NM" alg="left"><spring:message code="word.prodNm"/></th>
+					<th cid="BRAND_NM" alg="left"><spring:message code="word.brand"/></th>
+					<th cid="CATEGORY_NM" alg="left"><spring:message code="word.category"/></th>
 				</tr> 
 			</thead> 
 			<tbody>

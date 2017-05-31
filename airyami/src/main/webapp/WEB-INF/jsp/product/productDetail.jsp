@@ -55,6 +55,12 @@ function fn_callBack(sid, result, data){
 	// fn_srch
 	if(sid == "getProductDetail"){
 		gfn_setDetails(result.ds_detail, $("#contents"));	// 지역내 상세 내용 셋업
+		
+		for(var i = 0; i < result.ds_langNameList.length; i++){
+			$('#PROD_NM_'+result.ds_langNameList[i].LANG_CD).val(result.ds_langNameList[i].PROD_NM);
+			$('#PROD_SHORT_NM_'+result.ds_langNameList[i].LANG_CD).val(result.ds_langNameList[i].PROD_SHORT_NM);
+			$('#PRODUCT_EXPL_TEXT_'+result.ds_langNameList[i].LANG_CD).val(result.ds_langNameList[i].PRODUCT_EXPL_TEXT);
+		}
 	}else if(sid = "saveProduct"){
 		// 저장
 		alert("<spring:message code="success.request.msg"/>");
@@ -172,7 +178,7 @@ function fn_clearData(){
 				<th colspan="2"><spring:message code="word.prodNo"/></th>
 			<c:choose>
 				<c:when test="${MODE=='DETAIL'}">
-				<td><input type="text" name="PROD_ID" id="PROD_ID" disabled /></td>
+				<td><input type="text" name="PROD_NO" id="PROD_NO" disabled /></td>
 				</c:when>
 				<c:when test="${MODE=='CREATE'}">
 				<td>시스템 자동생성</td>
@@ -222,6 +228,28 @@ function fn_clearData(){
 						<option value=""><spring:message code="word.select"/></option>
                         <c:forEach var="brandList" items="${ds_brandList}">
                             <option value="${brandList.CD}">${brandList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.makeCuntry"/></th>
+				<td>
+			        <select id="MAKE_COUNTRY" name="MAKE_COUNTRY" title="<spring:message code="word.makeCuntry"/>" depends="required" style="width:250px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="addrCountryList" items="${ds_addrCountryList}">
+                            <option value="${addrCountryList.CD}">${addrCountryList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.supplyCountry"/></th>
+				<td>
+			        <select id="SUPPLY_COUNTRY" name="SUPPLY_COUNTRY" title="<spring:message code="word.supplyCountry"/>" depends="required" style="width:250px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="addrCountryList" items="${ds_addrCountryList}">
+                            <option value="${addrCountryList.CD}">${addrCountryList.CD_NM}</option>
                         </c:forEach>
 					</select>
 				</td>
