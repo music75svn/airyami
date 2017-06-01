@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+
+<sqlMap namespace="cateTree">
+	<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+	
+	<select id="cateTree.getCateList" parameterClass="Map" resultClass="ValueMap" >
+
+	SELECT  /* CateTree_Mysql.xml  cateTree.getCateList */
+	        hi.CATE_CODE
+	       ,B.CATE_NAME
+	       ,hi.UPPER_CATE_CODE 
+	       ,LEVEL 
+	       ,hi.CATE_LEVEL
+           ,CATE_ORDER
+           ,CASE WHEN CATE_LEVEL = 1 THEN CATE_ORDER * 10000
+                WHEN CATE_LEVEL = 2 THEN (SELECT CATE_ORDER * 10000 FROM TB_CATEGORY WHERE CATE_CODE = hi.UPPER_CATE_CODE) + CATE_ORDER * 100
+                WHEN CATE_LEVEL = 3 THEN (SELECT CATE_ORDER * 10000 FROM TB_CATEGORY WHERE CATE_CODE = (SELECT UPPER_CATE_CODE FROM TB_CATEGORY WHERE CATE_CODE = hi.UPPER_CATE_CODE)) + UPPER_CATE_ORDER * 100 + CATE_ORDER
+                ELSE CATE_ORDER
+           END AS LEVEL_ORDER
+	  FROM (
+			SELECT hierarchy_connect_by_parent_eq_prior_id_cate(CATE_CODE) AS CATE_CODE, @level AS level
+			  FROM (
+					SELECT  @start_with := (SELECT UPPER_CATE_CODE 
+					                          FROM TB_CATEGORY 
+					                         WHERE CATE_LEVEL = 0
+					                        ),
+							@id := @start_with,
+							@level := 0
+					) vars
+				  ,TB_CATEGORY
+			 WHERE  @id IS NOT NULL
+   		   ) ho       
+   		  ,(SELECT A.*
+		          ,IFNULL(B.CATE_ORDER, 0) AS UPPER_CATE_ORDER
+	          FROM TB_CATEGORY A
+				   LEFT OUTER JOIN TB_CATEGORY B
+				   ON B.CATE_CODE = A.UPPER_CATE_CODE
+		  ) hi
+		  ,TB_CATEGORY_NM B
+	 WHERE hi.CATE_CODE = ho.CATE_CODE
+	   AND hi.CATE_CODE 		= B.CATE_CODE
+	   AND B.LANG_CD = #LANG_CD#
+     ORDER BY LEVEL_ORDER
+	</select>
+	
+	<select id="cateTree.selectMenu" parameterClass="Map" resultClass="ValueMap" >
+			SELECT  /* CateTree_Mysql.xml  cateTree.selectMenu */
+			        A.MENU_TYPE 
+				  ,	A.MENU_CODE
+			      , A.UPPER_MENU_CODE
+			      , B.MENU_NAME
+			      , A.MENU_LEVEL
+			      , IFNULL(A.LINK_URL, '') AS LINK_URL
+			      , IFNULL(A.LINK_PARAM, '') AS LINK_PARAM
+			      , A.MENU_ORDER
+			      , A.USE_YN
+			      , IF((SELECT COUNT(1) 
+	                      FROM TB_MENU C 
+						 WHERE C.MENU_TYPE = A.MENU_TYPE AND C.MENU_CODE LIKE CONCAT(A.MENU_CODE, '%')) = 1, 'Y', 'N') AS ISLEAF_YN      
+			  FROM TB_MENU A
+				  ,TB_MENU_NM B
+			 WHERE A.MENU_TYPE = B.MENU_TYPE
+		   	   AND A.MENU_CODE = B.MENU_CODE 
+			   AND A.MENU_CODE = #MENU_CODE#
+			   AND B.LANG_CD = #LANG_CD#
+	</select>
+	
+	<select id="cateTree.selectMenuUserGroup" parameterClass="Map" resultClass="ValueMap" >
+			   SELECT /* CateTree_Mysql.xml  cateTree.selectMenuUserGroup*/
+			          A.USER_TYPE
+	              	 ,C.CODE_NM USER_TYPE_NAME
+			         ,A.USER_ROLE
+			         ,D.USER_ROLE_NM
+	            FROM TB_MENU_USERGROUP A
+	                ,TB_CODE B
+	                ,TB_CODE_NM C
+	                ,TB_USER_ROLE_MASTER D
+	           WHERE A.MENU_CODE = #MENU_CODE#
+	             AND A.USER_TYPE = B.CODE_ID
+                 AND B.CODE_GROUP_ID = 'USER_TYPE'
+                 AND B.CODE_GROUP_ID = C.CODE_GROUP_ID
+                 AND B.CODE_ID = C.CODE_ID
+                 AND C.LANG_CD = #LANG_CD#
+                 AND A.USER_TYPE = D.USER_TYPE 
+                 AND A.USER_ROLE = D.USER_ROLE
+               ORDER BY A.USER_TYPE, D.USER_ROLE_NM
+	</select>
+	
+	<select id="cateTree.selectMenuOrderMax" parameterClass="Map" resultClass="java.lang.Integer" >
+			  SELECT /* CateTree_Mysql.xml  cateTree.selectMenuOrderMax */ 
+			         IFNULL(MAX(MENU_ORDER), 1) AS MAX_MENU_ORDER
+	            FROM TB_MENU
+	           WHERE UPPER_MENU_CODE = #UPPER_MENU_CODE#
+	</select>
+	
+	<update id="cateTree.updateMenu" parameterClass="Map" >
+			UPDATE TB_MENU /* CateTree_Mysql.xml  cateTree.updateMenu */ 
+			SET  
+				 LINK_URL      = #LINK_URL#       
+				,LINK_PARAM    = #LINK_PARAM#
+				,MENU_ORDER    = #MENU_ORDER# 
+				,USE_YN        = #USE_YN#       
+				,UPDATE_USER_ID   = #LOGIN_ID#
+				,UPDATE_DT        = DATE_FORMAT(now(), '%Y%m%d')    
+			WHERE MENU_TYPE = #MENU_TYPE#
+			  AND MENU_CODE = #MENU_CODE#
+	</update>
+	 
+	<update id="cateTree.updateMenuNm" parameterClass="Map" >
+		INSERT /* CateTree_Mysql.xml  cateTree.updateMenuNm */
+		  INTO TB_MENU_NM
+			(
+			MENU_TYPE,
+			MENU_CODE,
+			LANG_CD,
+			MENU_NAME,
+			INSERT_USER_ID,
+			INSERT_DT)
+			VALUES
+			(
+			#MENU_TYPE#,
+			#MENU_CODE#,
+			#LANG_CD#,
+			#MENU_NAME#,
+			#LOGIN_ID#,
+			DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+			)
+		ON DUPLICATE KEY UPDATE
+			MENU_NAME = #MENU_NAME#,
+			UPDATE_USER_ID = #LOGIN_ID#,
+			UPDATE_DT = DATE_FORMAT(now(), '%Y%m%d%H%i%s'
+			)
+	</update> 
+	
+	<update id="cateTree.updateMenuOrderDown" parameterClass="Map" >
+			UPDATE TB_MENU /* CateTree_Mysql.xml  cateTree.updateMenuOrderDown */
+			SET    
+				 MENU_ORDER    		= MENU_ORDER - 1 
+				,UPDATE_USER_ID     = #LOGIN_ID#         
+				,UPDATE_DT        	= DATE_FORMAT(now(), '%Y%m%d%H%i%s') 
+			WHERE UPPER_MENU_CODE 	= #UPPER_MENU_CODE#
+			  AND MENU_ORDER <![CDATA[ > ]]> #OLD_MENU_ORDER#
+			  AND MENU_ORDER <![CDATA[ <= ]]> #MENU_ORDER#
+	</update> 
+	
+	
+	<update id="cateTree.updateMenuOrderUp" parameterClass="Map" >
+			UPDATE TB_MENU /* CateTree_Mysql.xml  cateTree.updateMenuOrderUp */
+			SET    
+				MENU_ORDER    		= MENU_ORDER + 1 
+				,UPDATE_USER_ID     = #LOGIN_ID#         
+				,UPDATE_DT        	= DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+			WHERE UPPER_MENU_CODE 	= #UPPER_MENU_CODE#
+			  AND MENU_ORDER <![CDATA[ < ]]>  #OLD_MENU_ORDER#
+			  AND MENU_ORDER  <![CDATA[ >= ]]> #MENU_ORDER#
+	</update> 
+	
+	<insert id="cateTree.insertMenu" parameterClass="Map" >
+		INSERT INTO TB_MENU /* CateTree_Mysql.xml  cateTree.insertMenu */
+			(MENU_TYPE
+			,MENU_CODE
+			,UPPER_MENU_CODE
+			,MENU_LEVEL
+			,LINK_URL
+			,LINK_PARAM
+			,MENU_ORDER
+			,USE_YN
+			,INSERT_USER_ID
+			,INSERT_DT
+			,UPDATE_USER_ID
+			,UPDATE_DT) 
+		VALUES( 
+			 #MENU_TYPE#
+			,#MENU_CODE# 
+			,#UPPER_MENU_CODE#
+			,#MENU_LEVEL#
+			,#LINK_URL#
+			,#LINK_PARAM#
+			,#MENU_ORDER# 
+			,#USE_YN#
+			,#LOGIN_ID#
+			,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+			,#LOGIN_ID#
+			,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+			)
+	</insert>
+	
+	<insert id="cateTree.insertMenuNm" parameterClass="Map" >
+		INSERT /* CateTree_Mysql.xml  cateTree.insertMenuNm */
+		  INTO TB_MENU_NM(
+		       MENU_TYPE
+		      ,MENU_CODE
+		      ,LANG_CD
+		      ,MENU_NAME
+		      ,INSERT_USER_ID
+			  ,INSERT_DT
+			  ,UPDATE_USER_ID
+			  ,UPDATE_DT)
+		VALUES(
+		       #MENU_TYPE#
+		      ,#MENU_CODE#
+		      ,#LANG_CD#
+		      ,#MENU_NAME#
+		      ,#LOGIN_ID#
+			  ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+			  ,#LOGIN_ID#
+			  ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		      )
+	</insert>
+	
+	<insert id="cateTree.insertMenuUserGroup" parameterClass="Map" >
+		INSERT /* CateTree_Mysql.xml cateTree.insertMenuUserGroup */
+		  INTO TB_MENU_USERGROUP
+		      (
+			    MENU_TYPE
+			   ,MENU_CODE
+		       ,USER_TYPE
+		       ,USER_ROLE
+		       ,INSERT_USER_ID
+		       ,INSERT_DT
+		      )
+		SELECT #MENU_TYPE#
+		      ,#MENU_CODE#
+		      ,USER_TYPE
+		      ,USER_ROLE
+		      ,#LOGIN_ID#
+			  ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		  FROM TB_USER_ROLE_MASTER
+		 WHERE USER_TYPE = 'M'	
+	</insert>
+	
+	<select id="cateTree.selectInsertedMenu" parameterClass="Map" resultClass="ValueMap"  >
+		SELECT /* CateTree_Mysql.xml cateTree.selectInsertedMenu */
+		       CONCAT(#UPPER_MENU_CODE#, IF(IFNULL(MAX(MENU_CODE), '9999') = '9999', '001', LPAD(CONVERT(SUBSTRING(MAX(MENU_CODE), LENGTH(UPPER_MENU_CODE)+1, 3), UNSIGNED) + 1, 3, '0'))) AS MENU_CODE
+		      ,(SELECT MENU_LEVEL + 1 FROM TB_MENU WHERE MENU_CODE = #UPPER_MENU_CODE#) AS MENU_LEVEL
+		      ,IFNULL(MAX(MENU_ORDER), 0) + 1 AS MENU_ORDER
+		  FROM TB_MENU
+		 WHERE MENU_TYPE = #MENU_TYPE# 
+		   AND UPPER_MENU_CODE = #UPPER_MENU_CODE#
+		   AND MENU_CODE != '1999'	/*template 메뉴제외 */
+	</select>
+	
+	<delete id="cateTree.deleteMenuGroup" parameterClass="Map">
+	DELETE /* CateTree_Mysql.xml  cateTree.deleteMenuGroup */
+	  FROM TB_MENU_USERGROUP
+	 WHERE MENU_TYPE = #MENU_TYPE#
+	   AND MENU_CODE = #MENU_CODE#
+	</delete>
+	
+	<delete id="cateTree.deleteMenuNm" parameterClass="Map">
+	DELETE /* CateTree_Mysql.xml  cateTree.deleteMenuNm */
+	  FROM TB_MENU_NM
+	 WHERE MENU_TYPE = #MENU_TYPE#
+	   AND MENU_CODE = #MENU_CODE#
+	</delete>
+	
+	<delete id="cateTree.deleteMenu" parameterClass="Map">
+	DELETE /* CateTree_Mysql.xml  cateTree.deleteMenu */
+	  FROM TB_MENU_NM
+	 WHERE MENU_TYPE = #MENU_TYPE#
+	   AND MENU_CODE = #MENU_CODE#
+	</delete>
+	
+	<select id="cateTree.selectMenuUserGrpList" parameterClass="Map" resultClass="ValueMap"  >
+		SELECT /* CateTree_Mysql.xml cateTree.selectMenuUserGrp */
+		       A.USER_TYPE
+		      ,CD.CODE_NM AS USER_TYPE_NM
+		      ,A.USER_ROLE
+		      ,A.USER_ROLE_NM
+		      ,IF(A.MENU_CODE IS NULL, 'N', 'Y') AS USE_YN
+		  FROM (   
+				SELECT A.USER_TYPE
+		              ,A.USER_ROLE
+		              ,A.USER_ROLE_NM
+		              ,B.MENU_TYPE
+		              ,B.MENU_CODE
+				  FROM TB_USER_ROLE_MASTER A
+					   LEFT JOIN TB_MENU_USERGROUP B
+					   ON A.USER_TYPE = B.USER_TYPE AND A.USER_ROLE = B.USER_ROLE
+		               AND B.MENU_TYPE = #MENU_TYPE# AND MENU_CODE = #MENU_CODE#
+		       ) A
+			   LEFT OUTER JOIN TB_MENU B
+						    ON A.MENU_TYPE = B.MENU_TYPE AND A.MENU_CODE = B.MENU_CODE
+			  ,TB_CODE_NM CD
+		 WHERE A.USER_TYPE 		= CD.CODE_ID
+		   AND CD.CODE_GROUP_ID = 'USER_TYPE'
+		   AND CD.LANG_CD 		= #LANG_CD#
+		 ORDER BY A.USER_TYPE, A.USER_ROLE
+	</select>
+	
+	
+	<insert id="cateTree.saveMenuUserGrp" parameterClass="Map">
+	INSERT /* CateTree_Mysql.xml  cateTree.saveMenuUserGrp */
+	  INTO TB_MENU_USERGROUP
+		(
+		MENU_TYPE,
+		MENU_CODE,
+		USER_TYPE,
+		USER_ROLE,
+		INSERT_USER_ID,
+		INSERT_DT)
+		VALUES
+		(
+		#MENU_TYPE#,
+		#MENU_CODE#,
+		#USER_TYPE#,
+		#USER_ROLE#,
+		#LOGIN_ID#,
+		DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	ON DUPLICATE KEY UPDATE
+		UPDATE_USER_ID = #LOGIN_ID#,
+		UPDATE_DT = DATE_FORMAT(now(), '%Y%m%d%H%i%s'
+		)
+	</insert>
+	
+	<delete id="cateTree.deleteMenuUserGrp" parameterClass="Map">
+	DELETE /* CateTree_Mysql.xml  cateTree.deleteMenuUserGrp */
+	  FROM TB_MENU_USERGROUP
+	 WHERE MENU_TYPE = #MENU_TYPE#
+	   AND MENU_CODE = #MENU_CODE#
+	   AND USER_TYPE = #USER_TYPE#
+	   AND USER_ROLE = #USER_ROLE#
+	   
+	</delete>
+	
+</sqlMap>
