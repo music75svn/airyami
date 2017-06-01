@@ -15,6 +15,7 @@
  */
 package egovframework.airyami.cmm.web;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -28,10 +29,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import egovframework.airyami.cmm.service.CommCodeService;
+import egovframework.airyami.cmm.service.FileService;
 import egovframework.airyami.cmm.util.CommonUtils;
-import egovframework.airyami.cmm.util.JsonUtil;
 import egovframework.airyami.cmm.util.PageInfo;
 import egovframework.airyami.cmm.util.ValueMap;
 import egovframework.com.cmm.EgovMessageSource;
@@ -73,7 +76,9 @@ public class TemplateController {
     @Resource(name="txManager")
     PlatformTransactionManager transactionManager;
    
-   
+    /** FileService */
+    @Resource(name = "fileService")
+    private FileService fileService;
     
 
     /**
@@ -374,6 +379,53 @@ public class TemplateController {
     	response.setContentType("text/xml;charset=UTF-8");
     	response.getWriter().println(CommonUtils.setJsonResult(result));
     	
+    	
+    	return null;
+    }
+    
+    
+    /**
+     * update form 호출 
+     */
+    @RequestMapping(value="/template/insertFile.do")
+    public String insertFile(MultipartHttpServletRequest multiRequest, HttpServletRequest request, HttpServletResponse response ) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param :: goTemplateFrom " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	final Map<String, MultipartFile> files = multiRequest.getFileMap();
+    	log.info("files ::  " + files);
+    	
+    	
+    	
+    	if(!files.isEmpty()){
+    		ValueMap ds_boardInfo = null;
+    		params.put("BOARD_ID", "5555");
+    		// FILE MST  정보 또는 커뮤니티 정보
+    		if(!CommonUtils.isNull((String)params.get("BOARD_ID"))){
+    			//ds_boardInfo = boardMasterService.getBoardMaster(params);
+    		}
+			ValueMap parseResult = null;
+			
+			
+			// FILE_MST_SEQ 는 처음 인서트일경우에는 null을 넣으면 된다.
+			parseResult = fileService.attachFiles(files, (String)params.get("FILE_MST_SEQ"), params, ds_boardInfo);
+			params.put("FILE_MST_SEQ", (BigDecimal)parseResult.get("FILE_MST_SEQ"));
+			log.debug("result :: " + result);
+//			success = parseResult.getBoolean("success");
+			
+			List<ValueMap> f_list = fileService.selectFileList(params);
+			log.debug("f_list :: " + f_list);
+		}
+    	//boardService.insertBoardFile(params);
+    	
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
     	
     	return null;
     }
