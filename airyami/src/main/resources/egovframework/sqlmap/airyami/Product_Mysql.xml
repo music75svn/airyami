@@ -49,7 +49,14 @@
          , A.PROD_LCATE_CD 
          , A.PROD_MCATE_CD 
          , A.PROD_SCATE_CD
-         , '대분류>중분류>소분류' AS CATEGORY_NM
+		 , CONCAT(L.CATE_NAME,
+	            '>',
+	            M.CATE_NAME,
+	            CASE WHEN A.PROD_SCATE_CD IS NULL
+					 THEN ''
+	            	 ELSE CONCAT('>', S.CATE_NAME)
+	            	 END
+	        ) AS CATEGORY_NM
          , A.WORKING_YN          
          , A.SELLER_BIZ_ENTITY_ID
          , A.MAKE_COUNTRY        
@@ -70,10 +77,11 @@
          , A.SALES_START_DT      
          , A.SALES_END_DT      
 	  FROM TB_PRODUCT_MASTER A
-	     , TB_PRODUCT_NAME B
+	     LEFT JOIN TB_PRODUCT_NAME B ON A.PROD_NO = B.PROD_NO AND B.LANG_CD = #LANG_CD#
+	     LEFT OUTER JOIN TB_CATEGORY_NM L ON A.PROD_LCATE_CD = L.CATE_CODE AND L.LANG_CD = #LANG_CD#
+	     LEFT OUTER JOIN TB_CATEGORY_NM M ON A.PROD_MCATE_CD = M.CATE_CODE AND M.LANG_CD = #LANG_CD#
+	     LEFT OUTER JOIN TB_CATEGORY_NM S ON A.PROD_SCATE_CD = S.CATE_CODE AND S.LANG_CD = #LANG_CD#
 	 WHERE 1 = 1
-	   AND A.PROD_NO = B.PROD_NO
-	   AND B.LANG_CD = #LANG_CD#
 	 <isNotEmpty property="SEARCH_PROD_NO">
 	   AND A.PROD_NO = #SEARCH_PROD_NO#
 	 </isNotEmpty>
@@ -288,4 +296,21 @@
 	  FROM TB_PRODUCT_NAME
 	 WHERE PROD_NO = #PROD_NO#
 	</delete>
+	
+	<!-- 카테고리 조회 -->
+	<select id="product.getCategoryList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	SELECT /* Product_Mysql.xml  product.getCategoryList */
+	       A.CATE_CODE
+		 , B.CATE_NAME
+	  FROM TB_CATEGORY A
+	     , TB_CATEGORY_NM B
+	 WHERE A.CATE_CODE = B.CATE_CODE
+	   AND B.LANG_CD = #LANG_CD#
+	<isNotEmpty property="CATE_LEVEL">
+	   AND A.CATE_LEVEL = #CATE_LEVEL#
+	</isNotEmpty>
+	   AND A.UPPER_CATE_CODE = #UPPER_CATE_CODE#
+	   AND A.USE_YN = 'Y'
+	 ORDER BY CATE_ORDER
+	</select>
 </sqlMap>

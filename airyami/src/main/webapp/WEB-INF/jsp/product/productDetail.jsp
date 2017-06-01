@@ -43,9 +43,53 @@ function fn_srch(){
 	gfn_Transaction( inputParam );
 }
 
+//카테고리 조회  
+function gfn_GetCategoryList(cateCd, mycombo, option, valueCateCd){
+	if (typeof option == 'undefined')
+		option = ""; 
+	
+	$.ajax({url: GC_URL+"/category/selectLowerCateList.do",
+        type: "post"
+      , data: {UPPER_CATE_CODE:cateCd}
+      , dataType: "json"
+      , async: false
+      , success: function(response, successName) {
+          if (response.success) {
+        	  gfn_callbackGetCategoryList(cateCd, mycombo, option, response.ds_list, valueCateCd);
+          } else {
+//              alert("상품분류 조회에 실패하였습니다.");
+              alert(gfn_getMsg("word.category") + " " + gfn_getMsg("fail.common.select"));
+          }
+      },
+      error: function(xhr, errorName, error) {
+    	  debugger;
+          //alert("상품분류 조회 중 에러가 발생하였습니다.");
+    	  alert(gfn_getMsg("word.category") + " " + gfn_getMsg("fail.common.select"));
+      }
+  });
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 콜백 함수
+//카테고리코드 조회 콜백함수
+function gfn_callbackGetCategoryList(cateCd, mycombo, option, cateList, valueCateCd){
+
+	mycombo.find('option').remove();
+	// 첫째줄에 추가한다.
+	if(!gfn_isNull(option))
+		mycombo.append("<option value=''>"+option+"</option>");
+	
+	for(var i = 0 ; i < cateList.length; i++){
+		mycombo.append("<option value='"+cateList[i].CATE_CODE+"'>"+cateList[i].CATE_NAME+"</option>");
+	}
+	if(!gfn_isNull(valueCateCd)){
+		mycombo.val(valueCateCd);
+	}
+	try{
+		fn_callbackGetCategoryList(cateCd, mycombo, cateList, valueCateCd);
+	}catch(e){}
+}
+
 function fn_callBack(sid, result, data){
 	if (!result.success) {
 		alert(result.msg);
@@ -55,6 +99,9 @@ function fn_callBack(sid, result, data){
 	// fn_srch
 	if(sid == "getProductDetail"){
 		gfn_setDetails(result.ds_detail, $("#contents"));	// 지역내 상세 내용 셋업
+		
+		fn_selectLCate(result.ds_detail.PROD_LCATE_CD, result.ds_detail.PROD_MCATE_CD);
+		fn_selectMCate(result.ds_detail.PROD_MCATE_CD, result.ds_detail.PROD_SCATE_CD);
 		
 		for(var i = 0; i < result.ds_langNameList.length; i++){
 			$('#PROD_NM_'+result.ds_langNameList[i].LANG_CD).val(result.ds_langNameList[i].PROD_NM);
@@ -141,6 +188,31 @@ function fn_clearData(){
 	gfn_clearData($("#contents"));
 }
 
+//카테고리 대분류 select 코드 조회
+function fn_selectLCate(cateCd, valueCateCd){
+	$('#PROD_MCATE_CD').find('option').remove();
+	$('#PROD_MCATE_CD').append("<option value=''><spring:message code="word.select"/></option>");
+	$('#PROD_SCATE_CD').find('option').remove();
+	$('#PROD_SCATE_CD').append("<option value=''><spring:message code="word.select"/></option>");
+	
+	if(gfn_isNull(cateCd)){
+		return;
+	}
+	
+	gfn_GetCategoryList(cateCd, $('#PROD_MCATE_CD'), '<spring:message code="word.select"/>', valueCateCd);
+}
+
+//카테고리 중분류 select 코드 조회
+function fn_selectMCate(cateCd, valueCateCd){
+	$('#PROD_SCATE_CD').find('option').remove();
+	$('#PROD_SCATE_CD').append("<option value=''><spring:message code="word.select"/></option>");
+	
+	if(gfn_isNull(cateCd)){
+		return;
+	}
+	
+	gfn_GetCategoryList(cateCd, $('#PROD_SCATE_CD'), '<spring:message code="word.select"/>', valueCateCd);
+}
 ////////////////////////////////////////////////////////////////////////////////////
 </script>
 
@@ -186,6 +258,23 @@ function fn_clearData(){
 			</c:choose>
 			</tr>
 			<tr>
+				<th colspan="2"><spring:message code="word.category"/></th>
+				<td>
+			        <select id="PROD_LCATE_CD" name="PROD_LCATE_CD" title="<spring:message code="word.Lcategory"/>" depends="required" style="width:180px" onchange="javascript:fn_selectLCate(this.value);">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="lCateList" items="${ds_lCateList}">
+                            <option value="${lCateList.CATE_CODE}">${lCateList.CATE_NAME}</option>
+                        </c:forEach>
+					</select>
+			        <select id="PROD_MCATE_CD" name="PROD_MCATE_CD" title="<spring:message code="word.Mcategory"/>" depends="required" style="width:180px" onchange="javascript:fn_selectMCate(this.value);">
+						<option value=""><spring:message code="word.select"/></option>
+					</select>
+			        <select id="PROD_SCATE_CD" name="PROD_SCATE_CD" title="<spring:message code="word.Scategory"/>" depends="" style="width:180px">
+						<option value=""><spring:message code="word.select"/></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
 <c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
 				<th rowspan="${listSize+1}"><spring:message code="word.prodNm"/></th>
 			</tr>
@@ -206,18 +295,6 @@ function fn_clearData(){
 				<th>${LANG.CD_NM}</th>
 				<td>
 					<input type="text" name="PROD_SHORT_NM_${LANG.CD}" id="PROD_SHORT_NM_${LANG.CD}" maxlength="60" style="width:500px" value="${NAMELIST.CODE_NM}" title="<spring:message code="word.prodShortNm"/>" depends="required"/>
-				</td>
-			</tr>
-</c:forEach>
-			<tr>
-<c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
-				<th rowspan="${listSize+1}"><spring:message code="word.prodexplText"/></th>
-			</tr>
-<c:forEach var="LANG" items="${ds_cd_LANG}">
-			<tr>
-				<th>${LANG.CD_NM}</th>
-				<td>
-					<textarea name="PRODUCT_EXPL_TEXT_${LANG.CD}" id="PRODUCT_EXPL_TEXT_${LANG.CD}" rows="5" cols="180" depends="required"></textarea>
 				</td>
 			</tr>
 </c:forEach>
@@ -246,7 +323,7 @@ function fn_clearData(){
 			<tr>
 				<th colspan="2"><spring:message code="word.supplyCountry"/></th>
 				<td>
-			        <select id="SUPPLY_COUNTRY" name="SUPPLY_COUNTRY" title="<spring:message code="word.supplyCountry"/>" depends="required" style="width:150px">
+			        <select id="SUPPLY_COUNTRY" name="SUPPLY_COUNTRY" title="<spring:message code="word.supplyCountry"/>" depends="required" style="width:250px">
 						<option value=""><spring:message code="word.select"/></option>
                         <c:forEach var="addrCountryList" items="${ds_addrCountryList}">
                             <option value="${addrCountryList.CD}">${addrCountryList.CD_NM}</option>
@@ -271,6 +348,18 @@ function fn_clearData(){
 			        <input type="text" name="ORG_PRICE" id="ORG_PRICE" isNum="Y" class="onlynum2" maxlength="12" title="<spring:message code="word.orgPrice"/>" depends="required"/>
 				</td>
 			</tr>
+			<tr>
+<c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
+				<th rowspan="${listSize+1}"><spring:message code="word.prodexplText"/></th>
+			</tr>
+<c:forEach var="LANG" items="${ds_cd_LANG}">
+			<tr>
+				<th>${LANG.CD_NM}</th>
+				<td>
+					<textarea name="PRODUCT_EXPL_TEXT_${LANG.CD}" id="PRODUCT_EXPL_TEXT_${LANG.CD}" rows="5" cols="180" depends="required"></textarea>
+				</td>
+			</tr>
+</c:forEach>
 		</table>
 		</form>
 		

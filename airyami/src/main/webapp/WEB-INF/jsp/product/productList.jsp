@@ -28,7 +28,8 @@ function fn_init(){
 	
 	// myParams 에 넘어온 값이 있으면 이전 검색조건 셋팅한다.
 	gfn_setMyParams();
-	
+	fn_selectLCate('<c:out value="${FIND_SEARCH_PROD_LCATE_CD}"/>', '<c:out value="${FIND_SEARCH_PROD_MCATE_CD}"/>');
+	fn_selectMCate('<c:out value="${FIND_SEARCH_PROD_MCATE_CD}"/>', '<c:out value="${FIND_SEARCH_PROD_SCATE_CD}"/>');
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -50,8 +51,52 @@ function fn_srch(){
 	gfn_Transaction( inputParam );
 }
 
+//카테고리 조회  
+function gfn_GetCategoryList(cateCd, mycombo, option, valueCateCd){
+	if (typeof option == 'undefined')
+		option = ""; 
+	
+	$.ajax({url: GC_URL+"/category/selectLowerCateList.do",
+        type: "post"
+      , data: {UPPER_CATE_CODE:cateCd}
+      , dataType: "json"
+      , async: false
+      , success: function(response, successName) {
+          if (response.success) {
+        	  gfn_callbackGetCategoryList(cateCd, mycombo, option, response.ds_list, valueCateCd);
+          } else {
+//              alert("상품분류 조회에 실패하였습니다.");
+              alert(gfn_getMsg("word.category") + " " + gfn_getMsg("fail.common.select"));
+          }
+      },
+      error: function(xhr, errorName, error) {
+    	  debugger;
+          //alert("상품분류 조회 중 에러가 발생하였습니다.");
+    	  alert(gfn_getMsg("word.category") + " " + gfn_getMsg("fail.common.select"));
+      }
+  });
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 // 콜백 함수
+function gfn_callbackGetCategoryList(cateCd, mycombo, option, cateList, valueCateCd){
+
+	mycombo.find('option').remove();
+	// 첫째줄에 추가한다.
+	if(!gfn_isNull(option))
+		mycombo.append("<option value=''>"+option+"</option>");
+	
+	for(var i = 0 ; i < cateList.length; i++){
+		mycombo.append("<option value='"+cateList[i].CATE_CODE+"'>"+cateList[i].CATE_NAME+"</option>");
+	}
+	if(!gfn_isNull(valueCateCd)){
+		mycombo.val(valueCateCd);
+	}
+	try{
+		fn_callbackGetCategoryList(cateCd, mycombo, cateList, valueCateCd);
+	}catch(e){}
+}
+
 function fn_callBack(sid, result){
 	//debugger;
 	
@@ -110,6 +155,31 @@ function fn_goCreate(){
 	gfn_commonGo("/product/productDetail", inputParam, "N");
 }
 
+//카테고리 대분류 select 코드 조회
+function fn_selectLCate(cateCd, valueCateCd){
+	$('#SEARCH_PROD_MCATE_CD').find('option').remove();
+	$('#SEARCH_PROD_MCATE_CD').append("<option value=''><spring:message code="word.all"/></option>");
+	$('#SEARCH_PROD_SCATE_CD').find('option').remove();
+	$('#SEARCH_PROD_SCATE_CD').append("<option value=''><spring:message code="word.all"/></option>");
+	
+	if(gfn_isNull(cateCd)){
+		return;
+	}
+	
+	gfn_GetCategoryList(cateCd, $('#SEARCH_PROD_MCATE_CD'), '<spring:message code="word.all"/>', valueCateCd);
+}
+
+//카테고리 중분류 select 코드 조회
+function fn_selectMCate(cateCd, valueCateCd){
+	$('#SEARCH_PROD_SCATE_CD').find('option').remove();
+	$('#SEARCH_PROD_SCATE_CD').append("<option value=''><spring:message code="word.all"/></option>");
+	
+	if(gfn_isNull(cateCd)){
+		return;
+	}
+	
+	gfn_GetCategoryList(cateCd, $('#SEARCH_PROD_SCATE_CD'), '<spring:message code="word.all"/>', valueCateCd);
+}
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출
 
@@ -155,6 +225,19 @@ function fn_goCreate(){
                         <c:forEach var="brandList" items="${ds_brandList}">
                             <option value="${brandList.CD}">${brandList.CD_NM}</option>
                         </c:forEach>
+					</select><br>
+					<label for="SEARCH_BRAND_CD" id="S4"><spring:message code="word.category"/></label>
+			        <select id="SEARCH_PROD_LCATE_CD" name="SEARCH_PROD_LCATE_CD" title="<spring:message code="word.Lcategory"/>" depends="" style="width:180px" onchange="javascript:fn_selectLCate(this.value);">
+						<option value=""><spring:message code="word.all"/></option>
+                        <c:forEach var="lCateList" items="${ds_lCateList}">
+                            <option value="${lCateList.CATE_CODE}">${lCateList.CATE_NAME}</option>
+                        </c:forEach>
+					</select>
+			        <select id="SEARCH_PROD_MCATE_CD" name="SEARCH_PROD_MCATE_CD" title="<spring:message code="word.Mcategory"/>" depends="" style="width:180px" onchange="javascript:fn_selectMCate(this.value);">
+						<option value=""><spring:message code="word.all"/></option>
+					</select>
+			        <select id="SEARCH_PROD_SCATE_CD" name="SEARCH_PROD_SCATE_CD" title="<spring:message code="word.Scategory"/>" depends="" style="width:180px">
+						<option value=""><spring:message code="word.all"/></option>
 					</select>
 					<input type="submit" value="<spring:message code="button.search"/>" onclick="javascript:gfn_fn_srch(); return false;"/>
 				</dd>
@@ -177,7 +260,7 @@ function fn_goCreate(){
 			<caption>리스트</caption>
 			<colgroup>
 				<col width="5%"/>
-				<col width="15%"/>
+				<col width="8%"/>
 				<col width="20%"/>
 				<col width="15%"/>
 				<col width=""/>

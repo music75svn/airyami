@@ -91,7 +91,12 @@ public class ProductController {
     	params.put( "CODE_GROUP_ID", "BRAND" ); //브랜드
     	List<ValueMap> brandList = commCodeService.selectCommCode(params);
     	model.put("ds_brandList", brandList);
-    	
+
+    	// 카테고리 대분류 조회
+    	params.put( "CATE_LEVEL", "1" ); //카테고리 대분류
+    	params.put( "UPPER_CATE_CODE", "1" ); //최상위카테고리
+    	List<ValueMap> lCateList = cmmService.getCommDbList(params, "product.getCategoryList");
+    	model.put("ds_lCateList", lCateList);    	
     	return "/product/productList";
     }
     
@@ -215,6 +220,12 @@ public class ProductController {
     	params.put( "CODE_GROUP_ID", "CURRENCY" ); //공급화폐코드
     	List<ValueMap> supplyCurrencyList = commCodeService.selectCommCode(params);
     	model.put("ds_supplyCurrencyList", supplyCurrencyList);
+    	
+    	// 카테고리 대분류 조회
+    	params.put( "CATE_LEVEL", "1" ); //카테고리 대분류
+    	params.put( "UPPER_CATE_CODE", "1" ); //최상위카테고리
+    	List<ValueMap> lCateList = cmmService.getCommDbList(params, "product.getCategoryList");
+    	model.put("ds_lCateList", lCateList);
     	
     	return "/product/productDetail";
     }
@@ -361,6 +372,40 @@ public class ProductController {
     	response.setContentType("text/xml;charset=UTF-8");
     	response.getWriter().println(CommonUtils.setJsonResult(result));
     	
+    	
+    	return null;
+    }
+    
+    /**
+     * 하위카테고리 목록을 조회한다. 
+     * @param UPPER_CATE_CODE 상위카테고리
+     * @param 
+     * @return 카테고리 List
+     * @exception Exception
+     */
+    @RequestMapping(value="/category/selectLowerCateList.do")
+    public String selectCommCode(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		List<ValueMap> list = cmmService.getCommDbList(params, "product.getCategoryList");
+    		
+    		result.put("ds_list", list);
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
     	
     	return null;
     }
