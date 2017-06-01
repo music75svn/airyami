@@ -246,12 +246,29 @@ function fn_clearData(){
 			<tr>
 				<th colspan="2"><spring:message code="word.supplyCountry"/></th>
 				<td>
-			        <select id="SUPPLY_COUNTRY" name="SUPPLY_COUNTRY" title="<spring:message code="word.supplyCountry"/>" depends="required" style="width:250px">
+			        <select id="SUPPLY_COUNTRY" name="SUPPLY_COUNTRY" title="<spring:message code="word.supplyCountry"/>" depends="required" style="width:150px">
 						<option value=""><spring:message code="word.select"/></option>
                         <c:forEach var="addrCountryList" items="${ds_addrCountryList}">
                             <option value="${addrCountryList.CD}">${addrCountryList.CD_NM}</option>
                         </c:forEach>
 					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.supplyCurrency"/></th>
+				<td>
+			        <select id="SUPPLY_CURRENCY" name="SUPPLY_CURRENCY" title="<spring:message code="word.supplyCurrency"/>" depends="required" style="width:250px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="supplyCurrencyList" items="${ds_supplyCurrencyList}">
+                            <option value="${supplyCurrencyList.CD}">${supplyCurrencyList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.orgPrice"/></th>
+				<td>
+			        <input type="text" name="ORG_PRICE" id="ORG_PRICE" isNum="Y" class="onlynum2" maxlength="12" title="<spring:message code="word.orgPrice"/>" depends="required"/>
 				</td>
 			</tr>
 		</table>

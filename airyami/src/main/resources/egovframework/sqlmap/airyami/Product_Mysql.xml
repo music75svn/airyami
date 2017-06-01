@@ -53,7 +53,8 @@
          , A.WORKING_YN          
          , A.SELLER_BIZ_ENTITY_ID
          , A.MAKE_COUNTRY        
-         , A.SUPPLY_COUNTRY      
+         , A.SUPPLY_COUNTRY  
+         , FN_GET_CODE_NM('CURRENCY', A.SUPPLY_CURRENCY, #LANG_CD#) AS SUPPLY_CURRENCY_NM      
          , A.SUPPLY_CURRENCY     
          , A.ORG_PRICE           
          , A.DUTY_FREE_YN        

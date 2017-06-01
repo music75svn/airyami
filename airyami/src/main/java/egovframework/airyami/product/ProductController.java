@@ -15,9 +15,7 @@
  */
 package egovframework.airyami.product;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -199,19 +197,24 @@ public class ProductController {
     	CommonUtils.setModelByParams(model, params, request);
     	
     	// 브랜드
-    	params.put( "CODE_GROUP_ID", "BRAND" ); //브랜드
+    	params.put( "CODE_GROUP_ID", "BRAND" ); //브랜드 코드
     	List<ValueMap> brandList = commCodeService.selectCommCode(params);
     	model.put("ds_brandList", brandList);
     	
     	// 언어코드
-    	params.put( "CODE_GROUP_ID", "LANG" ); //언어코드 대분류
+    	params.put( "CODE_GROUP_ID", "LANG" ); //언어코드 코드
     	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
     	model.put("ds_cd_LANG", code_LANG);
     	
     	// 국가코드 조회
-    	params.put( "CODE_GROUP_ID", "COUNTRY_CODE" ); //국가 대분류
+    	params.put( "CODE_GROUP_ID", "COUNTRY_CODE" ); //국가코드
     	List<ValueMap> addrCountryList = commCodeService.selectCommCode(params);
     	model.put("ds_addrCountryList", addrCountryList);
+    	
+    	// 공급화폐코드 조회
+    	params.put( "CODE_GROUP_ID", "CURRENCY" ); //공급화폐코드
+    	List<ValueMap> supplyCurrencyList = commCodeService.selectCommCode(params);
+    	model.put("ds_supplyCurrencyList", supplyCurrencyList);
     	
     	return "/product/productDetail";
     }
