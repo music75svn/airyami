@@ -43,53 +43,8 @@ function fn_srch(){
 	gfn_Transaction( inputParam );
 }
 
-//카테고리 조회  
-function gfn_GetCategoryList(cateCd, mycombo, option, valueCateCd){
-	if (typeof option == 'undefined')
-		option = ""; 
-	
-	$.ajax({url: GC_URL+"/category/selectLowerCateList.do",
-        type: "post"
-      , data: {UPPER_CATE_CODE:cateCd}
-      , dataType: "json"
-      , async: false
-      , success: function(response, successName) {
-          if (response.success) {
-        	  gfn_callbackGetCategoryList(cateCd, mycombo, option, response.ds_list, valueCateCd);
-          } else {
-//              alert("상품분류 조회에 실패하였습니다.");
-              alert(gfn_getMsg("word.category") + " " + gfn_getMsg("fail.common.select"));
-          }
-      },
-      error: function(xhr, errorName, error) {
-    	  debugger;
-          //alert("상품분류 조회 중 에러가 발생하였습니다.");
-    	  alert(gfn_getMsg("word.category") + " " + gfn_getMsg("fail.common.select"));
-      }
-  });
-}
-
 ////////////////////////////////////////////////////////////////////////////////////
 // 콜백 함수
-//카테고리코드 조회 콜백함수
-function gfn_callbackGetCategoryList(cateCd, mycombo, option, cateList, valueCateCd){
-
-	mycombo.find('option').remove();
-	// 첫째줄에 추가한다.
-	if(!gfn_isNull(option))
-		mycombo.append("<option value=''>"+option+"</option>");
-	
-	for(var i = 0 ; i < cateList.length; i++){
-		mycombo.append("<option value='"+cateList[i].CATE_CODE+"'>"+cateList[i].CATE_NAME+"</option>");
-	}
-	if(!gfn_isNull(valueCateCd)){
-		mycombo.val(valueCateCd);
-	}
-	try{
-		fn_callbackGetCategoryList(cateCd, mycombo, cateList, valueCateCd);
-	}catch(e){}
-}
-
 function fn_callBack(sid, result, data){
 	if (!result.success) {
 		alert(result.msg);
