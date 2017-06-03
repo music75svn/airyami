@@ -241,13 +241,13 @@ function fn_selectSCate(cateCd, valueCateCd){
 		<table id="tb_list" summary="<spring:message code="word.productList"/>">
 			<caption>리스트</caption>
 			<colgroup>
-				<col width="5%"/>
-				<col width="8%"/>
+				<col width="4%"/>
+				<col width="7%"/>
 				<col width="20%"/>
 				<col width="15%"/>
 				<col width=""/>
 				<col width="12%"/>
-				<col width="8%"/>
+				<col width="7%"/>
 			</colgroup>
 			<thead>
 				<tr>
