@@ -167,7 +167,7 @@ function fn_callBack(sid, result, data){
 						cateHtml = cateHtml + "<li class='open'><button class='toggle plus' type='button' onclick='javascript:fn_toggleAction(this)'>+</button>";
 					} else if(nowLevel == 1) {
 						cateHtml = cateHtml + "<li class='active'><button class='toggle plus' type='button' onclick='javascript:fn_toggleAction(this)'>+</button>";
-					} else if(nowLevel == 2){
+					} else if(nowLevel == 2 || nowLevel == 3){
 						cateHtml = cateHtml + "<li><button class='toggle plus' type='button' onclick='javascript:fn_toggleAction(this)'>+</button>";
 					} else {
 						cateHtml = cateHtml + "<li>";

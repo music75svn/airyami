@@ -14,23 +14,23 @@
 	       ,LEVEL 
 	       ,hi.CATE_LEVEL
            ,CATE_ORDER
-           ,CASE WHEN CATE_LEVEL = 1 THEN CATE_ORDER * 10000
-                WHEN CATE_LEVEL = 2 THEN (SELECT CATE_ORDER * 10000 FROM TB_CATEGORY WHERE CATE_CODE = hi.UPPER_CATE_CODE) + CATE_ORDER * 100
-                WHEN CATE_LEVEL = 3 THEN (SELECT CATE_ORDER * 10000 FROM TB_CATEGORY WHERE CATE_CODE = (SELECT UPPER_CATE_CODE FROM TB_CATEGORY WHERE CATE_CODE = hi.UPPER_CATE_CODE)) + UPPER_CATE_ORDER * 100 + CATE_ORDER
-                ELSE CATE_ORDER
-           END AS LEVEL_ORDER
 	  FROM (
-			SELECT hierarchy_connect_by_parent_eq_prior_id_cate(CATE_CODE) AS CATE_CODE, @level AS level
-			  FROM (
-					SELECT  @start_with := (SELECT UPPER_CATE_CODE 
-					                          FROM TB_CATEGORY 
-					                         WHERE CATE_LEVEL = 0
-					                        ),
-							@id := @start_with,
-							@level := 0
-					) vars
-				  ,TB_CATEGORY
-			 WHERE  @id IS NOT NULL
+	  		SELECT @RNUM := @RNUM + 1 AS LEVEL_ORDER
+	  			  ,A.*
+	  	      FROM(
+					SELECT hierarchy_connect_by_parent_eq_prior_id_cate(CATE_CODE) AS CATE_CODE, @level AS level
+					  FROM (
+							SELECT  @start_with := (SELECT UPPER_CATE_CODE 
+							                          FROM TB_CATEGORY 
+							                         WHERE CATE_LEVEL = 0
+							                        ),
+									@id := @start_with,
+									@level := 0
+							) vars
+						  ,TB_CATEGORY
+					 WHERE  @id IS NOT NULL
+	  	          )A
+	  	         ,(SELECT @RNUM:=0) TMP
    		   ) ho       
    		  ,(SELECT A.*
 		          ,IFNULL(B.CATE_ORDER, 0) AS UPPER_CATE_ORDER
