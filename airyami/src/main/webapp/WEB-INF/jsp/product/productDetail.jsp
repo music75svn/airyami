@@ -55,8 +55,15 @@ function fn_callBack(sid, result, data){
 	if(sid == "getProductDetail"){
 		gfn_setDetails(result.ds_detail, $("#contents"));	// 지역내 상세 내용 셋업
 		
-		fn_selectLCate(result.ds_detail.PROD_LCATE_CD, result.ds_detail.PROD_MCATE_CD);
-		fn_selectMCate(result.ds_detail.PROD_MCATE_CD, result.ds_detail.PROD_SCATE_CD);
+		if(!gfn_isNull(result.ds_detail.PROD_MCATE_CD)){
+			fn_selectLCate(result.ds_detail.PROD_LCATE_CD, result.ds_detail.PROD_MCATE_CD);
+		}
+		if(!gfn_isNull(result.ds_detail.PROD_SCATE_CD)){
+			fn_selectMCate(result.ds_detail.PROD_MCATE_CD, result.ds_detail.PROD_SCATE_CD);
+		}
+		if(!gfn_isNull(result.ds_detail.PROD_DCATE_CD)){
+			fn_selectSCate(result.ds_detail.PROD_SCATE_CD, result.ds_detail.PROD_DCATE_CD);
+		}
 		
 		for(var i = 0; i < result.ds_langNameList.length; i++){
 			$('#PROD_NM_'+result.ds_langNameList[i].LANG_CD).val(result.ds_langNameList[i].PROD_NM);
@@ -128,7 +135,22 @@ function fn_goBack(){
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출
+function go_CompanyPop(){
+	var inputParam				= {};
+	inputParam.POP_COMP_NM 	= $('#SELLER_BIZ_ENTITY_NM').val();
+	inputParam.sid 	= "findCompany";
 
+	gfn_commonGo("/user/companyFindListPop", inputParam, "Y");
+}
+
+//팝업콜백 함수
+function fn_popCallBack(sid, data){
+	// fn_srch
+	if(sid == "findCompany"){
+		$('#SELLER_BIZ_ENTITY_ID').val(data.BIZ_ENTITY_ID);
+		$('#SELLER_BIZ_ENTITY_NM').val(data.BIZ_ENTITY_NM);
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 기타 기능 함수
@@ -149,6 +171,8 @@ function fn_selectLCate(cateCd, valueCateCd){
 	$('#PROD_MCATE_CD').append("<option value=''><spring:message code="word.select"/></option>");
 	$('#PROD_SCATE_CD').find('option').remove();
 	$('#PROD_SCATE_CD').append("<option value=''><spring:message code="word.select"/></option>");
+	$('#PROD_DCATE_CD').find('option').remove();
+	$('#PROD_DCATE_CD').append("<option value=''><spring:message code="word.select"/></option>");
 	
 	if(gfn_isNull(cateCd)){
 		return;
@@ -161,12 +185,26 @@ function fn_selectLCate(cateCd, valueCateCd){
 function fn_selectMCate(cateCd, valueCateCd){
 	$('#PROD_SCATE_CD').find('option').remove();
 	$('#PROD_SCATE_CD').append("<option value=''><spring:message code="word.select"/></option>");
+	$('#PROD_DCATE_CD').find('option').remove();
+	$('#PROD_DCATE_CD').append("<option value=''><spring:message code="word.select"/></option>");
 	
 	if(gfn_isNull(cateCd)){
 		return;
 	}
 	
 	gfn_GetCategoryList(cateCd, $('#PROD_SCATE_CD'), '<spring:message code="word.select"/>', valueCateCd);
+}
+
+//카테고리 소분류 select 코드 조회
+function fn_selectSCate(cateCd, valueCateCd){
+	$('#PROD_DCATE_CD').find('option').remove();
+	$('#PROD_DCATE_CD').append("<option value=''><spring:message code="word.select"/></option>");
+	
+	if(gfn_isNull(cateCd)){
+		return;
+	}
+	
+	gfn_GetCategoryList(cateCd, $('#PROD_DCATE_CD'), '<spring:message code="word.select"/>', valueCateCd);
 }
 ////////////////////////////////////////////////////////////////////////////////////
 </script>
@@ -215,17 +253,138 @@ function fn_selectMCate(cateCd, valueCateCd){
 			<tr>
 				<th colspan="2"><spring:message code="word.category"/></th>
 				<td>
-			        <select id="PROD_LCATE_CD" name="PROD_LCATE_CD" title="<spring:message code="word.Lcategory"/>" depends="required" style="width:180px" onchange="javascript:fn_selectLCate(this.value);">
+			        <select id="PROD_LCATE_CD" name="PROD_LCATE_CD" title="<spring:message code="word.Lcategory"/>" depends="required" style="width:140px" onchange="javascript:fn_selectLCate(this.value);">
 						<option value=""><spring:message code="word.select"/></option>
                         <c:forEach var="lCateList" items="${ds_lCateList}">
                             <option value="${lCateList.CATE_CODE}">${lCateList.CATE_NAME}</option>
                         </c:forEach>
 					</select>
-			        <select id="PROD_MCATE_CD" name="PROD_MCATE_CD" title="<spring:message code="word.Mcategory"/>" depends="required" style="width:180px" onchange="javascript:fn_selectMCate(this.value);">
+			        <select id="PROD_MCATE_CD" name="PROD_MCATE_CD" title="<spring:message code="word.Mcategory"/>" depends="required" style="width:140px" onchange="javascript:fn_selectMCate(this.value);">
 						<option value=""><spring:message code="word.select"/></option>
 					</select>
-			        <select id="PROD_SCATE_CD" name="PROD_SCATE_CD" title="<spring:message code="word.Scategory"/>" depends="" style="width:180px">
+			        <select id="PROD_SCATE_CD" name="PROD_SCATE_CD" title="<spring:message code="word.Scategory"/>" depends="required" style="width:140px" onchange="javascript:fn_selectSCate(this.value);">
 						<option value=""><spring:message code="word.select"/></option>
+					</select>
+			        <select id="PROD_DCATE_CD" name="PROD_DCATE_CD" title="<spring:message code="word.Dcategory"/>" depends="" style="width:140px">
+						<option value=""><spring:message code="word.select"/></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.brand"/></th>
+				<td>
+			        <select id="BRAND_CD" name="BRAND_CD" title="<spring:message code="word.brand"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="brandList" items="${ds_brandList}">
+                            <option value="${brandList.CD}">${brandList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.orgPrice"/></th>
+				<td>
+			        <input type="text" name="ORG_PRICE" id="ORG_PRICE" isNum="Y" class="onlynum2" maxlength="12" title="<spring:message code="word.orgPrice"/>" depends="required"/>
+			        <select id="SUPPLY_CURRENCY" name="SUPPLY_CURRENCY" title="<spring:message code="word.supplyCurrency"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="supplyCurrencyList" items="${ds_supplyCurrencyList}">
+                            <option value="${supplyCurrencyList.CD}">${supplyCurrencyList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.volume"/></th>
+				<td>
+			        <input type="text" name="VOLUME" id="VOLUME" isNum="Y" class="onlynum2" maxlength="8" title="<spring:message code="word.volume"/>" depends="required"/>
+			        <select id="VOLUME_UNIT" name="VOLUME_UNIT" title="<spring:message code="word.volumeUnit"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="volumeUnitList" items="${ds_volumeUnitList}">
+                            <option value="${volumeUnitList.CD}">${volumeUnitList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.weight"/></th>
+				<td>
+			        <input type="text" name="WEIGHT" id="WEIGHT" isNum="Y" class="onlynum2" maxlength="8" title="<spring:message code="word.weight"/>" depends="required"/>
+			        <select id="WEIGHT_UNIT" name="WEIGHT_UNIT" title="<spring:message code="word.weightUnit"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="weightUnitList" items="${ds_weightUnitList}">
+                            <option value="${weightUnitList.CD}">${weightUnitList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.salesSku"/></th>
+				<td>
+			        <select id="SALES_SKU" name="SALES_SKU" title="<spring:message code="word.salesSku"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="salesSkuList" items="${ds_salesSkuList}">
+                            <option value="${salesSkuList.CD}">${salesSkuList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.perBoxProdCnt"/></th>
+				<td>
+			        <input type="text" name="PER_BOX_PROD_CNT" id="PER_BOX_PROD_CNT" isNum="Y" class="onlynum2" maxlength="6" title="<spring:message code="word.perBoxProdCnt"/>" depends="required"/>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.sellValidMonths"/></th>
+				<td>
+			        <input type="text" name="SELL_VALID_MONTHS" id="SELL_VALID_MONTHS" isNum="Y" class="onlynum2" maxlength="6" title="<spring:message code="word.sellValidMonths"/>" depends="required"/>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.seenCustomerYn"/></th>
+				<td>
+			        <select id="SEEN_CUSTOMER_YN" name="SEEN_CUSTOMER_YN" title="<spring:message code="word.seenCustomerYn"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+						<option value="Y"><spring:message code="word.yes"/></option>
+						<option value="N"><spring:message code="word.no"/></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.seenPartnerYn"/></th>
+				<td>
+			        <select id="SEEN_PARTNER_YN" name="SEEN_PARTNER_YN" title="<spring:message code="word.seenPartnerYn"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+						<option value="Y"><spring:message code="word.yes"/></option>
+						<option value="N"><spring:message code="word.no"/></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.workingYn"/></th>
+				<td>
+			        <select id="WORKING_YN" name="WORKING_YN" title="<spring:message code="word.workingYn"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+						<option value="Y"><spring:message code="word.yes"/></option>
+						<option value="N"><spring:message code="word.no"/></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.sellerBizEntity"/></th>
+				<td>
+					<input type="text" name="SELLER_BIZ_ENTITY_NM" id="SELLER_BIZ_ENTITY_NM" maxlength="20" title="<spring:message code="word.bizEntityId"/>" depends="" onChange="fn_companyNmChange();"/>
+					<button type="button" id="btnW_companyPop" onClick="javascript:go_CompanyPop()"><spring:message code="button.search"/></button>
+					<input type="text" name="SELLER_BIZ_ENTITY_ID" id="SELLER_BIZ_ENTITY_ID" maxlength="8" title="<spring:message code="word.bizEntityId"/>" depends="required" readOnly/>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.dutyFreeYn"/></th>
+				<td>
+			        <select id="DUTY_FREE_YN" name="DUTY_FREE_YN" title="<spring:message code="word.dutyFreeYn"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+						<option value="Y"><spring:message code="word.yes"/></option>
+						<option value="N"><spring:message code="word.no"/></option>
 					</select>
 				</td>
 			</tr>
@@ -254,17 +413,6 @@ function fn_selectMCate(cateCd, valueCateCd){
 			</tr>
 </c:forEach>
 			<tr>
-				<th colspan="2"><spring:message code="word.brand"/></th>
-				<td>
-			        <select id="BRAND_CD" name="BRAND_CD" title="<spring:message code="word.brand"/>" depends="required" style="width:150px">
-						<option value=""><spring:message code="word.select"/></option>
-                        <c:forEach var="brandList" items="${ds_brandList}">
-                            <option value="${brandList.CD}">${brandList.CD_NM}</option>
-                        </c:forEach>
-					</select>
-				</td>
-			</tr>
-			<tr>
 				<th colspan="2"><spring:message code="word.makeCuntry"/></th>
 				<td>
 			        <select id="MAKE_COUNTRY" name="MAKE_COUNTRY" title="<spring:message code="word.makeCuntry"/>" depends="required" style="width:250px">
@@ -287,20 +435,11 @@ function fn_selectMCate(cateCd, valueCateCd){
 				</td>
 			</tr>
 			<tr>
-				<th colspan="2"><spring:message code="word.supplyCurrency"/></th>
+				<th colspan="2"><spring:message code="word.salesDate"/></th>
 				<td>
-			        <select id="SUPPLY_CURRENCY" name="SUPPLY_CURRENCY" title="<spring:message code="word.supplyCurrency"/>" depends="required" style="width:250px">
-						<option value=""><spring:message code="word.select"/></option>
-                        <c:forEach var="supplyCurrencyList" items="${ds_supplyCurrencyList}">
-                            <option value="${supplyCurrencyList.CD}">${supplyCurrencyList.CD_NM}</option>
-                        </c:forEach>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<th colspan="2"><spring:message code="word.orgPrice"/></th>
-				<td>
-			        <input type="text" name="ORG_PRICE" id="ORG_PRICE" isNum="Y" class="onlynum2" maxlength="12" title="<spring:message code="word.orgPrice"/>" depends="required"/>
+			        <input type="text" style="width:100px" maxlength="10" readonly name="SALES_START_DT" id="SALES_START_DT" isDate="Y" class="datepicker" title="<spring:message code="word.salesStartDate"/>" depends="required">
+			        ~
+			        <input type="text" style="width:100px" maxlength="10" readonly name="SALES_END_DT" id="SALES_END_DT" isDate="Y" class="datepicker" title="<spring:message code="word.salesEndDate"/>" depends="required">
 				</td>
 			</tr>
 			<tr>

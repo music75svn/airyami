@@ -164,7 +164,7 @@ function fn_clearData(){
 				<td><input type="text" name="CODE_GROUP_ID" id="CODE_GROUP_ID" disabled /></td>
 				</c:when>
 				<c:when test="${MODE=='CREATE'}">
-				<td><input type="text" name="CODE_GROUP_ID" id="CODE_GROUP_ID" maxlength="10" title="<spring:message code="word.codeGroupCd"/>" depends="required,englishNumeric"/></td>
+				<td><input type="text" name="CODE_GROUP_ID" id="CODE_GROUP_ID" maxlength="20" title="<spring:message code="word.codeGroupCd"/>" depends="required,englishNumeric"/></td>
 				</c:when>
 			</c:choose>
 			</tr>

@@ -119,7 +119,6 @@ function fn_goBack(){
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출
-// 팝업 호출
 function go_CompanyPop(){
 	var inputParam				= {};
 	inputParam.POP_COMP_NM 	= $('#BIZ_ENTITY_NM').val();

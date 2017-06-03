@@ -49,12 +49,15 @@
          , A.PROD_LCATE_CD 
          , A.PROD_MCATE_CD 
          , A.PROD_SCATE_CD
+         , A.PROD_DCATE_CD
 		 , CONCAT(L.CATE_NAME,
 	            '>',
 	            M.CATE_NAME,
-	            CASE WHEN A.PROD_SCATE_CD IS NULL
+	            '>',
+	            S.CATE_NAME,
+	            CASE WHEN A.PROD_DCATE_CD IS NULL
 					 THEN ''
-	            	 ELSE CONCAT('>', S.CATE_NAME)
+	            	 ELSE CONCAT('>', D.CATE_NAME)
 	            	 END
 	        ) AS CATEGORY_NM
          , A.WORKING_YN          
@@ -67,20 +70,21 @@
          , A.DUTY_FREE_YN        
          , A.VOLUME_UNIT         
          , A.VOLUME              
-         , A.WEIGHT_NIT          
+         , A.WEIGHT_UNIT          
          , A.WEIGHT              
          , A.SALES_SKU           
          , A.PER_BOX_PROD_CNT    
          , A.SELL_VALID_MONTHS   
          , A.SEEN_CUSTOMER_YN    
-         , A.SEEN_PARTNER_YN     
-         , A.SALES_START_DT      
-         , A.SALES_END_DT      
+         , A.SEEN_PARTNER_YN
+         , DATE_FORMAT(str_to_date(A.SALES_START_DT, '%Y%m%d'), '%Y-%m-%d') AS SALES_START_DT
+         , DATE_FORMAT(str_to_date(A.SALES_END_DT, '%Y%m%d'), '%Y-%m-%d') AS SALES_END_DT   
 	  FROM TB_PRODUCT_MASTER A
 	     LEFT JOIN TB_PRODUCT_NAME B ON A.PROD_NO = B.PROD_NO AND B.LANG_CD = #LANG_CD#
 	     LEFT OUTER JOIN TB_CATEGORY_NM L ON A.PROD_LCATE_CD = L.CATE_CODE AND L.LANG_CD = #LANG_CD#
 	     LEFT OUTER JOIN TB_CATEGORY_NM M ON A.PROD_MCATE_CD = M.CATE_CODE AND M.LANG_CD = #LANG_CD#
 	     LEFT OUTER JOIN TB_CATEGORY_NM S ON A.PROD_SCATE_CD = S.CATE_CODE AND S.LANG_CD = #LANG_CD#
+	     LEFT OUTER JOIN TB_CATEGORY_NM D ON A.PROD_SCATE_CD = D.CATE_CODE AND S.LANG_CD = #LANG_CD#
 	 WHERE 1 = 1
 	 <isNotEmpty property="SEARCH_PROD_NO">
 	   AND A.PROD_NO = #SEARCH_PROD_NO#
@@ -100,6 +104,9 @@
 	 <isNotEmpty property="SEARCH_PROD_SCATE_CD">
 	   AND A.PROD_SCATE_CD = #SEARCH_PROD_SCATE_CD#
 	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_DCATE_CD">
+	   AND A.PROD_DCATE_CD = #SEARCH_PROD_DCATE_CD#
+	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_BRAND_CD">
 	   AND A.BRAND_CD = #SEARCH_BRAND_CD#
 	 </isNotEmpty>
@@ -117,30 +124,33 @@
 	<!-- TB_PRODUCT_MASTER 상세조회 -->
 	<select id="product.getProductDetail" parameterClass="Map" resultClass="ValueMap">
 	SELECT /* Product_Mysql.xml  product.getProductDetail */
-           PROD_NO             
-         , BRAND_CD            
-         , PROD_LCATE_CD
-         , PROD_MCATE_CD      
-         , PROD_SCATE_CD         
-         , WORKING_YN          
-         , SELLER_BIZ_ENTITY_ID
-         , MAKE_COUNTRY        
-         , SUPPLY_COUNTRY      
-         , SUPPLY_CURRENCY     
-         , ORG_PRICE           
-         , DUTY_FREE_YN        
-         , VOLUME_UNIT         
-         , VOLUME              
-         , WEIGHT_NIT          
-         , WEIGHT              
-         , SALES_SKU           
-         , PER_BOX_PROD_CNT    
-         , SELL_VALID_MONTHS   
-         , SEEN_CUSTOMER_YN    
-         , SEEN_PARTNER_YN     
-         , SALES_START_DT      
-         , SALES_END_DT     
+           A.PROD_NO             
+         , A.BRAND_CD            
+         , A.PROD_LCATE_CD
+         , A.PROD_MCATE_CD      
+         , A.PROD_SCATE_CD
+         , A.PROD_DCATE_CD     
+         , A.WORKING_YN          
+         , A.SELLER_BIZ_ENTITY_ID
+         , B.COMP_NM AS SELLER_BIZ_ENTITY_NM
+         , A.MAKE_COUNTRY        
+         , A.SUPPLY_COUNTRY      
+         , A.SUPPLY_CURRENCY     
+         , A.ORG_PRICE           
+         , A.DUTY_FREE_YN        
+         , A.VOLUME_UNIT         
+         , A.VOLUME              
+         , A.WEIGHT_UNIT          
+         , A.WEIGHT              
+         , A.SALES_SKU           
+         , A.PER_BOX_PROD_CNT    
+         , A.SELL_VALID_MONTHS   
+         , A.SEEN_CUSTOMER_YN    
+         , A.SEEN_PARTNER_YN     
+         , DATE_FORMAT(str_to_date(A.SALES_START_DT, '%Y%m%d'), '%Y-%m-%d') AS SALES_START_DT
+         , DATE_FORMAT(str_to_date(A.SALES_END_DT, '%Y%m%d'), '%Y-%m-%d') AS SALES_END_DT   
 	  FROM TB_PRODUCT_MASTER A
+	  LEFT OUTER JOIN TB_COMPANY_MASTER B ON A.SELLER_BIZ_ENTITY_ID = B.BIZ_ENTITY_ID
 	 WHERE A.PROD_NO= #SEARCH_PROD_NO#
 	</select>
 	
@@ -174,7 +184,8 @@
          , BRAND_CD            
          , PROD_LCATE_CD
          , PROD_MCATE_CD      
-         , PROD_SCATE_CD         
+         , PROD_SCATE_CD
+         , PROD_DCATE_CD   
          , WORKING_YN          
          , SELLER_BIZ_ENTITY_ID
          , MAKE_COUNTRY        
@@ -184,7 +195,7 @@
          , DUTY_FREE_YN        
          , VOLUME_UNIT         
          , VOLUME              
-         , WEIGHT_NIT          
+         , WEIGHT_UNIT          
          , WEIGHT              
          , SALES_SKU           
          , PER_BOX_PROD_CNT    
@@ -202,6 +213,7 @@
          , #PROD_LCATE_CD#
          , #PROD_MCATE_CD#
          , #PROD_SCATE_CD#
+         , #PROD_DCATE_CD#
          , #WORKING_YN#
          , #SELLER_BIZ_ENTITY_ID#
          , #MAKE_COUNTRY#
@@ -211,7 +223,7 @@
          , #DUTY_FREE_YN#
          , #VOLUME_UNIT#
          , #VOLUME#
-         , #WEIGHT_NIT#
+         , #WEIGHT_UNIT#
          , #WEIGHT#
          , #SALES_SKU#
          , #PER_BOX_PROD_CNT#
@@ -219,7 +231,7 @@
          , #SEEN_CUSTOMER_YN#
          , #SEEN_PARTNER_YN#
          , #SALES_START_DT#
-         , #SALES_END_DT# 
+         , #SALES_END_DT#
 		 , #LOGIN_ID#
 		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 		)
@@ -232,6 +244,7 @@
          , PROD_LCATE_CD          = #PROD_LCATE_CD#
          , PROD_MCATE_CD          = #PROD_MCATE_CD#
          , PROD_SCATE_CD          = #PROD_SCATE_CD#
+         , PROD_DCATE_CD          = #PROD_DCATE_CD#
          , WORKING_YN             = #WORKING_YN#
          , SELLER_BIZ_ENTITY_ID   = #SELLER_BIZ_ENTITY_ID#
          , MAKE_COUNTRY           = #MAKE_COUNTRY#
@@ -241,7 +254,7 @@
          , DUTY_FREE_YN           = #DUTY_FREE_YN#
          , VOLUME_UNIT            = #VOLUME_UNIT#
          , VOLUME                 = #VOLUME#
-         , WEIGHT_NIT             = #WEIGHT_NIT#
+         , WEIGHT_UNIT            = #WEIGHT_UNIT#
          , WEIGHT                 = #WEIGHT#
          , SALES_SKU              = #SALES_SKU#
          , PER_BOX_PROD_CNT       = #PER_BOX_PROD_CNT#

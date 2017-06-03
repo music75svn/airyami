@@ -28,8 +28,15 @@ function fn_init(){
 	
 	// myParams 에 넘어온 값이 있으면 이전 검색조건 셋팅한다.
 	gfn_setMyParams();
-	fn_selectLCate('<c:out value="${FIND_SEARCH_PROD_LCATE_CD}"/>', '<c:out value="${FIND_SEARCH_PROD_MCATE_CD}"/>');
-	fn_selectMCate('<c:out value="${FIND_SEARCH_PROD_MCATE_CD}"/>', '<c:out value="${FIND_SEARCH_PROD_SCATE_CD}"/>');
+	if(!gfn_isNull(<c:out value="${FIND_SEARCH_PROD_MCATE_CD}"/>)){
+		fn_selectLCate('<c:out value="${FIND_SEARCH_PROD_LCATE_CD}"/>', '<c:out value="${FIND_SEARCH_PROD_MCATE_CD}"/>');
+	}
+	if(!gfn_isNull(<c:out value="${FIND_SEARCH_PROD_SCATE_CD}"/>)){
+		fn_selectMCate('<c:out value="${FIND_SEARCH_PROD_MCATE_CD}"/>', '<c:out value="${FIND_SEARCH_PROD_SCATE_CD}"/>');
+	}
+	if(!gfn_isNull(<c:out value="${FIND_SEARCH_PROD_DCATE_CD}"/>)){
+		fn_selectSCate('<c:out value="${FIND_SEARCH_PROD_SCATE_CD}"/>', '<c:out value="${FIND_SEARCH_PROD_DCATE_CD}"/>');
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -117,6 +124,8 @@ function fn_selectLCate(cateCd, valueCateCd){
 	$('#SEARCH_PROD_MCATE_CD').append("<option value=''><spring:message code="word.all"/></option>");
 	$('#SEARCH_PROD_SCATE_CD').find('option').remove();
 	$('#SEARCH_PROD_SCATE_CD').append("<option value=''><spring:message code="word.all"/></option>");
+	$('#SEARCH_PROD_DCATE_CD').find('option').remove();
+	$('#SEARCH_PROD_DCATE_CD').append("<option value=''><spring:message code="word.all"/></option>");
 	
 	if(gfn_isNull(cateCd)){
 		return;
@@ -129,12 +138,26 @@ function fn_selectLCate(cateCd, valueCateCd){
 function fn_selectMCate(cateCd, valueCateCd){
 	$('#SEARCH_PROD_SCATE_CD').find('option').remove();
 	$('#SEARCH_PROD_SCATE_CD').append("<option value=''><spring:message code="word.all"/></option>");
+	$('#SEARCH_PROD_DCATE_CD').find('option').remove();
+	$('#SEARCH_PROD_DCATE_CD').append("<option value=''><spring:message code="word.all"/></option>");
 	
 	if(gfn_isNull(cateCd)){
 		return;
 	}
 	
 	gfn_GetCategoryList(cateCd, $('#SEARCH_PROD_SCATE_CD'), '<spring:message code="word.all"/>', valueCateCd);
+}
+
+//카테고리 소분류 select 코드 조회
+function fn_selectSCate(cateCd, valueCateCd){
+	$('#SEARCH_PROD_DCATE_CD').find('option').remove();
+	$('#SEARCH_PROD_DCATE_CD').append("<option value=''><spring:message code="word.all"/></option>");
+	
+	if(gfn_isNull(cateCd)){
+		return;
+	}
+	
+	gfn_GetCategoryList(cateCd, $('#SEARCH_PROD_DCATE_CD'), '<spring:message code="word.all"/>', valueCateCd);
 }
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출
@@ -183,16 +206,19 @@ function fn_selectMCate(cateCd, valueCateCd){
                         </c:forEach>
 					</select><br>
 					<label for="SEARCH_BRAND_CD" id="S4"><spring:message code="word.category"/></label>
-			        <select id="SEARCH_PROD_LCATE_CD" name="SEARCH_PROD_LCATE_CD" title="<spring:message code="word.Lcategory"/>" depends="" style="width:180px" onchange="javascript:fn_selectLCate(this.value);">
+			        <select id="SEARCH_PROD_LCATE_CD" name="SEARCH_PROD_LCATE_CD" title="<spring:message code="word.Lcategory"/>" depends="" style="width:150px" onchange="javascript:fn_selectLCate(this.value);">
 						<option value=""><spring:message code="word.all"/></option>
                         <c:forEach var="lCateList" items="${ds_lCateList}">
                             <option value="${lCateList.CATE_CODE}">${lCateList.CATE_NAME}</option>
                         </c:forEach>
 					</select>
-			        <select id="SEARCH_PROD_MCATE_CD" name="SEARCH_PROD_MCATE_CD" title="<spring:message code="word.Mcategory"/>" depends="" style="width:180px" onchange="javascript:fn_selectMCate(this.value);">
+			        <select id="SEARCH_PROD_MCATE_CD" name="SEARCH_PROD_MCATE_CD" title="<spring:message code="word.Mcategory"/>" depends="" style="width:150px" onchange="javascript:fn_selectMCate(this.value);">
 						<option value=""><spring:message code="word.all"/></option>
 					</select>
-			        <select id="SEARCH_PROD_SCATE_CD" name="SEARCH_PROD_SCATE_CD" title="<spring:message code="word.Scategory"/>" depends="" style="width:180px">
+			        <select id="SEARCH_PROD_SCATE_CD" name="SEARCH_PROD_SCATE_CD" title="<spring:message code="word.Scategory"/>" depends="" style="width:150px" onchange="javascript:fn_selectSCate(this.value);">
+						<option value=""><spring:message code="word.all"/></option>
+					</select>
+			        <select id="SEARCH_PROD_DCATE_CD" name="SEARCH_PROD_DCATE_CD" title="<spring:message code="word.Dcategory"/>" depends="" style="width:150px">
 						<option value=""><spring:message code="word.all"/></option>
 					</select>
 					<input type="submit" value="<spring:message code="button.search"/>" onclick="javascript:gfn_fn_srch(); return false;"/>

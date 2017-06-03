@@ -221,6 +221,21 @@ public class ProductController {
     	List<ValueMap> supplyCurrencyList = commCodeService.selectCommCode(params);
     	model.put("ds_supplyCurrencyList", supplyCurrencyList);
     	
+    	// 용량단위코드 조회	
+    	params.put( "CODE_GROUP_ID", "VOLUME_UNIT" ); //용량단위코드
+    	List<ValueMap> volumeUnitList = commCodeService.selectCommCode(params);
+    	model.put("ds_volumeUnitList", volumeUnitList);
+    	
+    	// 중량단위코드 조회	
+    	params.put( "CODE_GROUP_ID", "WEIGHT_UNIT" ); //중량단위코드
+    	List<ValueMap> weightUnitList = commCodeService.selectCommCode(params);
+    	model.put("ds_weightUnitList", weightUnitList);
+    	
+    	// 상품판매단위코드 조회	
+    	params.put( "CODE_GROUP_ID", "SALES_SKU" ); //상품판매단위코드
+    	List<ValueMap> salesSkuList = commCodeService.selectCommCode(params);
+    	model.put("ds_salesSkuList", salesSkuList);
+    	
     	// 카테고리 대분류 조회
     	params.put( "CATE_LEVEL", "1" ); //카테고리 대분류
     	params.put( "UPPER_CATE_CODE", "1" ); //최상위카테고리
