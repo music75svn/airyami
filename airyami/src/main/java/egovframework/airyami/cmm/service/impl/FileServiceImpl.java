@@ -47,6 +47,29 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
 	private EgovMessageSource egovMessageSource;
     
     
+    /*
+     * 상품별 이미지 등록.
+     * 
+     */
+    public ValueMap attachImgFiles(Map<String, MultipartFile> files, String strProdNo, Map<String, Object> paramMap){
+    	ValueMap result = new ValueMap();
+    	List<ValueMap> parseResult = null;
+    	
+    	// 이미지 등록과 상품 등록과는 별개로 진행한다.
+    	try{
+    		parseResult = parseProdImgFileInfo(files, strProdNo, paramMap);
+    	}
+    	catch(Exception e){
+			result.put("success", false);
+			logger.debug(e.getMessage());
+			logger.debug(e.getStackTrace());
+		}
+		
+		logger.debug("result :: " + result);
+		
+		return result;
+    }
+    
     public ValueMap attachFiles(Map<String, MultipartFile> files, String strMasterId, Map<String, Object> paramMap, ValueMap ds_boardInfo){
 		// TODO Auto-generated method stub
 		ValueMap result = new ValueMap();
@@ -208,6 +231,44 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
 			params.put( "FILE_DTL_SEQ", sDtlArr[i] );
 			deleteFile( params );
 		}
+	}
+	
+	
+	public List<ValueMap> parseProdImgFileInfo(Map<String, MultipartFile> files, String prodNo, Map<String,Object> paramMap) throws Exception {
+		List<ValueMap> result =new ArrayList<ValueMap>();
+				
+		String separator = "";
+        String osName = System.getProperty("os.name").toLowerCase();
+        if(osName.indexOf("win")>=0)
+        	separator = "/";
+        else
+        	separator = java.io.File.separator;
+        
+        
+        
+        Iterator<Entry<String, MultipartFile>> itr = files.entrySet().iterator();
+        MultipartFile file;
+        String filePath = "";
+        ValueMap fvo;
+        int idx = 0;
+		
+        while(itr.hasNext()) {
+            idx++;
+            
+            Entry<String, MultipartFile> entry = itr.next();
+            
+            file = entry.getValue();
+            String originalFileName = file.getOriginalFilename();
+            
+            if("".equals(originalFileName)) {
+            	continue;
+            }
+            
+            String fileType = "";
+            logger.debug("file.getName() :: " + file.getName());
+        }
+		
+		return result;
 	}
 	
 	public List<ValueMap> parseFileInfo(Map<String, MultipartFile> files, BigDecimal pMasterId, Map<String,Object> paramMap) throws Exception {

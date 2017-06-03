@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import egovframework.airyami.cmm.service.CmmService;
 import egovframework.airyami.cmm.service.CommCodeService;
 import egovframework.airyami.cmm.service.FileService;
 import egovframework.airyami.cmm.util.CommonUtils;
@@ -79,6 +80,11 @@ public class TemplateController {
     /** FileService */
     @Resource(name = "fileService")
     private FileService fileService;
+    
+    
+    /** CmmService */
+    @Resource(name = "cmmService")
+    private CmmService cmmService;
     
 
     /**
@@ -345,9 +351,9 @@ public class TemplateController {
     	log.info("param 1111:: " + params);
     	CommonUtils.setModelByParams(model, params, request);
     	
-    	params.put( "CODE_GROUP_ID", "USE_YN" ); //코드 대분류
-    	List<ValueMap> code_USE_YN = commCodeService.selectCommCode(params);
-    	model.put("ds_cd_USE_YN", code_USE_YN);
+    	params.put( "CODE_GROUP_ID", "LANG" ); //코드 대분류
+    	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_LANG", code_LANG);
     	
     	return "/template/templateForm_popup";
     }
@@ -382,6 +388,44 @@ public class TemplateController {
     	
     	return null;
     }
+    
+    
+    /**
+     * 상품정보 상세 조회시  
+     */
+    @RequestMapping(value="/template/selectProdDetail.do")
+    public String selectProdDetail(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	ValueMap ds_detail = cmmService.getCommDbMap(params, "product.getProductDetail");
+    	result.put("ds_detail", ds_detail);    
+    	
+		
+		// 첨부파일조회
+		if(ds_detail != null)  {// 
+			params.put("PROD_NO", ds_detail.getString("PROD_NO"));
+			//List<ValueMap> fileList = fileService.selectFileList(ds_detail); // ds_detail에 FILE_MST_SEQ 존재
+			List<ValueMap> fileList = cmmService.getCommDbList(params, "prodImg.selectFileList"); // ds_detail에 PROD_NO 존재
+			log.debug("fileList = " + fileList);
+			ds_detail.put("fileList", fileList);			
+	    }
+    	
+		result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	return null;
+    }
+    
+    
+    
+    
+    
     
     
     /**

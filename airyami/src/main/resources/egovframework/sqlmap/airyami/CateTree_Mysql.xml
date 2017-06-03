@@ -14,6 +14,23 @@
 	       ,LEVEL 
 	       ,hi.CATE_LEVEL
            ,CATE_ORDER
+           ,CASE  
+           		WHEN CATE_LEVEL = 1 
+		        THEN CATE_ORDER * 1000000
+		        WHEN CATE_LEVEL = 2 
+		        THEN (SELECT CATE_ORDER * 1000000 FROM TB_CATEGORY WHERE CATE_CODE = substring(hi.CATE_CODE, 1, 3))
+		             + CATE_ORDER * 10000
+		        WHEN CATE_LEVEL = 3 
+		        THEN (SELECT CATE_ORDER * 1000000 FROM TB_CATEGORY WHERE CATE_CODE = substring(hi.CATE_CODE, 1, 3))
+		             + (SELECT CATE_ORDER * 10000 FROM TB_CATEGORY WHERE CATE_CODE = substring(hi.CATE_CODE, 1, 5))
+		             + CATE_ORDER * 100
+				WHEN CATE_LEVEL = 4 
+		        THEN (SELECT CATE_ORDER * 1000000 FROM TB_CATEGORY WHERE CATE_CODE = substring(hi.CATE_CODE, 1, 3))
+		             + (SELECT CATE_ORDER * 10000 FROM TB_CATEGORY WHERE CATE_CODE = substring(hi.CATE_CODE, 1, 5))
+		             + (SELECT CATE_ORDER * 100 FROM TB_CATEGORY WHERE CATE_CODE = substring(hi.CATE_CODE, 1, 7))
+		             + CATE_ORDER
+		        ELSE CATE_ORDER
+			  END AS ORDERS
 	  FROM (
 	  		SELECT @RNUM := @RNUM + 1 AS LEVEL_ORDER
 	  			  ,A.*
@@ -42,7 +59,7 @@
 	 WHERE hi.CATE_CODE = ho.CATE_CODE
 	   AND hi.CATE_CODE 		= B.CATE_CODE
 	   AND B.LANG_CD = #LANG_CD#
-     ORDER BY LEVEL_ORDER
+     ORDER BY ORDERS
 	</select>
 	
 	<select id="cateTree.selectCate" parameterClass="Map" resultClass="ValueMap" >

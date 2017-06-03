@@ -188,7 +188,7 @@ function fn_btnTest(pObj){
 // 팝업_등록폼 호출하기
 function fn_popInsertForm(){
 	var inputParam = {}; //gfn_makeInputData($("#srchForm"));
-	
+	inputParam.PROD_NO = "CN00002";
 	
 	gfn_commonGo("/template/templateForm_popup", inputParam, "Y");
 }
@@ -372,7 +372,7 @@ function fn_userNmChange() {
 		<span id="pagingNav"></span>
 		
 		<div class="btn_zone">
-			<button type="button" id="btnBack" onClick="javascript:fn_popInsertForm()">팝업등록</button>
+			<button type="button" id="btnBack" onClick="javascript:fn_popInsertForm()">이미지등록</button>
 			<span class="btn right" onclick="javascript:fn_allDelete(); return false;">체크박스테스트</span>
 			<span class="btn right"><a href="gear_input.html" onclick="javascript:fn_excel(); return false;">엑셀 </a></span>
 			<button type="button" id="btnW_update" onClick="javascript:fn_radioTest()">라디오</button>

@@ -9,9 +9,11 @@
 	<sqlMap resource="egovframework/sqlmap/airyami/Cmm_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/Comm_Code_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/ExchangeRate_Mysql.xml"/>
+	<sqlMap resource="egovframework/sqlmap/airyami/FileMng_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/Login_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/Menu_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/User_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/Company_Mysql.xml"/>
+	<sqlMap resource="egovframework/sqlmap/airyami/ProdImgMng_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/Product_Mysql.xml"/>
 </sqlMapConfig>

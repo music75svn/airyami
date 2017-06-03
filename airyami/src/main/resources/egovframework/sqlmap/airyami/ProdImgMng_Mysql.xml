@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="prodImg">
+
+<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+
+	<select id="prodImg.selectFileList" parameterClass="Map" resultClass="ValueMap">
+	SELECT FILE_MST_SEQ
+		 ,FILE_DTL_SEQ
+		 ,ATTACH_FILE_KIND_C
+		 ,FILE_PATH
+		 ,URL_PATH
+		 ,SAVE_FILE_NAME
+		 ,ORG_FILE_NAME
+		 ,FILE_EXT
+		 ,FILE_SIZE
+	  FROM TB_PRODUCT_IMAGE
+	 WHERE PROD_NO = #PROD_NO#
+	   AND LANG_CD = #LANG_CD#
+	  ORDER BY FILE_DTL_SEQ
+	</select>
+
+
+	<select id="prodImg.selectNewDetailId" parameterClass="java.math.BigDecimal" resultClass="java.math.BigDecimal">
+	SELECT IFNULL(MAX(FILE_DTL_SEQ) + 1, 1) FILE_DTL_SEQ
+	  FROM TB_FILE 
+	 WHERE FILE_MST_SEQ = #FILE_MST_SEQ#
+	</select>
+	
+	<update id="prodImg.deleteFile" parameterClass="Map" >
+	DELETE FROM TB_FILE
+	 WHERE FILE_MST_SEQ = #FILE_MST_SEQ# 
+	   AND FILE_DTL_SEQ = #FILE_DTL_SEQ#
+	</update>
+	
+	<insert id="prodImg.insertFile" parameterClass="map">
+	INSERT INTO tb_file(
+	    FILE_MST_SEQ
+	   ,FILE_DTL_SEQ
+	   ,ATTACH_FILE_KIND_C
+	   ,FILE_PATH
+	   <isNotEmpty property="URL_PATH">,URL_PATH</isNotEmpty>
+	   ,SAVE_FILE_NAME
+	   ,ORG_FILE_NAME
+	   ,FILE_EXT
+	   ,FILE_SIZE
+	   ,REG_ID
+	   ,REG_DT
+	   ,REG_TM
+	   ,MOD_ID
+	   ,MOD_DT
+	   ,MOD_TM)
+	VALUES
+	  (
+	    #FILE_MST_SEQ#
+	   ,#FILE_DTL_SEQ#
+	   ,#ATTACH_FILE_KIND_C#
+	   ,#FILE_PATH#
+	   <isNotEmpty property="URL_PATH">,#URL_PATH#</isNotEmpty>
+	   ,#SAVE_FILE_NAME#
+	   ,#ORG_FILE_NAME#
+	   ,#FILE_EXT#
+	   ,#FILE_SIZE#
+	   <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
+	   <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
+	   ,DATE_FORMAT(now(), '%Y%m%d')
+	   ,DATE_FORMAT(now(), '%H%i%s')
+	   <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
+	   <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
+	   ,DATE_FORMAT(now(), '%Y%m%d')
+	   ,DATE_FORMAT(now(), '%H%i%s')
+	   )
+	
+	</insert>
+	
+	<insert id="prodImg.copyFilesByMstId" parameterClass="map">
+	INSERT INTO tb_file
+	SELECT #NEW_FILE_MST_SEQ#
+		  ,FILE_DTL_SEQ
+		  ,ATTACH_FILE_KIND_C
+		  ,FILE_PATH
+		  ,URL_PATH
+		  ,SAVE_FILE_NAME
+		  ,ORG_FILE_NAME
+		  ,FILE_EXT
+		  ,FILE_SIZE
+		  <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
+	      <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
+	      ,DATE_FORMAT(now(), '%Y%m%d')
+	      ,DATE_FORMAT(now(), '%H%i%s')
+	      <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
+	      <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
+	      ,DATE_FORMAT(now(), '%Y%m%d')
+	      ,DATE_FORMAT(now(), '%H%i%s')
+	  FROM TB_FILE
+	 WHERE FILE_MST_SEQ = #FILE_MST_SEQ#
+	</insert>
+	
+	<insert id="prodImg.insertFileDownLoadLog" parameterClass="map">
+	INSERT INTO tb_file_down_log
+	SELECT NULL
+	      ,FILE_MST_SEQ
+		  ,FILE_DTL_SEQ
+		  <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
+	      <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
+	      ,DATE_FORMAT(now(), '%Y%m%d')
+	      ,DATE_FORMAT(now(), '%H%i%s')
+	      <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
+	      <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
+	      ,DATE_FORMAT(now(), '%Y%m%d')
+	      ,DATE_FORMAT(now(), '%H%i%s')
+	  FROM TB_FILE
+	 WHERE FILE_MST_SEQ = #FILE_MST_SEQ#
+	 <isNotEmpty property="FILE_DTL_SEQ">
+	   AND FILE_DTL_SEQ= #FILE_DTL_SEQ# 
+	 </isNotEmpty>
+	</insert>
+	
+	
+	
+	
+</sqlMap>
