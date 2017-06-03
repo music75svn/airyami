@@ -29,6 +29,9 @@ function fn_init(){
 
 //사용자그룹 등록
 function fn_insert(){
+	if(!confirm("<spring:message code="common.save.msg"/>")){
+		return;
+	}
 	var inputParam = new Object();
 	inputParam.sid 				= "insertMenu";
 	inputParam.url 				= "/menu/insertMenu.do";
@@ -49,7 +52,6 @@ function fn_callBack(sid, result, data){
 	}
 		
 	if(sid == "insertMenu"){
-		alert('<spring:message code="common.save.msg" />');
 		opener.fn_srch();
 		self.close();
 	}

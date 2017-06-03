@@ -124,8 +124,8 @@ public class CateMenuMngController {
     /**
      * 카테고리 상세조회 
      */
-    @RequestMapping(value="/category/selectMenu.do")
-    public String selectMenuView(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    @RequestMapping(value="/category/selectCate.do")
+    public String selectCate(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
 
     	boolean success = true;
     	ValueMap result = new ValueMap();
@@ -133,7 +133,7 @@ public class CateMenuMngController {
 		// 입력부 로그 출력 
 		//*****************************************************************************
 		logger.debug("===================================================================");
-		logger.debug("[MenuMngController.selectMenu() ================== start]");
+		logger.debug("[MenuMngController.selectCate() ================== start]");
 
     	
 		//*****************************************************************************
@@ -148,11 +148,8 @@ public class CateMenuMngController {
 		//*****************************************************************************
 		
     	try{
-    		ValueMap ds_detail =  cmmService.getCommDbMap(params, "cateTree.selectMenu");	    		
+    		ValueMap ds_detail =  cmmService.getCommDbMap(params, "cateTree.selectCate");	    		
     		result.put("ds_detail", ds_detail);
-
-    		List<ValueMap> ds_list = cmmService.getCommDbList(params, "cateTree.selectMenuUserGroup");
-    		result.put("ds_menuUsergrplist", ds_list);
     	}
     	catch(Exception e){
     		
@@ -172,8 +169,8 @@ public class CateMenuMngController {
     /**
      * 카테고리 수정 
      */
-    @RequestMapping(value="/category/updateMenu.do")
-    public String updateMenuMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    @RequestMapping(value="/category/updateCate.do")
+    public String updateCateMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
 
     	boolean success = true;
     	ValueMap result = new ValueMap();
@@ -182,7 +179,7 @@ public class CateMenuMngController {
 		// 입력부 로그 출력 
 		//*****************************************************************************
 		logger.debug("===================================================================");
-		logger.debug("[MenuMngController.updateMenuMng() ================== start]");
+		logger.debug("[CateMngController.updateCateMng() ================== start]");
 
 		//*****************************************************************************
 		// 변수 및 객체 선언 및 초기화 
@@ -195,27 +192,27 @@ public class CateMenuMngController {
 		// 비지니스 처리
 		//*****************************************************************************
     	try{
-    		int maxOrder = cmmService.getCommDbInt(params, "cateTree.selectMenuOrderMax");
+    		int maxOrder = cmmService.getCommDbInt(params, "cateTree.selectCateOrderMax");
     		
-    		ValueMap ds_detail =  cmmService.getCommDbMap(params, "cateTree.selectMenu");
-    		int oldMenuOrder = ds_detail.getInteger("MENU_ORDER");
-    		int menuOder = Integer.parseInt((String)params.get("MENU_ORDER"));
-    		params.put("OLD_MENU_ORDER", oldMenuOrder);
+    		ValueMap ds_detail =  cmmService.getCommDbMap(params, "cateTree.selectCate");
+    		int oldCateOrder = ds_detail.getInteger("CATE_ORDER");
+    		int cateOder = Integer.parseInt((String)params.get("CATE_ORDER"));
+    		params.put("OLD_CATE_ORDER", oldCateOrder);
     		
-    		if(oldMenuOrder > menuOder) {
-    			cmmService.updateCommDb(params, "cateTree.updateMenuOrderUp");
-    		} else if(oldMenuOrder < menuOder) {
-    			cmmService.updateCommDb(params, "cateTree.updateMenuOrderDown");			
+    		if(oldCateOrder > cateOder) {
+    			cmmService.updateCommDb(params, "cateTree.updateCateOrderUp");
+    		} else if(oldCateOrder < cateOder) {
+    			cmmService.updateCommDb(params, "cateTree.updateCateOrderDown");			
     		}
     		
-    		if(Integer.parseInt((String)params.get("MENU_ORDER")) < 1) {
+    		if(Integer.parseInt((String)params.get("CATE_ORDER")) < 1) {
     			success = false;
-    			msg = egovMessageSource.getMessage("fail.menu.minorder");    			
-    		} else if(Integer.parseInt((String)params.get("MENU_ORDER")) > maxOrder) {
+    			msg = egovMessageSource.getMessage("fail.cate.minorder");    			
+    		} else if(Integer.parseInt((String)params.get("CATE_ORDER")) > maxOrder) {
     			success = false;
-    			msg = egovMessageSource.getMessage("fail.menu.maxorder");
+    			msg = egovMessageSource.getMessage("fail.cate.maxorder");
     		} else {
-        		int updateCnt =  cmmService.updateCommDb(params, "cateTree.updateMenu");
+        		int updateCnt =  cmmService.updateCommDb(params, "cateTree.updateCate");
         		
         		// 카테고리내용 변경
         		if ( updateCnt == 0 ) {
@@ -226,7 +223,7 @@ public class CateMenuMngController {
         		// 카테고리명 변경
         		if(success)
         		{
-        			updateCnt =  cmmService.updateCommDb(params, "cateTree.updateMenuNm");
+        			updateCnt =  cmmService.updateCommDb(params, "cateTree.updateCateNm");
         			if ( updateCnt == 0 ) {
         				success = false;
         				msg = egovMessageSource.getMessage("fail.common.update");
@@ -259,8 +256,8 @@ public class CateMenuMngController {
     /**
      * 카테고리 삭제 
      */
-    @RequestMapping(value="/category/deleteMenu.do")
-    public String deleteMenuMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    @RequestMapping(value="/category/deleteCate.do")
+    public String deleteCateMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
     	
     	boolean success = true;
     	ValueMap result = new ValueMap();
@@ -269,7 +266,7 @@ public class CateMenuMngController {
     	// 입력부 로그 출력 
     	//*****************************************************************************
     	logger.debug("===================================================================");
-    	logger.debug("[MenuMngController.deleteMenuMng() ================== start]");
+    	logger.debug("[CateMngController.deleteCateMng() ================== start]");
     	
     	//*****************************************************************************
     	// 변수 및 객체 선언 및 초기화 
@@ -286,14 +283,11 @@ public class CateMenuMngController {
 		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
 		TransactionStatus status = transactionManager.getTransaction(def);
     	try{
-    		// tb_menu_group 삭제
-    		int delCnt = cmmService.deleteCommDb(params, "cateTree.deleteMenuGroup");
+    		// tb_category_nm 삭제
+    		int delCnt = cmmService.deleteCommDb(params, "cateTree.deleteCateNm");
     		
-    		// tb_menu_nm 삭제
-    		delCnt = cmmService.deleteCommDb(params, "cateTree.deleteMenuNm");
-    		
-    		// tb_menu 삭제
-    		delCnt = cmmService.deleteCommDb(params, "cateTree.deleteMenu");
+    		// tb_category 삭제
+    		delCnt = cmmService.deleteCommDb(params, "cateTree.deleteCate");
     		
     		transactionManager.commit(status);
     	}
@@ -321,28 +315,24 @@ public class CateMenuMngController {
     /**
      * 카테고리 등록 페이지 이동 
      */
-    @RequestMapping(value="/category/goInsertMenu.do")
-    public String goInsertMenuMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    @RequestMapping(value="/category/goInsertCate.do")
+    public String goInsertCateMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
     	
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
     	log.info("param >>>> :: " + params);
     	CommonUtils.setModelByParams(model, params, request);
     	
-    	params.put( "CODE_GROUP_ID", "MENU_TYPE" ); //
-		List<ValueMap> code_MENU_TYPE = commCodeService.selectCommCode(params);
-		model.put("ds_cd_MENU_TYPE", code_MENU_TYPE);
-		
     	//ValueMap siteDetail = siteMngService.selectSiteView(params);
 
     	//model.put("SITE_NAME", siteDetail.getString("SITE_NAME"));
-		return "/category/cateMenuForm";
+		return "/category/cateTreeForm";
     }
     
     /**
      * 카테고리 등록 
      */
-    @RequestMapping(value="/category/insertMenu.do")
-    public String insertMenuMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    @RequestMapping(value="/category/insertCate.do")
+    public String insertCateMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
     			
 		boolean success = true;
     	ValueMap result = new ValueMap();
@@ -351,7 +341,7 @@ public class CateMenuMngController {
 		// 입력부 로그 출력 
 		//*****************************************************************************
 		logger.debug("===================================================================");
-		logger.debug("[MenuMngController.insertMenuMng() ================== start]");
+		logger.debug("[CateMenuMngController.insertCateMng() ================== start]");
 
 		//*****************************************************************************
 		// 변수 및 객체 선언 및 초기화 
@@ -369,17 +359,14 @@ public class CateMenuMngController {
 		TransactionStatus status = transactionManager.getTransaction(def);
     	try{
     		// 신규등록을 위한 기본정보 셋팅
-    		ValueMap ds_detail = cmmService.getCommDbMap(params, "cateTree.selectInsertedMenu");
-    		params.put("MENU_CODE", ds_detail.get("MENU_CODE"));
-    		params.put("MENU_LEVEL", ds_detail.get("MENU_LEVEL"));
-    		params.put("MENU_ORDER", ds_detail.get("MENU_ORDER"));
+    		ValueMap ds_detail = cmmService.getCommDbMap(params, "cateTree.selectInsertedCate");
+    		params.put("CATE_CODE", ds_detail.get("CATE_CODE"));
+    		params.put("CATE_LEVEL", ds_detail.get("CATE_LEVEL"));
+    		params.put("CATE_ORDER", ds_detail.get("CATE_ORDER"));
     		
     		// 테이블 입력
-    		cmmService.insertCommDb(params, "cateTree.insertMenu");
-    		cmmService.insertCommDb(params, "cateTree.insertMenuNm");
-    		
-    		// TB_USER_GROUP 자동 등록 필요
-    		cmmService.insertCommDb(params, "cateTree.insertMenuUserGroup");
+    		cmmService.insertCommDb(params, "cateTree.insertCate");
+    		cmmService.insertCommDb(params, "cateTree.insertCateNm");
     		
     		transactionManager.commit(status);
     	}

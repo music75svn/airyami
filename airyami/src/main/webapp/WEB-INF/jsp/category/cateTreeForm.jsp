@@ -29,13 +29,18 @@ function fn_init(){
 
 //사용자그룹 등록
 function fn_insert(){
+	if(!confirm("<spring:message code="common.save.msg"/>")){
+		return;
+	}
+	
 	var inputParam = new Object();
-	inputParam.sid 				= "insertMenu";
-	inputParam.url 				= "/menu/insertMenu.do";
+	inputParam.sid 				= "insertCate";
+	inputParam.url 				= "/category/insertCate.do";
 	inputParam.data 			= gfn_makeInputData($("#dataForm"));
 	//inputParam.callback			= "fn_callBack";
 	
 	gfn_Transaction( inputParam );
+	
 }
 
 
@@ -48,8 +53,7 @@ function fn_callBack(sid, result, data){
 		return;
 	}
 		
-	if(sid == "insertMenu"){
-		alert('<spring:message code="common.save.msg" />');
+	if(sid == "insertCate"){
 		opener.fn_srch();
 		self.close();
 	}
@@ -60,65 +64,42 @@ function fn_callBack(sid, result, data){
 </script>
 </head>
 <body class="popup">
-<h1>메뉴관리<a onClick="self.close();" class="close">X</a></h1>
+<h1>카테고리관리<a onClick="self.close();" class="close">X</a></h1>
 
 <div class="content">
-	<h4>메뉴 등록</h4>
+	<h4>카테고리 등록</h4>
 	<form id="dataForm" name="dataForm" method="post" action="#" onsubmit="return false;">
-		<table summary="메뉴 등록" cellspacing="0" border="0" class="tbl_list_type2">
+		<table summary="카테고리 등록" cellspacing="0" border="0" class="tbl_list_type2">
 			<colgroup>
 			<col width="30%">
 			<col width="80%">
 			</colgroup>
 			<tr>
-				<th>메뉴타입</th>
+				<th>카테고리코드</th>
+				<td><input type="text" name="CATE_CODE" id="CATE_CODE" size=30  value="자동생성" readonly/></td>
+			</tr>
+			<tr>
+				<th>상위카테고리</th>
 				<td>
-					<select id="MENU_TYPE" name="MENU_TYPE">
-                        <c:forEach var="MENU_TYPE" items="${ds_cd_MENU_TYPE}">
-                            <option value="${MENU_TYPE.CD}">${MENU_TYPE.CD_NM}</option>
-                        </c:forEach>
-					</select>
+					<input type="text" name="UPPER_CATE_NAME" id="UPPER_CATE_NAME" value='<c:out value="${UPPER_CATE_NAME}"/>' readonly/>
+					<input type="hidden" name="UPPER_CATE_CODE" id="UPPER_CATE_CODE" value='<c:out value="${UPPER_CATE_CODE}"/>' readonly/>
 				</td>
 			</tr>
 			<tr>
-				<th>메뉴코드</th>
-				<td><input type="text" name="MENU_CODE" id="MENU_CODE" size=30  value="자동생성" readonly/></td>
+				<th>카테고리 LEVEL</th>
+				<td><input type="text" name="CATE_LEVEL" id="CATE_LEVEL" size=30  value='<c:out value="${CATE_LEVEL}" />' readonly/></td>
 			</tr>
 			<tr>
-				<th>상위메뉴코드</th>
-				<td><input type="text" name="UPPER_MENU_CODE" id="UPPER_MENU_CODE" value='<c:out value="${UPPER_MENU_CODE}"/>' readonly/></td>
+				<th>카테고리명</th>
+				<td><input type="text" name="CATE_NAME" id="CATE_NAME" size=72/></td>
 			</tr>
 			<tr>
-				<th>메뉴 LEVEL</th>
-				<td><input type="text" name="MENU_LEVEL" id="MENU_LEVEL" size=30  value='<c:out value="${MENU_LEVEL}" />' readonly/></td>
+				<th>카테고리설명</th>
+				<td><input type="text" name="CATE_DESC" id="CATE_DESC" size=72/></td>
 			</tr>
 			<tr>
-				<th>메뉴명</th>
-				<td><input type="text" name="MENU_NAME" id="MENU_NAME" size=72/></td>
-			</tr>
-			<tr>
-				<th>메뉴설명</th>
-				<td><input type="text" name="MENU_DESC" id="MENU_DESC" size=72/></td>
-			</tr>
-			<tr>
-				<th>링크 URL</th>
-				<td><input type="text" name="LINK_URL" id="LINK_URL" size=72/></td>
-			</tr>
-			<tr>
-				<th>링크 PARAMETER</th>
-				<td><input type="text" name="LINK_PARAM" id="LINK_PARAM" size=72/></td>
-			</tr>
-			<tr>
-				<th>메뉴순서</th>
-				<td><input type="text" name="MENU_ORDER" id="MENU_ORDER" size=72 value="자동생성 - 위치변경은 메뉴수정에서 변경" readonly/></td>
-			</tr>
-			<tr>
-				<th>사용자구분</th>
-				<td><input type="text" name="USER_TYPE" id="USER_TYPE" size=72 value="초기등록은 관리자그룹만 등록" readonly/></td>
-			</tr>
-			<tr>
-				<th>사용자역할</th>
-				<td><input type="text" name="USER_ROLE" id="USER_ROLE" size=72 value="초기등록은 관리자그룹만 등록" readonly/></td>
+				<th>카테고리순서</th>
+				<td><input type="text" name="CATE_ORDER" id="CATE_ORDER" size=72 value="자동생성 - 위치변경은 카테고리수정에서 변경" readonly/></td>
 			</tr>
 			<tr>
 				<th>사용여부</th>

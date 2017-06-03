@@ -73,6 +73,7 @@ function fn_callRegist(){
 	var registParam = new Object();
 	
 	registParam.UPPER_CATE_CODE = $("#CATE_CODE").val();
+	registParam.UPPER_CATE_NAME = $("#CATE_NAME").val();
 	registParam.CATE_LEVEL = Number($("#CATE_LEVEL").val()) + 1;
 	
 
@@ -192,7 +193,7 @@ function fn_callBack(sid, result, data){
 		fn_cateTreeLoad();	
 		
 		fn_cateView(result.ds_catelist[0].CATE_CODE);
-	} else if (sid == "selectcate") {
+	} else if (sid == "selectCate") {
 		gfn_setDetails(result.ds_detail, $("#dataForm"));
 		
 		
@@ -305,9 +306,15 @@ function fn_callbackAdminGroup(param) {
 				
 				<!-- 상세내용 -->
 				<form id="dataForm" name="dataForm" method="post" action="#" onsubmit="return false;">
+				<input type="hidden" id="ISLEAF_YN" name="ISLEAF_YN"/>
 				<div class="adminBoardIn">
 					<h4 class="font">상세정보</h4>
 					<ul>
+						<li>
+							<label for="">상위카테고리</label>
+							<input type="text" name="UPPER_CATE_NAME" id="UPPER_CATE_NAME" readonly/>
+							<input type="hidden" id="UPPER_CATE_CODE" name="UPPER_CATE_CODE" readonly/>
+						</li>
 						<li>
 							<label for="">카테고리코드</label>
 							<input type="text" class="txt" style="width:100px;"  id="CATE_CODE" name="CATE_CODE" readonly/>							
@@ -315,10 +322,6 @@ function fn_callbackAdminGroup(param) {
 						<li>
 							<label for="">카테고리명</label>
 							<input type="text" class="txt" style="width:330px;"  id="CATE_NAME" name="CATE_NAME"/>
-						</li>
-						<li>
-							<label for="">상위카테고리코드</label>
-							<input type="text" class="txt" style="width:100px;"  id="UPPER_CATE_CODE" name="UPPER_CATE_CODE" readonly/>
 						</li>
 						<li>
 							<label for="">카테고리 LEVEL</label>
@@ -337,29 +340,10 @@ function fn_callbackAdminGroup(param) {
 								</select>
 							</p>
 						</li>
-					</ul>
-					<div class="tblLi">
-						<strong>사용자그룹</strong>
-						<table summary="관련내용">
-							<caption>사용자그룹</caption>
-							<colgroup>
-								<col width="100">
-								<col width="100">
-								<col width="100">
-							</colgroup>
-							<thead>
-								<tr>
-									<th scope="col">사용자그룹</th>
-									<th scope="col">사용자그룹명</th>
-									<th scope="col">사용자역할</th>
-								</tr>
-							</thead>
-						</table>
-					</div>
+					</ul>					
 					<div class="btnArea2">
 						<button type="button" class="btn3" onclick="javascript:fn_callRegistFirst()"><span>최상위등록</span></button>&nbsp;
 						<button type="button" class="btn3" onclick="javascript:fn_callRegist()"><span>하위등록</span></button>&nbsp;
-						<button type="button" class="btn3" onclick="javascript:fn_callUserGroup()"><span>사용자그룹</span></button>&nbsp;
 						<button type="button" class="btn3" style="width:46px;" onclick="javascript:fn_callDelete()"><span>삭제</span></button>
 						<button type="button" class="btn3" style="width:46px;" onclick="javascript:fn_callUpdate()"><span>수정</span></button>
 					</div>				
