@@ -214,6 +214,19 @@
 			<version>0.8.6</version>
 		</dependency>
 		
+		<!-- <dependency>
+		    <groupId>jazzlib</groupId>
+		    <artifactId>jazzlib</artifactId>
+		    <version>0.0.7</version>
+		</dependency> -->
+		<!-- <dependency>
+    		<groupId>jazzlib</groupId>
+    		<artifactId>jazzlib</artifactId>
+    		<version>0.0.7</version>
+    		<classifier>jazzlib</classifier>
+		</dependency> -->
+
+		
 		<!-- ppe add -->
 		<dependency>
 		    <groupId>org.json</groupId>

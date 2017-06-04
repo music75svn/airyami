@@ -2,11 +2,6 @@
 function gfn_TransactionMultipart( inputParam ) {
 	var frmObj = inputParam.form;
 	
-	var siteIdObj = frmObj.find("[name=SITE_ID]");
-	if(!(siteIdObj.length > 0)){
-		frmObj.append("<input type=\"hidden\" name=\"SITE_ID\" id=\"SITE_ID\" value=\""+ gfn_getSiteID() +"\"/>");
-	}
-	
 	var callback = inputParam.callback;
 				
 	frmObj.ajaxSubmit({
@@ -2613,6 +2608,23 @@ function gfn_downFile(mstId, dtlId){
 		inputParam.FILE_DTL_SEQ		= dtlId;
 	
 	gfn_fileDownload(inputParam);
+}
+
+/**************************************************************** 
+ * Desc 	: 상품별 이미지 다운로드 숨김 팝업 호출
+ *  ****************************************************************/
+function gfn_prodImgDownload(paParam){
+	var url = "/COM/prodImgDownload";
+	gfn_commonGo_old(url, paParam, "EXCEL");
+}
+
+function gfn_prodImgdownFile(prodNo, langCd, dtlId){
+	var inputParam = new Object();
+	inputParam.PROD_NO		= prodNo;
+	inputParam.LANG_CD		= langCd;
+	inputParam.FILE_DTL_SEQ		= dtlId;
+	
+	gfn_prodImgDownload(inputParam);
 }
 
 /**************************************************************** 

@@ -51,4 +51,6 @@ public interface FileService {
     
     ValueMap attachFiles(Map<String, MultipartFile> files, String strMasterId, Map<String,Object> paramMap, ValueMap ds_boardInfo);
     
+    ValueMap attachImgFiles(Map<String, MultipartFile> files, String strMasterId, Map<String,Object> paramMap);
+    
 }

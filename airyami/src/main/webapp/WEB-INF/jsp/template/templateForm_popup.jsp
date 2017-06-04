@@ -54,11 +54,10 @@ function fn_insert(){
 	
 	var inputParam = new Object();
 	inputParam.sid 				= "insertCate";
-	inputParam.url 				= "/category/insertCate.do";
-	inputParam.data 			= gfn_makeInputData($("#dataForm"));
-	//inputParam.callback			= "fn_callBack";
+	inputParam.url 				= "/template/saveImg.do";
+	inputParam.form 			= $("#dataForm");
 	
-	gfn_Transaction( inputParam );
+	gfn_TransactionMultipart(inputParam);
 	
 }
 
@@ -94,25 +93,26 @@ function fn_callBack(sid, result, data){
 // 사용자 함수
 
 function fn_setFileList(fileList, langCd){
-	
-	var imgLTd = $("[name=IMG_LARGE_"+langCd+"]");
+	var imgLnm = "IMG_L_" + langCd;	// (대)상품보기용
+	var imgLTd = $("[name="+imgLnm+"]");
 	
 	if(!gfn_isNull(imgLTd))
 		imgLTd.empty();
 	
+	debugger;
 	
 	if(!gfn_isNull(fileList)) // filelist가 있을 경우 file 리스트 표시
  	{
 		for(var idx = 0; idx < fileList.length ; idx++){
-			if( fileList[idx].LANG_CD != langCd )
+			if( fileList[idx].LANG_CD != langCd )	// 다른 언어는 패스
 				continue;
 			
 			// (대)상품보기용
-			if( !gfn_isNull(fileList[idx].IMG_NM_LARGE) ){
+			if( fileList[idx].IMG_TYPE_CD == "L" ){
 				var fileLink = "";
 				fileLink += "<div name='FILE_INFO_" + idx + "'>";
-				fileLink += "<a href='javascript:fn_fileDownload(" + fileList[idx].FILE_MST_SEQ + ", " + fileList[idx].FILE_DTL_SEQ + ");'>" +fileList[idx].ORG_FILE_NAME+ "</a>";
-				fileLink += "<a href='javascript:fn_fileDel(" + idx + ", " + fileList[idx].FILE_DTL_SEQ + ", \"title_img_file\")'> 삭제 </a>"; // 대표이미지일 경우
+				fileLink += "<a href='javascript:gfn_prodImgdownFile(\"" + fileList[idx].PROD_NO + "\", \"" + fileList[idx].LANG_CD + "\", \"" + fileList[idx].FILE_DTL_SEQ + "\");'>" +fileList[idx].ORG_FILE_NAME+ "</a>";
+				fileLink += "<a href='javascript:fn_fileDel(\"" + fileList[idx].PROD_NO + "\", \"" + fileList[idx].LANG_CD + "\", \"" + fileList[idx].FILE_DTL_SEQ + "\");'> 삭제 </a>"; // 대표이미지일 경우
 				fileLink += "<div>";
 				
 				imgLTd.append(fileLink);
@@ -126,8 +126,8 @@ function fn_setFileList(fileList, langCd){
 		if(!gfn_isNull(imgLTd))
 		{
 			var fileLink = "";
-			fileLink += "<div name='FILE_INFO_" + idx++ + "'>";
-			fileLink += "<input type='file' id='title_img_file' name='title_img_file' value='파일찾기' title=첨부파일찾기' size='70' onchange='fnFileUploadCheck(this.value," + idx + ");'/>";
+			fileLink += "<div name='FILE_INFO_" + imgLnm + "'>";
+			fileLink += "<input type='file' id='"+imgLnm+"' name='"+imgLnm+"' value='파일찾기' title='첨부파일찾기' size='70' onchange='fnFileUploadCheck(this.value," + idx + ");'/>";
 			fileLink += "</div>";
 			imgLTd.append(fileLink);
 		}
@@ -136,6 +136,48 @@ function fn_setFileList(fileList, langCd){
 	}
 	
 	
+}
+
+
+function fnFileUploadCheck(filePath,idNumber)
+{
+	if(gfn_isNull(filePath)) // 선택 파일이 없으므로 true 리턴
+		return true;
+	var allowExt = "<c:out value='${communityBoardInfo.FILE_ALLOW_EXT}'/>";
+	
+	if(allowExt == "*" || gfn_isNull(allowExt)) // 모든 확장자 허용
+		return true;
+
+	//alert(allowExt);
+	
+	var fileExtension = fnGetFileExtension(filePath);
+	var delimiter = new Array();
+	delimiter = allowExt.split(",");
+	for( var i = 0; i < delimiter.length; i++){
+		if(fileExtension.toLowerCase() == delimiter[i].toLowerCase() 
+				|| delimiter[i] == "*")	// CSV 중에 *가 포함될 수도 있으므로. *는 모든 확장자
+		{
+			return true;
+		}
+	}
+	alert( delimiter.join(' ') + ' 확장자만 지원합니다.');
+//	fnFileUploadCreate(filePath,idNumber);
+	return false;
+}
+
+
+function fnGetFileExtension(filePath)
+{
+	var lastidx = -1;
+	lastIndex = filePath.lastIndexOf('.');
+	var getFileExtension = "";
+	if ( lastIndex != -1 )
+	{
+		getFileExtension = filePath.substring( lastIndex+1, filePath.len );
+	} else {
+		getFileExtension = "";
+	}
+	    return getFileExtension;
 }
 
 
@@ -171,7 +213,7 @@ function fn_setFileList(fileList, langCd){
 			<c:forEach var="LANG" items="${ds_cd_LANG}">
 			<tr>
 				<th>${LANG.CD_NM}</th>
-				<td name="IMG_LARGE_${LANG.CD}">
+				<td name="IMG_L_${LANG.CD}">
 				</td>
 			</tr>
 			</c:forEach>

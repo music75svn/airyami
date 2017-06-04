@@ -422,6 +422,72 @@ public class TemplateController {
     	return null;
     }
     
+    /**
+     * 상품이미지 저장
+     */
+    @RequestMapping(value="/template/saveImg.do")
+    public String saveCommunityBoardArticle(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param 1111:: " + params);
+    	
+    	boolean success = true;
+//    	String msg = egovMessageSource.getMessage("prodimg.save.success.msg");	// 상품이미지가 저장되없습니다.
+    	String msg = "상품이미지가 저장되없습니다.";
+    	ValueMap result = new ValueMap();    	
+
+    	try
+    	{
+    		/*
+    		 * 상품이미지 저장
+    		 */
+    		MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest)request;
+	    	final Map<String, MultipartFile> files = multiRequest.getFileMap();
+	    	log.info("files ::  " + files);
+	    	
+	    	if(!files.isEmpty()){
+				ValueMap parseResult = null;
+				params.put("FOLDER_NM", (String)params.get("PROD_NO"));
+				parseResult = fileService.attachImgFiles(files, (String)params.get("PROD_NO"), params);
+				success = parseResult.getBoolean("success");
+				
+				//List<ValueMap> f_list = fileService.selectFileList(params);
+				//log.debug("f_list :: " + f_list);
+			}
+    		
+    		
+    	} catch(Exception e){
+    		success = false;    		
+    		//msg = egovMessageSource.getMessage("prodimg.save.fail.msg");	// 상품이미지 등록에 실패하였습니다.
+    		msg = "상품이미지 등록에 실패하였습니다.";
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	result.put("msg", msg);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+
+    	return null;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     

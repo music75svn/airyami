@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import egovframework.airyami.cmm.service.CmmService;
 import egovframework.airyami.cmm.service.FileService;
 import egovframework.airyami.cmm.service.KeyService;
 import egovframework.airyami.cmm.util.CommonUtils;
@@ -33,7 +34,6 @@ import egovframework.rte.fdl.cmmn.AbstractServiceImpl;
 public class FileServiceImpl extends AbstractServiceImpl implements FileService
 {
 	protected Log log = LogFactory.getLog(this.getClass());
-	private Logger logger = Logger.getLogger(this.getClass());
 	
 	/** KeyService */
     @Resource(name = "keyService")
@@ -46,6 +46,10 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
     @Resource(name = "egovMessageSource")
 	private EgovMessageSource egovMessageSource;
     
+    /** CmmService */
+    @Resource(name = "cmmService")
+    private CmmService cmmService;
+    
     
     /*
      * 상품별 이미지 등록.
@@ -55,17 +59,33 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
     	ValueMap result = new ValueMap();
     	List<ValueMap> parseResult = null;
     	
+    	Map<String,Object> params = new HashMap();
+    	
     	// 이미지 등록과 상품 등록과는 별개로 진행한다.
     	try{
     		parseResult = parseProdImgFileInfo(files, strProdNo, paramMap);
+    		
+    		// 기존 등록 이미지 삭제
+    		for(int i = 0; i < parseResult.size(); i++) {
+				params.clear();
+				params.put( "PROD_NO", strProdNo);
+				params.put( "LANG_CD", parseResult.get(i).getString("LANG_CD"));
+				params.put( "FILE_DTL_SEQ", parseResult.get( i ).get( "FILE_DTL_SEQ" ) );
+				deleteImgFile( params );
+			}
+    		
+    		// 새로 등록되는 이미지 등록 
+    		insertAttachImgFiles(parseResult, strProdNo, paramMap);
+			result.put("success", true);
+    		
     	}
     	catch(Exception e){
 			result.put("success", false);
-			logger.debug(e.getMessage());
-			logger.debug(e.getStackTrace());
+			log.debug(e.getMessage());
+			log.debug(e.getStackTrace());
 		}
 		
-		logger.debug("result :: " + result);
+    	log.debug("result :: " + result);
 		
 		return result;
     }
@@ -83,11 +103,11 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
 			boolean checkFileSize = true;
 			boolean checkFileExtension = true;
 			
-			logger.debug("ds_boardInfo :: " + ds_boardInfo);
+			log.debug("ds_boardInfo :: " + ds_boardInfo);
 			// validation 체크
 			if(ds_boardInfo != null){
-				logger.debug("FILE_ALLOW_EXT :: " + (String)ds_boardInfo.get("FILE_ALLOW_EXT"));
-				logger.debug("FILE_LIMIT_SIZE :: " + ds_boardInfo.getInteger("FILE_LIMIT_SIZE"));
+				log.debug("FILE_ALLOW_EXT :: " + (String)ds_boardInfo.get("FILE_ALLOW_EXT"));
+				log.debug("FILE_LIMIT_SIZE :: " + ds_boardInfo.getInteger("FILE_LIMIT_SIZE"));
 				if( !CommonUtils.isNull( ds_boardInfo.getInteger("FILE_LIMIT_SIZE").toString() ) ){
 					if(Long.parseLong( ds_boardInfo.getInteger("FILE_LIMIT_SIZE").toString()) > 0)
 						checkFileSize = FileUtil.checkFileSize(files, Long.parseLong(ds_boardInfo.get("FILE_LIMIT_SIZE").toString()));
@@ -123,9 +143,9 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
 				masterId = new BigDecimal( strMasterId );
 			}
 			
-			logger.debug("masterId :: " + masterId);
+			log.debug("masterId :: " + masterId);
 			parseResult = parseFileInfo(files, masterId, paramMap);
-//			logger.info( "parseResult" +  parseResult);
+//			log.info( "parseResult" +  parseResult);
 			
 			for(int i = 0; i < parseResult.size(); i++) {
 				if(!(masterId == null)) {
@@ -143,11 +163,11 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
 		}
 		catch(Exception e){
 			result.put("success", false);
-			logger.debug(e.getMessage());
-			logger.debug(e.getStackTrace());
+			log.debug(e.getMessage());
+			log.debug(e.getStackTrace());
 		}
 		
-		logger.debug("result :: " + result);
+		log.debug("result :: " + result);
 		
 		return result;
 	}
@@ -188,8 +208,8 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
                 aFile.put( "FILE_MST_SEQ", masterId );
                 aFile.put( "LOGIN_ID", userId );
                 
-                logger.info( "fileService::" + listFileVO.toString() );
-                logger.info( "aFile::" + aFile );
+                log.info( "fileService::" + listFileVO.toString() );
+                log.info( "aFile::" + aFile );
                 
                 fileDAO.insertFile(aFile);
             }
@@ -231,44 +251,6 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
 			params.put( "FILE_DTL_SEQ", sDtlArr[i] );
 			deleteFile( params );
 		}
-	}
-	
-	
-	public List<ValueMap> parseProdImgFileInfo(Map<String, MultipartFile> files, String prodNo, Map<String,Object> paramMap) throws Exception {
-		List<ValueMap> result =new ArrayList<ValueMap>();
-				
-		String separator = "";
-        String osName = System.getProperty("os.name").toLowerCase();
-        if(osName.indexOf("win")>=0)
-        	separator = "/";
-        else
-        	separator = java.io.File.separator;
-        
-        
-        
-        Iterator<Entry<String, MultipartFile>> itr = files.entrySet().iterator();
-        MultipartFile file;
-        String filePath = "";
-        ValueMap fvo;
-        int idx = 0;
-		
-        while(itr.hasNext()) {
-            idx++;
-            
-            Entry<String, MultipartFile> entry = itr.next();
-            
-            file = entry.getValue();
-            String originalFileName = file.getOriginalFilename();
-            
-            if("".equals(originalFileName)) {
-            	continue;
-            }
-            
-            String fileType = "";
-            logger.debug("file.getName() :: " + file.getName());
-        }
-		
-		return result;
 	}
 	
 	public List<ValueMap> parseFileInfo(Map<String, MultipartFile> files, BigDecimal pMasterId, Map<String,Object> paramMap) throws Exception {
@@ -330,7 +312,7 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
             
             
             String fileType = "";
-            logger.debug("file.getName() :: " + file.getName());
+            log.debug("file.getName() :: " + file.getName());
             String sfileKindC = "";
             String sUrlPath = "";
             
@@ -361,11 +343,11 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
             
             //storePathString = "/upload2/";
             
-            logger.debug("storePathString :: " + storePathString);
+            log.debug("storePathString :: " + storePathString);
             File fSavedFolder = new File(storePathString);
             if(!fSavedFolder.exists() || fSavedFolder.isFile()) {
             	fSavedFolder.mkdirs();
-            	logger.debug("storePathString :: " + storePathString);
+            	log.debug("storePathString :: " + storePathString);
             }
             
             
@@ -378,12 +360,12 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
             if(!"".equals(originalFileName)) {
                 filePath = storePathString + newName;
                 if("2".equals(fileType)){
-                	logger.debug(" File.separator ::  " + File.separator);
+                	log.debug(" File.separator ::  " + File.separator);
                 	if("0".equals(sfileKindC))	//대표이미지일 경우 thumbnail prefix 생성
                 		sUrlPath = (sUrlPath + Constants.thumbnailPrefix + newName).replaceAll(Matcher.quoteReplacement(File.separator), "/");
                 	else
                 		sUrlPath = (sUrlPath + newName).replaceAll(Matcher.quoteReplacement(File.separator), "/");
-                	logger.debug(" sUrlPath :: " + sUrlPath);
+                	log.debug(" sUrlPath :: " + sUrlPath);
                 }
                 file.transferTo(new File(filePath));
                 
@@ -403,7 +385,7 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
             	detailId = detailId.add(new BigDecimal(1));
             }
             
-            logger.debug("detailId :: " + detailId);
+            log.debug("detailId :: " + detailId);
             
             fvo = new ValueMap();
             fvo.put( "FILE_MST_SEQ",  pMasterId);
@@ -420,5 +402,127 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
         
         return result;
     }
+	
+	
+	public List<ValueMap> parseProdImgFileInfo(Map<String, MultipartFile> files, String prodNo, Map<String,Object> paramMap) throws Exception {
+		int detailId = 1;
+		List<ValueMap> result =new ArrayList<ValueMap>();
+				
+		String separator = "";
+        String osName = System.getProperty("os.name").toLowerCase();
+        if(osName.indexOf("win")>=0)
+        	separator = "/";
+        else
+        	separator = java.io.File.separator;
+        
+        String storePathString = "";	// 실제 이미지 저장될곳
+        String sUrlPath = "";
+        String langCd = "";
+        
+        
+        Iterator<Entry<String, MultipartFile>> itr = files.entrySet().iterator();
+        MultipartFile file;
+        String filePath = "";
+        ValueMap fvo;
+        int idx = 0;
+		
+        String mainFolderId = "";
+        if(paramMap.containsKey("FOLDER_NM"))
+        	mainFolderId = (String)paramMap.get("FOLDER_NM");
+        
+        
+        while(itr.hasNext()) {
+            idx++;
+            
+            Entry<String, MultipartFile> entry = itr.next();
+            
+            file = entry.getValue();
+            String originalFileName = file.getOriginalFilename();
+            
+            if("".equals(originalFileName)) {
+            	continue;
+            }
+            
+            String fileType = "";
+            log.debug("file.getName() :: " + file.getName());
+            String fileId = file.getName();
+            
+            langCd = fileId.substring(fileId.length()-2);
+            
+            // (대) 상품보기용 이미지
+            if(fileId.indexOf("IMG_L_") > -1)	fileType = "L";
+            // (중) 메인화면목록용 이미지
+            if(fileId.indexOf("IMG_M_") > -1)	fileType = "M";
+            // (소) 2레벨 CATEGORY용 이미지
+            if(fileId.indexOf("IMG_S_") > -1)	fileType = "S";
+            
+            // 이미지파일 기본정보 추출
+            int index = originalFileName.lastIndexOf(".");
+            String fileExt = originalFileName.substring(index + 1);
+            String newName = CommonUtils.getTimeStamp()+"."+fileExt;
+            long fileSize = file.getSize();
+            
+            
+            storePathString = EgovProperties.getProperty("Globals.imgFileStorePath") + mainFolderId + File.separator;
+        	sUrlPath = File.separator + "upload" + File.separator + "img" + File.separator + mainFolderId + File.separator;
+        	
+        	
+        	if(!"".equals(originalFileName)) {
+        		filePath = storePathString + newName;
+        		
+        		//디렉토리 생성
+        		File desti = new File(storePathString);
+        		if(!desti.exists())
+        			desti.mkdir();        		
+        		
+        		// 파일복사
+        		file.transferTo(new File(filePath));
+        	}
+        	
+        	//detailId = cmmService.GET .selectNewDetailId(prodNo);
+        	
+        	fvo = new ValueMap();
+            fvo.put( "PROD_NO",  prodNo);
+            fvo.put( "LANG_CD",  langCd);
+            fvo.put( "FILE_DTL_SEQ",  detailId++);
+            fvo.put( "IMG_TYPE_CD",  fileType);
+            fvo.put( "SAVE_FILE_NAME", newName );
+            fvo.put( "ORG_FILE_NAME", originalFileName );
+            fvo.put( "FILE_PATH", filePath);
+            fvo.put( "URL_PATH", sUrlPath);
+            fvo.put( "FILE_EXT", fileExt );
+            fvo.put( "FILE_SIZE", fileSize );
+            
+            log.debug("fvo :: " + fvo);
+            
+            result.add(fvo);
+        }
+		
+		return result;
+	}
+	
+	public String insertAttachImgFiles(List<ValueMap> listFileVO, String prodNo, Map<String, Object> paramMap) throws Exception {
+    	String userId = (String)paramMap.get("LOGIN_ID");
+        
+        if(!listFileVO.isEmpty()){
+            for (int i = 0; i < listFileVO.size(); i++) {
+            	ValueMap aFile = listFileVO.get(i);
+                aFile.put( "LOGIN_ID", userId );
+                
+                log.info( "fileService::" + listFileVO.toString() );
+                log.info( "aFile::" + aFile );
+                
+                cmmService.insertCommDb(aFile, "prodImg.insertFile");
+            }
+        }
+                
+        return prodNo;
+    }
+	
+	
+    public void deleteImgFile( Map<String,Object> paramMap ) throws Exception  {
+    	cmmService.deleteCommDb(paramMap, "prodImg.deleteFile");
+    }
+
 	
 }
