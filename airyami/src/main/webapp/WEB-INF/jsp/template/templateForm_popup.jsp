@@ -96,9 +96,6 @@ function fn_setFileList(fileList, langCd){
 	var imgLnm = "IMG_L_" + langCd;	// (대)상품보기용
 	var imgLTd = $("[name="+imgLnm+"]");
 	
-	if(!gfn_isNull(imgLTd))
-		imgLTd.empty();
-	
 	debugger;
 	
 	if(!gfn_isNull(fileList)) // filelist가 있을 경우 file 리스트 표시
@@ -107,12 +104,16 @@ function fn_setFileList(fileList, langCd){
 			if( fileList[idx].LANG_CD != langCd )	// 다른 언어는 패스
 				continue;
 			
+			if(!gfn_isNull(imgLTd))
+				imgLTd.empty();
+			
 			// (대)상품보기용
 			if( fileList[idx].IMG_TYPE_CD == "L" ){
 				var fileLink = "";
-				fileLink += "<div name='FILE_INFO_" + idx + "'>";
-				fileLink += "<a href='javascript:gfn_prodImgdownFile(\"" + fileList[idx].PROD_NO + "\", \"" + fileList[idx].LANG_CD + "\", \"" + fileList[idx].FILE_DTL_SEQ + "\");'>" +fileList[idx].ORG_FILE_NAME+ "</a>";
-				fileLink += "<a href='javascript:fn_fileDel(\"" + fileList[idx].PROD_NO + "\", \"" + fileList[idx].LANG_CD + "\", \"" + fileList[idx].FILE_DTL_SEQ + "\");'> 삭제 </a>"; // 대표이미지일 경우
+				fileLink += "<div name='FILE_INFO_" + imgLnm + "'>";
+				fileLink += "<a href='javascript:gfn_prodImgdownFile(\"" + fileList[idx].FILE_PATH + "\", \"" + fileList[idx].ORG_FILE_NAME + "\");'>" +fileList[idx].ORG_FILE_NAME+ "</a>";
+				fileLink += "<a href='javascript:fn_fileDel(\"" + imgLnm + "\", \"" + fileList[idx].FILE_DTL_SEQ + "\");'> 삭제 </a>"; // 대표이미지일 경우
+				fileLink += "<br><img src=\"" + fileList[idx].URL_PATH +"\\"+ fileList[idx].SAVE_FILE_NAME + "\" border=\"0\"/>";
 				fileLink += "<div>";
 				
 				imgLTd.append(fileLink);
@@ -127,7 +128,7 @@ function fn_setFileList(fileList, langCd){
 		{
 			var fileLink = "";
 			fileLink += "<div name='FILE_INFO_" + imgLnm + "'>";
-			fileLink += "<input type='file' id='"+imgLnm+"' name='"+imgLnm+"' value='파일찾기' title='첨부파일찾기' size='70' onchange='fnFileUploadCheck(this.value," + idx + ");'/>";
+			fileLink += "<input type='file' id='"+imgLnm+"' name='"+imgLnm+"' value='파일찾기' title='첨부파일찾기' size='70' onchange='fnFileUploadCheck(this.value,\"" + imgLnm + "\" );'/>";
 			fileLink += "</div>";
 			imgLTd.append(fileLink);
 		}
@@ -181,6 +182,30 @@ function fnGetFileExtension(filePath)
 }
 
 
+function fn_fileDel(imgNm, fileDtlSeq)
+{
+	if(!confirm("삭제하시겠습니까?"))
+		return;
+
+	var divObj = $("[name=FILE_INFO_" + imgNm + "]");
+	
+	if(gfn_isNull(divObj))
+		return;
+
+	var fileDelDtlSeq = $("#FILE_DEL_DTL_SEQ").val();
+	fileDelDtlSeq += fileDtlSeq + "|";
+	
+	$("#FILE_DEL_DTL_SEQ").val(fileDelDtlSeq);
+	
+	divObj.empty();
+	
+	var fileLink = "";
+	fileLink += "<input type='file' id='"+imgNm+"' name='"+imgNm+"' value='파일찾기' title='첨부파일찾기' size='70' onchange='fnFileUploadCheck(this.value,\"" + imgNm + "\" );'/>";
+	
+	divObj.append(fileLink);
+}
+
+
 </script>
 </head>
 <body class="popup">
@@ -191,6 +216,7 @@ function fnGetFileExtension(filePath)
 	<form id="dataForm" name="dataForm" method="post" action="/test/fileInsert.do" enctype="multipart/form-data" onsubmit="return false;">
 		<input type="hidden" name="PROD_NO" id="PROD_NO" value="${PROD_NO}"/>
 		<input type="hidden" name="SEARCH_PROD_NO" id="SEARCH_PROD_NO" value="${PROD_NO}"/>
+		<input type="hidden" id="FILE_DEL_DTL_SEQ" name="FILE_DEL_DTL_SEQ" value='${FILE_DEL_DTL_SEQ}'/>
 		<!-- <form id="dataForm" name="dataForm" method="post" action="#" onsubmit="return false;"> -->
 		<table summary=" 등록" cellspacing="0" border="0" class="tbl_list_type2">
 			<colgroup>

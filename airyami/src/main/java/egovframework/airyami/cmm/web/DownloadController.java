@@ -123,6 +123,77 @@ public class DownloadController {
     	
     	return "downloadView";
     }
+    
+    /**
+     * FILE DOWNLOAD 
+     * @return (ValueMap)result
+     * @exception Exception
+     */
+    @RequestMapping(value="/COM/prodImgDownload.do")
+    public String prodImgDownload(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param :: " + params);
+    	
+    	String strSavePath = "";
+    	String strRealNm = "";
+    	
+    	try{
+    		// 하나의 상품에 관련된 모든 이미지 다운로드.. 일단 패스
+//    		if(params.containsKey("PROD_NO")){
+//    			List<ValueMap> fileInfos = fileService.selectFileList(params);
+//    			if(fileInfos == null){
+//    				return null;
+//    			}    			
+//    			
+//    			if(fileInfos.size() > 1)
+//    			{
+//    				//EgovProperties.getProperty("Globals.fileStorePath") + "download" + File.separator + "download" + CommonUtils.getTimeStamp() + ".zip";
+//    				//여러파일 => zip으로 압축
+//    				strSavePath = EgovProperties.getProperty("Globals.fileStorePath") + File.separator + "download";
+//    				
+//    				String strSaveFile = "download_" + CommonUtils.getTimeStamp() + ".zip";
+//    				
+//    				List<String> fileList = new ArrayList();
+//    				
+//    				for(ValueMap fileInfo : fileInfos)
+//    				{
+//    					fileList.add(fileInfo.getString("FILE_PATH"));
+//    				}
+//    				
+//    				//ZipUtil.zip(fileList, strSavePath, strSaveFile);
+//    				
+//    				strSavePath += File.separator + strSaveFile;
+//    				
+//    				strRealNm = "download.zip";
+//    			}
+//    			else
+//    			{
+//    				strSavePath = fileInfos.get(0).getString("FILE_PATH");
+//    				strRealNm	= fileInfos.get(0).getString("ORG_FILE_NAME");
+//    			}
+//    		}
+    		//else{
+    			strSavePath = (String)params.get("FILE_PATH");
+    			strRealNm	= (String)params.get("ORG_FILE_NAME");
+    		//}
+    		
+    		
+    		// log 남기기..
+    		//fileService.insertFileDownLoadLog(params);
+    		
+    		File file = new File(strSavePath);
+    		model.addAttribute("downloadFile", file);
+    		model.addAttribute("realFileName", strRealNm);
+    	}
+    	catch(Exception e){
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	return "downloadView";
+    }
 
     /**
      * FILE DOWNLOAD 

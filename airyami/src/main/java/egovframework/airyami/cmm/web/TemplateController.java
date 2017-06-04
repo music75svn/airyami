@@ -16,6 +16,7 @@
 package egovframework.airyami.cmm.web;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -433,12 +434,27 @@ public class TemplateController {
     	log.debug("param 1111:: " + params);
     	
     	boolean success = true;
-//    	String msg = egovMessageSource.getMessage("prodimg.save.success.msg");	// 상품이미지가 저장되없습니다.
-    	String msg = "상품이미지가 저장되없습니다.";
+    	String msg = egovMessageSource.getMessage("prodimg.save.success.msg");	// 상품이미지가 저장되없습니다.
     	ValueMap result = new ValueMap();    	
 
     	try
     	{
+    		/*
+    		 * 사전에 삭제 요청한 것이 있으면 지워준다.
+    		 */
+	    	if( !CommonUtils.isNull((String)params.get("PROD_NO")) & !CommonUtils.isNull((String)params.get("FILE_DEL_DTL_SEQ")) ){
+	    		String sDtlIds = (String)params.get("FILE_DEL_DTL_SEQ");
+	    		String[] sDtlArr = sDtlIds.split("\\|");
+	    		Map<String,Object> delParams = new HashMap();
+	    		
+	    		for( int i = 0; i < sDtlArr.length; i++) {
+	    			delParams.clear();
+	    			delParams.put( "PROD_NO", (String)params.get("PROD_NO"));
+	    			delParams.put( "FILE_DTL_SEQ", sDtlArr[i] );
+	    			cmmService.deleteCommDb(delParams, "prodImg.deleteFile");
+	    		}
+	    	}
+	    	
     		/*
     		 * 상품이미지 저장
     		 */
@@ -459,8 +475,7 @@ public class TemplateController {
     		
     	} catch(Exception e){
     		success = false;    		
-    		//msg = egovMessageSource.getMessage("prodimg.save.fail.msg");	// 상품이미지 등록에 실패하였습니다.
-    		msg = "상품이미지 등록에 실패하였습니다.";
+    		msg = egovMessageSource.getMessage("prodimg.save.fail.msg");	// 상품이미지 등록에 실패하였습니다.
     		e.printStackTrace();
     		System.out.println(e.getMessage());
     	}

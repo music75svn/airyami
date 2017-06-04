@@ -23,17 +23,15 @@
 	</select>
 
 
-	<select id="prodImg.selectNewDetailId" parameterClass="java.math.BigDecimal" resultClass="java.math.BigDecimal">
+	<select id="prodImg.selectNewDetailId" parameterClass="Map" resultClass="java.lang.Integer">
 	SELECT IFNULL(MAX(FILE_DTL_SEQ) + 1, 1) FILE_DTL_SEQ
 	  FROM TB_PRODUCT_IMAGE 
 	 WHERE PROD_NO = #PROD_NO#
-	   AND LANG_CD = #LANG_CD#
 	</select>
 	
 	<update id="prodImg.deleteFile" parameterClass="Map" >
 	DELETE FROM TB_PRODUCT_IMAGE
-	 WHERE PROD_NO = #PROD_NO# 
-	   AND LANG_CD = #LANG_CD#
+	 WHERE PROD_NO = #PROD_NO#
 	   AND FILE_DTL_SEQ = #FILE_DTL_SEQ#
 	</update>
 	

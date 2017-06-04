@@ -2618,11 +2618,10 @@ function gfn_prodImgDownload(paParam){
 	gfn_commonGo_old(url, paParam, "EXCEL");
 }
 
-function gfn_prodImgdownFile(prodNo, langCd, dtlId){
+function gfn_prodImgdownFile(filePath, orgFileName){
 	var inputParam = new Object();
-	inputParam.PROD_NO		= prodNo;
-	inputParam.LANG_CD		= langCd;
-	inputParam.FILE_DTL_SEQ		= dtlId;
+	inputParam.FILE_PATH		= filePath;
+	inputParam.ORG_FILE_NAME	= orgFileName;
 	
 	gfn_prodImgDownload(inputParam);
 }

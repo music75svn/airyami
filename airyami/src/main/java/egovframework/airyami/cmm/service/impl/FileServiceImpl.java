@@ -405,7 +405,7 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
 	
 	
 	public List<ValueMap> parseProdImgFileInfo(Map<String, MultipartFile> files, String prodNo, Map<String,Object> paramMap) throws Exception {
-		int detailId = 1;
+		int detailId = 0;
 		List<ValueMap> result =new ArrayList<ValueMap>();
 				
 		String separator = "";
@@ -464,7 +464,7 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
             
             
             storePathString = EgovProperties.getProperty("Globals.imgFileStorePath") + mainFolderId + File.separator;
-        	sUrlPath = File.separator + "upload" + File.separator + "img" + File.separator + mainFolderId + File.separator;
+        	sUrlPath = File.separator + "upload" + File.separator + "prodimg" + File.separator + mainFolderId + File.separator;
         	
         	
         	if(!"".equals(originalFileName)) {
@@ -479,12 +479,14 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
         		file.transferTo(new File(filePath));
         	}
         	
-        	//detailId = cmmService.GET .selectNewDetailId(prodNo);
+        	ValueMap params = new ValueMap();
+        	params.put("PROD_NO", prodNo);
+        	detailId = cmmService.getCommDbInt(params, "prodImg.selectNewDetailId");
         	
         	fvo = new ValueMap();
             fvo.put( "PROD_NO",  prodNo);
             fvo.put( "LANG_CD",  langCd);
-            fvo.put( "FILE_DTL_SEQ",  detailId++);
+            fvo.put( "FILE_DTL_SEQ",  detailId);
             fvo.put( "IMG_TYPE_CD",  fileType);
             fvo.put( "SAVE_FILE_NAME", newName );
             fvo.put( "ORG_FILE_NAME", originalFileName );
