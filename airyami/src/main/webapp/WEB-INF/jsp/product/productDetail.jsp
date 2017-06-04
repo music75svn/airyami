@@ -87,14 +87,7 @@ function fn_goSave(){
 	if(!gfn_validationForm($("#dataForm"))){
 		return;
 	}
-<c:choose>
-	<c:when test="${MODE=='CREATE'}">
-		if($('#USER_PSWD').val() != $('#USER_PSWD_CONFIRM').val()){
-			alert("비밀번호와 비밀번호확인이 틀립니다.");
-			return;
-		}
-	</c:when>
-</c:choose>
+
 	if(!confirm("<spring:message code="common.save.msg"/>")){
 		return false;
 	}
