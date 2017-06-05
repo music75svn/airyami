@@ -19,19 +19,16 @@ $(function() {  //onready
 	fn_init();
 	
 	fn_srch();	// 상세조회		
-	//if($("#OP_TYPE").val() != "INSERT") {
-	//	fn_srch();	// 상세조회		
-	//} else {
-	//	fn_setFileList();// fileList 셋업
-	//}
 });
 
 
 //화면내 초기화 부분
 function fn_init(){
+<c:forEach var="imgType" items="${ds_imgType}">
 	<c:forEach var="LANG" items="${ds_cd_LANG}">
-	fn_setFileList(null, "${LANG.CD}");
+	fn_setFileList(null, "${imgType.CD}", "${LANG.CD}");
 	</c:forEach>
+</c:forEach>
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -91,11 +88,10 @@ function fn_callBack(sid, result, data){
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 사용자 함수
-function fn_setFileList(fileList, langCd){
-	var imgLnm = "IMG_L_" + langCd;	// (대)상품보기용
+function fn_setFileList(fileList, imgType, langCd){
+	var imgLnm = "IMG_"+imgType+"_" + langCd;	// (대)상품보기용
+	alert(imgLnm);
 	var imgLTd = $("[name="+imgLnm+"]");
-	
-	debugger;
 	
 	if(!gfn_isNull(fileList)) // filelist가 있을 경우 file 리스트 표시
  	{
@@ -106,18 +102,14 @@ function fn_setFileList(fileList, langCd){
 			if(!gfn_isNull(imgLTd))
 				imgLTd.empty();
 			
-			// (대)상품보기용
-			if( fileList[idx].IMG_TYPE_CD == "L" ){
-				var fileLink = "";
-				fileLink += "<div name='FILE_INFO_" + imgLnm + "'>";
-				fileLink += "<a href='javascript:gfn_prodImgdownFile(\"" + fileList[idx].FILE_PATH + "\", \"" + fileList[idx].ORG_FILE_NAME + "\");'>" +fileList[idx].ORG_FILE_NAME+ "</a>";
-				fileLink += "<a href='javascript:fn_fileDel(\"" + imgLnm + "\", \"" + fileList[idx].FILE_DTL_SEQ + "\");'> 삭제 </a>"; // 대표이미지일 경우
-				fileLink += "<br><img src=\"" + fileList[idx].URL_PATH +"\\"+ fileList[idx].SAVE_FILE_NAME + "\" border=\"0\"/>";
-				fileLink += "<div>";
-				
-				imgLTd.append(fileLink);
-			}
-			//-- (대)상품보기용
+			var fileLink = "";
+			fileLink += "<div name='FILE_INFO_" + imgLnm + "'>";
+			fileLink += "<a href='javascript:gfn_prodImgdownFile(\"" + fileList[idx].FILE_PATH + "\", \"" + fileList[idx].ORG_FILE_NAME + "\");'>" +fileList[idx].ORG_FILE_NAME+ "</a>";
+			fileLink += "<a href='javascript:fn_fileDel(\"" + imgLnm + "\", \"" + fileList[idx].FILE_DTL_SEQ + "\");'> 삭제 </a>"; // 대표이미지일 경우
+			fileLink += "<br><img src=\"" + fileList[idx].URL_PATH +"\\"+ fileList[idx].SAVE_FILE_NAME + "\" border=\"0\"/>";
+			fileLink += "<div>";
+			
+			imgLTd.append(fileLink);
 			
 		}
  	}
