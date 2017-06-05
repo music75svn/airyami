@@ -30,7 +30,7 @@ public class EMailServiceImpl extends AbstractServiceImpl implements EMailServic
 	
 	
 	@Override
-	public String send(ValueMap paramMap) throws Exception {
+	public boolean send(ValueMap paramMap) throws Exception {
 		// TODO Auto-generated method stub
 		
 //		EgovProperties.getProperty("Globals.imgFileStorePath");
@@ -75,13 +75,14 @@ public class EMailServiceImpl extends AbstractServiceImpl implements EMailServic
             //메일보내기
             javax.mail.Transport.send(msg);
              
+            return true;
         }catch (AddressException addr_e) {
             addr_e.printStackTrace();
+            return false;
         }catch (MessagingException msg_e) {
             msg_e.printStackTrace();
+            return false;
         }
-		
-		return null;
 	}   
 }
 

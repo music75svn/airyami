@@ -585,7 +585,9 @@ public class TemplateController {
     	emailInfo.put("subject", "비밀번호 초기화입니다.");
     	emailInfo.put("msg", "11111 로 다시 생성합니다.");
     	
-    	emailService.send(emailInfo);
+    	if(!emailService.send(emailInfo)){
+    		success = false;
+    	}
     	
     	result.put("success", success);
     	response.setContentType("text/xml;charset=UTF-8");

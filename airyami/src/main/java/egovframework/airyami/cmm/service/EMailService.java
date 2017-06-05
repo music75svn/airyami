@@ -10,6 +10,6 @@ import egovframework.airyami.cmm.util.ValueMap;
  */
 public interface EMailService {
 	
-	public String send(ValueMap paramMap) throws Exception;
+	public boolean send(ValueMap paramMap) throws Exception;
 	
 }
