@@ -164,7 +164,6 @@ function fn_setFileList(fileList, langCd){
 		</c:forEach>
 	}
 	
-	
 }
 
 
