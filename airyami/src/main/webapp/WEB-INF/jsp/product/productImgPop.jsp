@@ -71,10 +71,10 @@ function fn_callBack(sid, result, data){
 		gfn_setDetails(result.ds_detail);	// 상세 내용 셋업	
 
 		if(!gfn_isNull(result.ds_detail)){
-		    <c:forEach var="LANG" items="${ds_cd_LANG}">
-		    if(!gfn_isNull(result.ds_detail.fileList))
-		       fn_setFileList(result.ds_detail.fileList, "${LANG.CD}");// fileList 셋업
-		    </c:forEach>
+			<c:forEach var="LANG" items="${ds_cd_LANG}">
+			if(!gfn_isNull(result.ds_detail.fileList))
+				fn_setFileList(result.ds_detail.fileList, "${LANG.CD}");// fileList 셋업
+			</c:forEach>
 		}
 	}
 	
@@ -90,6 +90,8 @@ function fn_callBack(sid, result, data){
 function fn_setFileList(fileList, langCd){
 	var imgNm = "";
 	var imgTd = null;
+	     
+	
 	if(!gfn_isNull(fileList)) // filelist가 있을 경우 file 리스트 표시
  	{
 		for(var idx = 0; idx < fileList.length ; idx++){
@@ -114,6 +116,7 @@ function fn_setFileList(fileList, langCd){
 			fileLink += "<div>";
 			
 			imgTd.append(fileLink);
+			
 		}
  	}
 	else{

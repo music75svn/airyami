@@ -462,7 +462,7 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
             // 이미지파일 기본정보 추출
             int index = originalFileName.lastIndexOf(".");
             String fileExt = originalFileName.substring(index + 1);
-            String newName = CommonUtils.getTimeStamp()+"."+fileExt;
+            String newName = CommonUtils.getTimeStamp()+"_"+idx+"."+fileExt;
             long fileSize = file.getSize();
             
             
