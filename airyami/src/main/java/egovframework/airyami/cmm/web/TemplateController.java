@@ -356,6 +356,10 @@ public class TemplateController {
     	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
     	model.put("ds_cd_LANG", code_LANG);
     	
+    	params.put( "CODE_GROUP_ID", "IMG_TYPE" ); //이미지타입
+    	List<ValueMap> code_IMG_TYPE = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_IMG_TYPE", code_IMG_TYPE);
+    	
     	return "/template/templateForm_popup";
     }
     

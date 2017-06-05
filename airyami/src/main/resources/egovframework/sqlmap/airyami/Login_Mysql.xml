@@ -14,15 +14,15 @@
 	<select id="login.getLoginInfo" parameterClass="Map" resultClass="ValueMap" >
 		<![CDATA[
 		SELECT 
-			   A.USER_ID		AS USER_ID 
-			  ,A.USER_NM 
-			  ,A.EMAIL			AS USER_EMAIL
-			  ,A.MOBILE
-		  FROM TB_USER A
-		 WHERE A.USER_ID = #LOGIN_ID#
-		   AND A.PWD = PASSWORD(#PW#)
-		   AND A.USE_YN = 'Y'
-			
+			   USER_ID 
+			  ,ORIGINAL_NM		AS USER_NM
+              ,USER_TYPE
+              ,USER_ROLE
+			  ,EMAIL_ID			AS USER_EMAIL
+			  ,USER_TYPE		AS RULE_CD
+		  FROM TB_USER_MASTER
+		 WHERE USER_ID		= #LOGIN_ID#
+		   AND USER_PSWD 	= PASSWORD(#PW#)
 		]]>
 	</select>
 	
