@@ -205,16 +205,15 @@ function fn_fileDel(imgNm, fileDtlSeq)
 </script>
 </head>
 <body class="popup">
-<h1>파일업로드 테스트<a onClick="self.close();" class="close">X</a></h1>
+<h1><spring:message code="word.prodImgMng"/><a onClick="self.close();" class="close">X</a></h1>
 
 <div class="content">
-	<h4>상품 이미지 업로드</h4>	
 	<form id="dataForm" name="dataForm" method="post" action="/test/fileInsert.do" enctype="multipart/form-data" onsubmit="return false;">
 		<input type="hidden" name="PROD_NO" id="PROD_NO" value="${PROD_NO}"/>
 		<input type="hidden" name="SEARCH_PROD_NO" id="SEARCH_PROD_NO" value="${PROD_NO}"/>
 		<input type="hidden" id="FILE_DEL_DTL_SEQ" name="FILE_DEL_DTL_SEQ" value='${FILE_DEL_DTL_SEQ}'/>
 		<!-- <form id="dataForm" name="dataForm" method="post" action="#" onsubmit="return false;"> -->
-		<table summary=" 등록" cellspacing="0" border="0" class="tbl_list_type2">
+		<table summary="<spring:message code="button.create"/>" cellspacing="0" border="0" class="tbl_list_type2">
 			<colgroup>
 			<col width="15%">
 			<col width="15%">
