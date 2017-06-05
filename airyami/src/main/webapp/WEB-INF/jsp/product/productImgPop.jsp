@@ -72,10 +72,10 @@ function fn_callBack(sid, result, data){
 
 		if(!gfn_isNull(result.ds_detail)){
 		    <c:forEach var="LANG" items="${ds_cd_LANG}">
-		    if(!gfn_isNull(fileList))
+		    if(!gfn_isNull(result.ds_detail.fileList))
 		       fn_setFileList(result.ds_detail.fileList, "${LANG.CD}");// fileList 셋업
 		    </c:forEach>
-		 }
+		}
 	}
 	
 	if(sid == "insertCate"){
@@ -90,8 +90,6 @@ function fn_callBack(sid, result, data){
 function fn_setFileList(fileList, langCd){
 	var imgNm = "";
 	var imgTd = null;
-	     
-	
 	if(!gfn_isNull(fileList)) // filelist가 있을 경우 file 리스트 표시
  	{
 		for(var idx = 0; idx < fileList.length ; idx++){
@@ -231,7 +229,7 @@ function fn_fileDel(imgNm, fileDtlSeq)
 				<td><input type="text" name="CATEGORY_NM" id="CATEGORY_NM" size=72 readonly/></td>
 			</tr>
 			
-		<c:forEach var="imgType" items="${ds_imgType}">
+		<c:forEach var="imgType" items="${ds_cd_IMG_TYPE}">
 			<tr>
 			<c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
 				<th rowspan="${listSize+1}">${imgType.CD_NM}</th>

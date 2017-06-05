@@ -446,9 +446,9 @@ public class ProductController {
     	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
     	model.put("ds_cd_LANG", code_LANG);
     	
-    	params.put( "CODE_GROUP_ID", "IMG_TYPE" ); //상품이미지 종류
-    	List<ValueMap> imgType = commCodeService.selectCommCode(params);
-    	model.put("ds_imgType", imgType);
+    	params.put( "CODE_GROUP_ID", "IMG_TYPE" ); //이미지타입
+    	List<ValueMap> code_IMG_TYPE = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_IMG_TYPE", code_IMG_TYPE);
     	
     	return "/product/productImgPop";
     }
