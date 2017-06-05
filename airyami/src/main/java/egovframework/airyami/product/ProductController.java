@@ -30,9 +30,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import egovframework.airyami.cmm.service.CmmService;
 import egovframework.airyami.cmm.service.CommCodeService;
+import egovframework.airyami.cmm.service.FileService;
 import egovframework.airyami.cmm.util.CommonUtils;
 import egovframework.airyami.cmm.util.PageInfo;
 import egovframework.airyami.cmm.util.ValueMap;
@@ -68,6 +71,10 @@ public class ProductController {
 	/** CmmService */
     @Resource(name = "cmmService")
     private CmmService cmmService;
+    
+    /** FileService */
+    @Resource(name = "fileService")
+    private FileService fileService;
     
     /** EgovMessageSource */
 	@Resource(name = "egovMessageSource")
@@ -422,6 +429,124 @@ public class ProductController {
     	response.setContentType("text/xml;charset=UTF-8");
     	response.getWriter().println(CommonUtils.setJsonResult(result));
     	
+    	return null;
+    }
+    
+    /**
+     * 상품 popup 호출 
+     */
+    @RequestMapping(value="/product/productImgPop.do")
+    public String goTemplateFormPopup(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	params.put( "CODE_GROUP_ID", "LANG" ); //코드 대분류
+    	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_LANG", code_LANG);
+    	
+    	params.put( "CODE_GROUP_ID", "IMG_TYPE" ); //상품이미지 종류
+    	List<ValueMap> imgType = commCodeService.selectCommCode(params);
+    	model.put("ds_imgType", imgType);
+    	
+    	return "/product/productImgPop";
+    }
+    
+    /**
+     * 상품정보 상세 조회시  
+     */
+    @RequestMapping(value="/product/selectProdDetail.do")
+    public String selectProdDetail(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	ValueMap ds_detail = cmmService.getCommDbMap(params, "product.getProductDetail");
+    	result.put("ds_detail", ds_detail);    
+    	
+		
+		// 첨부파일조회
+		if(ds_detail != null)  {// 
+			params.put("PROD_NO", ds_detail.getString("PROD_NO"));
+			//List<ValueMap> fileList = fileService.selectFileList(ds_detail); // ds_detail에 FILE_MST_SEQ 존재
+			List<ValueMap> fileList = cmmService.getCommDbList(params, "prodImg.selectFileList"); // ds_detail에 PROD_NO 존재
+			log.debug("fileList = " + fileList);
+			ds_detail.put("fileList", fileList);			
+	    }
+    	
+		result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	return null;
+    }
+    
+    /**
+     * 상품이미지 저장
+     */
+    @RequestMapping(value="/product/saveImg.do")
+    public String saveCommunityBoardArticle(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param 1111:: " + params);
+    	
+    	boolean success = true;
+    	String msg = egovMessageSource.getMessage("prodimg.save.success.msg");	// 상품이미지가 저장되없습니다.
+    	ValueMap result = new ValueMap();    	
+
+    	try
+    	{
+    		/*
+    		 * 사전에 삭제 요청한 것이 있으면 지워준다.
+    		 */
+	    	if( !CommonUtils.isNull((String)params.get("PROD_NO")) & !CommonUtils.isNull((String)params.get("FILE_DEL_DTL_SEQ")) ){
+	    		String sDtlIds = (String)params.get("FILE_DEL_DTL_SEQ");
+	    		String[] sDtlArr = sDtlIds.split("\\|");
+	    		Map<String,Object> delParams = new HashMap();
+	    		
+	    		for( int i = 0; i < sDtlArr.length; i++) {
+	    			delParams.clear();
+	    			delParams.put( "PROD_NO", (String)params.get("PROD_NO"));
+	    			delParams.put( "FILE_DTL_SEQ", sDtlArr[i] );
+	    			cmmService.deleteCommDb(delParams, "prodImg.deleteFile");
+	    		}
+	    	}
+	    	
+    		/*
+    		 * 상품이미지 저장
+    		 */
+    		MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest)request;
+	    	final Map<String, MultipartFile> files = multiRequest.getFileMap();
+	    	log.info("files ::  " + files);
+	    	
+	    	if(!files.isEmpty()){
+				ValueMap parseResult = null;
+				params.put("FOLDER_NM", (String)params.get("PROD_NO"));
+				parseResult = fileService.attachImgFiles(files, (String)params.get("PROD_NO"), params);
+				success = parseResult.getBoolean("success");
+				
+				//List<ValueMap> f_list = fileService.selectFileList(params);
+				//log.debug("f_list :: " + f_list);
+			}
+    		
+    		
+    	} catch(Exception e){
+    		success = false;    		
+    		msg = egovMessageSource.getMessage("prodimg.save.fail.msg");	// 상품이미지 등록에 실패하였습니다.
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	result.put("msg", msg);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+
     	return null;
     }
 }

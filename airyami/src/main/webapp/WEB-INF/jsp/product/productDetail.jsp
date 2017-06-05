@@ -145,6 +145,13 @@ function fn_popCallBack(sid, data){
 	}
 }
 
+//팝업_등록폼 호출하기
+function fn_popInsertForm(){
+	var inputParam = {}; //gfn_makeInputData($("#srchForm"));
+	inputParam.PROD_NO = "<c:out value="${PROD_NO}"/>";
+	
+	gfn_commonGo("/product/productImgPop", inputParam, "Y");
+}
 ////////////////////////////////////////////////////////////////////////////////////
 // 기타 기능 함수
 // 팝업 내용 변경시 초기화
@@ -236,7 +243,10 @@ function fn_selectSCate(cateCd, valueCateCd){
 				<th colspan="2"><spring:message code="word.prodNo"/></th>
 			<c:choose>
 				<c:when test="${MODE=='DETAIL'}">
-				<td><input type="text" name="PROD_NO" id="PROD_NO" disabled /></td>
+				<td>
+					<input type="text" name="PROD_NO" id="PROD_NO" disabled />
+					<button type="button" id="btnBack" onClick="javascript:fn_popInsertForm()">상품이미지등록</button>
+				</td>
 				</c:when>
 				<c:when test="${MODE=='CREATE'}">
 				<td>시스템 자동생성</td>
