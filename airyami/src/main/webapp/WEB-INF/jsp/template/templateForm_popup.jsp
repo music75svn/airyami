@@ -162,7 +162,6 @@ function fn_setFileList(fileList, langCd){
 			imgTd.append(fileLink);
 		}
 		</c:forEach>
-		
 	}
 	
 	
