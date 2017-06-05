@@ -77,7 +77,7 @@ function fn_callBack(sid, result, data){
 
 		if(!gfn_isNull(result.ds_detail)){
 			<c:forEach var="LANG" items="${ds_cd_LANG}">
-			if(!gfn_isNull(fileList))
+			if(!gfn_isNull(result.ds_detail.fileList))
 				fn_setFileList(result.ds_detail.fileList, "${LANG.CD}");// fileList 셋업
 			</c:forEach>
 		}

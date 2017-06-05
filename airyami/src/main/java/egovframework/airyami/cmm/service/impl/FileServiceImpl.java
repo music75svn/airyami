@@ -484,7 +484,13 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
         	
         	ValueMap params = new ValueMap();
         	params.put("PROD_NO", prodNo);
-        	detailId = cmmService.getCommDbInt(params, "prodImg.selectNewDetailId");
+        	
+        	if(detailId == 0){
+        		detailId = cmmService.getCommDbInt(params, "prodImg.selectNewDetailId");
+            }
+            else{
+            	detailId++;
+            }
         	
         	fvo = new ValueMap();
             fvo.put( "PROD_NO",  prodNo);

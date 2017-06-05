@@ -188,7 +188,7 @@ function fn_btnTest(pObj){
 // 팝업_등록폼 호출하기
 function fn_popInsertForm(){
 	var inputParam = {}; //gfn_makeInputData($("#srchForm"));
-	inputParam.PROD_NO = "CN00002";
+	inputParam.PROD_NO = "CN00001";
 	
 	gfn_commonGo("/template/templateForm_popup", inputParam, "Y");
 }
