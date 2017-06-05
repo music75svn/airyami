@@ -72,10 +72,10 @@ function fn_callBack(sid, result, data){
 	if(sid == "selectProdDetail"){
 		gfn_setDetails(result.ds_detail);	// 상세 내용 셋업	
 
-		if(!gfn_isNull(result.ds_detail)){
-			<c:forEach var="LANG" items="${ds_cd_LANG}">
-			fn_setFileList(result.ds_detail.fileList, "${LANG.CD}");// fileList 셋업
-			</c:forEach>
+		if(!gfn_isNull(result.fileList)){
+			for(var i = 0; i < result.fileList.length; i++){
+				fn_setFileList(result.fileList, result.fileList[i].IMG_TYPE_CD, result.fileList[i].LANG_CD);// fileList 셋업
+			}
 		}
 	}
 	
@@ -90,7 +90,6 @@ function fn_callBack(sid, result, data){
 // 사용자 함수
 function fn_setFileList(fileList, imgType, langCd){
 	var imgLnm = "IMG_"+imgType+"_" + langCd;	// (대)상품보기용
-	alert(imgLnm);
 	var imgLTd = $("[name="+imgLnm+"]");
 	
 	if(!gfn_isNull(fileList)) // filelist가 있을 경우 file 리스트 표시
