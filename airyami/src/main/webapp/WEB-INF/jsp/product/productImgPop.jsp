@@ -24,11 +24,9 @@ $(function() {  //onready
 
 //화면내 초기화 부분
 function fn_init(){
-<c:forEach var="imgType" items="${ds_imgType}">
 	<c:forEach var="LANG" items="${ds_cd_LANG}">
-	fn_setFileList(null, "${imgType.CD}", "${LANG.CD}");
+	fn_setFileList(null, "${LANG.CD}");
 	</c:forEach>
-</c:forEach>
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -72,11 +70,12 @@ function fn_callBack(sid, result, data){
 	if(sid == "selectProdDetail"){
 		gfn_setDetails(result.ds_detail);	// 상세 내용 셋업	
 
-		if(!gfn_isNull(result.fileList)){
-			for(var i = 0; i < result.fileList.length; i++){
-				fn_setFileList(result.fileList, result.fileList[i].IMG_TYPE_CD, result.fileList[i].LANG_CD);// fileList 셋업
-			}
-		}
+		if(!gfn_isNull(result.ds_detail)){
+		    <c:forEach var="LANG" items="${ds_cd_LANG}">
+		    if(!gfn_isNull(fileList))
+		       fn_setFileList(result.ds_detail.fileList, "${LANG.CD}");// fileList 셋업
+		    </c:forEach>
+		 }
 	}
 	
 	if(sid == "insertCate"){
@@ -88,9 +87,10 @@ function fn_callBack(sid, result, data){
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 사용자 함수
-function fn_setFileList(fileList, imgType, langCd){
-	var imgLnm = "IMG_"+imgType+"_" + langCd;	// (대)상품보기용
-	var imgLTd = $("[name="+imgLnm+"]");
+function fn_setFileList(fileList, langCd){
+	var imgNm = "";
+	var imgTd = null;
+	     
 	
 	if(!gfn_isNull(fileList)) // filelist가 있을 경우 file 리스트 표시
  	{
@@ -98,34 +98,42 @@ function fn_setFileList(fileList, imgType, langCd){
 			if( fileList[idx].LANG_CD != langCd )	// 다른 언어는 패스
 				continue;
 			
-			if(!gfn_isNull(imgLTd))
-				imgLTd.empty();
+			imgNm = "IMG_"+fileList[idx].IMG_TYPE_CD+"_" + langCd;	// (대)상품보기용
+			imgTd = $("[name="+imgNm+"]");
+			
+			if( imgTd.length == 0 )
+				continue;
+			
+			if(!gfn_isNull(imgTd))
+				imgTd.empty();
+			
 			
 			var fileLink = "";
-			fileLink += "<div name='FILE_INFO_" + imgLnm + "'>";
+			fileLink += "<div name='FILE_INFO_" + imgNm + "'>";
 			fileLink += "<a href='javascript:gfn_prodImgdownFile(\"" + fileList[idx].FILE_PATH + "\", \"" + fileList[idx].ORG_FILE_NAME + "\");'>" +fileList[idx].ORG_FILE_NAME+ "</a>";
-			fileLink += "<a href='javascript:fn_fileDel(\"" + imgLnm + "\", \"" + fileList[idx].FILE_DTL_SEQ + "\");'> 삭제 </a>"; // 대표이미지일 경우
+			fileLink += "<a href='javascript:fn_fileDel(\"" + imgNm + "\", \"" + fileList[idx].FILE_DTL_SEQ + "\");'> 삭제 </a>"; // 대표이미지일 경우
 			fileLink += "<br><img src=\"" + fileList[idx].URL_PATH +"\\"+ fileList[idx].SAVE_FILE_NAME + "\" border=\"0\"/>";
 			fileLink += "<div>";
 			
-			imgLTd.append(fileLink);
-			
+			imgTd.append(fileLink);
 		}
  	}
 	else{
-		// (대)상품보기용
-		if(!gfn_isNull(imgLTd))
+		<c:forEach var="IMG_TYPE" items="${ds_cd_IMG_TYPE}">
+		var imgType = "${IMG_TYPE.CD}";
+		imgNm = "IMG_"+imgType+"_" + langCd;
+		imgTd = $("[name="+imgNm+"]");
+		
+		if(imgTd.length > 0)
 		{
 			var fileLink = "";
-			fileLink += "<div name='FILE_INFO_" + imgLnm + "'>";
-			fileLink += "<input type='file' id='"+imgLnm+"' name='"+imgLnm+"' value='파일찾기' title='첨부파일찾기' size='70' onchange='fnFileUploadCheck(this.value,\"" + imgLnm + "\" );'/>";
+			fileLink += "<div name='FILE_INFO_" + imgNm + "'>";
+			fileLink += "<input type='file' id='"+imgNm+"' name='"+imgNm+"' value='파일찾기' title='첨부파일찾기' size='70' onchange='fnFileUploadCheck(this.value,\"" + imgNm + "\" );'/>";
 			fileLink += "</div>";
-			imgLTd.append(fileLink);
+			imgTd.append(fileLink);
 		}
-		
-		
+		</c:forEach>
 	}
-	
 	
 }
 

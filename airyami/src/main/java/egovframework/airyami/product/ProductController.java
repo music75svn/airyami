@@ -475,7 +475,7 @@ public class ProductController {
 			//List<ValueMap> fileList = fileService.selectFileList(ds_detail); // ds_detail에 FILE_MST_SEQ 존재
 			List<ValueMap> fileList = cmmService.getCommDbList(params, "prodImg.selectFileList"); // ds_detail에 PROD_NO 존재
 			log.debug("fileList = " + fileList);
-			result.put("fileList", fileList);			
+			ds_detail.put("fileList", fileList);			
 	    }
     	
 		result.put("success", success);
