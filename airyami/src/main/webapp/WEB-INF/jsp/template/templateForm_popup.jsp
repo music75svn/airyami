@@ -94,9 +94,15 @@ function fn_callBack(sid, result, data){
 
 function fn_setFileList(fileList, langCd){
 	var imgLnm = "IMG_L_" + langCd;	// (대)상품보기용
-	var imgLTd = $("[name="+imgLnm+"]");
+	var imgLTd = null;$("[name="+imgLnm+"]");
+	//var imgMnm = "IMG_M_" + langCd;	// (중)상품보기용
+	//var imgSnm = "IMG_S_" + langCd;	// (소)상품보기용
 	
 	debugger;
+	
+	var imgNm = "";
+	var imgTd = null;
+	     
 	
 	if(!gfn_isNull(fileList)) // filelist가 있을 경우 file 리스트 표시
  	{
@@ -104,10 +110,27 @@ function fn_setFileList(fileList, langCd){
 			if( fileList[idx].LANG_CD != langCd )	// 다른 언어는 패스
 				continue;
 			
-			if(!gfn_isNull(imgLTd))
-				imgLTd.empty();
+			imgNm = "IMG_"+fileList[idx].IMG_TYPE_CD+"_" + langCd;	// (대)상품보기용
+			imgTd = $("[name="+imgNm+"]");
+			
+			if( imgTd.length == 0 )
+				continue;
+			
+			if(!gfn_isNull(imgTd))
+				imgTd.empty();
+			
+			
+			var fileLink = "";
+			fileLink += "<div name='FILE_INFO_" + imgNm + "'>";
+			fileLink += "<a href='javascript:gfn_prodImgdownFile(\"" + fileList[idx].FILE_PATH + "\", \"" + fileList[idx].ORG_FILE_NAME + "\");'>" +fileList[idx].ORG_FILE_NAME+ "</a>";
+			fileLink += "<a href='javascript:fn_fileDel(\"" + imgNm + "\", \"" + fileList[idx].FILE_DTL_SEQ + "\");'> 삭제 </a>"; // 대표이미지일 경우
+			fileLink += "<br><img src=\"" + fileList[idx].URL_PATH +"\\"+ fileList[idx].SAVE_FILE_NAME + "\" border=\"0\"/>";
+			fileLink += "<div>";
+			
+			imgTd.append(fileLink);
 			
 			// (대)상품보기용
+			/*
 			if( fileList[idx].IMG_TYPE_CD == "L" ){
 				var fileLink = "";
 				fileLink += "<div name='FILE_INFO_" + imgLnm + "'>";
@@ -118,21 +141,27 @@ function fn_setFileList(fileList, langCd){
 				
 				imgLTd.append(fileLink);
 			}
+			*/
 			//-- (대)상품보기용
+			
 			
 		}
  	}
 	else{
-		// (대)상품보기용
-		if(!gfn_isNull(imgLTd))
+		<c:forEach var="IMG_TYPE" items="${ds_cd_IMG_TYPE}">
+		var imgType = "${IMG_TYPE.CD}";
+		imgNm = "IMG_"+imgType+"_" + langCd;
+		imgTd = $("[name="+imgNm+"]");
+		
+		if(imgTd.length > 0)
 		{
 			var fileLink = "";
-			fileLink += "<div name='FILE_INFO_" + imgLnm + "'>";
-			fileLink += "<input type='file' id='"+imgLnm+"' name='"+imgLnm+"' value='파일찾기' title='첨부파일찾기' size='70' onchange='fnFileUploadCheck(this.value,\"" + imgLnm + "\" );'/>";
+			fileLink += "<div name='FILE_INFO_" + imgNm + "'>";
+			fileLink += "<input type='file' id='"+imgNm+"' name='"+imgNm+"' value='파일찾기' title='첨부파일찾기' size='70' onchange='fnFileUploadCheck(this.value,\"" + imgNm + "\" );'/>";
 			fileLink += "</div>";
-			imgLTd.append(fileLink);
+			imgTd.append(fileLink);
 		}
-		
+		</c:forEach>
 		
 	}
 	
