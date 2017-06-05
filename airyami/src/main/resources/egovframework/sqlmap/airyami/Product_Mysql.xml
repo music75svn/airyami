@@ -79,6 +79,7 @@
          , A.SEEN_PARTNER_YN
          , DATE_FORMAT(str_to_date(A.SALES_START_DT, '%Y%m%d'), '%Y-%m-%d') AS SALES_START_DT
          , DATE_FORMAT(str_to_date(A.SALES_END_DT, '%Y%m%d'), '%Y-%m-%d') AS SALES_END_DT   
+         , A.RECOMMEND_YN
 	  FROM TB_PRODUCT_MASTER A
 	     LEFT JOIN TB_PRODUCT_NAME B ON A.PROD_NO = B.PROD_NO AND B.LANG_CD = #LANG_CD#
 	     LEFT OUTER JOIN TB_CATEGORY_NM L ON A.PROD_LCATE_CD = L.CATE_CODE AND L.LANG_CD = #LANG_CD#
@@ -148,7 +149,8 @@
          , A.SEEN_CUSTOMER_YN    
          , A.SEEN_PARTNER_YN     
          , DATE_FORMAT(str_to_date(A.SALES_START_DT, '%Y%m%d'), '%Y-%m-%d') AS SALES_START_DT
-         , DATE_FORMAT(str_to_date(A.SALES_END_DT, '%Y%m%d'), '%Y-%m-%d') AS SALES_END_DT   
+         , DATE_FORMAT(str_to_date(A.SALES_END_DT, '%Y%m%d'), '%Y-%m-%d') AS SALES_END_DT
+         , A.RECOMMEND_YN
 	  FROM TB_PRODUCT_MASTER A
 	  LEFT OUTER JOIN TB_COMPANY_MASTER B ON A.SELLER_BIZ_ENTITY_ID = B.BIZ_ENTITY_ID
 	 WHERE A.PROD_NO= #SEARCH_PROD_NO#
@@ -203,7 +205,8 @@
          , SEEN_CUSTOMER_YN    
          , SEEN_PARTNER_YN     
          , SALES_START_DT      
-         , SALES_END_DT     
+         , SALES_END_DT
+         , RECOMMEND_YN
 		 , INSERT_USER_ID
 		 , INSERT_DT)
 		VALUES
@@ -232,6 +235,7 @@
          , #SEEN_PARTNER_YN#
          , #SALES_START_DT#
          , #SALES_END_DT#
+         , #RECOMMEND_YN#
 		 , #LOGIN_ID#
 		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 		)
@@ -263,6 +267,7 @@
          , SEEN_PARTNER_YN        = #SEEN_PARTNER_YN#
          , SALES_START_DT         = #SALES_START_DT#
          , SALES_END_DT           = #SALES_END_DT#
+         , RECOMMEND_YN           = #RECOMMEND_YN#
 	     , UPDATE_USER_ID         = #LOGIN_ID#
 	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 	 WHERE PROD_NO                = #PROD_NO#

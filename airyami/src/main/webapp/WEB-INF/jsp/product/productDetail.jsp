@@ -447,6 +447,15 @@ function fn_selectSCate(cateCd, valueCateCd){
 				</td>
 			</tr>
 </c:forEach>
+			<tr>
+				<th colspan="2"><spring:message code="word.recommendYn"/></th>
+				<td>
+			        <select id="RECOMMEND_YN" name="RECOMMEND_YN" title="<spring:message code="word.recommendYn"/>" depends="required" style="width:150px">
+						<option value="Y"><spring:message code="word.yes"/></option>
+						<option value="N" selected><spring:message code="word.no"/></option>
+					</select>
+				</td>
+			</tr>
 		</table>
 		</form>
 		
