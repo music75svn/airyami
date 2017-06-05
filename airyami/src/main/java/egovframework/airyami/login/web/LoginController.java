@@ -329,6 +329,28 @@ public class LoginController {
     	TransactionStatus status = transactionManager.getTransaction(def);
     	
     	try{
+    		if(!CommonUtils.isNull((String)params.get("locale"))){
+        		String locale = (String)params.get("locale");
+        		Locale locales = null;
+        		// 넘어온 파라미터에 ko가 있으면 Locale의 언어를 한국어로 바꿔준다.
+        		// 그렇지 않을 경우 영어로 설정한다.
+        		if (locale.matches("ko")) {
+        			locales = new Locale("ko", "KR");
+        		} else {
+        			locales = new Locale("en", "US");
+        		}
+        		log.debug("changeLocale :: " + locales);
+        		
+        		HttpSession session = request.getSession();
+        		
+        		// 세션에 존재하는 Locale을 새로운 언어로 변경해준다.
+        		session.setAttribute(
+        				SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locales);
+        		log.debug("CommonUtils.getLocale(request)::: " + CommonUtils.getLocale(request));
+        		log.debug("SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME :: " + session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME));
+        		log.debug(" board.save.success.msg3 :  " + egovMessageSource.getMessage("common.save.msg", CommonUtils.getLocale(request)));
+        	}
+    		
     		ValueMap loginInfo = loginService.getLoginInfo(params);
     		
     		// 로그인 정보가 없는 경우

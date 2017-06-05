@@ -5,8 +5,8 @@
 <html lang="ko">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>로그인</title>
-<%@ include file="/include/airyami_standard.jsp"%>
+<title>admin 로그인</title>
+<%@ include file="/include/admin_standard.jsp"%>
 <script type="text/javascript"> 
 	$(function() {  //onready
 		//여기에 최초 실행될 자바스크립트 코드를 넣어주세요
@@ -23,15 +23,6 @@
 //			return;
 //		}
 		
-		var inputParam = new Object();
-		inputParam.sid 				= "adminCheck";
-		inputParam.url 				= "/login/checkUser.do";
-		inputParam.data 			= $("#srchForm").serialize();
-		//inputParam.callback			= "fn_callBack";
-		
-		
-		gfn_Transaction( inputParam );
-		
 		/* 
 		var fieldlist = 
 	        [ 
@@ -43,28 +34,20 @@
 		} 
 		*/
 		
+		var inputParam = new Object();
+		inputParam.sid 				= "loginCheck";
+		inputParam.url 				= "/login/checkUser.do";
+		inputParam.data 			= $("#srchForm").serialize();
+		//inputParam.callback			= "fn_callBack";
 		
-		<%-- $.ajax({url: "<%=UrlUtil.getActionRoot(request)%>/login/checkUser.do",
-	     type: "post"
-	   , data: $("#srchForm").serialize()
-	   , dataType: "json"
-	   , async: false
-	   , success: function(result, textStatus, data) {
-			if (result.success) {
-				fn_callBackSrch(result);
-			} else {
-				alert("조회에 실패하였습니다.");
-			}
-	   },
-	   error: function(xhr, errorName, error) {
-	       alert("조회 중 에러가 발생하였습니다.");
-	   }
-	}); --%>
+		
+		gfn_Transaction( inputParam );
 }
 	
 	
 
 function fn_setLocal(value){
+	return;
 	alert(value);
 	var inputParam = new Object();
 	inputParam.sid 				= "changeLocal";
@@ -77,17 +60,19 @@ function fn_setLocal(value){
 ////////////////////////////////////////////////////////////////////////////////////
 //콜백 함수
 function fn_callBack(sid, result){
+	
 	if (!result.success) {
-		alert(result.msg);
+		//alert(result.msg);
+		alert('<spring:message code="fail.common.msg" />');
 		return;
 	}
 	
 	if(sid == "changeLocal"){
-		debugger;
+		//debugger;
 	}
 	
 	// fn_login
-	if(sid == "adminCheck"){
+	if(sid == "loginCheck"){
 		var checkResult = result.checkResult; 
 		
 		// 아이디 미 존재 값
@@ -102,7 +87,7 @@ function fn_callBack(sid, result){
 			alert("패스워드가 틀렸습니다.");
 		}
 		else if("10" == checkResult){
-			debugger;
+			//debugger;
 			gfn_goMain("");
 		}
 	}
@@ -125,10 +110,10 @@ function fn_callBack(sid, result){
 		<form id="srchForm" name="srchForm" method="post"  onsubmit="return false;">
 			<fieldset>
 				<legend>로그인</legend>
-				<h3>로그인</h3>
+				<h3>admin로그인</h3>
 		            
 				<div id="id">
-					<label for="user_id" class="i_label">아이디</label>
+					<label for="user_id" class="i_label"><spring:message code="common.save.msg" />아이디</label>
 					<input id="LOGIN_ID" name="LOGIN_ID" value="admin" class="i_input" onfocus="OnEnter(this)" onblur="OnExit(this)" type="text">
 					
 				</div>
@@ -144,7 +129,8 @@ function fn_callBack(sid, result){
 					</select>
 				</div>
 				<div id="btn_login">
-					<input type="submit" value="로그인" onclick="javascript:fn_login(); return false;">
+					<div onclick="javascript:fn_login(); return false;">로그인</div>
+					<!-- <input type="submit" value="로그인" onclick="javascript:fn_login(); return false;"> -->
 				</div>
 		    </fieldset>
 		</form>

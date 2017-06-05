@@ -449,12 +449,15 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
             
             langCd = fileId.substring(fileId.length()-2);
             
+            fileType = fileId.substring(fileId.indexOf("_"), fileId.indexOf("_", fileId.indexOf("_")));
+            log.debug("fileType ::: " + fileType);
             // (대) 상품보기용 이미지
             if(fileId.indexOf("IMG_L_") > -1)	fileType = "L";
             // (중) 메인화면목록용 이미지
             if(fileId.indexOf("IMG_M_") > -1)	fileType = "M";
             // (소) 2레벨 CATEGORY용 이미지
             if(fileId.indexOf("IMG_S_") > -1)	fileType = "S";
+            
             
             // 이미지파일 기본정보 추출
             int index = originalFileName.lastIndexOf(".");
