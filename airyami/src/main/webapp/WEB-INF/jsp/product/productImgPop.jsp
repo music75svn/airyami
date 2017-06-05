@@ -241,8 +241,8 @@ function fn_fileDel(imgNm, fileDtlSeq)
 		</form>
 		
 		<div class="btn_zone">
-			<div class="right"><button type="button" onClick="fn_insert();">등록</button>
-			<button type="button" onClick="self.close();">취소</button></div>
+			<div class="right"><button type="button" onClick="fn_insert();"><spring:message code="button.save"/></button>
+			<button type="button" onClick="self.close();"><spring:message code="button.close"/></button></div>
 		</div>
 </div>
 
