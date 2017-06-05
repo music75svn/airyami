@@ -98,6 +98,15 @@ function fn_selectLink(code){
 	gfn_GetCodeList(code, $('#SUB_CD'));
 }
 
+
+function fn_sendMail(){
+	var inputParam = new Object();
+	inputParam.sid 				= "sendMail";
+	inputParam.url 				= "/template/sendMail.do";
+	
+	gfn_Transaction( inputParam );
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 // 콜백 함수
 function fn_callBack(sid, result){
@@ -125,6 +134,10 @@ function fn_callBack(sid, result){
 	
 	// fn_srch
 	if(sid == "delCd"){
+		alert(sid);
+	}
+	
+	if(sid == "sendMail"){
 		alert(sid);
 	}
 	
@@ -373,6 +386,7 @@ function fn_userNmChange() {
 		
 		<div class="btn_zone">
 			<button type="button" id="btnBack" onClick="javascript:fn_popInsertForm()">이미지등록</button>
+			<button type="button" id="btnBack" onClick="javascript:fn_sendMail()">메일테스트</button>
 			<span class="btn right" onclick="javascript:fn_allDelete(); return false;">체크박스테스트</span>
 			<span class="btn right"><a href="gear_input.html" onclick="javascript:fn_excel(); return false;">엑셀 </a></span>
 			<button type="button" id="btnW_update" onClick="javascript:fn_radioTest()">라디오</button>

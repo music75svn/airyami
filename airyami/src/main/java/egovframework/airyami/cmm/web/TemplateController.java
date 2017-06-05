@@ -35,6 +35,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import egovframework.airyami.cmm.service.CmmService;
 import egovframework.airyami.cmm.service.CommCodeService;
+import egovframework.airyami.cmm.service.EMailService;
 import egovframework.airyami.cmm.service.FileService;
 import egovframework.airyami.cmm.util.CommonUtils;
 import egovframework.airyami.cmm.util.PageInfo;
@@ -86,6 +87,10 @@ public class TemplateController {
     /** CmmService */
     @Resource(name = "cmmService")
     private CmmService cmmService;
+    
+    /** CmmService */
+    @Resource(name = "emailService")
+    private EMailService emailService;
     
 
     /**
@@ -551,6 +556,36 @@ public class TemplateController {
 		}
     	//boardService.insertBoardFile(params);
     	
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	return null;
+    }
+    
+    
+    
+    /**
+     * update form 호출 
+     */
+    @RequestMapping(value="/template/sendMail.do")
+    public String sendMail(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param :: sendMail " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	ValueMap emailInfo = new ValueMap();
+    	
+    	emailInfo.put("addTo", "zayou20000@naver.com");
+    	emailInfo.put("subject", "비밀번호 초기화입니다.");
+    	emailInfo.put("msg", "11111 로 다시 생성합니다.");
+    	
+    	emailService.send(emailInfo);
     	
     	result.put("success", success);
     	response.setContentType("text/xml;charset=UTF-8");
