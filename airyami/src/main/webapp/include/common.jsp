@@ -17,7 +17,7 @@
 	//로그인 체크
 	if (!idCk.isLogin() ){
 		out.println("<script>");
-		out.println("if(document.location.pathname != (gfn_getApplication() + '/admin/main.do')){");
+		out.println("if(document.location.pathname != (gfn_getApplication() + '/shop/main.do')){");
 		//out.println("debugger;");
 		out.println("document.location.href= gfn_getApplication()+\"/login/login.do?SITE_ID=\" + gfn_getSiteID();");
 		out.println("}");

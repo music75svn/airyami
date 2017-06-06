@@ -45,7 +45,7 @@ function gfn_SetCommInit(){
 	$("td[id^='userLogo'], span[id^='userLogo'], div[id^='userLogo']").each(function() {
 		if (!(typeof SES_USER_NAME == 'undefined')) {
 			if(!gfn_isNull(SES_USER_NAME)){
-				var commTag = "<p class=\"userAdmin\">" + SES_USER_NAME + " 관리자입니다.</p>";
+				var commTag = "<p class=\"userAdmin\">" + SES_USER_NAME + "</p>";
 				$(this).html(commTag);
 			}
 		}
@@ -57,7 +57,11 @@ function gfn_SetCommInit(){
 	$("td[id^='top_link'], span[id^='top_link'], div[id^='top_link']").each(function() {
 		
 		var commTag = "<ul>";
-		commTag += "<li><a href=\""+ gfn_getApplication() +"/admin/main.do"+site_id+"\">HOME</a></li>";
+		try{
+			alert(SES_USER_TYPE);
+			if(SES_USER_TYPE != "C")
+				commTag += "<li><a href=\""+ gfn_getApplication() +"/admin/main.do"+site_id+"\">Manager</a></li>";
+		}catch(e){};
 		
 		if(gfn_isLogin()){
 			commTag += "<li><a href=\""+ gfn_getApplication() +"/login/logout.do"+site_id+"\">로그아웃</a></li>";
@@ -216,7 +220,7 @@ function gfn_setMyParams2(){
  * Desc 	: 로그인 후.. 접속할 메인 페이지
  *  ****************************************************************/ 
 function gfn_goMain(RULE){
-	var url = "/admin/main";
+	var url = "/shop/main";
 
 	gfn_commonGo(url, "", "");
 }

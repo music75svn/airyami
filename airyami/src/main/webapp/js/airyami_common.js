@@ -57,7 +57,10 @@ function gfn_SetCommInit(){
 	$("td[id^='top_link'], span[id^='top_link'], div[id^='top_link']").each(function() {
 		
 		var commTag = "<ul>";
-		commTag += "<li><a href=\""+ gfn_getApplication() +"/admin/main.do"+site_id+"\">HOME</a></li>";
+		
+		
+		commTag += "<li><a href=\""+ gfn_getApplication() +"/shop/main.do"+site_id+"\">SHOP</a></li>";
+		
 		
 		if(gfn_isLogin()){
 			commTag += "<li><a href=\""+ gfn_getApplication() +"/login/logout.do"+site_id+"\">로그아웃</a></li>";
@@ -216,7 +219,7 @@ function gfn_setMyParams2(){
  * Desc 	: 로그인 후.. 접속할 메인 페이지
  *  ****************************************************************/ 
 function gfn_goMain(RULE){
-	var url = "/admin/main";
+	var url = "/shop/main";
 
 	gfn_commonGo(url, "", "");
 }

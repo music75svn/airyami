@@ -131,9 +131,22 @@ public class LoginController {
     }
     
     /**
-     * 로그인페이지2 이동 
+     * admin main 이동 
      */
     @RequestMapping(value="/admin/main.do")
+    public String goAdminMain(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	return "/adminMain";
+    }
+    
+    /**
+     * 쇼핑몰 main 이동 
+     */
+    @RequestMapping(value="/shop/main.do")
     public String goMain(HttpServletRequest request, HttpServletResponse response, 
     		ModelMap model) throws Exception {
     	
