@@ -29,7 +29,7 @@
 
 <script type="text/javascript" src="/js/constant.js"></script>
 <script type="text/javascript" src="/js/common.js"></script>
-<script type="text/javascript" src="<%=UrlUtil.getActionRoot(request)%>/js/airyami_common.js"></script>
+<script type="text/javascript" src="<%=UrlUtil.getActionRoot(request)%>/js/shop_common.js"></script>
 <%-- <script type="text/javascript" src="<%=UrlUtil.getActionRoot(request)%>/js/airyami_constant.js"></script> --%>
 <script type="text/javascript" src="/js/date.js"></script>
 <script type="text/javascript" src="/js/paging.js"></script>

@@ -53,7 +53,7 @@ public class EMailServiceImpl extends AbstractServiceImpl implements EMailServic
             InternetAddress from = new InternetAddress() ;
              
              
-            from = new InternetAddress("zayou20000@gmail.com");
+            from = new InternetAddress("airyami2018@gmail.com");
              
             // 이메일 발신자
             msg.setFrom(from);
@@ -93,8 +93,8 @@ class MyAuthentication extends Authenticator {
  
     public MyAuthentication(){
          
-        String id = "zayou20000";       // 구글 ID
-        String pw = "limalove74";          // 구글 비밀번호
+        String id = "airyami2018";       // 구글 ID
+        String pw = "jesus9050@";          // 구글 비밀번호
  
         // ID와 비밀번호를 입력한다.
         pa = new PasswordAuthentication(id, pw);

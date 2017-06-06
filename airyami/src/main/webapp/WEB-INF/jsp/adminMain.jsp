@@ -6,7 +6,7 @@
 <meta http-equiv="Content-Type" content="text/html;application/json; charset=utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
 <%@ include file="/include/title.jsp"%>
-<%@ include file="/include/shop_standard.jsp"%>
+<%@ include file="/include/admin_standard.jsp"%>
 
 <script type="text/javascript">
 var onload = true;
@@ -84,13 +84,13 @@ function fn_callBack(sid, result){
 <div id="wrap">
 
 <!--  header -->
-<%@ include file="/layout/shop/header.jsp"%>
+<%@ include file="/layout/header.jsp"%>
 <!--//  header --> 
 
 <!-- container -->
 <div id="container">
 	<!-- menu -->
-<%@ include file="/layout/shop/menu_left.jsp"%>
+<%@ include file="/layout/menu_left.jsp"%>
 	<!--// menu -->
   
 	<div id="contents">

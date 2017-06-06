@@ -46,7 +46,7 @@ function fn_chkInsert(){
 	if(gfn_isNull(checkInfo))
 		return;
 	
-	if(!confirm("<spring:message code="common.delete.msg"/>")){
+	if(!confirm("<spring:message code="common.regist.msg"/>")){
 		return false;
 	}
 	

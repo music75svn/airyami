@@ -241,6 +241,19 @@ function fn_fileDel(imgNm, fileDtlSeq)
 				<td><input type="text" name="CATE_ORDER" id="CATE_ORDER" size=72 value="자동생성 - 위치변경은 카테고리수정에서 변경" readonly/></td>
 			</tr>
 			<tr>
+				<th>상품</th>
+				<td name="IMG_L_ko">
+			</tr>
+			<tr>
+				<th>상품 중 </th>
+				<td name="IMG_M_ko">
+			</tr>
+			<tr>
+				<th>상품 소</th>
+				<td name="IMG_S_ko">
+			</tr>
+			<%--
+			<tr>
 			<c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
 				<th rowspan="${listSize+1}">상품보기용</th>
 			</tr>
@@ -271,6 +284,7 @@ function fn_fileDel(imgNm, fileDtlSeq)
 				</td>
 			</tr>
 			</c:forEach>
+			 --%>
 		</table>
 		</form>
 		
