@@ -235,11 +235,15 @@ function fn_selectSCate(cateCd, valueCateCd){
 			<input type="hidden" name="PROC_MODE" id="PROC_MODE" value=''/>
 		<table summary="<spring:message code="word.productDetail"/>" cellspacing="0" border="0" class="tbl_list_type2">
 			<colgroup>
-			<col width="15%">
-			<col width="15%">
-			<col width="70%">
+			<col width="50%">
+			<col width="3">
+			<col width="10%">
+			<col width="10%">
+			<col width="30%">
 			</colgroup>
 			<tr>
+				<th rowspan="50">상품이미지</th>
+				<td rowspan="50"></td>
 				<th colspan="2"><spring:message code="word.prodNo"/></th>
 			<c:choose>
 				<c:when test="${MODE=='DETAIL'}">
@@ -253,6 +257,60 @@ function fn_selectSCate(cateCd, valueCateCd){
 				</c:when>
 			</c:choose>
 			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.brand"/></th>
+				<td>
+			        <select id="BRAND_CD" name="BRAND_CD" title="<spring:message code="word.brand"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="brandList" items="${ds_brandList}">
+                            <option value="${brandList.CD}">${brandList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.orgPrice"/></th>
+				<td>
+			        <input type="text" name="ORG_PRICE" id="ORG_PRICE" isNum="Y" class="onlynum2" maxlength="12" style="width:80px" title="<spring:message code="word.orgPrice"/>" depends="required"/>
+			        <select id="SUPPLY_CURRENCY" name="SUPPLY_CURRENCY" title="<spring:message code="word.supplyCurrency"/>" depends="required" style="width:100px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="supplyCurrencyList" items="${ds_supplyCurrencyList}">
+                            <option value="${supplyCurrencyList.CD}">${supplyCurrencyList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+			<tr>
+<c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
+				<th rowspan="${listSize+1}"><spring:message code="word.prodNm"/></th>
+			</tr>
+<c:forEach var="LANG" items="${ds_cd_LANG}">
+			<tr>
+				<th>${LANG.CD_NM}</th>
+				<td>
+					<input type="text" name="PROD_NM_${LANG.CD}" id="PROD_NM_${LANG.CD}" maxlength="100" style="width:600px" value="${NAMELIST.CODE_NM}" title="<spring:message code="word.prodNm"/>" depends="required"/>
+				</td>
+			</tr>
+</c:forEach>
+			<tr>
+<c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
+				<th rowspan="${listSize+1}"><spring:message code="word.prodShortNm"/></th>
+			</tr>
+<c:forEach var="LANG" items="${ds_cd_LANG}">
+			<tr>
+				<th>${LANG.CD_NM}</th>
+				<td>
+					<input type="text" name="PROD_SHORT_NM_${LANG.CD}" id="PROD_SHORT_NM_${LANG.CD}" maxlength="60" style="width:500px" value="${NAMELIST.CODE_NM}" title="<spring:message code="word.prodShortNm"/>" depends="required"/>
+				</td>
+			</tr>
+</c:forEach>
+		</table>
+		<table summary="<spring:message code="word.productDetail"/>" cellspacing="0" border="0" class="tbl_list_type2">
+			<colgroup>
+			<col width="15%">
+			<col width="15%">
+			<col width="70%">
+			</colgroup>
 			<tr>
 				<th colspan="2"><spring:message code="word.category"/></th>
 				<td>
@@ -270,29 +328,6 @@ function fn_selectSCate(cateCd, valueCateCd){
 					</select>
 			        <select id="PROD_DCATE_CD" name="PROD_DCATE_CD" title="<spring:message code="word.Dcategory"/>" depends="" style="width:140px">
 						<option value=""><spring:message code="word.select"/></option>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<th colspan="2"><spring:message code="word.brand"/></th>
-				<td>
-			        <select id="BRAND_CD" name="BRAND_CD" title="<spring:message code="word.brand"/>" depends="required" style="width:150px">
-						<option value=""><spring:message code="word.select"/></option>
-                        <c:forEach var="brandList" items="${ds_brandList}">
-                            <option value="${brandList.CD}">${brandList.CD_NM}</option>
-                        </c:forEach>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<th colspan="2"><spring:message code="word.orgPrice"/></th>
-				<td>
-			        <input type="text" name="ORG_PRICE" id="ORG_PRICE" isNum="Y" class="onlynum2" maxlength="12" title="<spring:message code="word.orgPrice"/>" depends="required"/>
-			        <select id="SUPPLY_CURRENCY" name="SUPPLY_CURRENCY" title="<spring:message code="word.supplyCurrency"/>" depends="required" style="width:150px">
-						<option value=""><spring:message code="word.select"/></option>
-                        <c:forEach var="supplyCurrencyList" items="${ds_supplyCurrencyList}">
-                            <option value="${supplyCurrencyList.CD}">${supplyCurrencyList.CD_NM}</option>
-                        </c:forEach>
 					</select>
 				</td>
 			</tr>
@@ -391,30 +426,6 @@ function fn_selectSCate(cateCd, valueCateCd){
 					</select>
 				</td>
 			</tr>
-			<tr>
-<c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
-				<th rowspan="${listSize+1}"><spring:message code="word.prodNm"/></th>
-			</tr>
-<c:forEach var="LANG" items="${ds_cd_LANG}">
-			<tr>
-				<th>${LANG.CD_NM}</th>
-				<td>
-					<input type="text" name="PROD_NM_${LANG.CD}" id="PROD_NM_${LANG.CD}" maxlength="100" style="width:600px" value="${NAMELIST.CODE_NM}" title="<spring:message code="word.prodNm"/>" depends="required"/>
-				</td>
-			</tr>
-</c:forEach>
-			<tr>
-<c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
-				<th rowspan="${listSize+1}"><spring:message code="word.prodShortNm"/></th>
-			</tr>
-<c:forEach var="LANG" items="${ds_cd_LANG}">
-			<tr>
-				<th>${LANG.CD_NM}</th>
-				<td>
-					<input type="text" name="PROD_SHORT_NM_${LANG.CD}" id="PROD_SHORT_NM_${LANG.CD}" maxlength="60" style="width:500px" value="${NAMELIST.CODE_NM}" title="<spring:message code="word.prodShortNm"/>" depends="required"/>
-				</td>
-			</tr>
-</c:forEach>
 			<tr>
 				<th colspan="2"><spring:message code="word.makeCuntry"/></th>
 				<td>
