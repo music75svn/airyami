@@ -538,8 +538,8 @@ public class LoginController {
 			    	ValueMap emailInfo = new ValueMap();
 			    	
 			    	emailInfo.put("addTo", params.get("EMAIL_ID"));
-			    	emailInfo.put("subject", "["+params.get("USER_ID")+"]님의 AIRYAMI의 비밀번호를 초기화하였습니다.");
-			    	emailInfo.put("msg", params.get("USER_ID")+"님의 새로 변경된 비밀번호는 ["+newPass+"]입니다.\n로그인하셔서 비밀번호를 변경하세요.");
+			    	emailInfo.put("subject", egovMessageSource.getMessageWithParam("mail.pass.subject", new Object[]{params.get("USER_ID")}, CommonUtils.getLocale(request)));
+			    	emailInfo.put("msg", egovMessageSource.getMessageWithParam("mail.pass.contents", new Object[]{params.get("USER_ID"), newPass}, CommonUtils.getLocale(request)));
 			    	
 			    	if(!emailService.send(emailInfo)){
 			    		checkResult = "3"; // 이메일전송실패
