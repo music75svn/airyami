@@ -43,8 +43,13 @@
 		
 		gfn_Transaction( inputParam );
 }
+
+// 비밀번호 찾기 이동
+function fn_findPass(){
+	var inputParam				= {};
 	
-	
+	gfn_commonGo("/login/goFindPass", inputParam, "N");
+}
 
 function fn_setLocal(value){
 	return;
@@ -126,7 +131,7 @@ function fn_callBack(sid, result){
 					<select id="locale" name="locale" onchange="javascript:fn_setLocal(this.value);">
 	                    <option value="ko" selected>한국어</option>
 	                    <option value="en">영어</option>
-					</select>
+					</select><div onclick="javascript:fn_findPass(); return false;">비밀번호찾기</div>
 				</div>
 				<div id="btn_login">
 					<div onclick="javascript:fn_login(); return false;">로그인</div>

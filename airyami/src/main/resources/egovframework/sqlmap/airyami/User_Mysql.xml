@@ -92,7 +92,7 @@
 
 	<!-- TB_USER_ROLE_MASTER 사용자구분, 역할 목록조회 -->
 	<select id="user.getTypeRoleList" parameterClass="Map" resultClass="ValueMap">
-	SELECT /* User_Mysql.xml  user.getUserDetail */
+	SELECT /* User_Mysql.xml  user.getTypeRoleList */
 	       CONCAT(USER_TYPE, USER_ROLE) USER_TYPE_ROLE
 	     , USER_ROLE_NM
 	  FROM TB_USER_ROLE_MASTER
@@ -254,4 +254,13 @@
 	  FROM TB_USER_MASTER
 	 WHERE USER_ID = #USER_ID#
 	</delete>
+	
+	<update id="user.updatePass" parameterClass="Map">
+	UPDATE /* User_Mysql.xml  user.updatePass */
+	       TB_USER_MASTER
+	   SET USER_PSWD              = PASSWORD(#USER_PSWD#)
+	     , UPDATE_USER_ID         = #USER_ID#
+	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	 WHERE USER_ID                = #USER_ID#
+	</update>
 </sqlMap>
