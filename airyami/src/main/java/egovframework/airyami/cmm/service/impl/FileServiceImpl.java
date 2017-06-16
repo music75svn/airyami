@@ -417,7 +417,8 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
         
         String storePathString = "";	// 실제 이미지 저장될곳
         String sUrlPath = "";
-        String langCd = "";
+        String localLangCd = "";
+        String sortOrder = "";
         
         
         Iterator<Entry<String, MultipartFile>> itr = files.entrySet().iterator();
@@ -447,17 +448,25 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
             log.debug("file.getName() :: " + file.getName());
             String fileId = file.getName();
             
-            langCd = fileId.substring(fileId.length()-2);
+//            langCd = fileId.substring(fileId.length()-2);
+            localLangCd = EgovProperties.getProperty("Globals.LocalLangCd");
             
             fileType = fileId.substring(fileId.indexOf("_"), fileId.indexOf("_", fileId.indexOf("_")));
             log.debug("fileType ::: " + fileType);
             // (대) 상품보기용 이미지
-            if(fileId.indexOf("IMG_L_") > -1)	fileType = "L";
+            if(fileId.indexOf("IMG_L") > -1){
+            	fileType = "L";
+            }
             // (중) 메인화면목록용 이미지
-            if(fileId.indexOf("IMG_M_") > -1)	fileType = "M";
+            if(fileId.indexOf("IMG_M") > -1){
+            	fileType = "M";
+            }
             // (소) 2레벨 CATEGORY용 이미지
-            if(fileId.indexOf("IMG_S_") > -1)	fileType = "S";
+            if(fileId.indexOf("IMG_S") > -1){
+            	fileType = "S";
+            }
             
+            //sortOrder = fileId.replace(tempType, "");
             
             // 이미지파일 기본정보 추출
             int index = originalFileName.lastIndexOf(".");
@@ -470,6 +479,7 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
         	sUrlPath = File.separator + "upload" + File.separator + "prodimg" + File.separator + mainFolderId + File.separator;
         	
         	
+        	
         	if(!"".equals(originalFileName)) {
         		filePath = storePathString + newName;
         		
@@ -480,6 +490,12 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
         		
         		// 파일복사
         		file.transferTo(new File(filePath));
+        		
+        		/* thumbnail 생성 */
+        		{
+        			String thumbnailFilePath = storePathString + Constants.thumbnailPrefix + newName;
+        			ThumbnailUtil.imageScale(filePath, thumbnailFilePath, Constants.thumbnailWidth, Constants.thumbnailHeight);
+        		}
         	}
         	
         	ValueMap params = new ValueMap();
@@ -494,7 +510,8 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
         	
         	fvo = new ValueMap();
             fvo.put( "PROD_NO",  prodNo);
-            fvo.put( "LANG_CD",  langCd);
+//            fvo.put( "LANG_CD",  langCd);
+            fvo.put( "LANG_CD",  localLangCd);
             fvo.put( "FILE_DTL_SEQ",  detailId);
             fvo.put( "IMG_TYPE_CD",  fileType);
             fvo.put( "SAVE_FILE_NAME", newName );
@@ -503,6 +520,7 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
             fvo.put( "URL_PATH", sUrlPath);
             fvo.put( "FILE_EXT", fileExt );
             fvo.put( "FILE_SIZE", fileSize );
+            fvo.put( "SORT_ORDER", sortOrder );
             
             log.debug("fvo :: " + fvo);
             
@@ -519,6 +537,7 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
             for (int i = 0; i < listFileVO.size(); i++) {
             	ValueMap aFile = listFileVO.get(i);
                 aFile.put( "LOGIN_ID", userId );
+                aFile.put( "LOCAL_LANG", paramMap.get("LOCAL_LANG") );
                 
                 log.info( "fileService::" + listFileVO.toString() );
                 log.info( "aFile::" + aFile );

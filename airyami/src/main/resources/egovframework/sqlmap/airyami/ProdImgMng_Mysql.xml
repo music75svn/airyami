@@ -12,14 +12,35 @@
 		  ,IMG_TYPE_CD
 		  ,FILE_PATH
 		  ,URL_PATH
+		  ,CONCAT(URL_PATH,'thumbnail-') AS THUMBNAIL_URL_PATH
 		  ,SAVE_FILE_NAME
 		  ,ORG_FILE_NAME
 		  ,FILE_EXT
 		  ,FILE_SIZE
+		  ,SORT_ORDER
 	  FROM TB_PRODUCT_IMAGE
 	 WHERE PROD_NO = #PROD_NO#
-	   /* AND LANG_CD = LANG_CD */
-	 ORDER BY FILE_DTL_SEQ
+	   AND LANG_CD = #LOCAL_LANG#
+	   <isNotEmpty property="IMG_TYPE_CD">
+	   AND IMG_TYPE_CD = #IMG_TYPE_CD#
+	   </isNotEmpty>
+	 ORDER BY IMG_TYPE_CD, SORT_ORDER
+	</select>
+	
+	
+	<select id="prodImg.selectFileSortInfoList" parameterClass="Map" resultClass="ValueMap">
+	SELECT A.PROD_NO
+	      ,A.LANG_CD
+	      ,A.FILE_DTL_SEQ
+	      ,A.IMG_TYPE_CD
+	      ,A.SORT_ORDER
+	      ,@ROWNUM := @ROWNUM + 1 AS RANK
+	  FROM TB_PRODUCT_IMAGE A
+		  ,(SELECT @ROWNUM :=0 ) RR
+	 WHERE A.PROD_NO = #PROD_NO#
+	   AND A.LANG_CD = #LOCAL_LANG#
+	   AND A.IMG_TYPE_CD = #IMG_TYPE_CD# 
+	 ORDER BY A.SORT_ORDER, FILE_DTL_SEQ
 	</select>
 
 
@@ -47,13 +68,14 @@
 	   ,ORG_FILE_NAME
 	   ,FILE_EXT
 	   ,FILE_SIZE
+	   ,SORT_ORDER
 	   ,INSERT_USER_ID
 	   ,INSERT_DT
 	   )
 	VALUES
 	  (
 	    #PROD_NO#
-	   ,#LANG_CD#
+	   ,#LOCAL_LANG#
 	   ,#FILE_DTL_SEQ#
 	   ,#IMG_TYPE_CD#
 	   ,#FILE_PATH#
@@ -62,11 +84,29 @@
 	   ,#ORG_FILE_NAME#
 	   ,#FILE_EXT#
 	   ,#FILE_SIZE#
+	   ,(SELECT * FROM (SELECT IFNULL(MAX(SORT_ORDER) + 1, 1) FROM TB_PRODUCT_IMAGE WHERE PROD_NO = #PROD_NO# AND LANG_CD = #LOCAL_LANG#) A )
 	   ,#LOGIN_ID#
 	   ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 	  )
 	
 	</insert>
+	
+	
+	<update id="">
+	</update>
+	<update id="prodImg.updateSortOrder" parameterClass="Map" >
+		UPDATE TB_PRODUCT_IMAGE /* ProdImgMng_Mysql.xml  prodImg.updateSortOrder */ 
+		   SET  
+			   SORT_ORDER			= #RANK#     
+			  ,UPDATE_USER_ID   	= #LOGIN_ID#
+			  ,UPDATE_DT        	= DATE_FORMAT(now(), '%Y%m%d')    
+		 WHERE PROD_NO 		= #PROD_NO#
+		   AND LANG_CD 		= #LANG_CD#
+		   AND FILE_DTL_SEQ = #FILE_DTL_SEQ#
+		   AND IMG_TYPE_CD 	= #IMG_TYPE_CD#
+	</update>
+	
+	
 	
 	<insert id="prodImg.insertFileDownLoadLog" parameterClass="map">
 	INSERT INTO TB_PRODUCT_IMAGE_down_log

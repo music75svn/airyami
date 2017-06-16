@@ -25,6 +25,8 @@ import javax.servlet.http.HttpSession;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
+import egovframework.com.cmm.service.EgovProperties;
+
 
 public class CommonUtils {
     /**
@@ -106,6 +108,7 @@ public class CommonUtils {
 
         
         result.put("LANG_CD", getLangCd(request));
+        result.put("LOCAL_LANG", EgovProperties.getProperty("Globals.LocalLangCd"));
         
         
         AuthCheck idCk = new AuthCheck (request, null);
@@ -183,6 +186,7 @@ public class CommonUtils {
     	
     	model.put("MYPATH", UrlUtil.getMenuID(request));
     	model.put("REFPATH", UrlUtil.getRefPath(request));
+    	model.put("LOCAL_LANG", EgovProperties.getProperty("Globals.LocalLangCd"));
     }
     
     /**

@@ -368,6 +368,28 @@ public class TemplateController {
     	return "/template/templateForm_popup";
     }
     
+    /**
+     * popup 호출 
+     */
+    @RequestMapping(value="/template/templateForm_popup2.do")
+    public String goTemplateFormPopup2(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param 1111:: " + params);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	params.put( "CODE_GROUP_ID", "LANG" ); //코드 대분류
+    	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_LANG", code_LANG);
+    	
+    	params.put( "CODE_GROUP_ID", "IMG_TYPE" ); //이미지타입
+    	List<ValueMap> code_IMG_TYPE = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_IMG_TYPE", code_IMG_TYPE);
+    	
+    	return "/template/templateForm_popup2";
+    }
+    
     
     /**
      * 저장 예제.. merge 
@@ -499,10 +521,127 @@ public class TemplateController {
     
     
     
+    /**
+     * 상품이미지 타입내 SORT_ORDER 변경 
+     */
+    @RequestMapping(value="/template/changeSortOrder.do")
+    public String updateMenuMng(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	String msg = egovMessageSource.getMessage("success.common.update");
+    	//*****************************************************************************
+		// 입력부 로그 출력 
+		//*****************************************************************************
+		log.debug("===================================================================");
+		log.debug("[changeSortOrder() ================== start]");
+
+		//*****************************************************************************
+		// 변수 및 객체 선언 및 초기화 
+		//*****************************************************************************
+		
+		Map<String,Object> params = CommonUtils.getRequestMap(request);
+		log.info("param >>>>> :: " + params);
+		
+		//*****************************************************************************
+		// 비지니스 처리
+		//*****************************************************************************
+    	try{
+    		String sortGubun = (String)params.get("SORT_GUBUN");
+    		String sortOrder = (String)params.get("SORT_ORDER"); 
+    		String dtlSeq = (String)params.get("FILE_DTL_SEQ"); 
+    		
+    		boolean bUpdate = true;	// sort_order 반영 여부
+    		
+    		// 해당 상품, 이미지종류의 리스트를 조회한다.
+    		List<ValueMap> fileList = cmmService.getCommDbList(params, "prodImg.selectFileSortInfoList");
+    		
+    		if("U".equals(sortGubun)){
+    			// 현재 나보다 바로 이전넘을 찾아서 값을 변경하자. 
+    			for(int i = 0 ; i < fileList.size(); i++){
+    				ValueMap fileInfo = fileList.get(i); 
+    				if(dtlSeq.equals(fileInfo.getString("FILE_DTL_SEQ"))){
+    					if(i==0){
+    						bUpdate = false;
+    						break;
+    					}
+    					
+    					ValueMap preFileInfo = fileList.get(i-1);
+    					String preSortOrder = preFileInfo.getString("RANK");
+    					preFileInfo.put("RANK", fileInfo.getString("RANK"));
+    					fileInfo.put("RANK", preSortOrder);
+    				}
+    			}
+    		}
+    		else if("D".equals(sortGubun)){
+    			// 현재 나보다 바로 다음넘을 찾아서 값을 변경하자. 
+    			for(int i = 0 ; i < fileList.size(); i++){
+    				ValueMap fileInfo = fileList.get(i); 
+    				if(dtlSeq.equals(fileInfo.getString("FILE_DTL_SEQ"))){
+    					if(i+1 == fileList.size()){
+    						bUpdate = false;
+    						break;
+    					}
+    					
+    					ValueMap nextFileInfo = fileList.get(i+1);
+    					String nextSortOrder = nextFileInfo.getString("RANK");
+    					nextFileInfo.put("RANK", fileInfo.getString("RANK"));
+    					fileInfo.put("RANK", nextSortOrder);
+    				}
+    			}
+    		}
+    		
+    		if(bUpdate){
+    			// 다시 sort_order 를 rank 로 업데이트 시켜준다.
+    			for(int i = 0 ; i < fileList.size(); i++){
+    				ValueMap fileInfo = fileList.get(i);
+    				cmmService.updateCommDb(fileInfo, "prodImg.updateSortOrder");
+    			}
+    		}
+    		
+    	}
+    	catch(Exception e){
+			msg = egovMessageSource.getMessage("fail.common.update");
+    		
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+
+		//*****************************************************************************
+		// 화면 출력 데이터 셋팅
+		//*****************************************************************************
+		result.put("msg", msg);    		
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+
+		log.info("result result :: " + result);
+    	return null;
+    }
     
     
-    
-    
+    /**
+     * popup 호출 
+     */
+    @RequestMapping(value="/template/templateImgView_popup.do")
+    public String goTemplateImgView_popup(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param 1111:: " + params);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	params.put( "CODE_GROUP_ID", "LANG" ); //코드 대분류
+    	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_LANG", code_LANG);
+    	
+    	params.put( "CODE_GROUP_ID", "IMG_TYPE" ); //이미지타입
+    	List<ValueMap> code_IMG_TYPE = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_IMG_TYPE", code_IMG_TYPE);
+    	
+    	return "/template/templateImgView_popup";
+    }
     
     
     
