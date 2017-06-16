@@ -39,11 +39,12 @@ function fn_init(){
 ////////////////////////////////////////////////////////////////////////////////////
 //호출부분 정의
 function fn_srch(){
+	$("#IMG_TYPE_CD").val("");
+	
 	var inputParam = new Object();
 	inputParam.sid 				= "selectProdDetail";
 	inputParam.url 				= "/product/selectProdDetail.do";
 	inputParam.data 			= gfn_makeInputData($("#dataForm"));
-	
 	gfn_Transaction( inputParam );
 }
 
@@ -278,7 +279,7 @@ function fn_fileDel(fileDtlSeq)
 		<input type="hidden" id="SORT_ORDER" name="SORT_ORDER"/>
 		<input type="hidden" id="SORT_GUBUN" name="SORT_GUBUN"/>
 		<!-- <form id="dataForm" name="dataForm" method="post" action="#" onsubmit="return false;"> -->
-		<table summary=" 등록" cellspacing="0" border="0" class="tbl_list_type2">
+		<table summary="<spring:message code="button.create"/>" cellspacing="0" border="0" class="tbl_list_type2">
 			<colgroup>
 			<col width="15%">
 			<col width="15%">
@@ -317,8 +318,8 @@ function fn_fileDel(fileDtlSeq)
 		</form>
 		
 		<div class="btn_zone">
-			<div class="right"><button type="button" onClick="fn_insert();">등록</button>
-			<button type="button" onClick="self.close();">취소</button></div>
+			<div class="right"><button type="button" onClick="fn_insert();"><spring:message code="button.save"/></button>
+			<button type="button" onClick="self.close();"><spring:message code="button.close"/></button></div>
 		</div>
 </div>
 

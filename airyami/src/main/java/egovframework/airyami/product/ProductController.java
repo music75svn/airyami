@@ -249,6 +249,10 @@ public class ProductController {
     	List<ValueMap> lCateList = cmmService.getCommDbList(params, "product.getCategoryList");
     	model.put("ds_lCateList", lCateList);
     	
+    	params.put( "CODE_GROUP_ID", "IMG_TYPE" ); //이미지타입
+    	List<ValueMap> code_IMG_TYPE = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_IMG_TYPE", code_IMG_TYPE);
+    	
     	return "/product/productDetail";
     }
     
@@ -269,6 +273,15 @@ public class ProductController {
     		
     		// 상품명 목록 조회
     		List<ValueMap> ds_langNameList = cmmService.getCommDbList(params, "product.getProductNameList");
+    		
+    		// 첨부파일조회
+    		if(ds_detail != null)  {// 
+    			params.put("PROD_NO", ds_detail.getString("PROD_NO"));
+    			//List<ValueMap> fileList = fileService.selectFileList(ds_detail); // ds_detail에 FILE_MST_SEQ 존재
+    			List<ValueMap> fileList = cmmService.getCommDbList(params, "prodImg.selectFileList"); // ds_detail에 PROD_NO 존재
+    			log.debug("fileList = " + fileList);
+    			ds_detail.put("fileList", fileList);			
+    	    }
     		
     		result.put("ds_langNameList", ds_langNameList);
     		result.put("ds_detail", ds_detail);
@@ -548,5 +561,27 @@ public class ProductController {
     	response.getWriter().println(CommonUtils.setJsonResult(result));
     	
     	return null;
+    }
+    
+    /**
+     * 이미지VIEW DIV 호출 
+     */
+    @RequestMapping(value="/product/productImgView.do")
+    public String goTemplateImgView_popup(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param 1111:: " + params);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	params.put( "CODE_GROUP_ID", "LANG" ); //코드 대분류
+    	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_LANG", code_LANG);
+    	
+    	params.put( "CODE_GROUP_ID", "IMG_TYPE" ); //이미지타입
+    	List<ValueMap> code_IMG_TYPE = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_IMG_TYPE", code_IMG_TYPE);
+    	
+    	return "/product/productImgDiv";
     }
 }
