@@ -74,7 +74,7 @@ function fn_callBack(sid, result, data){
 			$('#PROD_SHORT_NM_'+result.ds_langNameList[i].LANG_CD).val(result.ds_langNameList[i].PROD_SHORT_NM);
 			$('#PRODUCT_EXPL_TEXT_'+result.ds_langNameList[i].LANG_CD).val(result.ds_langNameList[i].PRODUCT_EXPL_TEXT);
 		}
-		
+		debugger;
 		if(!gfn_isNull(result.ds_detail)){
 			if(!gfn_isNull(result.ds_detail.fileList)){
 				$("#IMG_FIRST_INDEX").val(0);
