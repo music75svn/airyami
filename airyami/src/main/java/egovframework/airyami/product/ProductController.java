@@ -546,7 +546,7 @@ public class ProductController {
     	result.put("msg", msg);
     	response.setContentType("text/xml;charset=UTF-8");
     	response.getWriter().println(CommonUtils.setJsonResult(result));
-
+    	
     	return null;
     }
 }
