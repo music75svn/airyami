@@ -12,6 +12,8 @@
 
 <script type="text/javascript">
 
+var g_fileList = null;
+
 $(function() {  //onready
 	//여기에 최초 실행될 자바스크립트 코드를 넣어주세요
 	gfn_OnLoad();
@@ -220,9 +222,6 @@ function fn_selectSCate(cateCd, valueCateCd){
 	gfn_GetCategoryList(cateCd, $('#PROD_DCATE_CD'), '<spring:message code="word.select"/>', valueCateCd);
 }
 
-
-var g_fileList = null;
-
 //화면내 초기화 부분
 function dfn_init(){
 	
@@ -354,7 +353,7 @@ function gfn_changeImgView(imgViewOjbNm, src){
 									<img name="IMG_VIEW"></img>
 								</div>
 								<img src='/images/btn/icon_pre_month.gif' style='cursor:hand' onclick='javascript:dfn_changeList(-1)' />
-								<div name="IMG_VIEWLIST" style="width:200px;height:400">
+								<div name="IMG_VIEWLIST" height=50>
 								</div>
 								<img src='/images/btn/icon_aft_month.gif' style='cursor:hand' onclick='javascript:dfn_changeList(1)' />
 							</td>
