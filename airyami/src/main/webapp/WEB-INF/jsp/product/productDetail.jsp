@@ -11,9 +11,6 @@
 <jsp:include page="/include/common.jsp"/>
 
 <script type="text/javascript">
-
-var g_fileList = null;
-
 $(function() {  //onready
 	//여기에 최초 실행될 자바스크립트 코드를 넣어주세요
 	gfn_OnLoad();
@@ -230,66 +227,7 @@ function dfn_init(){
 
 ////////////////////////////////////////////////////////////////////////////////////
 //사용자 함수
-function dfn_initFileList(){
-	imgNm = "IMG_VIEWLIST";
-	imgTd = $("[name="+imgNm+"]");
-	
-	if(!gfn_isNull(imgTd))
-		imgTd.empty();
-	
-}
 
-function dfn_changeList(addIndex){
-	var firstIdx = $("#IMG_FIRST_INDEX").val();		// 이미지파일 첫 번째 위치 
-	var listLength = $("#IMG_LIST_LENGTH").val();	// 전체 이미지 파일 갯수
-	var listSize = $("#IMG_LIST_SIZE").val();		// 한번에 보여줄수 있는 이미지 갯수
-	
-	if( (firstIdx*1 + addIndex*1) < 0)
-		return;
-	
-	if(firstIdx*1 + addIndex*1 + listSize*1 > listLength)
-		return;
-	
-	$("#IMG_FIRST_INDEX").val(firstIdx*1 + addIndex*1);	// 새로운 첫 이미지파일 위치
-	
-	dfn_initFileList();
-	dfn_setFileList(g_fileList);
-}
-
-function dfn_setFileList(fileList){
-	
-	var imgNm = "";
-	var imgTd = null;
-	
-	var firstIdx = $("#IMG_FIRST_INDEX").val();
-	var listSize = $("#IMG_LIST_SIZE").val();
-	
-	if(!gfn_isNull(fileList)) // filelist가 있을 경우 file 리스트 표시
-	{
-		//for(var idx = 0; idx < fileList.length; idx++){
-		for(var idx = firstIdx; idx < firstIdx + listSize && idx < fileList.length ; idx++){
-			
-			imgNm = "IMG_VIEWLIST";	// (대)상품보기용
-			imgTd = $("[name="+imgNm+"]");
-			
-			var fileLink = "";
-			fileLink += "<div name='FILE_INFO_" + fileList[idx].FILE_DTL_SEQ + "'>";
-			fileLink += "<img src=\"" + fileList[idx].THUMBNAIL_URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" onclick='javascript:gfn_changeImgView(\"IMG_VIEW\", \"" + gfn_replaceAll(fileList[idx].URL_PATH + fileList[idx].SAVE_FILE_NAME, "\\", "/") + "\")' style=\"width:20%\" height=\"50\"  border=\"0\"/>";
-			fileLink += "<div>";
-
-			imgTd.append(fileLink);
-		}
-		
-		
-		gfn_changeImgView("IMG_VIEW", gfn_replaceAll(fileList[firstIdx].URL_PATH + fileList[firstIdx].SAVE_FILE_NAME, "\\", "/"));
-	}
-}
-
-function gfn_changeImgView(imgViewOjbNm, src){
-	var imgViewObj = $("[name="+imgViewOjbNm+"]");
-	
-	imgViewObj.attr("src", src);
-}
 ////////////////////////////////////////////////////////////////////////////////////
 </script>
 
@@ -330,35 +268,7 @@ function gfn_changeImgView(imgViewOjbNm, src){
 			</colgroup>
 			<tr>
 				<th rowspan="50">
-					<!-- <form id="prodImgViewForm" name="prodImgViewForm" method="post" action="#" onsubmit="return false;"> -->
-					<table summary="조회" cellspacing="0" border="0" class="tbl_list_type2">
-						<colgroup>
-						<col width="15%">
-						<col width="15%">
-						<col width="70%">
-						</colgroup>
-						<tr>
-							<th colspan=2>카테고리순서</th>
-							<td>
-								<select id="IMG_TYPE_CD" name="IMG_TYPE_CD" title="이미지타입" onchange="javascript:dfn_selectImgListByImgType(this.value);">
-									<c:forEach var="IMG_TYPE" items="${ds_cd_IMG_TYPE}">
-										<option value="${IMG_TYPE.CD}">${IMG_TYPE.CD_NM}</option>
-									</c:forEach>
-								</select>		
-							</td>
-						</tr>
-						<tr>
-							<td colspan=3>
-								<div style="width:200px;height:200">
-									<img name="IMG_VIEW"></img>
-								</div>
-								<img src='/images/btn/icon_pre_month.gif' style='cursor:hand' onclick='javascript:dfn_changeList(-1)' />
-								<div name="IMG_VIEWLIST" height=50>
-								</div>
-								<img src='/images/btn/icon_aft_month.gif' style='cursor:hand' onclick='javascript:dfn_changeList(1)' />
-							</td>
-						</tr>
-					</table>
+					<iframe width="400px" height="450px" src="/product/productImgView.do?PROD_NO=<c:out value="${PROD_NO}"/>" frameborder="0"></iframe>
 				</th>
 				<td rowspan="50"></td>
 				<th colspan="2"><spring:message code="word.prodNo"/></th>
