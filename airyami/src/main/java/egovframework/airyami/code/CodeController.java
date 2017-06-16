@@ -43,7 +43,7 @@ import egovframework.com.cmm.service.EgovProperties;
 
 /**
  * 
- * 공통코드 Controller를 정의한다.
+ * 공통코드 Controller를 정의한다..
  * @author 유연주
  * @since 2017.05.09
  * @version 1.0
