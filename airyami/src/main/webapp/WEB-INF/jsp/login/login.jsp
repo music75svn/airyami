@@ -6,7 +6,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>admin 로그인</title>
-<%@ include file="/include/admin_standard.jsp"%>
+<%@ include file="/include/shop_standard_new.jsp"%>
 <script type="text/javascript"> 
 	$(function() {  //onready
 		//여기에 최초 실행될 자바스크립트 코드를 넣어주세요
@@ -82,25 +82,26 @@ function fn_callBack(sid, result){
 		
 		// 아이디 미 존재 값
 		if("1" == checkResult){
-			alert("존재하지 않는 아이디입니다.");
+			$('#error_msg').text("존재하지 않는 아이디입니다.");
+			$('#error_msg').show();
 		}
 		// 패스워드 실패한도가 넘은경우
 		else if("2" == checkResult){
-			alert("패스워드 실패한도가 초과 하였습니다. /n 관리자에게 문의 바랍니다.");
+			$('#error_msg').text("패스워드 실패한도가 초과 하였습니다. /n 관리자에게 문의 바랍니다.");
+			$('#error_msg').show();
 		}
 		else if("3" == checkResult){
-			alert("패스워드가 틀렸습니다.");
+			$('#error_msg').text("패스워드가 틀렸습니다.");
+			$('#error_msg').show();
 		}
 		else if("10" == checkResult){
 			//debugger;
+			$('#error_msg').hide();
 			gfn_goMain("");
 		}
 	}
 	
 }
-
-
-
 
 </script>
 
@@ -109,38 +110,35 @@ function fn_callBack(sid, result){
  function OnExit( field ) { if( field.value == "" ) { field.value = field.defaultValue; } } 
 </script> 
 </head>
-<body class="login">
-	<div id="login_form">
+<body class="grey">
+	<div class="login_wrap" id="login_form">
+		<h1>회원 로그인</h1>
+        <a href="javascript:fn_findPass();" class="find_pw">비밀번호 찾기</a>
 		<input type="hidden" name="SITE_ID" id="SITE_ID" value="<c:out value="${SITE_ID}"/>"/>
-		<form id="srchForm" name="srchForm" method="post"  onsubmit="return false;">
-			<fieldset>
-				<legend>로그인</legend>
-				<h3>admin로그인</h3>
-		            
-				<div id="id">
-					<label for="user_id" class="i_label"><spring:message code="common.save.msg" />아이디</label>
-					<input id="LOGIN_ID" name="LOGIN_ID" value="admin" class="i_input" onfocus="OnEnter(this)" onblur="OnExit(this)" type="text">
-					
+		<form id="srchForm" name="srchForm" method="post" onsubmit="return false;">
+			<fieldset class="login_form">
+				<legend class="blind">로그인</legend>
+				<div class="wrapper">
+					<label class="blind">아이디</label><input id="LOGIN_ID" name="LOGIN_ID" value="admin" class="text" onfocus="OnEnter(this)" onblur="OnExit(this)" type="text">
+					<label class="blind">비밀번호</label><input id="password" name="PW" value="admin" class="text" onfocus="OnEnter(this)" onblur="OnExit(this)" type="password">
+                    <div class="error" style="display:none;" ID="error_msg">
+                    	<p>다시 로그인해 주세요. 아이디나, 비밀번호가 일치하지 않습니다.</p>
+                    </div>
+					<input type="submit" class="btn_login" value="로그인" onclick="javascript:fn_login(); return false;">
 				</div>
-				<div id="pw">
-					<label for="PW" class="i_label">패스워드</label>
-					<input id="password" name="PW" value="admin" class="i_input" onfocus="OnEnter(this)" onblur="OnExit(this)" type="password">
-				</div>
-				<div>
-					<label for="locale" class="i_label">언어</label>
-					<select id="locale" name="locale" onchange="javascript:fn_setLocal(this.value);">
-	                    <option value="ko" selected>한국어</option>
-	                    <option value="en">영어</option>
-					</select><div onclick="javascript:fn_findPass(); return false;">비밀번호찾기</div>
-				</div>
-				<div id="btn_login">
-					<div onclick="javascript:fn_login(); return false;">로그인</div>
-					<!-- <input type="submit" value="로그인" onclick="javascript:fn_login(); return false;"> -->
-				</div>
-		    </fieldset>
+			</fieldset>
 		</form>
+		
+		<!-- 언어선택 -->
+		<div class="lang">
+			<select id="locale" name="locale" onchange="javascript:fn_setLocal(this.value);" class="select">
+                   <option value="ko" selected>한국어</option>
+                   <option value="en">영어</option>
+			</select>
+		</div>
+		<!-- 언어선택 끝 -->
 	</div>
-
+</body>
 
 </body>
 </html>

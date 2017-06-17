@@ -1,0 +1,129 @@
+@charset "utf-8";
+@import url(../font/NanumBarunGothic.css);
+
+/* 초기화 */
+html {overflow-y:scroll}
+body {margin:0;padding:0;font-size:0.75em;font-family:'NanumBarunGothic' '돋움', Dotum, Arial, Helvetica, sans-serif;}
+html, h1, h2, h3, h4, h5, h6, form, fieldset, img {margin:0;padding:0;border:0}
+h1, h2, h3, h4, h5, h6 {font-size:1em;font-family:'NanumBarunGothic', sans-serif;}
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {display:block}
+legend {position:absolute;margin:0;padding:0;font-size:0;line-height:0;text-indent:-9999em;overflow:hidden}
+ul,li,ol{padding:0;margin:0;list-style:none;}
+label, input, button, select, img {vertical-align:middle}
+input, button {margin:0;padding:0;font-family:'NanumBarunGothic', sans-serif; font-size:1em}
+button,input[type="submit"] {cursor:pointer}
+textarea, select {font-family:'NanumBarunGothic', sans-serif;font-size:1em}
+select {margin:0}
+p {margin:0;padding:0;word-break:break-all}
+hr {display:none}
+pre {overflow-x:scroll;font-size:1.1em}
+a:link, a:visited {color:#5b5b5b;text-decoration:none;}
+a:hover, a:focus, a:active {color:#5b5b5b;text-decoration:none;}
+
+
+
+/*공통 적용*/
+body {color:#313131;}
+.blind {
+	font-size: 0!important;
+    line-height: 0!important;
+    position: absolute!important;
+    top: 0!important;
+    left: 0!important;
+    visibility: hidden!important;
+    overflow: hidden!important;
+    width: 1px!important;
+    height: 1px!important;
+}
+.grey {background:#d9d9d9;}
+.lbl {
+	font-size: 0.938em/*15px*/;
+    line-height: 1em/*16px*/;
+    position: absolute;
+    z-index: 8;
+    top: 16px;
+    left: 15px;
+    color: #999;
+}
+.lang .select {
+	background: #fff url(../images/base/sel_arrow.gif) 100% 50% no-repeat;
+	font-size: 1.167em/*14px*/;
+	line-height: 1.167em/*14px*/;
+    min-width: 95px;
+    height: 30px;
+    padding: 5px 10px 5px 7px;
+    cursor: pointer;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 0;
+}
+input.text {color:#363636; border: 1px solid #d1d1d1;}
+
+/* 로그인 */
+body.grey {margin:0 auto; background:#d9d9d9;}	
+.login_wrap {
+	overflow: hidden; 
+	margin:6% auto 0; 
+	padding:85px 50px 60px 50px;
+	max-width:530px; 
+	max-height:630px;
+	border:1px solid #cbcbcb; 
+	border-radius: 5px;
+	box-shadow: 1px 1px 10px #e6e6e6; 
+	font-size:1.250em/*15px*/;
+	background:#fff; 
+}
+.login_wrap h1 {padding-bottom:1.5em; line-height:2em; width:100%; font-size:2.5em; text-align: center;}
+.login_wrap .login_form {clear:both; width:100%;}
+.login_wrap .login_form legend, .login_wrap .wrapper {width:100%;}
+.login_wrap input {float:left; width:100%;}	
+.text {width:80%; height:70px; line-height:1.250em; font-size:1.250em; text-indent:24px; border:1px solid #d1d1d1}
+a.find_pw {display:block; padding-bottom:15px; font-family:'NanumBarunGothicBold'; font-size:1.250em; line-height:1.250em; color:#07938e; text-align:right; text-decoration:underline;}
+.lang {margin:0 auto; width:136px; line-height:30px; }
+.lang select {width:100%; line-height:17px; border:1px solid #000000; }
+.btn_login {margin:24px 0 56px 0; width:80%; height:100px; font-size:0.7cm; font-family:'NanumBarunGothicBold'; line-height: 100px; cursor: pointer; text-align: center; color: #fff; border:1px solid #25a1a9; background: repeating-linear-gradient(#00c2c0, #004ba7); -webkit-appearance: none;}
+.wrapper .error {float:left; padding:20px 0 10px; color:#ff0000;}
+
+/* 로그아웃 */
+.login_wrap .cmt {padding:0 0 35px 0; font-size:1.250em; line-height:1.250em; width:100%; text-align: left;}
+.login_wrap .cmt span {color:#0854a7; font-family:'NanumBarunGothicBold';}
+.btn_confirm {margin:24px 0 42px 0; width:80%; height:100px; font-size:0.7cm; font-family:'NanumBarunGothicBold'; line-height: 100px; cursor: pointer; text-align: center; color: #fff; border:1px solid #25a1a9; background: repeating-linear-gradient(#00c2c0, #004ba7); -webkit-appearance: none;}
+
+/* 가로 최대 401px까지 스타일 */
+@media screen and (max-width:401px) {
+	body.grey {background:#ffffff;}
+	.login_wrap {
+		padding:75px 30px; 
+		margin:0 auto; 
+		border:none; 
+		box-shadow: none; 
+	}
+	.login_wrap h1 {line-height:1em; font-size:2.7em;}
+	.login_wrap input {float:left; width:100%; font-size:1.5em; line-height:1.5em;}	
+	input.text {height:70px; font-size:1.2em; line-height:1.2em; text-indent:24px; border:1px solid #d1d1d1}
+	.login_wrap .cmt, .login_wrap .cmt span {font-size:1.250em; line-height:1.250em; }
+	input.btn_login {font-size:2em; line-height:2em;}
+	.lang .select {font-size:1.5em; line-height:1.5em;}
+	select {min-height:70px;}
+	a.find_pw {padding-bottom:10%; font-size:1.5em; line-height:1.5em;}
+}
+
+/* 가로 최소 402px 부터 최대 990px까지 스타일 */
+@media screen and (min-width:402px) and (max-width:990px) {
+	body.grey {background:#ffffff;}
+	.login_wrap {margin:0 auto; border:none; box-shadow: none;}
+	.login_wrap h1 {line-height:inherit; font-size:2.7em;}
+	.login_wrap input {float:left; width:100%; font-size:1.5em; line-height:1.5em;}	
+	input.text {height:70px; font-size:1.5em; line-height:1.5em; text-indent:24px; border:1px solid #d1d1d1}
+	.login_wrap .cmt, .login_wrap .cmt span {font-size:1.250em; line-height:1.250em; }
+	input.btn_login {font-size:1.8em; line-height:1.8em;}
+	.lang .select {font-size:1.5em; line-height:1.5em;}
+	select {min-height:70px;}
+	a.find_pw {padding-bottom:10%; font-size:1.5em; line-height:1.5em;}
+	
+}
+
+/* 가로 최대 1280px까지 스타일 */
+@media screen and (max-width:1280px) {
+	 .login_wrap h1 {width:100%;}
+}	
