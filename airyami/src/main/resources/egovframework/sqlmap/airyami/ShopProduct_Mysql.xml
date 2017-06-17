@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="shopProduct">
+
+<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+	
+	<select id="shopProduct.getPrNo" parameterClass="Map" resultClass="java.lang.String">
+		SELECT /* ShopProduct.xml  shopProduct.getPrNo */
+				   CONCAT('CPR', DATE_FORMAT(now(), '%y%m%d'),
+			              IFNULL((SELECT 
+			                            LPAD(MAX(SUBSTR(PR_NO, 10, 5))+1, 5, '0') AS SERIAL_NO
+			                        FROM
+			                            TB_CUSTOMER_PR_HEADER), '00001')) AS PR_NO
+		      FROM DUAL
+	</select>
+	
+	<select id="shopProduct.getCartSeq" parameterClass="Map" resultClass="java.lang.String">
+		SELECT /* ShopProduct.xml  shopProduct.getCartSeq */
+		       IFNULL(MAX(SEQ) + 1, '1001') AS SEQ 
+		  FROM TB_CUSTOMER_PR_DETAIL 
+		 WHERE PR_NO = #PR_NO#
+	</select>
+	
+	<insert id="shopProduct.insertCartHeader" parameterClass="Map">
+	INSERT /* ShopProduct.xml  shopProduct.insertCartHeader */
+	  INTO TB_CUSTOMER_PR_HEADER
+		(
+		   PR_NO
+         , CUSTOMER_ID            
+         , PARTNER_BIZ_ENTITY_ID
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+		   #PR_NO#
+         , #LOGIN_ID#
+         , #PARTNER_BIZ_ENTITY_ID#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+	
+	<insert id="shopProduct.insertCartDetail" parameterClass="Map">
+	INSERT /* ShopProduct.xml  shopProduct.insertCartDetail */
+	  INTO TB_CUSTOMER_PR_DETAIL
+		(
+		   PR_NO
+         , SEQ
+         , PROD_NO
+         , SUPPLY_COUNTRY
+         , SUPPLY_CURRENCY
+         , ORG_PRICE
+         , PR_QTY
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+		   #PR_NO#
+         , #SEQ#
+         , #PROD_NO#
+         , #SUPPLY_COUNTRY#
+         , #SUPPLY_CURRENCY#
+         , #ORG_PRICE#
+         , #PR_QTY#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+</sqlMap>

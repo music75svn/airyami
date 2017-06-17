@@ -35,7 +35,7 @@ function fn_init(){
 function fn_srch(){
 	var inputParam = new Object();
 	inputParam.sid 				= "getProductDetail";
-	inputParam.url 				= "/product/getProductDetail.do";
+	inputParam.url 				= "/shop/getShopProductDetail.do";
 	inputParam.data 			= gfn_makeInputData($("#dataForm"));
 	//inputParam.callback			= "fn_callBack";
 	
@@ -80,6 +80,10 @@ function fn_callBack(sid, result, data){
 			}
 			
 		}
+	}else if(sid = "saveCart"){
+		// 저장
+		alert("<spring:message code="success.request.msg"/>");
+		return;
 	}
 }
 
@@ -94,15 +98,15 @@ function fn_callBack(sid, result, data){
 // 장바구니버튼 클릭
 function fn_goCart(){
 	
-	if(!gfn_validationForm($("#dataForm"))){
+	if(!gfn_validationForm($("#cartForm"))){
 		return;
 	}
 	
-	var inputParam = gfn_makeInputData($("#dataForm"));
-	inputParam.sid 				= "saveProduct";
-	inputParam.url 				= "/product/saveCart.do";
+	var inputParam = gfn_makeInputData($("#cartForm"));
+	inputParam.sid 				= "saveCart";
+	inputParam.url 				= "/shop/saveCart.do";
 	
-	inputParam.data 			= gfn_makeInputData($("#dataForm"));
+	inputParam.data 			= gfn_makeInputData($("#cartForm"));
 	gfn_Transaction( inputParam );
 }
 
@@ -185,37 +189,16 @@ function fn_clearData(){
 					</select>
 				</td>
 			</tr>
-			<tr>
-<c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
-				<th rowspan="${listSize+1}"><spring:message code="word.prodNm"/></th>
-			</tr>
-<c:forEach var="LANG" items="${ds_cd_LANG}">
-			<tr>
-				<th>${LANG.CD_NM}</th>
-				<td>
-					<input type="text" name="PROD_NM_${LANG.CD}" id="PROD_NM_${LANG.CD}" maxlength="100" style="width:600px" value="${NAMELIST.CODE_NM}" title="<spring:message code="word.prodNm"/>" depends="required"/>
-				</td>
-			</tr>
-</c:forEach>
-			<tr>
-<c:set var="listSize" value="${fn:length(ds_cd_LANG)}" />
-				<th rowspan="${listSize+1}"><spring:message code="word.prodShortNm"/></th>
-			</tr>
-<c:forEach var="LANG" items="${ds_cd_LANG}">
-			<tr>
-				<th>${LANG.CD_NM}</th>
-				<td>
-					<input type="text" name="PROD_SHORT_NM_${LANG.CD}" id="PROD_SHORT_NM_${LANG.CD}" maxlength="60" style="width:500px" value="${NAMELIST.CODE_NM}" title="<spring:message code="word.prodShortNm"/>" depends="required"/>
-				</td>
-			</tr>
-</c:forEach>
 		</table>
 		</form>
 		
 		<div class="btn_zone">
 			<div class="right">
-				<input type="text" name="QTY" id="QTY" isNum="Y" class="onlynum2" maxlength="4" style="width:80px" title="<spring:message code="word.qty"/>" depends="required"/>
+			<form id="cartForm" name="cartForm" method="post" onsubmit="return false;">
+				<input type="hidden" name="SEARCH_PROD_NO" id="SEARCH_PROD_NO" value='<c:out value="${PROD_NO}"/>'/>
+				<input type="text" name="PR_QTY" id="PR_QTY" isNum="Y" value="1" class="onlynum2" maxlength="4" style="width:80px" title="<spring:message code="word.qty"/>" depends="required"/>
 				<button type="button" id="btnW_cart" onClick="javascript:fn_goCart()"><spring:message code="button.cart"/>
+			</form>
 			</button></div>
 		</div>
 

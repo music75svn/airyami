@@ -5,7 +5,7 @@
 <html lang="ko">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>admin 로그인</title>
+<title>사용자 로그인</title>
 <%@ include file="/include/shop_standard_new.jsp"%>
 <script type="text/javascript"> 
 	$(function() {  //onready
@@ -119,8 +119,8 @@ function fn_callBack(sid, result){
 			<fieldset class="login_form">
 				<legend class="blind">로그인</legend>
 				<div class="wrapper">
-					<label class="blind">아이디</label><input id="LOGIN_ID" name="LOGIN_ID" value="admin" class="text" onfocus="OnEnter(this)" onblur="OnExit(this)" type="text">
-					<label class="blind">비밀번호</label><input id="password" name="PW" value="admin" class="text" onfocus="OnEnter(this)" onblur="OnExit(this)" type="password">
+					<label class="blind">아이디</label><input id="LOGIN_ID" name="LOGIN_ID" value="" class="text" onfocus="OnEnter(this)" onblur="OnExit(this)" type="text">
+					<label class="blind">비밀번호</label><input id="password" name="PW" value="" class="text" onfocus="OnEnter(this)" onblur="OnExit(this)" type="password">
                     <div class="error" style="display:none;" ID="error_msg">
                     	<p>다시 로그인해 주세요. 아이디나, 비밀번호가 일치하지 않습니다.</p>
                     </div>

@@ -58,7 +58,7 @@ function gfn_SetCommInit(){
 		
 		var commTag = "<ul>";
 		
-		commTag += "<li><a href=\""+ gfn_getApplication() +"/product/shopProductDetail.do?PROD_NO=CN00002\">상품상세</a></li>";
+		commTag += "<li><a href=\""+ gfn_getApplication() +"/shop/shopProductDetail.do?PROD_NO=CN00002\">상품상세</a></li>";
 
 		try{
 			alert(SES_USER_TYPE);
