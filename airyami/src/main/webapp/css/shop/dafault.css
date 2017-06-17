@@ -46,7 +46,7 @@ body {color:#313131;}
     color: #999;
 }
 .lang .select {
-	background: #fff url(../images/base/sel_arrow.gif) 100% 50% no-repeat;
+	background: #fff url(/images/shop/base/sel_arrow.gif) 100% 50% no-repeat;
 	font-size: 1.167em/*14px*/;
 	line-height: 1.167em/*14px*/;
     min-width: 95px;
