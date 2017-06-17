@@ -219,12 +219,6 @@ function fn_selectSCate(cateCd, valueCateCd){
 	gfn_GetCategoryList(cateCd, $('#PROD_DCATE_CD'), '<spring:message code="word.select"/>', valueCateCd);
 }
 
-//화면내 초기화 부분
-function dfn_init(){
-	
-	dfn_initFileList();
-}
-
 ////////////////////////////////////////////////////////////////////////////////////
 //사용자 함수
 

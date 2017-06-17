@@ -57,6 +57,9 @@ function gfn_SetCommInit(){
 	$("td[id^='top_link'], span[id^='top_link'], div[id^='top_link']").each(function() {
 		
 		var commTag = "<ul>";
+		
+		commTag += "<li><a href=\""+ gfn_getApplication() +"/product/shopProductDetail.do?PROD_NO=CN00002\">상품상세</a></li>";
+
 		try{
 			alert(SES_USER_TYPE);
 			if(SES_USER_TYPE != "C")
