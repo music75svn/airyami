@@ -41,4 +41,43 @@
 		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 		)
 	</insert>
+	
+	<select id="shop.getShopCartCount" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT /* ShopProduct.xml  shop.getShopCartCount */
+	       COUNT(1) 
+	  FROM TB_CUSTOMER_PR A
+	     , TB_PRODUCT_NAME B
+	 WHERE 1 = 1
+	   AND A.CUSTOMER_ID = #LOGIN_ID#
+	   AND A.PROD_NO = B.PROD_NO
+	   AND B.LANG_CD = #LANG_CD#
+	</select>
+	
+	<select id="shop.getShopCartList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingPrefixSQL"/>
+	</isEqual>
+	SELECT /* ShopProduct.xml  shop.getShopCartList */
+           A.PR_NO
+         , A.PROD_NO
+         , B.PROD_NM
+         , A.ORG_PRICE
+         , A.PR_QTY
+         , DATE_FORMAT(str_to_date(A.INSERT_DT, '%Y%m%d'), '%Y-%m-%d') AS INSERT_DT
+	  FROM TB_CUSTOMER_PR A
+	     , TB_PRODUCT_NAME B
+	 WHERE 1 = 1
+	   AND A.CUSTOMER_ID = #LOGIN_ID#
+	   AND A.PROD_NO = B.PROD_NO
+	   AND B.LANG_CD = #LANG_CD#
+	 <isNotEmpty property="SORT_COL">
+	 	<include refid="orderbySQL"/>
+	 </isNotEmpty>
+	 <isEmpty property="SORT_COL">
+	 ORDER BY A.INSERT_DT DESC
+	 </isEmpty>
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingSuffixSQL"/>
+	</isEqual>
+	</select>
 </sqlMap>

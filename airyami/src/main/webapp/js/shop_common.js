@@ -57,7 +57,7 @@ function gfn_SetCommInit(){
 	$("td[id^='top_link'], span[id^='top_link'], div[id^='top_link']").each(function() {
 		
 		var commTag = "<ul>";
-		commTag += "<li><a href=\""+ gfn_getApplication() +"/shop/shopCart.do\">장바구니</a></li>";
+		commTag += "<li><a href=\""+ gfn_getApplication() +"/shop/shopCartList.do\">장바구니</a></li>";
 
 		commTag += "<li><a href=\""+ gfn_getApplication() +"/shop/shopProductDetail.do?PROD_NO=CN00002\">상품상세</a></li>";
 

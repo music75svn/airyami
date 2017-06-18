@@ -178,4 +178,93 @@ public class ShopProductController {
     	
     	return null;
     }
+    
+    /**
+     * 장바구니 리스트 이동 
+     */
+    @RequestMapping(value="/shop/shopCartList.do")
+    public String shopCartList(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
+ 
+    	return "/shop/shopCartList";
+    }
+    
+    /**
+	 * 장바구니 조회
+	 * @param 
+	 * @param model
+	 * @return 
+	 * @exception Exception
+	 */
+    @RequestMapping(value="/shop/selectShopCartList.do")
+    public String selectShopCartList(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	
+    	PageInfo pageInfo = null;
+    	
+    	// 엑셀 여부..( 전체조회인지.. 아닌지)
+    	if(!params.containsKey("EXCEL_YN"))
+    		params.put("EXCEL_YN", "N");
+    	 
+    	String excelYn = (String)params.get("EXCEL_YN");
+    	
+    	try{
+    		if("N".equals(excelYn)){
+    			int pageNo = Integer.parseInt( CommonUtils.NVL((String)params.get("pageNo"), "0")  );
+    			int totCnt = cmmService.getCommDbInt(params, "shop.getShopCartCount");
+    			
+    			if("".equals( pageNo ) || pageNo < 1 ) {
+    				pageInfo = new PageInfo(1, totCnt, EgovProperties.getProperty("Globals.DbType"));
+    			} else {
+    				pageInfo = new PageInfo(pageNo, totCnt, EgovProperties.getProperty("Globals.DbType"));
+    			}
+    			
+    			if( !CommonUtils.isNull( (String)params.get("pageRowCnt") ) ){
+    				pageInfo.setPerUnit( Integer.valueOf( (String)params.get("pageRowCnt") ));
+    				pageInfo.calculate();
+    			}
+    			
+    			params.put( "STARTUNIT", pageInfo.getStartUnit() );
+    			params.put( "ENDUNIT", pageInfo.getEndUnit() );
+    			params.put( "TOTCNT", totCnt);
+    			result.put( "totCnt", totCnt);
+    		}
+    	
+    		List<ValueMap> list = cmmService.getCommDbList(params, "shop.getShopCartList");
+    		
+    		if("Y".equals(excelYn)){
+    			model.put( "excel_name", "GROUPCODE" );
+    			model.put( "data", list );
+    			if(params.containsKey("SEARCH_CONDITION"))
+    				model.put( "excel_condition", params.get("SEARCH_CONDITION") );
+    	        
+    	        log.debug("excelView Call!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    	        
+    	        return "excelView";
+    		}
+    		
+    		result.put("ds_list", list);
+    		result.put("pageInfo", pageInfo);
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+        
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+        return null;
+    }
 }
