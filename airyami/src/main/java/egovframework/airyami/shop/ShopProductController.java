@@ -155,39 +155,15 @@ public class ShopProductController {
 			String prNo = cmmService.getCommDbString(params, "shopProduct.getPrNo");
 			params.put("PR_NO", prNo);
     		
-			// 고객 정보 조회
-			params.put("SEARCH_USER_ID", params.get("LOGIN_ID"));
-			ValueMap ds_user_detail = cmmService.getCommDbMap(params, "user.getUserDetail");
-			
-			params.put("PARTNER_BIZ_ENTITY_ID", ds_user_detail.get("BIZ_ENTITY_ID"));
-			
-			// 장바구니 헤더 등록
-			List queryList = new ArrayList();
-			Map<String,Object> queryMap = new HashMap();
-			queryMap.putAll(params);
-			queryMap.put("queryGubun", "INSERT");
-			queryMap.put("query", "shopProduct.insertCartHeader");
-			queryList.add(queryMap);
-    		
 			// 상품상세 조회
 			ValueMap ds_product_detail = cmmService.getCommDbMap(params, "product.getProductDetail");
 			
-			String cartSeq = cmmService.getCommDbString(params, "shopProduct.getCartSeq");
-			params.put("SEQ", cartSeq);
 			params.put("PROD_NO", ds_product_detail.get("PROD_NO"));
 			params.put("SUPPLY_COUNTRY", ds_product_detail.get("SUPPLY_COUNTRY"));
 			params.put("SUPPLY_CURRENCY", ds_product_detail.get("SUPPLY_CURRENCY"));
 			params.put("ORG_PRICE", ds_product_detail.get("ORG_PRICE"));
 			
-			// 장바구니 상세 등록
-			queryMap = new HashMap();
-			queryMap.putAll(params);
-			queryMap.put("queryGubun", "INSERT");
-			queryMap.put("query", "shopProduct.insertCartDetail");
-			queryList.add(queryMap);
-			
-    		cmmService.saveCommDbList(queryList);
-    	
+			cmmService.insertCommDb(params, "shopProduct.insertCart");
     	}
     	catch(Exception e){
     		success = false;
