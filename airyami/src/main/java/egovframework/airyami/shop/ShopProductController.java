@@ -88,7 +88,7 @@ public class ShopProductController {
      * 상품 detail 호출 
      */
     @RequestMapping(value="/shop/shopProductDetail.do")
-    public String productDetail(HttpServletRequest request, HttpServletResponse response, 
+    public String shopProductDetail(HttpServletRequest request, HttpServletResponse response, 
     		ModelMap model) throws Exception {
     	
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
@@ -101,7 +101,7 @@ public class ShopProductController {
      * 상품 detail 상세조회 
      */
     @RequestMapping(value="/shop/getShopProductDetail.do")
-    public String getProductDetail(HttpServletRequest request, HttpServletResponse response, 
+    public String getShopProductDetail(HttpServletRequest request, HttpServletResponse response, 
     		ModelMap model) throws Exception {
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
     	log.debug("param :: " + params);
@@ -141,7 +141,7 @@ public class ShopProductController {
      * 상품 장바구니 저장 
      */
     @RequestMapping(value="/shop/saveCart.do")
-    public String saveProduct(HttpServletRequest request, HttpServletResponse response, 
+    public String saveCart(HttpServletRequest request, HttpServletResponse response, 
     		ModelMap model) throws Exception {
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
     	log.debug("param :: " + params);
@@ -266,5 +266,45 @@ public class ShopProductController {
     	response.getWriter().println(CommonUtils.setJsonResult(result));
     	
         return null;
+    }
+    
+    /**
+     * 상품 장바구니 저장 
+     */
+    @RequestMapping(value="/shop/deleteCart.do")
+    public String deleteCart(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		String[] prNoList = ((String) params.get("PR_NO")).split("@@");
+    		
+    		for(int i = 0; i < prNoList.length; i++){
+    			if(prNoList[i] != null && !"".equals(prNoList[i])){
+	    			String prNo = prNoList[i].split("=")[1];
+	    			log.debug("prNO2 : "+prNo);
+	    			params.put("PR_NO", prNo);
+	    			cmmService.deleteCommDb(params, "shop.deleteCart");
+    			}
+    		}
+    		
+			
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
     }
 }

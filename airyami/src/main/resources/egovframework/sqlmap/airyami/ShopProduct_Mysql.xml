@@ -80,4 +80,10 @@
 	<include refid="pagingSuffixSQL"/>
 	</isEqual>
 	</select>
+	
+	<delete id="shop.deleteCart" parameterClass="Map">
+	DELETE /* ShopProduct.xml  shop.deleteCart */
+	  FROM TB_CUSTOMER_PR
+	 WHERE PR_NO = #PR_NO#
+	</delete>
 </sqlMap>

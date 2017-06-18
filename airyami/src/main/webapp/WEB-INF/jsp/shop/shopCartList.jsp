@@ -50,6 +50,26 @@ function fn_srch(){
 	gfn_Transaction( inputParam );
 }
 
+// 장바구니 삭제
+function fn_goDelete(){
+	var checkInfo = gfn_getCheckOk("tb_list");
+	
+	if(gfn_isNull(checkInfo))
+		return;
+	
+	var inputParam = new Object();
+	inputParam.sid 				= "cartDelete";
+	inputParam.url 				= "/shop/deleteCart.do";
+	inputParam.data 			= { "PR_NO"  : checkInfo};
+	
+	gfn_Transaction( inputParam );
+}
+
+// 구매
+function fn_goPurchase(){
+	
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 // 콜백 함수
 function fn_callBack(sid, result){
@@ -70,19 +90,15 @@ function fn_callBack(sid, result){
 		
 		gfn_addPaging(result.pageInfo, 'gfn_clickPageNo');
 		
-		gfn_addRowClickEvent("tb_list", "fn_clickRow"); // ==>동일하다
+		//gfn_addRowClickEvent("tb_list", "fn_clickRow"); // ==>동일하다
 	}
 	
 	// fn_srch
-	if(sid == "delCd"){
-		alert(sid);
+	if(sid == "cartDelete"){
+		alert("<spring:message code="success.request.msg"/>");
+		fn_srch();
 	}
 	
-}
-
-//row click event
-function fn_clickRow(pObj){
-	fn_goDetail(pObj);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -138,18 +154,18 @@ function fn_clickRow(pObj){
 				<col width="5%"/>
 				<col width="15%"/>
 				<col width=""/>
-				<col width="10%"/>
+				<col width="15%"/>
 				<col width="10%"/>
 				<col width="15%"/>
 			</colgroup>
 			<thead>
 				<tr>
-					<th cid="ROWNUM" cClass="num" cType="NUM"><spring:message code="word.num"/></th>
+					<th cid="CK" alg="center"><input type="checkbox" name="check"  onclick="javascript:gfn_checkAll('tb_list', this);"/></th>
 					<th cid="PROD_NO" alg="center"><spring:message code="word.prodNo"/></th>
 					<th cid="PROD_NM" alg="left"><spring:message code="word.prodNm"/></th>
 					<th cid="ORG_PRICE" alg="right"><spring:message code="word.orgPrice"/></th>
 					<th cid="PR_QTY" alg="right"><spring:message code="word.qty"/></th>
-					<th cid="INSERT_DT" alg="center"><spring:message code="word.lastOrderDate"/></th>
+					<th cid="INSERT_DT" alg="center"><spring:message code="sts.regDate"/></th>
 				</tr> 
 			</thead> 
 			<tbody>
@@ -161,6 +177,7 @@ function fn_clickRow(pObj){
 		<span id="pagingNav"></span>
 		
 		<div class="btn_zone">
+			<button type="button" id="btnW_delete" onClick="javascript:fn_goDelete()"><spring:message code="button.delete"/></button>
 			<button type="button" id="btnReg" onClick="javascript:fn_goPurchase()"><spring:message code="button.purchase"/></button>
 		</div>
 	</div> 
