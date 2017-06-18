@@ -119,8 +119,8 @@ function fn_callBack(sid, result){
 			<fieldset class="login_form">
 				<legend class="blind">로그인</legend>
 				<div class="wrapper">
-					<label class="blind">아이디</label><input id="LOGIN_ID" name="LOGIN_ID" value="" class="text" onfocus="OnEnter(this)" onblur="OnExit(this)" type="text">
-					<label class="blind">비밀번호</label><input id="password" name="PW" value="" class="text" onfocus="OnEnter(this)" onblur="OnExit(this)" type="password">
+					<label class="blind">아이디</label><input id="LOGIN_ID" name="LOGIN_ID" value="music75" class="text" onfocus="OnEnter(this)" onblur="OnExit(this)" type="text">
+					<label class="blind">비밀번호</label><input id="password" name="PW" value="admin" class="text" onfocus="OnEnter(this)" onblur="OnExit(this)" type="password">
                     <div class="error" style="display:none;" ID="error_msg">
                     	<p>다시 로그인해 주세요. 아이디나, 비밀번호가 일치하지 않습니다.</p>
                     </div>
