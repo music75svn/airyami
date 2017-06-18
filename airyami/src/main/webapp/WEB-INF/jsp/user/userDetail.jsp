@@ -73,7 +73,7 @@ function fn_goSave(){
 <c:choose>
 	<c:when test="${MODE=='CREATE'}">
 		if($('#USER_PSWD').val() != $('#USER_PSWD_CONFIRM').val()){
-			alert("비밀번호와 비밀번호확인이 틀립니다.");
+			alert("<spring:message code="fail.user.passwordUpdate2"/>");
 			return;
 		}
 	</c:when>

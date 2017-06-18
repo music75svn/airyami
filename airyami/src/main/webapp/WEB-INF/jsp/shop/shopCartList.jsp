@@ -57,6 +57,10 @@ function fn_goDelete(){
 	if(gfn_isNull(checkInfo))
 		return;
 	
+	if(!confirm("<spring:message code="common.delete.msg"/>")){
+		return false;
+	}
+	
 	var inputParam = new Object();
 	inputParam.sid 				= "cartDelete";
 	inputParam.url 				= "/shop/deleteCart.do";
