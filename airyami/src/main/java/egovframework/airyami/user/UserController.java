@@ -341,4 +341,21 @@ public class UserController {
     	
     	return null;
     }
+    
+    /**
+     * 자신의 사용자 detail 호출 
+     */
+    @RequestMapping(value="/user/userSelfDetail.do")
+    public String userSelfDetail(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	model.put("USER_ID", params.get("LOGIN_ID"));
+    	model.put("MODE", "DETAIL");
+    	model.put("SELF_SEARCH", "Y");
+    	
+    	return userDetail(request, response, model);
+    }
 }

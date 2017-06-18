@@ -14,7 +14,6 @@
 $(function() {  //onready
 	//여기에 최초 실행될 자바스크립트 코드를 넣어주세요
 	gfn_OnLoad();
-	
 	fn_init();
 	if('<c:out value="${MODE}"/>' == 'DETAIL'){
 		fn_srch();	// 상세조회
@@ -366,9 +365,13 @@ function fn_clearData(){
 		</form>
 		
 		<div class="btn_zone">
-			<div class="left"><span id="preLink" onClick="javascript:fn_goBack()" title="<spring:message code="button.list"/>"></span></div>
 		<c:choose>
-			<c:when test="${MODE=='DETAIL'}">
+			<c:when test="${SELF_SEARCH!='Y'}">
+			<div class="left"><span id="preLink" onClick="javascript:fn_goBack()" title="<spring:message code="button.list"/>"></span></div>
+			</c:when>
+		</c:choose>
+		<c:choose>
+			<c:when test="${MODE=='DETAIL' && SELF_SEARCH!='Y'}">
 			<div class="right"><button type="button" id="btnW_delete" onClick="javascript:goDelete()"><spring:message code="button.delete"/></button></div>
 			</c:when>
 			<c:when test="${MODE=='CREATE'}">
