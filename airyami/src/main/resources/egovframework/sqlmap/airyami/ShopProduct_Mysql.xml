@@ -11,13 +11,13 @@
 			              IFNULL((SELECT 
 			                            LPAD(MAX(SUBSTR(PR_NO, 10, 5))+1, 5, '0') AS SERIAL_NO
 			                        FROM
-			                            TB_CUSTOMER_PR_HEADER), '00001')) AS PR_NO
+			                            TB_CUSTOMER_PR), '00001')) AS PR_NO
 		      FROM DUAL
 	</select>
 	
 	<insert id="shopProduct.insertCart" parameterClass="Map">
 	INSERT /* ShopProduct.xml  shopProduct.insertCart */
-	  INTO TB_CUSTOMER_PR_DETAIL
+	  INTO TB_CUSTOMER_PR
 		(
 		   PR_NO
 		 , CUSTOMER_ID
