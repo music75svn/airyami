@@ -86,6 +86,7 @@ function fn_callRegist(){
 	
 	registParam.NOW_MENU_TYPE = $("#NOW_MENU_TYPE").val();
 	registParam.UPPER_MENU_CODE = $("#MENU_CODE").val();
+	registParam.UPPER_MENU_NAME = $("#MENU_NAME").val();
 	registParam.MENU_LEVEL = Number($("#MENU_LEVEL").val()) + 1;
 	
 

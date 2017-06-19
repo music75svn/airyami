@@ -87,8 +87,9 @@ function fn_callBack(sid, result, data){
 				<td><input type="text" name="MENU_CODE" id="MENU_CODE" size=30  value="자동생성" readonly/></td>
 			</tr>
 			<tr>
-				<th>상위메뉴코드</th>
-				<td><input type="text" name="UPPER_MENU_CODE" id="UPPER_MENU_CODE" value='<c:out value="${UPPER_MENU_CODE}"/>' readonly/></td>
+				<th>상위메뉴</th>
+				<td><input type="text" name="UPPER_MENU_NAME" id="UPPER_MENU_NAME" value='<c:out value="${UPPER_MENU_NAME}"/>' readonly/>
+				<input type="hidden" name="UPPER_MENU_CODE" id="UPPER_MENU_CODE" value='<c:out value="${UPPER_MENU_CODE}"/>'/></td>
 			</tr>
 			<tr>
 				<th>메뉴 LEVEL</th>
