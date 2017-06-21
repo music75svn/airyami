@@ -86,4 +86,129 @@
 	  FROM TB_CUSTOMER_PR
 	 WHERE PR_NO = #PR_NO#
 	</delete>
+	
+	<!-- TB_CUST_SHIP_TO_ADDR 배송지조회 -->
+	<select id="shopProduct.getPreShipAddrInfo" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* ShopProduct.xml  shopProduct.getPreShipAddrInfo */
+           A.SHIP_TO_COUNTRY
+         , A.SHIP_TO_PROVINCE
+         , A.SHIP_TO_CITY
+         , A.SHIP_TO_ADDRESS
+         , A.PREV_SHIP_TO_ADDR_YN
+	  FROM TB_CUST_SHIP_TO_ADDR A
+	 WHERE A.USER_ID= #LOGIN_ID#
+	   AND A.VALID_YN = 'Y'
+	   AND A.PREV_SHIP_TO_ADDR_YN = 'Y'
+	 ORDER BY INSERT_DT DESC
+	 LIMIT 1
+	</select>
+	
+	<!-- TB_CUSTOMER_PO_HEADER PO_NO 발번 -->
+	<select id="shop.getPoNo" parameterClass="Map" resultClass="java.lang.String">
+		SELECT /* ShopProduct.xml  shop.getPoNo */
+				   CONCAT('CPO', DATE_FORMAT(now(), '%y%m%d'),
+			              IFNULL((SELECT 
+			                            LPAD(MAX(SUBSTR(PO_NO, 10, 5))+1, 5, '0') AS SERIAL_NO
+			                        FROM
+			                            TB_CUSTOMER_PO_HEADER), '00001')) AS PO_NO
+		      FROM DUAL
+	</select>
+	
+	<!-- TB_CUSTOMER_PO_HEADER 등록 -->
+	<insert id="shop.insertCustomerPoHeader" parameterClass="Map">
+	INSERT /* ShopProduct.xml  shop.insertCustomerPoHeader */
+	  INTO TB_CUSTOMER_PO_HEADER
+		(
+		   PO_NO
+		 , CUSTOMER_ID
+         , PARTNER_BIZ_ENTITY_ID
+         , PHONE_COUNTRY_NO
+         , PHONE_NO
+         , PAYMENT_TERMS
+         , SUPPLY_COUNTRY
+         , SUPPLY_CURRENCY
+         , CURRENCY
+         , BASIC_EXT_RATE
+         , BIZ_EXT_RATE
+         , TOT_PO_AMT
+         , DEP_CLOSE_YN
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+		   #PO_NO#
+		 , #CUSTOMER_ID#
+         , #PARTNER_BIZ_ENTITY_ID#
+         , #PHONE_COUNTRY_NO#
+         , #PHONE_NO#
+         , #PAYMENT_TERMS#
+         , #SUPPLY_COUNTRY#
+         , #SUPPLY_CURRENCY#
+         , #CURRENCY#
+         , #BASIC_EXT_RATE#
+         , #BIZ_EXT_RATE#
+         , #TOT_PO_AMT#
+         , #DEP_CLOSE_YN#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+	
+	<!-- TB_CUSTOMER_PO_DETAIL 등록 -->
+	<insert id="shop.insertCustomerPoDetail" parameterClass="Map">
+	INSERT /* ShopProduct.xml  shop.insertCustomerPoDetail */
+	  INTO TB_CUSTOMER_PO_DETAIL
+		(
+		   PO_NO
+		 , SEQ
+         , PHONE_NO
+         , SELLER_BIZ_ENTITY_ID
+		 , ORG_PRICE
+		 , UNIT_PRICE
+		 , PO_AMT
+		 , PO_QTY
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+		   #PO_NO#
+		 , #SEQ#
+         , #PHONE_NO#
+         , #SELLER_BIZ_ENTITY_ID#
+		 , #ORG_PRICE#
+		 , #UNIT_PRICE#
+		 , #PO_AMT#
+		 , #PO_QTY#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+	
+	<!-- TB_CUSTOMER_PO_SHIP_TO_ADDRESS 등록 -->
+	<insert id="shop.insertCustomerPoShipToAddress" parameterClass="Map">
+	INSERT /* ShopProduct.xml  shop.insertCustomerPoShipToAddress */
+	  INTO TB_CUSTOMER_PO_SHIP_TO_ADDRESS
+		(
+		   PO_NO
+		 , SHIP_TO_COUNTRY
+		 , SHIP_TO_PROVINCE
+		 , SHIP_TO_CITY
+		 , SHIP_TO_ADDRESS
+		 , PHONE_COUNTRY_NO
+		 , PHONE_NO
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+		   #PO_NO#
+		 , #SHIP_TO_COUNTRY#
+		 , #SHIP_TO_PROVINCE#
+		 , #SHIP_TO_CITY#
+		 , #SHIP_TO_ADDRESS#
+		 , #PHONE_COUNTRY_NO#
+		 , #PHONE_NO#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
 </sqlMap>

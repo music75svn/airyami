@@ -71,7 +71,26 @@ function fn_goDelete(){
 
 // 구매
 function fn_goPurchase(){
+	var checkInfo = gfn_getCheckOk("tb_list");
 	
+	if(gfn_isNull(checkInfo))
+		return;
+	
+	if(!gfn_validationForm($("#dataForm"))){
+		return;
+	}
+	
+	if(!confirm("<spring:message code="common.purchase.msg"/>")){
+		return false;
+	}
+	
+	var inputParam = new Object();
+	inputParam.sid 				= "purchase";
+	inputParam.url 				= "/shop/savePurchase.do";
+	inputParam.data 			= gfn_makeInputData($("#dataForm"));
+	inputParam.data.prods		= { "PR_NO"  : checkInfo};
+	
+	gfn_Transaction( inputParam );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -102,12 +121,37 @@ function fn_callBack(sid, result){
 		alert("<spring:message code="success.request.msg"/>");
 		fn_srch();
 	}
-	
+	if(sid == "purchase"){
+		alert("<spring:message code="success.request.msg"/>");
+		fn_srch();
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Click evnet
+function fn_preShipAddr(){
+	$('#SHIP_TO_COUNTRY').attr("disabled", true);
+	$('#SHIP_TO_PROVINCE').attr("disabled", true);
+	$('#SHIP_TO_CITY').attr("disabled", true);
+	$('#SHIP_TO_ADDRESS').attr("disabled", true);
+	$('#SHIP_TO_COUNTRY').val('<c:out value="${ds_preShipAddrInfo.SHIP_TO_COUNTRY}"/>');
+	$('#SHIP_TO_PROVINCE').val('<c:out value="${ds_preShipAddrInfo.SHIP_TO_PROVINCE}"/>');
+	$('#SHIP_TO_CITY').val('<c:out value="${ds_preShipAddrInfo.SHIP_TO_CITY}"/>');
+	$('#SHIP_TO_ADDRESS').val('<c:out value="${ds_preShipAddrInfo.SHIP_TO_ADDRESS}"/>');
+	$('#SHIP_TO_SEQ').val('');
+}
 
+function fn_directShipAddr(){
+	$('#SHIP_TO_COUNTRY').attr("disabled", false);
+	$('#SHIP_TO_PROVINCE').attr("disabled", false);
+	$('#SHIP_TO_CITY').attr("disabled", false);
+	$('#SHIP_TO_ADDRESS').attr("disabled", false);
+	$('#SHIP_TO_COUNTRY').val('');
+	$('#SHIP_TO_PROVINCE').val('');
+	$('#SHIP_TO_CITY').val('');
+	$('#SHIP_TO_ADDRESS').val('');
+	$('#SHIP_TO_SEQ').val('');
+}
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출
 
@@ -179,7 +223,64 @@ function fn_callBack(sid, result){
 		</div>
 		<!--// table list -->
 		<span id="pagingNav"></span>
-		
+		<form id="dataForm" name="dataForm" method="post" action="#" onsubmit="return false;">
+		<input type="hidden" name="SHIP_TO_SEQ" id="SHIP_TO_SEQ" />
+		<table summary="<spring:message code="word.userDetail"/>" cellspacing="0" border="0" class="tbl_list_type2">
+			<colgroup>
+			<col width="12%">
+			<col width="15%">
+			<col width="20%">
+			<col width="15%">
+			<col width="38%">
+			</colgroup>
+			<tr>
+				<th colspan="2"><spring:message code="word.shipAddrSel"/></th>
+				<td colspan="3">
+					<button type="button" id="btnPreShipAddr" onClick="javascript:fn_preShipAddr()"><spring:message code="word.shipAddrPre"/></button>
+					<button type="button" id="btnShipAddrPopList" onClick="javascript:fn_goPurchase()"><spring:message code="word.shipAddrList"/></button>
+					<button type="button" id="btnShipAddrPopList" onClick="javascript:fn_directShipAddr()"><spring:message code="word.shipAddrDirect"/></button>
+				</td>
+			</tr>
+			<tr>
+				<th rowspan="2"><spring:message code="word.shipAddr"/></th>
+				<th><spring:message code="word.userAddrCountry"/></th>
+				<td>
+                   <select id="SHIP_TO_COUNTRY" name="SHIP_TO_COUNTRY" title="<spring:message code="word.userAddrCountry"/>" depends="required" style="width:150px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="addrCountryList" items="${ds_addrCountryList}">
+                            <option value="${addrCountryList.CD}">${addrCountryList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+				<th><spring:message code="word.userAddrProvince"/></th>
+				<td><input type="text" name="SHIP_TO_PROVINCE" id="SHIP_TO_PROVINCE" maxlength="20" title="<spring:message code="word.userAddrProvince"/>" depends=""/></td>
+			</tr>
+			<tr>
+				<th><spring:message code="word.userAddrCity"/></th>
+				<td><input type="text" name="SHIP_TO_CITY" id="SHIP_TO_CITY" maxlength="20" title="<spring:message code="word.userAddrCity"/>" depends=""/></td>
+				<th><spring:message code="word.userAddrFull"/></th>
+				<td><input type="text" name="SHIP_TO_ADDRESS" id="SHIP_TO_ADDRESS" maxlength="100" style="width:300px"  title="<spring:message code="word.userAddrFull"/>" depends="required"/></td>
+			</tr>
+			<tr>
+				<th><spring:message code="word.phone"/></th>
+				<th><spring:message code="word.countryNo"/></th>
+				<td><input type="text" name="PHONE_COUNTRY_NO" id="PHONE_COUNTRY_NO" value="<c:out value="${ds_userInfo.PHONE_COUNTRY_NO}"/>" maxlength="3" style="width:50px" title="<spring:message code="word.countryNo"/>" depends="required,numeric"/></td>
+				<th><spring:message code="cop.mbtlNum"/></th>
+				<td><input type="text" name="PHONE_NO" id="PHONE_NO" value="<c:out value="${ds_userInfo.PHONE_NO}"/>" maxlength="11" style="width:100px" title="<spring:message code="cop.mbtlNum"/>" depends="required,numeric"/> <spring:message code="info.tel.msg"/></td>
+			</tr>
+			<tr>
+				<th colspan="2"><spring:message code="word.paymentMethod"/></th>
+				<td colspan="3">
+                   <select id="PAYMENT_TERMS" name="PAYMENT_TERMS" title="<spring:message code="word.paymentMethod"/>" depends="required" style="width:250px">
+						<option value=""><spring:message code="word.select"/></option>
+                        <c:forEach var="paymentMethodList" items="${ds_paymentMethodList}">
+                            <option value="${paymentMethodList.CD}">${paymentMethodList.CD_NM}</option>
+                        </c:forEach>
+					</select>
+				</td>
+			</tr>
+		</table>
+		</form>
 		<div class="btn_zone">
 			<button type="button" id="btnW_delete" onClick="javascript:fn_goDelete()"><spring:message code="button.delete"/></button>
 			<button type="button" id="btnReg" onClick="javascript:fn_goPurchase()"><spring:message code="button.purchase"/></button>

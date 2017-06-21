@@ -189,6 +189,29 @@ public class ShopProductController {
     	Map<String,Object> params = CommonUtils.getRequestMap(request);
     	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
  
+    	// 국가코드 조회
+    	params.put( "CODE_GROUP_ID", "COUNTRY_CODE" ); //국가 대분류
+    	List<ValueMap> addrCountryList = commCodeService.selectCommCode(params);
+    	model.put("ds_addrCountryList", addrCountryList);
+    	
+    	// 국가번호 조회
+    	params.put( "CODE_GROUP_ID", "COUNTRY_NUMBER" ); //국가번호 대분류
+    	List<ValueMap> addrCountryNumberList = commCodeService.selectCommCode(params);
+    	model.put("ds_addrCountryNumberList", addrCountryNumberList);
+    	
+    	// 지불수단조회
+    	params.put( "CODE_GROUP_ID", "PAYMENT_METHOD" ); //지불수단
+    	List<ValueMap> paymentMethodList = commCodeService.selectCommCode(params);
+    	model.put("ds_paymentMethodList", paymentMethodList);
+    	
+    	// 이전배송지 조회
+    	ValueMap preShipAddrInfo = cmmService.getCommDbMap(params, "shopProduct.getPreShipAddrInfo");
+    	model.put("ds_preShipAddrInfo", preShipAddrInfo);
+    	
+    	params.put("SEARCH_USER_ID", params.get("LOGIN_ID"));
+		ValueMap userInfo = cmmService.getCommDbMap(params, "user.getUserDetail");
+		model.put("ds_userInfo", userInfo);
+    	
     	return "/shop/shopCartList";
     }
     
@@ -269,7 +292,7 @@ public class ShopProductController {
     }
     
     /**
-     * 상품 장바구니 저장 
+     * 상품 장바구니 삭제 
      */
     @RequestMapping(value="/shop/deleteCart.do")
     public String deleteCart(HttpServletRequest request, HttpServletResponse response, 
@@ -293,6 +316,58 @@ public class ShopProductController {
     		}
     		
 			
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
+    }
+    
+    /**
+     * 상품 구매 저장 
+     */
+    @RequestMapping(value="/shop/savePurchase.do")
+    public String savePurchase(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		String[] prNoList = ((String) params.get("prods[PR_NO]")).split("@@");
+
+    		// PO_NO 발번
+			String poNo = cmmService.getCommDbString(params, "shop.getPoNo");
+			params.put("PO_NO", poNo);
+			
+    		// TB_CUSTOMER_PO_HEADER 등록
+			cmmService.insertCommDb(params, "shop.insertCustomerPoHeader");
+			
+    		for(int i = 0; i < prNoList.length; i++){
+    			if(prNoList[i] != null && !"".equals(prNoList[i])){
+	    			String prNo = prNoList[i].split("=")[1];
+	    			log.debug("prNO2 : "+prNo);
+	    			params.put("PR_NO", prNo);
+    			}
+    		}
+    		
+    		// TB_CUSTOMER_PO_DETAIL 등록
+    		cmmService.insertCommDb(params, "shop.insertCustomerPoDetail");
+    		
+			// 배송지 등록
+    		cmmService.insertCommDb(params, "shop.insertCustomerPoShipToAddress");
+    		
+    		// 배송관리에 PREV_SHIP_TO_ADDR_YN 플레그 Y로 변경
     	}
     	catch(Exception e){
     		success = false;
