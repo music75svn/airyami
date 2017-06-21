@@ -368,6 +368,13 @@ public class ShopProductController {
     		cmmService.insertCommDb(params, "shop.insertCustomerPoShipToAddress");
     		
     		// 배송관리에 PREV_SHIP_TO_ADDR_YN 플레그 Y로 변경
+    		if(!"".equals(params.get("SHIP_TO_SEQ"))){
+    			// 모두 이전 배송지 'N'로 변경
+    			cmmService.updateCommDb(params, "shop.updatePrevAll_N");
+    			
+    			// 선택된 배송지 'Y'로 변경
+    			cmmService.updateCommDb(params, "shop.updatePrev_Y");
+    		}
     	}
     	catch(Exception e){
     		success = false;

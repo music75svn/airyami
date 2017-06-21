@@ -211,4 +211,21 @@
 		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 		)
 	</insert>
+	
+	<update id="shop.updatePrevAll_N" parameterClass="Map">
+	UPDATE /* ShopProduct.xml  shop.updatePrevAll_N */
+	       TB_CUST_SHIP_TO_ADDR
+	   SET PREV_SHIP_TO_ADDR_YN   = 'N'
+	 WHERE USER_ID                = #LOGIN_ID#
+	</update>
+	
+	<update id="shop.updatePrev_Y" parameterClass="Map">
+	UPDATE /* ShopProduct.xml  shop.updatePrev_Y */
+	       TB_CUST_SHIP_TO_ADDR
+	   SET PREV_SHIP_TO_ADDR_YN   = 'Y'
+	     , UPDATE_USER_ID         = #LOGIN_ID#
+	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	 WHERE USER_ID                = #LOGIN_ID#
+	   AND SEQ                    = #SHIP_TO_SEQ#
+	</update>
 </sqlMap>
