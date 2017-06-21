@@ -80,7 +80,6 @@ function gfn_validationForm(formObj){
 	
 	var strConArr = formObj.serialize();
 	var conArr = strConArr.split('&');
-	
 	for(var i = 0 ; i < conArr.length; i++){
 		var itemArr = conArr[i].split('=');
 		var conObj = $("#" + itemArr[0]);
