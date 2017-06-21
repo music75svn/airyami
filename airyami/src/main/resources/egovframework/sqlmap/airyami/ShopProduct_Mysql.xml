@@ -81,6 +81,19 @@
 	</isEqual>
 	</select>
 	
+	<select id="shop.getShopCartInfo" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* ShopProduct.xml  shop.getShopCartInfo */
+           A.PR_NO
+         , A.PROD_NO
+         , A.ORG_PRICE
+         , A.PR_QTY
+         , SUPPLY_COUNTRY
+		 , SUPPLY_CURRENCY
+	  FROM TB_CUSTOMER_PR A
+	 WHERE 1 = 1
+	   AND A.PR_NO = #PR_NO#
+	</select>
+	
 	<delete id="shop.deleteCart" parameterClass="Map">
 	DELETE /* ShopProduct.xml  shop.deleteCart */
 	  FROM TB_CUSTOMER_PR
@@ -88,8 +101,8 @@
 	</delete>
 	
 	<!-- TB_CUST_SHIP_TO_ADDR 배송지조회 -->
-	<select id="shopProduct.getPreShipAddrInfo" parameterClass="Map" resultClass="ValueMap">
-	SELECT /* ShopProduct.xml  shopProduct.getPreShipAddrInfo */
+	<select id="shop.getPreShipAddrInfo" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* ShopProduct.xml  shop.getPreShipAddrInfo */
            A.SHIP_TO_COUNTRY
          , A.SHIP_TO_PROVINCE
          , A.SHIP_TO_CITY
@@ -161,7 +174,7 @@
 		(
 		   PO_NO
 		 , SEQ
-         , PHONE_NO
+         , PROD_NO
          , SELLER_BIZ_ENTITY_ID
 		 , ORG_PRICE
 		 , UNIT_PRICE
@@ -173,7 +186,7 @@
 		(
 		   #PO_NO#
 		 , #SEQ#
-         , #PHONE_NO#
+         , #PROD_NO#
          , #SELLER_BIZ_ENTITY_ID#
 		 , #ORG_PRICE#
 		 , #UNIT_PRICE#
@@ -228,4 +241,42 @@
 	 WHERE USER_ID                = #LOGIN_ID#
 	   AND SEQ                    = #SHIP_TO_SEQ#
 	</update>
+	
+	<select id="shop.getCustShipToAddrCount" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT /* ShopProduct.xml  shop.getCustShipToAddrCount */
+	       COUNT(1) 
+	  FROM TB_CUST_SHIP_TO_ADDR A
+	 WHERE 1 = 1
+	   AND A.USER_ID = #LOGIN_ID#
+	   AND A.VALID_YN = 'Y'
+	   AND A.PREV_SHIP_TO_ADDR_YN != 'Y'
+	</select>
+	
+	<select id="shop.getCustShipToAddrList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingPrefixSQL"/>
+	</isEqual>
+	SELECT /* ShopProduct.xml  shop.getCustShipToAddrList */
+	       A.SEQ
+	     , A.SHIP_TO_COUNTRY
+         , FN_GET_CODE_NM('COUNTRY_CODE', A.SHIP_TO_COUNTRY, #LANG_CD#) AS SHIP_TO_COUNTRY_NM
+         , A.SHIP_TO_PROVINCE
+         , A.SHIP_TO_CITY
+         , A.SHIP_TO_ADDRESS
+         , A.PREV_SHIP_TO_ADDR_YN
+	  FROM TB_CUST_SHIP_TO_ADDR A
+	 WHERE 1 = 1
+	   AND A.USER_ID = #LOGIN_ID#
+	   AND A.VALID_YN = 'Y'
+	   AND A.PREV_SHIP_TO_ADDR_YN != 'Y'
+	 <isNotEmpty property="SORT_COL">
+	 	<include refid="orderbySQL"/>
+	 </isNotEmpty>
+	 <isEmpty property="SORT_COL">
+	 ORDER BY A.SEQ DESC
+	 </isEmpty>
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingSuffixSQL"/>
+	</isEqual>
+	</select>
 </sqlMap>

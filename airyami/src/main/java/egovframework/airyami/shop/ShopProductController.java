@@ -205,7 +205,7 @@ public class ShopProductController {
     	model.put("ds_paymentMethodList", paymentMethodList);
     	
     	// 이전배송지 조회
-    	ValueMap preShipAddrInfo = cmmService.getCommDbMap(params, "shopProduct.getPreShipAddrInfo");
+    	ValueMap preShipAddrInfo = cmmService.getCommDbMap(params, "shop.getPreShipAddrInfo");
     	model.put("ds_preShipAddrInfo", preShipAddrInfo);
     	
     	params.put("SEARCH_USER_ID", params.get("LOGIN_ID"));
@@ -332,6 +332,110 @@ public class ShopProductController {
     }
     
     /**
+     * 사용자 배송지 팝업 이동 
+     */
+    @RequestMapping(value="/shop/custShipToAddrListPop.do")
+    public String custShipToAddrListPop(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
+    	
+    	return "/shop/custShipToAddrListPop";
+    }
+    
+    /**
+	 * 사용자 배송지 리스트 조회
+	 * @param 
+	 * @param model
+	 * @return 
+	 * @exception Exception
+	 */
+    @RequestMapping(value="/shop/selectCustShipToAddrList.do")
+    public String selectCustShipToAddrList(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	
+    	// 이건 체크박스로 리스트에서 값 가지고 오는거..
+    	// 일단 리스트에선 패스..
+    	/*
+    	if(!CommonUtils.isNull((String)params.get("rowDatas"))){
+    		List<Object> rParams = JsonUtil.parseToList( (String)params.get("rowDatas") );
+    		
+    		for(int i = 0 ; i < rParams.size() ; i++){
+    			Map<String,Object> rowData = (Map<String, Object>) rParams.get(i);
+    			log.debug("rowData.CD :: " + rowData.get("CD"));
+    		}
+    	}
+    	*/
+    	
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	
+    	PageInfo pageInfo = null;
+    	
+    	// 엑셀 여부..( 전체조회인지.. 아닌지)
+    	if(!params.containsKey("EXCEL_YN"))
+    		params.put("EXCEL_YN", "N");
+    	 
+    	String excelYn = (String)params.get("EXCEL_YN");
+    	
+    	try{
+    		if("N".equals(excelYn)){
+    			int pageNo = Integer.parseInt( CommonUtils.NVL((String)params.get("pageNo"), "0")  );
+    			int totCnt = cmmService.getCommDbInt(params, "shop.getCustShipToAddrCount");
+    			
+    			if("".equals( pageNo ) || pageNo < 1 ) {
+    				pageInfo = new PageInfo(1, totCnt, EgovProperties.getProperty("Globals.DbType"));
+    			} else {
+    				pageInfo = new PageInfo(pageNo, totCnt, EgovProperties.getProperty("Globals.DbType"));
+    			}
+    			
+    			if( !CommonUtils.isNull( (String)params.get("pageRowCnt") ) ){
+    				pageInfo.setPerUnit( Integer.valueOf( (String)params.get("pageRowCnt") ));
+    				pageInfo.calculate();
+    			}
+    			
+    			params.put( "STARTUNIT", pageInfo.getStartUnit() );
+    			params.put( "ENDUNIT", pageInfo.getEndUnit() );
+    			params.put( "TOTCNT", totCnt);
+    			result.put( "totCnt", totCnt);
+    		}
+    	
+    		List<ValueMap> list = cmmService.getCommDbList(params, "shop.getCustShipToAddrList");
+    		
+    		if("Y".equals(excelYn)){
+    			model.put( "excel_name", "GROUPCODE" );
+    			model.put( "data", list );
+    			if(params.containsKey("SEARCH_CONDITION"))
+    				model.put( "excel_condition", params.get("SEARCH_CONDITION") );
+    	        
+    	        log.debug("excelView Call!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    	        
+    	        return "excelView";
+    		}
+    		
+    		result.put("ds_list", list);
+    		result.put("pageInfo", pageInfo);
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+        
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+        return null;
+    }
+    
+    /**
      * 상품 구매 저장 
      */
     @RequestMapping(value="/shop/savePurchase.do")
@@ -356,13 +460,20 @@ public class ShopProductController {
     		for(int i = 0; i < prNoList.length; i++){
     			if(prNoList[i] != null && !"".equals(prNoList[i])){
 	    			String prNo = prNoList[i].split("=")[1];
-	    			log.debug("prNO2 : "+prNo);
+	    			log.debug("prNO : "+prNo);
 	    			params.put("PR_NO", prNo);
+	    			
+	    			// PR_NO로 장바구니 정보 조회
+	    			ValueMap shopCartInfo = cmmService.getCommDbMap(params, "shop.getShopCartInfo");
+	    			params.put("SEQ", i+1001);
+	    			params.put("PROD_NO", shopCartInfo.get("PROD_NO"));
+	    			params.put("ORG_PRICE", shopCartInfo.get("ORG_PRICE"));
+	    			params.put("PO_QTY", shopCartInfo.get("PR_QTY"));
+	    			
+	        		// TB_CUSTOMER_PO_DETAIL 등록
+	        		cmmService.insertCommDb(params, "shop.insertCustomerPoDetail");
     			}
     		}
-    		
-    		// TB_CUSTOMER_PO_DETAIL 등록
-    		cmmService.insertCommDb(params, "shop.insertCustomerPoDetail");
     		
 			// 배송지 등록
     		cmmService.insertCommDb(params, "shop.insertCustomerPoShipToAddress");

@@ -134,6 +134,7 @@ function fn_preShipAddr(){
 	$('#SHIP_TO_PROVINCE').attr("disabled", true);
 	$('#SHIP_TO_CITY').attr("disabled", true);
 	$('#SHIP_TO_ADDRESS').attr("disabled", true);
+	
 	$('#SHIP_TO_COUNTRY').val('<c:out value="${ds_preShipAddrInfo.SHIP_TO_COUNTRY}"/>');
 	$('#SHIP_TO_PROVINCE').val('<c:out value="${ds_preShipAddrInfo.SHIP_TO_PROVINCE}"/>');
 	$('#SHIP_TO_CITY').val('<c:out value="${ds_preShipAddrInfo.SHIP_TO_CITY}"/>');
@@ -146,6 +147,7 @@ function fn_directShipAddr(){
 	$('#SHIP_TO_PROVINCE').attr("disabled", false);
 	$('#SHIP_TO_CITY').attr("disabled", false);
 	$('#SHIP_TO_ADDRESS').attr("disabled", false);
+	
 	$('#SHIP_TO_COUNTRY').val('');
 	$('#SHIP_TO_PROVINCE').val('');
 	$('#SHIP_TO_CITY').val('');
@@ -154,7 +156,29 @@ function fn_directShipAddr(){
 }
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출
+function fn_shipAddrPop(){
+	var inputParam				= {};
+	inputParam.sid 	= "findShipAdd";
 
+	gfn_commonGo("/shop/custShipToAddrListPop", inputParam, "Y");
+}
+
+//팝업콜백 함수
+function fn_popCallBack(sid, data){
+	// fn_srch
+	if(sid == "findShipAdd"){
+		$('#SHIP_TO_COUNTRY').attr("disabled", true);
+		$('#SHIP_TO_PROVINCE').attr("disabled", true);
+		$('#SHIP_TO_CITY').attr("disabled", true);
+		$('#SHIP_TO_ADDRESS').attr("disabled", true);
+		
+		$('#SHIP_TO_COUNTRY').val(data.SHIP_TO_COUNTRY);
+		$('#SHIP_TO_PROVINCE').val(data.SHIP_TO_PROVINCE);
+		$('#SHIP_TO_CITY').val(data.SHIP_TO_CITY);
+		$('#SHIP_TO_ADDRESS').val(data.SHIP_TO_ADDRESS);
+		$('#SHIP_TO_SEQ').val(data.SHIP_TO_SEQ);
+	}
+}
 ////////////////////////////////////////////////////////////////////////////////////
 </script>
 
@@ -237,7 +261,7 @@ function fn_directShipAddr(){
 				<th colspan="2"><spring:message code="word.shipAddrSel"/></th>
 				<td colspan="3">
 					<button type="button" id="btnPreShipAddr" onClick="javascript:fn_preShipAddr()"><spring:message code="word.shipAddrPre"/></button>
-					<button type="button" id="btnShipAddrPopList" onClick="javascript:fn_goPurchase()"><spring:message code="word.shipAddrList"/></button>
+					<button type="button" id="btnShipAddrPopList" onClick="javascript:fn_shipAddrPop()"><spring:message code="word.shipAddrList"/></button>
 					<button type="button" id="btnShipAddrPopList" onClick="javascript:fn_directShipAddr()"><spring:message code="word.shipAddrDirect"/></button>
 				</td>
 			</tr>
