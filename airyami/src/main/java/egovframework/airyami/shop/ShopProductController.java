@@ -28,6 +28,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
@@ -204,15 +207,42 @@ public class ShopProductController {
     	List<ValueMap> paymentMethodList = commCodeService.selectCommCode(params);
     	model.put("ds_paymentMethodList", paymentMethodList);
     	
-    	// 이전배송지 조회
-    	ValueMap preShipAddrInfo = cmmService.getCommDbMap(params, "shop.getPreShipAddrInfo");
-    	model.put("ds_preShipAddrInfo", preShipAddrInfo);
-    	
     	params.put("SEARCH_USER_ID", params.get("LOGIN_ID"));
 		ValueMap userInfo = cmmService.getCommDbMap(params, "user.getUserDetail");
 		model.put("ds_userInfo", userInfo);
     	
     	return "/shop/shopCartList";
+    }
+    
+    /**
+     * 이전배송지 조회
+     */
+    @RequestMapping(value="/shop/getPreShipAddrInfo.do")
+    public String getPreShipAddrInfo(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+        	// 이전배송지 조회
+        	ValueMap preShipAddrInfo = cmmService.getCommDbMap(params, "shop.getPreShipAddrInfo");
+    		result.put("ds_preShipAddrInfo", preShipAddrInfo);
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
     }
     
     /**
@@ -447,6 +477,12 @@ public class ShopProductController {
     	boolean success = true;
     	ValueMap result = new ValueMap();
     	
+		// Transaction Setting
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+
+		TransactionStatus status = transactionManager.getTransaction(def);
+    	
     	try{
     		String[] prNoList = ((String) params.get("prods[PR_NO]")).split("@@");
 
@@ -454,8 +490,7 @@ public class ShopProductController {
 			String poNo = cmmService.getCommDbString(params, "shop.getPoNo");
 			params.put("PO_NO", poNo);
 			
-    		// TB_CUSTOMER_PO_HEADER 등록
-			cmmService.insertCommDb(params, "shop.insertCustomerPoHeader");
+			long totPoAMt = 0;
 			
     		for(int i = 0; i < prNoList.length; i++){
     			if(prNoList[i] != null && !"".equals(prNoList[i])){
@@ -468,12 +503,35 @@ public class ShopProductController {
 	    			params.put("SEQ", i+1001);
 	    			params.put("PROD_NO", shopCartInfo.get("PROD_NO"));
 	    			params.put("ORG_PRICE", shopCartInfo.get("ORG_PRICE"));
+	    			params.put("UNIT_PRICE", shopCartInfo.get("ORG_PRICE")); // TODO UNIT_PRICE 다른방법으로 조회해야함
 	    			params.put("PO_QTY", shopCartInfo.get("PR_QTY"));
+	    			params.put("SELLER_BIZ_ENTITY_ID", shopCartInfo.get("SELLER_BIZ_ENTITY_ID"));
+	    			float poAmt = (Integer)params.get("PO_QTY") * (Float)params.get("UNIT_PRICE");
+	    			totPoAMt += poAmt;
+	    			params.put("PO_AMT", poAmt);
 	    			
 	        		// TB_CUSTOMER_PO_DETAIL 등록
 	        		cmmService.insertCommDb(params, "shop.insertCustomerPoDetail");
+	        		
+	        		// 장바구니 삭제
+	        		cmmService.deleteCommDb(params, "shop.deleteCart");
     			}
     		}
+    		params.put("TOT_PO_AMT", totPoAMt);
+    		
+    		// 추천인 회사 아이디 조회
+    		String partnerBizEntityId = cmmService.getCommDbString(params, "shop.getPartnerBizEntityId");
+    		params.put("PARTNER_BIZ_ENTITY_ID", partnerBizEntityId);
+    		
+    		params.put("CURRENCY", "KRW"); // TODO CURRENCY 다른방법으로 조회해야함
+    		
+    		// 환율조회
+    		ValueMap exchangeRateInfo = cmmService.getCommDbMap(params, "shop.getExchangeRateInfo");
+    		params.put("BASIC_EXT_RATE", exchangeRateInfo.get("BASIC_EXT_RATE"));
+    		params.put("BIZ_EXT_RATE", exchangeRateInfo.get("BIZ_EXT_RATE"));
+    		
+    		// TB_CUSTOMER_PO_HEADER 등록
+			cmmService.insertCommDb(params, "shop.insertCustomerPoHeader");
     		
 			// 배송지 등록
     		cmmService.insertCommDb(params, "shop.insertCustomerPoShipToAddress");
@@ -483,9 +541,63 @@ public class ShopProductController {
     			// 모두 이전 배송지 'N'로 변경
     			cmmService.updateCommDb(params, "shop.updatePrevAll_N");
     			
-    			// 선택된 배송지 'Y'로 변경
-    			cmmService.updateCommDb(params, "shop.updatePrev_Y");
+    			if("D".equals(params.get("SHIP_TO_SEQ"))){
+    				// 직접입력한 배송지 등록
+    				String seq = cmmService.getCommDbString(params, "shop.getCustShipToAddrSeq");
+    				params.put("SEQ", seq);
+    				cmmService.insertCommDb(params, "shop.insertCustShipToAddr");
+    			}else{
+    				// 선택된 배송지 'Y'로 변경
+    				cmmService.updateCommDb(params, "shop.updatePrev_Y");
+    			}
     		}
+    		
+    		// 사용자 정보에 마지막 주문일 세팅
+    		params.put("USER_ID", params.get("LOGIN_ID"));
+    		cmmService.updateCommDb(params, "user.updateLastOrderDate");
+    		
+    		transactionManager.commit(status);
+    	}
+    	catch(Exception e){
+    		transactionManager.rollback(status);
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
+    }
+    
+    /**
+     * 배송지 삭제 
+     */
+    @RequestMapping(value="/shop/deleteShipToAddr.do")
+    public String deleteShipToAddr(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		String[] seqList = ((String) params.get("SEQ")).split("@@");
+    		
+    		for(int i = 0; i < seqList.length; i++){
+    			if(seqList[i] != null && !"".equals(seqList[i])){
+	    			String seq = seqList[i].split("=")[1].split(";")[0];
+	    			log.debug("SEQ : "+seq);
+	    			params.put("SEQ", seq);
+	    			cmmService.updateCommDb(params, "shop.deleteShipToAddr");
+    			}
+    		}
+    		
+			
     	}
     	catch(Exception e){
     		success = false;

@@ -267,4 +267,13 @@
 	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 	 WHERE USER_ID                = #USER_ID#
 	</update>
+	
+	<update id="user.updateLastOrderDate" parameterClass="Map">
+	UPDATE /* User_Mysql.xml  user.updateLastOrderDate */
+	       TB_USER_MASTER
+	   SET LAST_ORDER_DATE        = DATE_FORMAT(now(), '%Y%m%d')
+	     , UPDATE_USER_ID         = #USER_ID#
+	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	 WHERE USER_ID                = #USER_ID#
+	</update>
 </sqlMap>

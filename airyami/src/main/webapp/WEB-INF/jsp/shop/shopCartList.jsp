@@ -115,7 +115,18 @@ function fn_callBack(sid, result){
 		
 		//gfn_addRowClickEvent("tb_list", "fn_clickRow"); // ==>동일하다
 	}
-	
+	if(sid == "preShipAddr"){
+		$('#SHIP_TO_COUNTRY').attr("disabled", true);
+		$('#SHIP_TO_PROVINCE').attr("disabled", true);
+		$('#SHIP_TO_CITY').attr("disabled", true);
+		$('#SHIP_TO_ADDRESS').attr("disabled", true);
+		
+		$('#SHIP_TO_COUNTRY').val(result.ds_preShipAddrInfo.SHIP_TO_COUNTRY);
+		$('#SHIP_TO_PROVINCE').val(result.ds_preShipAddrInfo.SHIP_TO_PROVINCE);
+		$('#SHIP_TO_CITY').val(result.ds_preShipAddrInfo.SHIP_TO_CITY);
+		$('#SHIP_TO_ADDRESS').val(result.ds_preShipAddrInfo.SHIP_TO_ADDRESS);
+		$('#SHIP_TO_SEQ').val('');
+	}
 	// fn_srch
 	if(sid == "cartDelete"){
 		alert("<spring:message code="success.request.msg"/>");
@@ -130,16 +141,12 @@ function fn_callBack(sid, result){
 ////////////////////////////////////////////////////////////////////////////////////
 // Click evnet
 function fn_preShipAddr(){
-	$('#SHIP_TO_COUNTRY').attr("disabled", true);
-	$('#SHIP_TO_PROVINCE').attr("disabled", true);
-	$('#SHIP_TO_CITY').attr("disabled", true);
-	$('#SHIP_TO_ADDRESS').attr("disabled", true);
+	var inputParam = new Object();
+	inputParam.sid 				= "preShipAddr";
+	inputParam.url 				= "/shop/getPreShipAddrInfo.do";
+	inputParam.data 			= gfn_makeInputData($("#dataForm"));
 	
-	$('#SHIP_TO_COUNTRY').val('<c:out value="${ds_preShipAddrInfo.SHIP_TO_COUNTRY}"/>');
-	$('#SHIP_TO_PROVINCE').val('<c:out value="${ds_preShipAddrInfo.SHIP_TO_PROVINCE}"/>');
-	$('#SHIP_TO_CITY').val('<c:out value="${ds_preShipAddrInfo.SHIP_TO_CITY}"/>');
-	$('#SHIP_TO_ADDRESS').val('<c:out value="${ds_preShipAddrInfo.SHIP_TO_ADDRESS}"/>');
-	$('#SHIP_TO_SEQ').val('');
+	gfn_Transaction( inputParam );
 }
 
 function fn_directShipAddr(){
@@ -152,7 +159,7 @@ function fn_directShipAddr(){
 	$('#SHIP_TO_PROVINCE').val('');
 	$('#SHIP_TO_CITY').val('');
 	$('#SHIP_TO_ADDRESS').val('');
-	$('#SHIP_TO_SEQ').val('');
+	$('#SHIP_TO_SEQ').val('D');
 }
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출

@@ -49,6 +49,24 @@ function fn_srch(){
 	gfn_Transaction( inputParam );
 }
 
+//장바구니 삭제
+function fn_goDelete(){
+	var checkInfo = gfn_getCheckOk("tb_list");
+	
+	if(gfn_isNull(checkInfo))
+		return;
+	
+	if(!confirm("<spring:message code="common.delete.msg"/>")){
+		return false;
+	}
+	
+	var inputParam = new Object();
+	inputParam.sid 				= "shipToAddrDelete";
+	inputParam.url 				= "/shop/deleteShipToAddr.do";
+	inputParam.data 			= { "SEQ"  : checkInfo};
+	
+	gfn_Transaction( inputParam );
+}
 ////////////////////////////////////////////////////////////////////////////////////
 // 콜백 함수
 function fn_callBack(sid, result){
@@ -62,7 +80,7 @@ function fn_callBack(sid, result){
 	
 	// fn_srch
 	if(sid == "shipAdd"){
-		var tbHiddenInfo = ["SHIP_TO_COUNTRY", "SEQ", "SHIP_TO_PROVINCE", "SHIP_TO_CITY", "SHIP_TO_ADDRESS"]; // row에 추가할 히든 컬럼 설정  없으면 삭제
+		var tbHiddenInfo = ["SEQ", "SHIP_TO_COUNTRY", "SHIP_TO_PROVINCE", "SHIP_TO_CITY", "SHIP_TO_ADDRESS"]; // row에 추가할 히든 컬럼 설정  없으면 삭제
 		
 		gfn_displayList(result.ds_list, "tb_list", tbHiddenInfo);
 		gfn_displayTotCnt(result.totCnt);
@@ -70,7 +88,10 @@ function fn_callBack(sid, result){
 		gfn_addPaging(result.pageInfo, 'gfn_clickPageNo');
 		gfn_addRowClickEvent("tb_list", "fn_clickRow"); // ==>동일하다
 	}
-	
+	if(sid == "shipToAddrDelete"){
+		alert("<spring:message code="success.request.msg"/>");
+		fn_srch();
+	}
 	// fn_srch
 	if(sid == "delCd"){
 		alert(sid);
@@ -137,7 +158,7 @@ function fn_clickRow(rowObj){
 			</colgroup>
 			<thead>
 				<tr>
-					<th cid="ROWNUM" cClass="num" cType="NUM"><spring:message code="word.num"/></th>
+					<th cid="CK" alg="center"><input type="checkbox" name="check"  onclick="javascript:gfn_checkAll('tb_list', this);"/></th>
 					<th cid="SHIP_TO_COUNTRY_NM" alg="center"><spring:message code="word.userAddrCountry"/></th>
 					<th cid="SHIP_TO_PROVINCE" alg="center"><spring:message code="word.userAddrProvince"/></th>
 					<th cid="SHIP_TO_CITY" alg="center"><spring:message code="word.userAddrCity"/></th>
@@ -151,4 +172,7 @@ function fn_clickRow(rowObj){
 		</div>
 		<!--// table list -->
 		<span id="pagingNav"></span>
+		<div class="btn_zone">
+			<button type="button" id="btnW_delete" onClick="javascript:fn_goDelete()"><spring:message code="button.delete"/></button>
+		</div>
 </body>

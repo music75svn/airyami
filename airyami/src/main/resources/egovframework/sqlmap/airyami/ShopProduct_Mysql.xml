@@ -87,10 +87,12 @@
          , A.PROD_NO
          , A.ORG_PRICE
          , A.PR_QTY
-         , SUPPLY_COUNTRY
-		 , SUPPLY_CURRENCY
+         , A.SUPPLY_COUNTRY
+		 , A.SUPPLY_CURRENCY
+		 , B.SELLER_BIZ_ENTITY_ID
 	  FROM TB_CUSTOMER_PR A
-	 WHERE 1 = 1
+	     , TB_PRODUCT_MASTER B
+	 WHERE A.PROD_NO = B.PROD_NO
 	   AND A.PR_NO = #PR_NO#
 	</select>
 	
@@ -161,7 +163,7 @@
          , #BASIC_EXT_RATE#
          , #BIZ_EXT_RATE#
          , #TOT_PO_AMT#
-         , #DEP_CLOSE_YN#
+         , 'N'
 		 , #LOGIN_ID#
 		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 		)
@@ -229,7 +231,10 @@
 	UPDATE /* ShopProduct.xml  shop.updatePrevAll_N */
 	       TB_CUST_SHIP_TO_ADDR
 	   SET PREV_SHIP_TO_ADDR_YN   = 'N'
+	     , UPDATE_USER_ID         = #LOGIN_ID#
+	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 	 WHERE USER_ID                = #LOGIN_ID#
+	   AND PREV_SHIP_TO_ADDR_YN   = 'Y'
 	</update>
 	
 	<update id="shop.updatePrev_Y" parameterClass="Map">
@@ -279,4 +284,71 @@
 	<include refid="pagingSuffixSQL"/>
 	</isEqual>
 	</select>
+	
+	<select id="shop.getCustShipToAddrSeq" parameterClass="Map" resultClass="java.lang.String">
+		SELECT /* ShopProduct.xml  shop.getCustShipToAddrSeq */
+			IFNULL(MAX(SEQ)+1, '1') AS SEQ
+		  FROM TB_CUST_SHIP_TO_ADDR
+	</select>
+	
+	<!-- TB_CUST_SHIP_TO_ADDR 등록 -->
+	<insert id="shop.insertCustShipToAddr" parameterClass="Map">
+	INSERT /* ShopProduct.xml  shop.insertCustShipToAddr */
+	  INTO TB_CUST_SHIP_TO_ADDR
+		(
+		   SEQ
+		 , USER_ID
+		 , SHIP_TO_COUNTRY
+		 , SHIP_TO_PROVINCE
+		 , SHIP_TO_CITY
+		 , SHIP_TO_ADDRESS
+		 , PREV_SHIP_TO_ADDR_YN
+		 , VALID_YN
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+		   #SEQ#
+		 , #LOGIN_ID#
+		 , #SHIP_TO_COUNTRY#
+		 , #SHIP_TO_PROVINCE#
+		 , #SHIP_TO_CITY#
+		 , #SHIP_TO_ADDRESS#
+		 , 'Y'
+		 , 'Y'
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+	
+	<select id="shop.getPartnerBizEntityId" parameterClass="Map" resultClass="java.lang.String">
+		SELECT /* ShopProduct.xml  shop.getPartnerBizEntityId */
+               BIZ_ENTITY_ID
+		  FROM TB_USER_MASTER
+		 WHERE USER_ID = (
+							SELECT RECOMMENDER_ID
+							  FROM TB_USER_MASTER
+							 WHERE USER_ID = #LOGIN_ID#
+		     )
+	</select>
+	
+	<select id="shop.getExchangeRateInfo" parameterClass="Map" resultClass="ValueMap">
+		SELECT /* ShopProduct.xml  shop.getExchangeRateInfo */
+			   BASIC_EXT_RATE
+			   , BIZ_EXT_RATE
+		  FROM TB_EXCHANGE_RATE_MASTER
+		 WHERE FR_CURRENCY = #CURRENCY#
+		 ORDER BY SEQ DESC
+		 LIMIT 1;
+	</select>
+	
+	<update id="shop.deleteShipToAddr" parameterClass="Map">
+	UPDATE /* ShopProduct.xml  shop.deleteShipToAddr */
+	       TB_CUST_SHIP_TO_ADDR
+	   SET VALID_YN               = 'N'
+	     , UPDATE_USER_ID         = #LOGIN_ID#
+	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	 WHERE USER_ID                = #LOGIN_ID#
+	   AND SEQ                    = #SEQ#
+	</update>
 </sqlMap>
