@@ -44,4 +44,6 @@ SES_LOGIN = '<%=idCk.isLogin()%>';
 SES_USER_TYPE = '<%=idCk.getUser_type()%>';
 SES_USER_NAME = '<%=idCk.getUser_nm()%>';
 SES_USER_ID = '<%=idCk.getUser_id()%>';
+SES_COMP_ID = '<%=idCk.getComp_Id()%>';
+SES_COMP_NM = '<%=idCk.getComp_Nm()%>';
 </script>

@@ -418,6 +418,10 @@ public class LoginController {
 								loginInfo.getString("USER_TYPE")); // 관리자
 						pInfo.setProperty(AuthCheck.USER_ROLE,
 								loginInfo.getString("USER_ROLE")); //
+						pInfo.setProperty(AuthCheck.COMP_ID,
+								loginInfo.getString("COMP_ID")); //
+						pInfo.setProperty(AuthCheck.COMP_NM,
+								loginInfo.getString("COMP_NM")); //
 
 						idCk.putSession(pInfo); // 세션 생성
 						params.put("LOGIN_YN", "Y");

@@ -365,14 +365,25 @@ function gfn_setGiganInfo(inputParam){
 
 // 
 function gfn_isAdmin(){
-	if(SI_admin_yn == 'Y')
+	if(SES_USER_TYPE == 'M')
 		return true;
 	else
 		return false;
 } 
 
 
-
+function gfn_getSessionInfo(type){
+	if(type == "USER_ID")
+		return SES_USER_ID;
+	if(type == "SES_USER_NAME")
+		return SES_SES_USER_NAME;
+	if(type == "COMP_ID")
+		return SES_COMP_ID;
+	if(type == "COMP_NM")
+		return SES_COMP_NM;
+	if(type == "USER_TYPE")
+		return SES_USER_TYPE;
+}
 
 
 

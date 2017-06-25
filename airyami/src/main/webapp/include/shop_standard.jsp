@@ -15,6 +15,8 @@
 
 <link href="<c:url value='/'/>css/common.css" rel="stylesheet" type="text/css" >
 <link href="<c:url value='/'/>css/shop/shop.css" rel="stylesheet" type="text/css" >
+<%-- <link href="<c:url value='/'/>css/shop/dafault.css" rel="stylesheet" type="text/css" > --%>
+
 <!-- 달력관련 -->
 <link rel="stylesheet" href="/js/lib/DatePicker/themes/base/jquery.ui.all.css"  media="screen" />
 	

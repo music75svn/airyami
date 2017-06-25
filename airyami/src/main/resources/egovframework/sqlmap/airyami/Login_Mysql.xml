@@ -14,13 +14,17 @@
 	<select id="login.getLoginInfo" parameterClass="Map" resultClass="ValueMap" >
 		<![CDATA[
 		SELECT 
-			   USER_ID 
-			  ,ORIGINAL_NM		AS USER_NM
-              ,USER_TYPE
-              ,USER_ROLE
-			  ,EMAIL_ID			AS USER_EMAIL
-			  ,USER_TYPE		AS RULE_CD
-		  FROM TB_USER_MASTER
+			   A.USER_ID 
+			  ,A.ORIGINAL_NM		AS USER_NM
+              ,A.USER_TYPE
+              ,A.USER_ROLE
+			  ,A.EMAIL_ID			AS USER_EMAIL
+			  ,A.USER_TYPE		AS RULE_CD
+			  ,A.BIZ_ENTITY_ID	AS COMP_ID
+              ,B.COMP_NM
+		  FROM TB_USER_MASTER A
+               LEFT JOIN TB_COMPANY_MASTER B
+               ON A.BIZ_ENTITY_ID = B.BIZ_ENTITY_ID
 		 WHERE USER_ID		= #LOGIN_ID#
 		   AND USER_PSWD 	= PASSWORD(#PW#)
 		]]>

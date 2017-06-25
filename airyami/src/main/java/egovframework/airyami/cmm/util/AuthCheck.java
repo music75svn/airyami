@@ -26,6 +26,8 @@ public class AuthCheck {
     public static final String SITE_ID = "SITE_ID";
     public static final String USER_TYPE = "USER_TYPE";
     public static final String USER_ROLE = "USER_ROLE";
+    public static final String COMP_ID = "COMP_ID";
+    public static final String COMP_NM = "COMP_NM";
     
     CommonUtils util = new CommonUtils();  
       
@@ -172,6 +174,16 @@ public class AuthCheck {
 	
 	public String getUser_role() throws Exception {
 		String s = util.NVL( getMemInfo( USER_ROLE ));
+		return s;
+	} // end getUser_type
+	
+	public String getComp_Id() throws Exception {
+		String s = util.NVL( getMemInfo( COMP_ID ));
+		return s;
+	} // end getUser_type
+	
+	public String getComp_Nm() throws Exception {
+		String s = util.NVL( getMemInfo( COMP_NM ));
 		return s;
 	} // end getUser_type
 	
