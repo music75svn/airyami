@@ -28,6 +28,8 @@ function gfn_setType(){
 	$(".onlynum").keyup(function(){$(this).val( $(this).val().replace(/[^0-9]/g,"") );} );		// 숫자만
 	$(".onlynum2").keyup(function(){$(this).val( $(this).val().replace(/[^\.0-9]/g,"") );} );	// 소수점 포함
 	$(".onlyeng").keyup(function(){$(this).val( $(this).val().replace(/[^\!-z]/g,"") );} );		// 영문만
+	
+	$(".onlynum2").blur(function(){$(this).val( gfn_maskAmt($(this).val().replace(/[^\.0-9]/g,""), true) );} );			// 숫자로 보이게 만듬.
 }
 
 

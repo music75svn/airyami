@@ -36,14 +36,14 @@ function fn_init(){
 	
 	// 관리자가 아니면 자기가 관련된 내용만 수정할수 있음
 	if(gfn_isAdmin()){
-		$('#BIZ_ENTITY_NM').attr("disabled", false);
-		$('#BIZ_ENTITY_ID').attr("disabled", false);
+		$('#COMP_NM').attr("disabled", false);
+		$('#COMP_ID').attr("disabled", false);
 		$('#btnW_companyPop').attr("disabled", false);
 	}
 	else{
 		// 관리자가 아니면 자기회사만 검색 가능하다.
-		$("#BIZ_ENTITY_ID").val(gfn_getSessionInfo("COMP_ID"))
-		$("#BIZ_ENTITY_NM").val(gfn_getSessionInfo("COMP_NM"))
+		$("#COMP_ID").val(gfn_getSessionInfo("COMP_ID"))
+		$("#COMP_NM").val(gfn_getSessionInfo("COMP_NM"))
 	}
 }
 
@@ -61,7 +61,7 @@ function fn_srch(){
 	
 	var inputParam = new Object();
 	inputParam.sid 				= "selectSupplyRateList";
-	inputParam.url 				= "/supplyRate/selectSupplyRateList.do";
+	inputParam.url 				= "/product/selectSupplyRateList.do";
 	inputParam.data 			= gfn_makeInputData($("#srchForm"));
 	
 	gfn_Transaction( inputParam );
@@ -113,21 +113,23 @@ function fn_goDetail(rowObj){
 	inputParam.SEQ 				= SEQ;
 	inputParam.MODE				= "DETAIL";
 	
-	gfn_commonGo("/supplyRate/supplyRateDetailPop", inputParam, "Y");
+	gfn_commonGo("/product/supplyRateDetailPop", inputParam, "Y");
 }
 
 function fn_goCreate(){
 	var inputParam				= {};
 	inputParam.MODE				= "CREATE";
+	inputParam.BIZ_ENTITY_ID	= SES_COMP_ID;
+	inputParam.SES_USER_TYPE	= SES_USER_TYPE;
 	
-	gfn_commonGo("/supplyRate/supplyRateDetailPop", inputParam, "Y");
+	gfn_commonGo("/product/supplyRateDetailPop", inputParam, "Y");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출
 function go_CompanyPop(){
 	var inputParam				= {};
-	inputParam.POP_COMP_NM 	= $('#BIZ_ENTITY_NM').val();
+	inputParam.POP_COMP_NM 	= $('#COMP_NM').val();
 	inputParam.sid 	= "findCompany";
 
 	gfn_commonGo("/user/companyFindListPop", inputParam, "Y");
@@ -136,7 +138,7 @@ function go_CompanyPop(){
 
 ////////////////////////////////////////////////////////////////////////////////////
 function fn_companyNmChange() {
-    $('#BIZ_ENTITY_ID').val('');
+    $('#COMP_ID').val('');
 }
 
 
@@ -166,7 +168,7 @@ function fn_companyNmChange() {
 		<form id="srchForm" name="srchForm" method="post" action="<c:url value='/commCode/codeList.do'/>" onsubmit="return false;">
 			<input type="hidden" name="pageNo" id="pageNo" value="1"/>
 			<input type="hidden" name="EXCEL_YN" id="EXCEL_YN" />
-			<input type="hidden" name="SORT_COL" id="SORT_COL" value="SEQ DESC"/>
+			<input type="hidden" name="SORT_COL" id="SORT_COL" value="PROD_NO DESC"/>
 			<input type="hidden" name="SORT_ACC" id="SORT_ACC" />
 			<input type="hidden" name="SEARCH_CODE_GROUP_ID" id="SEARCH_CODE_GROUP_ID" value='<c:out value="${CODE_GROUP_ID}"/>'/>
 		<div id="search">
@@ -179,9 +181,8 @@ function fn_companyNmChange() {
 					<label for="TO_DT" id="SDT1"><spring:message code="word.endDate"/></label>
 					<input type="text" size="8" name="TO_DT" id="TO_DT" class="datepicker"/>
 					<label for="FR_CURRENCY" id="S2"><spring:message code="word.bizEntityId"/></label>
-					<input type="text" name="BIZ_ENTITY_NM" id="BIZ_ENTITY_NM" maxlength="20" title="<spring:message code="word.bizEntityId"/>" depends="" onChange="fn_companyNmChange();" disabled />
-					<button type="button" id="btnW_companyPop" onClick="javascript:go_CompanyPop()"  disabled><spring:message code="button.search"/></button>
-					<input type="text" name="BIZ_ENTITY_ID" id="BIZ_ENTITY_ID" maxlength="8" title="<spring:message code="word.bizEntityId"/>" depends="required" readOnly/>
+					<input type="text" name="COMP_NM" id="COMP_NM" maxlength="20" title="<spring:message code="word.bizEntityId"/>" depends="" onChange="fn_companyNmChange();" readOnly />
+					<input type="text" name="COMP_ID" id="COMP_ID" maxlength="8" title="<spring:message code="word.bizEntityId"/>" depends="required" readOnly/>
 					<label for="SEARCH_PROD_NO" id="S1"><spring:message code="word.prodNo"/></label>
 					<input type="text" id="PROD_NO" name="PROD_NO" value="" title="<spring:message code="word.prodNo"/>" maxlength=20/>
 					<label for="SEARCH_PROD_NM" id="S2"><spring:message code="word.prodNm"/></label>
