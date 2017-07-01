@@ -20,8 +20,8 @@
               ,A.USER_ROLE
 			  ,A.EMAIL_ID			AS USER_EMAIL
 			  ,A.USER_TYPE		AS RULE_CD
-			  ,A.BIZ_ENTITY_ID	AS COMP_ID
-              ,B.COMP_NM
+			  ,IFNULL(A.BIZ_ENTITY_ID, '')	AS COMP_ID
+              ,IFNULL(B.COMP_NM, '') AS COMP_NM
 		  FROM TB_USER_MASTER A
                LEFT JOIN TB_COMPANY_MASTER B
                ON A.BIZ_ENTITY_ID = B.BIZ_ENTITY_ID

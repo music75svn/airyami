@@ -132,9 +132,6 @@ function fn_clearData(){
 
 <!-- container -->
 <div id="container">
-	<!-- menu -->
-<%@ include file="/layout/shop/menu_left.jsp"%>
-	<!--// menu -->
   
 	<div id="contents">
 		<h3><spring:message code="word.productDetail"/></h3>

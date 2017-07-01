@@ -1,4 +1,60 @@
-//
+// design 용 소스 반영
+
+// 20170701
+
+// 사이드메뉴 1 accordion
+$(document).ready(function(){
+	var icons = {
+	  header: "ui-icon-circle-arrow-e",
+	  activeHeader: "ui-icon-circle-arrow-s"
+	};
+	$( "#accordion" ).accordion({
+	  heightStyle: "content",
+	  // event: "mouseover",
+	  collapsible: true,
+	  active: false,
+	  icons: icons
+	});
+	$( "#toggle" ).button().on( "click", function() {
+	  if ( $( "#accordion" ).accordion( "option", "icons" ) ) {
+		$( "#accordion" ).accordion( "option", "icons", null );
+	  } else {
+		$( "#accordion" ).accordion( "option", "icons", icons );
+	  }
+	});
+  });
+
+// 사이드메뉴 2 open_close
+$(document).ready(function(){
+	$('#left_bg').hide();
+
+	$('#menu_open').click(function(){
+		$('#menu').animate({left:'0'}, 500);
+		$('#left_bg').show();
+	});
+
+
+	$('#menu_close, #left_bg, #accordion a').click(function(){
+		$('#menu').animate({left:'-80%'}, 500);
+		$('#left_bg').hide();
+	});
+});
+
+
+// 사이드메뉴 2 open_close
+$(document).ready(function(){
+	$('#biz>div').hide();
+
+	$('#biz').click(function(){
+		$('#biz>div').toggle();
+	});
+});
+
+
+//-- 20170701
+
+//-- design 용 소스 반영
+
 function gfn_TransactionMultipart( inputParam ) {
 	var frmObj = inputParam.form;
 	

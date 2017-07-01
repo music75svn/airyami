@@ -1,0 +1,185 @@
+@charset "utf-8";
+
+body.main{ background: url(../../img/main/main_bg.gif) left top repeat-x; }
+
+
+.recommend{ height: 520px; margin-bottom: 20px; text-align: center; }
+.recommend h2{ height: 125px; font-size: 26px; color: #1c1c1c; line-height: 120px; font-weight: 600; }
+.recommend h2 img{ vertical-align:-7px;  }
+.recommend h2 span{ font-size: 26px; margin-left: 10px; color: #096bd9; }
+.recommend .more>a{ float: right; display: inline-block; margin:-60px 70px 0 0; font-size: 15px; color: #878787; font-weight: 600; }
+.recommend ul{ margin-left:45px; }
+.recommend ul li.item{ float: left; position: relative; width: 246px; height:330px; margin:0 15px; background: #ffffff; border-radius: 15px; box-shadow: 0px 0px 10px #CCC; text-align: left; }
+.recommend ul li.item .icon{ position: absolute; left: 17px; top:12px;  }
+.recommend ul li.item a{}
+.recommend ul li.item a:hover{ text-decoration: underline; }
+.recommend ul li.item a p{ width: 220px; height: 220px; margin:12px auto; }
+.recommend ul li.item a p img{ max-width: 220px; max-height: 220px; }
+.recommend ul li.item a span{ padding-left: 20px; color: #949494; }
+.recommend ul li.item a span em{ padding-left: 5px; color: #03aba1; vertical-align:0; }
+.recommend ul li.item a strong{ display: block; max-height: 42px; padding:5px 20px 0; font-size: 15px; color: #535353; font-weight: 600; line-height: 21px; overflow: hidden; }
+
+
+.top_pro{ float:left; width: 530px; margin-bottom: 70px; }
+.top_pro h3{ padding-bottom: 15px; margin-bottom: 25px; border-bottom: 1px solid #303238; font-size: 26px; color: #101010; font-weight: 600; }
+.top_pro h3 img{ margin-right:5px; vertical-align: -5px; }
+.top_pro .more a{ float: right; display: inline-block; margin:-60px 0 0 0; font-size: 15px; color: #878787; font-weight: 600; }
+
+.top_pro dl{}
+.top_pro dl::after{ display: block; clear:both; content: ''; }
+.top_pro dt{}
+.top_pro dt::after{ display: block; clear:both; content: ''; }
+.top_pro dt a{}
+.top_pro dt a:hover{ text-decoration: underline;  }
+.top_pro dt .photo{ position: relative; float: left; width: 220px; height: 220px; margin-right: 35px; }
+.top_pro dt .photo img{  width: 218px; height: 218px; border:1px solid #f1f1f1;  }
+.top_pro dt .photo span{ position: absolute; left: 10px; top: 10px; }
+.top_pro dt .photo span img{ width: 50px; height: 50px; border: 0; }
+
+.top_pro dt .desc{ float: right; width: 275px; margin-bottom: 25px; }
+.top_pro dt .desc .red{ display: block; font-size: 16px; color: #dd0707; font-weight: 600; }
+.top_pro dt .desc .txt{ display: block; width: 100%; height: auto; min-height: 150px; padding-top: 10px; font-size: 18px; color: #535353; font-weight: 600; word-break: keep-all; }
+.top_pro dt .desc .txt .sm{ display: block; width: 100%; margin-top: 8px; font-size: 14px; color: #535353; }
+.top_pro dt .desc .cate{ display: block; color: #949494; }
+.top_pro dt .desc .cate em{ padding-left:5px; color: #03aba1; vertical-align: 0;  }
+.top_pro dt .desc .title{ display: block; font-size: 15px; color: #535353; line-height: 30px; }
+.top_pro dt a:hover .desc .cate,
+.top_pro dt a:hover .desc .title{ text-decoration: underline; }
+
+.top_pro dd{ float: left; display: inline-block; width:152px; margin-left: 37px; text-align: center; }
+.top_pro dd.first{ margin-left: 0; }
+.top_pro dd a{ display: inline-block; text-align: left; }
+.top_pro dd a p{ margin-bottom: 5px; }
+.top_pro dd a p img{ width: 150px; height: 150px; border: 1px solid #f2f2f2; }
+.top_pro dd a .cate{ color: #949494;  }
+.top_pro dd a .cate em{ padding-left:5px; color: #03aba1; vertical-align: 0;  }
+.top_pro dd a strong{ display: block; color: #535353; font-weight: 600; line-height: 24px; overflow: hidden;  }
+.top_pro dd a:hover .cate,
+.top_pro dd a:hover strong{ text-decoration: underline; }
+
+.arrival{ float: right; }
+
+
+.new_pro{ float: right; width: 530px; margin:25px 25px 0 0; }
+.new_pro h3{ padding-bottom: 15px; margin-bottom: 25px; border-bottom: 1px solid #303238; font-size: 26px; color: #101010; font-weight: 600; }
+.new_pro h3 img{ margin-right:5px; vertical-align: -10px; }
+.new_pro .more a{ float: right; display: inline-block; margin:-60px 0 0 0; font-size: 15px; color: #878787; font-weight: 600; }
+
+.new_pro li{ float: left; display: inline-block; width:152px; margin-left: 37px; text-align: center; }
+.new_pro li.first{ margin-left: 0; }
+.new_pro li a{ display: inline-block; text-align: left; }
+.new_pro li a p{ margin-bottom: 5px; }
+.new_pro li a p img{ width: 150px; height: 150px; border: 1px solid #f2f2f2; }
+.new_pro li a .new_item{ display: block; padding:5px 0 8px; font-size: 12px; font-weight: 600; color: #8ce51c; }
+.new_pro li a .cate{ color: #949494;  }
+.new_pro li a .cate em{ padding-left: 5px; color: #03aba1; vertical-align: 0; }
+.new_pro li a strong{ display: block; color: #535353; font-weight: 600; line-height: 24px; overflow: hidden;  }
+.new_pro li a:hover .cate,
+.new_pro li a:hover strong{ text-decoration: underline; }
+
+
+
+
+
+
+/*@media screen and (max-width: 767px) */
+@media screen and (min-width:641px) and (max-width:1024px){
+
+	.recommend{ float: none; width: 100%; min-height: 520px; height: auto; margin-bottom: 20px; padding-bottom: 50px; text-align: center; background: #f7f7f6; }
+	.recommend ul{ float: none; max-width: 600px; margin:0 auto}
+	.recommend ul li.item{ float: none; display: inline-block; position: relative; width: 246px; height:330px; margin:0 15px 20px 15px; background: #ffffff; border-radius: 15px; box-shadow: 0px 0px 10px #CCC; text-align: left; }
+	
+		
+	.top_pro{ float:none; width: 90%; margin:30px 5%; box-sizing: border-box; }
+	.top_pro dl{ width: auto; margin:0 auto; }
+	.top_pro dt{ display: table; margin-bottom: 20px; }
+	.top_pro dt .photo{ display: table-cell; position: relative; float: none; width: auto; min-width: 220px; height: 220px;  margin-right: 0; }
+	.top_pro dt .desc{ float: none; display: table-cell; width: auto; margin-bottom: 25px; padding-left: 20px; text-align: left; }
+	.top_pro dd{ float: left; display: inline-block; width:33.33333%; margin-left: 0; }
+
+	
+	.arrival{ float: left; width: 90%; margin:0 5%;  }
+	.arrival img{ max-width: 100%; }
+
+
+
+	.new_pro{ float: left; width: 90%; margin:20px 5% 50px; }
+	.new_pro li{ float: left; display: inline-block; width:33.3333%; margin-left: 0; text-align: center; }
+	.new_pro li.first{ margin-left: 0; }
+}
+
+
+
+
+
+
+
+
+@media screen and (max-width:640px){
+
+		.recommend{ position: relative; float: none; min-height: 520px; height: auto; margin-bottom: 20px; padding-bottom: 50px; text-align: center; background: #f7f7f6; }
+		.recommend h2 img{ display: none; }
+		.recommend .more>a{ position: absolute; left: 0; bottom:0; float: left; display: block; width: 100%; background: #26aea2; font-size: 15px; color: #FFF; font-weight: 600; line-height: 50px; }
+		.recommend ul{ float: none; max-width: 600px; margin:0 auto}
+		.recommend ul li.item{ float: none; display: inline-block; position: relative; width: 40%; height:auto; margin:0 2.5% 20px 2.5%; background: #ffffff; border-radius: 15px; box-shadow: 0px 0px 10px #CCC; text-align: left; }
+		.recommend ul li.item .icon img{ width: 70%;}
+		.recommend ul li.item a p{ width: 100%; height: 100%; }
+		.recommend ul li.item a p img{ max-width: 100%; max-height: auto; }
+		.recommend ul li.item a span{ display: inline-block; padding:0 0 0 20px !important; color: #949494; }		
+		.recommend ul li.item a span em{ display: block; padding-left: 0; color: #03aba1; vertical-align:0; }
+		.recommend ul li.item a strong{ display: block; height: 42px; max-height: 42px; margin:0 0 15px 0; padding:5px 20px 0; font-size: 15px; color: #535353; font-weight: 600; line-height: 21px; overflow: hidden; }
+
+
+			
+		.top_pro{ position: relative; float:none; width: 90%; margin:30px 5%; padding-bottom: 60px; box-sizing: border-box; }
+		.top_pro .more a{ position: absolute; left: -6%; bottom:0; float: left; display: block; width: 112%; background: #26aea2; font-size: 15px; color: #FFF; font-weight: 600; line-height: 50px; text-align: center; }
+		.top_pro dl{ width: auto; margin:0 auto; }
+		.top_pro dt{ display:block; margin-bottom: 20px; }
+		.top_pro dt .photo{ display: block; position: relative; float:none; width: 100%; height: auto; margin:0 0 10px 0; text-align: center; }
+		.top_pro dt .photo img{  width: 218px; height: 218px; border:1px solid #f1f1f1;  }
+		.top_pro dt .photo span{ position: absolute; left: 50%; top: 10px; margin-left: -100px; }
+		.top_pro dt .photo span img{ width: 50px; height: 50px; border: 0; }
+		.top_pro dt .desc{ float: none; display:block; width: auto; margin-bottom: 25px; padding-left: 20px; text-align: left; }
+		.top_pro dt .desc .txt{ display: block; width: 100%; height: auto; min-height: auto; padding-top: 10px; padding-bottom:10px; font-size: 18px; color: #535353; font-weight: 600; word-break: keep-all; }
+		.top_pro dd{ float: left; display: inline-block; width:100%; margin:0 0 10px 0; text-align: left;}
+		.top_pro dd a p{ display: table-cell; width: 35%;}
+		.top_pro dd a p img{ width: 100%; height: auto; border: 1px solid #f2f2f2; }
+		.top_pro dd a div{ display: table-cell; width: 60%; padding-left: 10px; }
+		.top_pro dd a .cate em{ display: block; padding:3px 0; color: #03aba1; vertical-align: 0; }
+		.top_pro dd a strong{ color: #535353; font-weight: 600; line-height: 18px; overflow: hidden;  }
+
+
+
+		
+		.arrival{ float: left; width: 90%; margin:0 5%;  }
+		.arrival img{ width: 100%; }
+
+
+
+		.new_pro{ position: relative; float:left; width: 90%; margin:20px 5% 10px; padding-bottom: 60px; box-sizing: border-box; }
+		.new_pro .more a{ position: absolute; left: -6%; bottom:0; float: left; display: block; width: 112%; background: #26aea2; font-size: 15px; color: #FFF; font-weight: 600; line-height: 50px; text-align: center; }
+		
+		.new_pro li{ float: left; display: inline-block; width:100%; margin:0 0 10px 0; text-align: left;}
+		.new_pro li a p{ display: table-cell; width: 35%; margin-right:5%; }
+		.new_pro li a p img{ width: 100%; height: auto; border: 1px solid #f2f2f2; }
+		.new_pro li a div{ display: table-cell; width: 60%; padding-left: 10px; }
+		.new_pro li a .new_item{ padding:3px 0 5px; font-size: 12px; font-weight: 600; color: #8ce51c; }
+		.new_pro li a .cate em{ display: block; padding:3px 0; color: #03aba1; vertical-align: 0; }
+		.new_pro li a strong{ color: #535353; font-weight: 600; line-height: 18px; overflow: hidden;  }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
