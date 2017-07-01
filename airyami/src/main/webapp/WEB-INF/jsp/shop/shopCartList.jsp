@@ -3,10 +3,9 @@
 <%@ page import="egovframework.airyami.cmm.util.*"%>
 <html lang="ko">
 <head>
-<meta http-equiv="Content-Type" content="text/html;application/json; charset=utf-8" />
-<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-<%@ include file="/include/title.jsp"%>
+
 <%@ include file="/include/shop_standard.jsp"%>
+<%@ include file="/include/title.jsp"%>
 
 <script type="text/javascript">
 var onload = true;
@@ -190,17 +189,16 @@ function fn_popCallBack(sid, data){
 </script>
 
 </head>
-<body>
+<body class="main">
 <!-- wrap -->
 <div id="wrap">
 
 <!--  header -->
-<%@ include file="/layout/shop/header.jsp"%>
+<%@ include file="/layout/shop_header.jsp"%>
 <!--//  header --> 
 
 <!-- container -->
 <div id="container">
-
   
 	<div id="contents">
 		<h3><spring:message code="word.cart"/></h3>
@@ -317,12 +315,9 @@ function fn_popCallBack(sid, data){
 	</div> 
 </div>
 
-
-<!--  footer -->
-<%@ include file="/layout/footer.jsp"%>
-<!--  //footer -->
-	
-</div>
 <!-- wrap -->
+<!--  footer -->
+<%@ include file="/layout/shop_footer.jsp"%>
+<!--  //footer -->
 </body>
 </html>

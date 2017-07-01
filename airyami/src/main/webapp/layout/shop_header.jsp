@@ -57,10 +57,9 @@ function fn_callBackHMenu(sid, result, data){
 <!-- header -->
 	<div id="header">
 		<ul class="member">
-			<li><a href="#">홍길동님</a> | </li>
-			<li><a href="#">장바구니(<em>10</em>)</a></li>
+			<li><a href="#"><c:out value="${ds_userInfo.ORIGINAL_NM}"/></a> | </li>
+			<li><a href="/shop/shopCartList.do">장바구니(<em><c:out value="${ds_userInfo.CART_COUNT}"/></em>)</a></li>
 		</ul>
-
 
 		<div class="top">
 			<h1><img src="../img/common/logo.png" alt="Airyami"></h1>
@@ -73,7 +72,7 @@ function fn_callBackHMenu(sid, result, data){
 			<ul>
 				<li><a href="#">제품 스토어</a> / </li>
 				<li id="biz">
-					<a href="#">비즈니스 센터</a> / 
+					<a href="#">비즈니스 센터</a>
 					<div>
 						<ul>
 							<li><a href="#">등록센터</a> | </li>
@@ -82,7 +81,11 @@ function fn_callBackHMenu(sid, result, data){
 						</ul>
 					</div>
 				</li>
-				<li><a href="#">관리자 바로가기</a></li>
+		<c:choose>
+			<c:when test="${ds_userInfo.USER_TYPE != 'C'}">
+				 <li>/ <a href="/admin/main.do">관리자 바로가기</a></li>
+			</c:when>
+		</c:choose>
 			</ul>
 
 

@@ -210,7 +210,7 @@ public class ShopProductController {
     	params.put("SEARCH_USER_ID", params.get("LOGIN_ID"));
 		ValueMap userInfo = cmmService.getCommDbMap(params, "user.getUserDetail");
 		model.put("ds_userInfo", userInfo);
-    	
+		
     	return "/shop/shopCartList";
     }
     

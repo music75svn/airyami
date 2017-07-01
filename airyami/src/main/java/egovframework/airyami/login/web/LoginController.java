@@ -156,6 +156,12 @@ public class LoginController {
 			HttpServletResponse response, ModelMap model) throws Exception {
 
 		Map<String, Object> params = CommonUtils.getRequestMap(request);
+
+		params.put("SEARCH_USER_ID", params.get("LOGIN_ID"));
+		ValueMap ds_detail = cmmService.getCommDbMap(params, "user.getUserDetail");
+		
+		model.put("ds_userInfo", ds_detail);
+		
 		CommonUtils.setModelByParams(model, params, request);
 
 		return "/main";
