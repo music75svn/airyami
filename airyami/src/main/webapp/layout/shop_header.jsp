@@ -72,7 +72,7 @@ function fn_callBackHMenu(sid, result, data){
 			<ul>
 				<li><a href="#">제품 스토어</a> / </li>
 				<li id="biz">
-					<a href="#">비즈니스 센터</a>
+					<a href="#">비즈니스 센터</a> <c:choose><c:when test="${ds_userInfo.USER_TYPE != 'C'}">/</c:when></c:choose>
 					<div>
 						<ul>
 							<li><a href="#">등록센터</a> | </li>
@@ -83,7 +83,7 @@ function fn_callBackHMenu(sid, result, data){
 				</li>
 		<c:choose>
 			<c:when test="${ds_userInfo.USER_TYPE != 'C'}">
-				 <li>/ <a href="/admin/main.do">관리자 바로가기</a></li>
+				 <li><a href="/admin/main.do">관리자 바로가기</a></li>
 			</c:when>
 		</c:choose>
 			</ul>
