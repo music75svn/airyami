@@ -66,7 +66,7 @@ function fn_callBack(sid, result, data){
 // Click evnet
 // 저장버튼클릭
 function fn_goSave(){
-	
+
 	if(!gfn_validationForm($("#dataForm"))){
 		return;
 	}
@@ -78,6 +78,23 @@ function fn_goSave(){
 		}
 	</c:when>
 </c:choose>
+
+	if($('#USER_TYPE_ROLE').val() == 'CCUS'){
+		if($('#RECOMMENDER_ID').val() == ''){
+			alert("<spring:message code="word.recommenderId"/><spring:message code="common.required.msg"/>");
+			$('#RECOMMENDER_ID').focus();
+			return;
+		}
+	}
+
+	if($('#USER_TYPE_ROLE').val() != 'CCUS' && $('#USER_TYPE_ROLE').val() != 'MADM'){
+		if($('#BIZ_ENTITY_ID').val() == ''){
+			alert("<spring:message code="word.bizEntityId"/><spring:message code="common.required.msg"/>");
+			$('#BIZ_ENTITY_NM').focus();
+			return;
+		}
+	}
+
 	if(!confirm("<spring:message code="common.save.msg"/>")){
 		return false;
 	}
