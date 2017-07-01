@@ -143,12 +143,23 @@ function go_CompanyPop(){
 	gfn_commonGo("/user/companyFindListPop", inputParam, "Y");
 }
 
+function fn_recommenderPop(){
+	var inputParam				= {};
+	inputParam.POP_USER_NM 	= $('#RECOMMENDER_NM').val();
+	inputParam.sid 	= "findRecommender";
+
+	gfn_commonGo("/user/userFindListPop", inputParam, "Y");
+}
+
 //팝업콜백 함수
 function fn_popCallBack(sid, data){
 	// fn_srch
 	if(sid == "findCompany"){
 		$('#BIZ_ENTITY_ID').val(data.BIZ_ENTITY_ID);
 		$('#BIZ_ENTITY_NM').val(data.BIZ_ENTITY_NM);
+	}else if(sid == "findRecommender"){
+		$('#RECOMMENDER_ID').val(data.USER_ID);
+		$('#RECOMMENDER_NM').val(data.USER_NM);
 	}
 }
 
@@ -368,7 +379,11 @@ function fn_clearData(){
 			</tr>
 			<tr>
 				<th colspan="2"><spring:message code="word.recommenderId"/></th>
-				<td colspan="3"><input type="text" name="RECOMMENDER_ID" id="RECOMMENDER_ID" maxlength="20" title="<spring:message code="word.recommenderId"/>" depends="englishNumeric"/></td>
+				<td colspan="3">
+					<input type="text" name="RECOMMENDER_NM" id="RECOMMENDER_NM" maxlength="20" title="<spring:message code="word.recommenderId"/>" depends="" onChange="fn_userNmChange();"/>
+					<button type="button" id="btnW_userPop" onClick="javascript:fn_recommenderPop()"><spring:message code="button.search"/></button>
+					<input type="text" name="RECOMMENDER_ID" id="RECOMMENDER_ID" maxlength="20" title="<spring:message code="word.recommenderId"/>" depends="" readOnly/>
+				</td>
 			</tr>
 		<c:choose>
 			<c:when test="${MODE=='DETAIL'}">
