@@ -56,10 +56,7 @@ function fn_callBackHMenu(sid, result, data){
 </script>
 <!-- header -->
 	<div id="header">
-		<ul class="member">
-			<li><a href="#"><c:out value="${ds_userInfo.ORIGINAL_NM}"/></a> | </li>
-			<li><a href="/shop/shopCartList.do">장바구니(<em><c:out value="${ds_userInfo.CART_COUNT}"/></em>)</a></li>
-		</ul>
+		<span id="top_link"></span>
 
 		<div class="top">
 			<h1><img src="../img/common/logo.png" alt="Airyami"></h1>

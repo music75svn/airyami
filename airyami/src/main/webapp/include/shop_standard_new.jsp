@@ -6,7 +6,7 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib uri="/WEB-INF/tlds/ppeUtil.tld" prefix="ppe" %>
-<jsp:include page="/include/common.jsp"/>
+<%-- <jsp:include page="/include/common.jsp"/> --%>
 <%@ include file="/include/message.jsp"%>
 
 <%@ page import="egovframework.airyami.cmm.util.UrlUtil"%>

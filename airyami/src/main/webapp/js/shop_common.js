@@ -51,21 +51,36 @@ function gfn_SetCommInit(){
 		}
 	});
 	
-	//var site_id = site_id = "?SITE_ID=" + gfn_getSiteID();
+	// 고객 명 셋팅 
+	$("td[id^='USERINFO'], span[id^='USERINFO'], div[id^='USERINFO'], li[id^='USERINFO']").each(function() {
+		if (!(typeof SES_USER_NAME == 'undefined')) {
+			if(!gfn_isNull(SES_USER_NAME)){
+				var commTag = "<a href=\"#\">" + SES_USER_NAME + "</a> | ";
+				$(this).html(commTag);
+			}
+		}
+	});
+	
+	
 	var site_id = "?";
+	
 	
 	$("td[id^='top_link'], span[id^='top_link'], div[id^='top_link']").each(function() {
 		
-		var commTag = "<ul>";
-		commTag += "<li><a href=\""+ gfn_getApplication() +"/shop/shopCartList.do\">장바구니</a></li>";
-
-		commTag += "<li><a href=\""+ gfn_getApplication() +"/shop/shopProductDetail.do?PROD_NO=CN00002\">상품상세</a></li>";
-
+		var commTag = "<ul class=\"member\">";
 		try{
 			alert(SES_USER_TYPE);
 			if(SES_USER_TYPE != "C")
 				commTag += "<li><a href=\""+ gfn_getApplication() +"/admin/main.do"+site_id+"\">Manager</a></li>";
 		}catch(e){};
+		
+		if(!gfn_isNull(SES_USER_NAME)){
+			commTag += "<li><a href=\"#\">" + SES_USER_NAME + "</a> | </li>";
+		}
+		
+		commTag += "<li><a href=\"/shop/shopCartList.do\">" + "장바구니" + "(<em>" + 0 + "</em>)</a></li>";
+
+		// test를 위해 임시사용
 		
 		if(gfn_isLogin()){
 			commTag += "<li><a href=\""+ gfn_getApplication() +"/login/logout.do"+site_id+"\">로그아웃</a></li>";
@@ -73,6 +88,9 @@ function gfn_SetCommInit(){
 		}
 		else
 			commTag += "<li><a href=\""+ gfn_getApplication() +"/login/login.do"+site_id+"\">로그인</a></li>";
+		
+		commTag += "<li><a href=\""+ gfn_getApplication() +"/shop/shopProductDetail.do?PROD_NO=CN00002\">상품상세</a></li>";
+		//-- test를 위해 임시사용
 			
 		commTag += "</ul>";
 			
