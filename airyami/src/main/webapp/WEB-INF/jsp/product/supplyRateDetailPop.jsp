@@ -32,7 +32,7 @@ function fn_init(){
 	}
 	else{
 		$('#VALID_START_DATE').val(gfn_getToday(true));
-		$('#VALID_END_DATE').val('20991231');
+		$('#VALID_END_DATE').val('2099-12-31');
 	}
 
 }
@@ -192,13 +192,40 @@ function fn_callBack(sid, result){
 			<tr>
 				<th>공급율</th>
 				<td>
-					<input type="text" size="5" name="SUPPLY_RATE" id="SUPPLY_RATE" isNum="Y" depends="required">
+					<input type="text" size="5" name="SUPPLY_RATE" id="SUPPLY_RATE" isNum="Y">
 				</td>
 			</tr>
 			<tr>
 				<th>가격</th>
 				<td>
 					<input type="text" size="10" name="PRICE" id="PRICE" isNum="Y" class="onlynum2" depends="required">
+				</td>
+			</tr>
+			<tr>
+				<th>할인가능최소수량</th>
+				<td>
+					<input type="text" size="11" name="DC_MIN_QTY" id="DC_MIN_QTY" isNum="Y" class="onlynum2">
+				</td>
+			</tr>
+			<tr>
+				<th>할인 공급율</th>
+				<td>
+					<input type="text" size="5" name="DC_SUPPLY_RATE" id="DC_SUPPLY_RATE" isNum="Y">
+				</td>
+			</tr>
+			<tr>
+				<th>할인 가격</th>
+				<td>
+					<input type="text" size="10" name="DC_SUPPLY_PRICE" id="DC_SUPPLY_PRICE" isNum="Y" class="onlynum2" depends="required">
+				</td>
+			</tr>
+			<tr>
+				<th>공급가능 유효성여부</th>
+				<td>
+					<select id="VALID_YN" name="VALID_YN" title="<spring:message code="cop.useAt"/>">
+						<option value="Y"><spring:message code="button.use"/></option>
+						<option value="N"><spring:message code="button.notUsed"/></option>
+					</select>
 				</td>
 			</tr>
 		</table>

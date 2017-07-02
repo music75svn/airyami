@@ -109,6 +109,7 @@ public class CommonUtils {
         
         result.put("LANG_CD", getLangCd(request));
         result.put("LOCAL_LANG", EgovProperties.getProperty("Globals.LocalLangCd"));
+        result.put("LOCAL_CURRENCY", EgovProperties.getProperty("Globals.LocalCurrency"));
         
         
         AuthCheck idCk = new AuthCheck (request, null);
@@ -118,6 +119,8 @@ public class CommonUtils {
 				result.put("LOGIN_NM", idCk.getUser_nm());
 				result.put("USER_TYPE", idCk.getUser_type());
 				result.put("USER_ROLE", idCk.getUser_role());
+				result.put("COMP_ID", idCk.getComp_Id());
+				result.put("COMP_NM", idCk.getComp_Nm());
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -187,6 +190,7 @@ public class CommonUtils {
     	model.put("MYPATH", UrlUtil.getMenuID(request));
     	model.put("REFPATH", UrlUtil.getRefPath(request));
     	model.put("LOCAL_LANG", EgovProperties.getProperty("Globals.LocalLangCd"));
+    	model.put("LOCAL_CURRENCY", EgovProperties.getProperty("Globals.LocalCurrency"));
     }
     
     /**
