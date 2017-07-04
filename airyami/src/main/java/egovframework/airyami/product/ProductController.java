@@ -85,6 +85,19 @@ public class ProductController {
     PlatformTransactionManager transactionManager;
     
     /**
+     * 상품 찾기 팝업 이동 
+     */
+    @RequestMapping(value="/product/productFindListPop.do")
+    public String dispProdOnMainFindListPop(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
+    	
+    	return "/product/productFindListPop";
+    }
+    
+    /**
      * 상품 리스트 이동 
      */
     @RequestMapping(value="/product/productList.do")

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="dispProdOnMain">
+
+<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+	
+	<select id="dispProdOnMain.getDispProdOnMainCount" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT /* DispProdOnMain_Mysql.xml  dispProdOnMain.getDispProdOnMainCount */
+	       COUNT(1) 
+	  FROM TB_DISP_PROD_ON_MAIN A
+	     , TB_PRODUCT_NAME B
+	 WHERE 1 = 1
+	   AND A.PROD_NO = B.PROD_NO
+	   AND B.LANG_CD = #LANG_CD#
+	 <isNotEmpty property="SEARCH_DISPLAY_TYPE_CD">
+	   AND A.DISPLAY_TYPE_CD = #SEARCH_DISPLAY_TYPE_CD#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_NO">
+	   AND A.PROD_NO = #SEARCH_PROD_NO#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_NM">
+	   AND (
+	   		B.PROD_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%') OR
+	   		B.PROD_SHORT_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
+	   		)
+	 </isNotEmpty>
+	</select>
+	
+	<select id="dispProdOnMain.getDispProdOnMainList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingPrefixSQL"/>
+	</isEqual>
+	SELECT /* DispProdOnMain_Mysql.xml  dispProdOnMain.getDispProdOnMainList */
+           A.PROD_NO             
+         , B.PROD_NM
+         , B.PROD_SHORT_NM
+         , A.DISPLAY_TYPE_CD
+         , FN_GET_CODE_NM('DISPLAY_TYPE', A.DISPLAY_TYPE_CD, #LANG_CD#) AS DISPLAY_TYPE_NM
+         , DATE_FORMAT(str_to_date(A.VALID_START_DT, '%Y%m%d'), '%Y-%m-%d') AS VALID_START_DT
+         , DATE_FORMAT(str_to_date(A.VALID_END_DT, '%Y%m%d'), '%Y-%m-%d') AS VALID_END_DT
+	  FROM TB_DISP_PROD_ON_MAIN A
+	     , TB_PRODUCT_NAME B
+	 WHERE 1 = 1
+	   AND A.PROD_NO = B.PROD_NO
+	   AND B.LANG_CD = #LANG_CD#
+	 <isNotEmpty property="SEARCH_DISPLAY_TYPE_CD">
+	   AND A.DISPLAY_TYPE_CD = #SEARCH_DISPLAY_TYPE_CD#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_NO">
+	   AND A.PROD_NO = #SEARCH_PROD_NO#
+	 </isNotEmpty>
+	 <isNotEmpty property="SEARCH_PROD_NM">
+	   AND (
+	   		B.PROD_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%') OR
+	   		B.PROD_SHORT_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
+	   		)
+	 </isNotEmpty>
+	 <isNotEmpty property="SORT_COL">
+	 	<include refid="orderbySQL"/>
+	 </isNotEmpty>
+	 <isEmpty property="SORT_COL">
+	 ORDER BY A.INSERT_DT DESC
+	 </isEmpty>
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingSuffixSQL"/>
+	</isEqual>
+	</select>
+ 
+	<!-- TB_DISP_PROD_ON_MAIN 상세조회 -->
+	<select id="dispProdOnMain.getDispProdOnMainDetail" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* DispProdOnMain_Mysql.xml  dispProdOnMain.getDispProdOnMainDetail */
+           A.PROD_NO
+		 , B.PROD_NM
+         , A.DISPLAY_TYPE_CD
+         , A.VALID_START_DT
+         , A.VALID_END_DT
+	  FROM TB_DISP_PROD_ON_MAIN A
+	     , TB_PRODUCT_NAME B
+	 WHERE A.PROD_NO = #SEARCH_PROD_NO#
+	   AND A.PROD_NO = B.PROD_NO
+	   AND B.LANG_CD = #LANG_CD#
+	   AND A.DISPLAY_TYPE_CD = #SEARCH_DISPLAY_TYPE_CD#
+	</select>
+	
+	<select id="dispProdOnMain.getDispProdOnMainExistYn" parameterClass="Map" resultClass="java.lang.String">
+	SELECT /* DispProdOnMain_Mysql.xml  dispProdOnMain.getDispProdOnMainExistYn */
+		   CASE WHEN count(*) = 0 THEN 'N' ELSE 'Y' END EXIST_YN
+	  FROM TB_DISP_PROD_ON_MAIN
+	 WHERE PROD_NO = #SEARCH_PROD_NO#
+	   AND DISPLAY_TYPE_CD = #SEARCH_DISPLAY_TYPE_CD#
+	</select>
+	
+	<insert id="dispProdOnMain.insertDispProdOnMain" parameterClass="Map">
+	INSERT /* DispProdOnMain_Mysql.xml  dispProdOnMain.insertDispProdOnMain */
+	  INTO TB_DISP_PROD_ON_MAIN
+		(
+ 		   PROD_NO   
+		 , DISPLAY_TYPE_CD 
+		 , VALID_START_DT        
+		 , VALID_END_DT  
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+		   #PROD_NO#
+		 , #DISPLAY_TYPE_CD#
+		 , #VALID_START_DT#
+		 , #VALID_END_DT#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+	
+	<update id="dispProdOnMain.updateDispProdOnMain" parameterClass="Map">
+	UPDATE /* DispProdOnMain_Mysql.xml  dispProdOnMain.updateDispProdOnMain */
+	       TB_DISP_PROD_ON_MAIN
+	   SET VALID_START_DT               = #VALID_START_DT#
+		 , VALID_END_DT              	= #VALID_END_DT#
+	     , UPDATE_USER_ID               = #LOGIN_ID#
+	     , UPDATE_DT                    = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	  WHERE PROD_NO = #PROD_NO#
+	    AND DISPLAY_TYPE_CD = #DISPLAY_TYPE_CD#
+	</update>
+	
+	<delete id="dispProdOnMain.deleteDispProdOnMain" parameterClass="Map">
+	DELETE /* DispProdOnMain_Mysql.xml  dispProdOnMain.deleteDispProdOnMain */
+	  FROM TB_DISP_PROD_ON_MAIN
+	  WHERE PROD_NO = #PROD_NO#
+	    AND DISPLAY_TYPE_CD = #DISPLAY_TYPE_CD#
+	</delete>
+</sqlMap>

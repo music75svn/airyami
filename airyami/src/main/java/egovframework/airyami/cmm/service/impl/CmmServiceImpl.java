@@ -12,6 +12,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import egovframework.airyami.cmm.service.CmmService;
 import egovframework.airyami.cmm.util.ValueMap;
@@ -28,12 +32,15 @@ public class CmmServiceImpl extends AbstractServiceImpl implements CmmService
     @Resource(name="cmmDAO")
     private CmmDAO cmmDAO;
 
+    /** Transaction */    
+    @Resource(name="txManager")
+    PlatformTransactionManager transactionManager;
     
     /*
      * 메뉴 클릭시 접속 로그 남기기
      */
 	public int insertMenuLog(Map<String, Object> paramMap) throws Exception {
-		// TODO Auto-generated method stub
+		// Transaction Setting
 		return cmmDAO.insertMenuLog(paramMap);
 	}
 	
@@ -122,41 +129,91 @@ public class CmmServiceImpl extends AbstractServiceImpl implements CmmService
 	 * 공통 서비스 등록
 	 */
 	public void insertCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
-		// TODO Auto-generated method stub
-		cmmDAO.insertCommDb(paramMap, sql);
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+
+		TransactionStatus status = transactionManager.getTransaction(def);
+		
+		try{
+			// TODO Auto-generated method stub
+			cmmDAO.insertCommDb(paramMap, sql);
+		}
+    	catch(Exception e){
+    		transactionManager.rollback(status);
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
 	}
 	
 	/**
 	 * 공통 서비스 수정
 	 */
 	public int updateCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
-		// TODO Auto-generated method stub
-		return cmmDAO.updateCommDb(paramMap, sql);
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+
+		TransactionStatus status = transactionManager.getTransaction(def);
+		
+		try{
+			// TODO Auto-generated method stub
+			return cmmDAO.updateCommDb(paramMap, sql);
+		}
+    	catch(Exception e){
+    		transactionManager.rollback(status);
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+		return 0;
 	}
 	
 	/**
 	 * 공통 서비스 삭제
 	 */
 	public int deleteCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
-		// TODO Auto-generated method stub
-		return cmmDAO.deleteCommDb(paramMap, sql);
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+
+		TransactionStatus status = transactionManager.getTransaction(def);
+		
+		try{
+			// TODO Auto-generated method stub
+			return cmmDAO.deleteCommDb(paramMap, sql);
+		}
+    	catch(Exception e){
+    		transactionManager.rollback(status);
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+		return 0;
 	}
 	
 	/**
 	 * 공통 서비스 다중커리 처리
 	 */
 	public void saveCommDbList( List queryList )  throws Exception{
-		// TODO Auto-generated method stub
-		for(int i = 0; i < queryList.size(); i++){
-			Map queryMap = (Map)queryList.get(i);
-			
-			if("INSERT".equals(queryMap.get("queryGubun"))){
-				cmmDAO.insertCommDb(queryMap, (String)queryMap.get("query"));
-			}else if("UPDATE".equals(queryMap.get("queryGubun"))){
-				cmmDAO.updateCommDb(queryMap, (String)queryMap.get("query"));
-			}else if("DELETE".equals(queryMap.get("queryGubun"))){
-				cmmDAO.deleteCommDb(queryMap, (String)queryMap.get("query"));
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+
+		TransactionStatus status = transactionManager.getTransaction(def);
+		
+		try{
+			// TODO Auto-generated method stub
+			for(int i = 0; i < queryList.size(); i++){
+				Map queryMap = (Map)queryList.get(i);
+				
+				if("INSERT".equals(queryMap.get("queryGubun"))){
+					cmmDAO.insertCommDb(queryMap, (String)queryMap.get("query"));
+				}else if("UPDATE".equals(queryMap.get("queryGubun"))){
+					cmmDAO.updateCommDb(queryMap, (String)queryMap.get("query"));
+				}else if("DELETE".equals(queryMap.get("queryGubun"))){
+					cmmDAO.deleteCommDb(queryMap, (String)queryMap.get("query"));
+				}
 			}
 		}
+    	catch(Exception e){
+    		transactionManager.rollback(status);
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
 	}
 }

@@ -18,7 +18,7 @@
 	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_PROD_NM">
 	   AND (
-	   		B.PROD_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
+	   		B.PROD_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%') OR
 	   		B.PROD_SHORT_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
 	   		)
 	 </isNotEmpty>
@@ -92,7 +92,7 @@
 	 </isNotEmpty>
 	 <isNotEmpty property="SEARCH_PROD_NM">
 	   AND (
-	   		B.PROD_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
+	   		B.PROD_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%') OR
 	   		B.PROD_SHORT_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
 	   		)
 	 </isNotEmpty>
