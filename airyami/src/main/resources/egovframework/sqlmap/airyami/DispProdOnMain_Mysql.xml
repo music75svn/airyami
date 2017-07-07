@@ -87,8 +87,8 @@
 	SELECT /* DispProdOnMain_Mysql.xml  dispProdOnMain.getDispProdOnMainExistYn */
 		   CASE WHEN count(*) = 0 THEN 'N' ELSE 'Y' END EXIST_YN
 	  FROM TB_DISP_PROD_ON_MAIN
-	 WHERE PROD_NO = #SEARCH_PROD_NO#
-	   AND DISPLAY_TYPE_CD = #SEARCH_DISPLAY_TYPE_CD#
+	 WHERE PROD_NO = #PROD_NO#
+	   AND DISPLAY_TYPE_CD = #DISPLAY_TYPE_CD#
 	</select>
 	
 	<insert id="dispProdOnMain.insertDispProdOnMain" parameterClass="Map">

@@ -1,134 +1,175 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
 
-<sqlMap namespace="supplyRate">
+<sqlMap namespace="SupplyRate">
 
 <typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
-
-<select id="supplyRate.selectSupplyRateListCnt" parameterClass="Map" resultClass="java.lang.Integer">
-	SELECT COUNT(1) 
+	
+	<select id="supplyRate.getSupplyRateCount" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT /* SupplyRate_Mysql.xml  supplyRate.getSupplyRateCount */
+	       COUNT(1) 
 	  FROM TB_SUPPLY_RATE A
-	      ,TB_COMPANY_MASTER C1
-	      ,TB_COMPANY_MASTER C2
-	 WHERE A.BIZ_ENTITY_ID = C1.BIZ_ENTITY_ID
-	   AND A.BUYER_BIZ_ENTITY_ID = C2.BIZ_ENTITY_ID
-	 <isNotEmpty property="COMP_ID">
-	   AND (A.BIZ_ENTITY_ID = #COMP_ID# OR A.BUYER_BIZ_ENTITY_ID = #COMP_ID#)
+	  LEFT OUTER JOIN TB_COMPANY_MASTER B ON A.BIZ_ENTITY_ID = B.BIZ_ENTITY_ID
+	  LEFT OUTER JOIN TB_COMPANY_MASTER C ON A.BUYER_BIZ_ENTITY_ID = C.BIZ_ENTITY_ID
+	  LEFT OUTER JOIN TB_PRODUCT_NAME D ON A.PROD_NO = D.PROD_NO AND D.LANG_CD = #LANG_CD#
+	 WHERE 1 = 1
+	 <isNotEmpty property="SEARCH_PROD_NM">
+	   AND D.PROD_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
 	 </isNotEmpty>
-	 <isNotEmpty property="PROD_NO">
-	   AND A.PROD_NO = #PROD_NO#
+	 <isNotEmpty property="SEARCH_COMP_NM">
+	   AND (B.COMP_NM LIKE CONCAT('%',#SEARCH_COMP_NM#,'%') OR
+	        C.COMP_NM LIKE CONCAT('%',#SEARCH_COMP_NM#,'%'))
 	 </isNotEmpty>
-	 <isNotEmpty property="VALID_YN">
-	   AND A.VALID_YN = #VALID_YN#
+	 <isNotEmpty property="SEARCH_VALID_YN">
+	   AND A.VALID_YN = #SEARCH_VALID_YN#
 	 </isNotEmpty>
-</select>
-		
-<select id="supplyRate.selectSupplyRateList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	</select>
+	
+	<select id="supplyRate.getSupplyRateList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
 	<isEqual property="EXCEL_YN" compareValue="N">
 	<include refid="pagingPrefixSQL"/>
 	</isEqual>
-	SELECT /* SupplyRate_Mysql.xml  supplyRate.selectSupplyRateList */
-	       A.BIZ_ENTITY_ID
-	      ,C1.COMP_NM
-	      ,A.BUYER_BIZ_ENTITY_ID
-	      ,C2.COMP_NM 	AS BUYER_COMP_NM
-	      ,FN_GET_CODE_NM('CURRENCY',  A.CURRENCY, #LANG_CD#) AS CURRENCY_NM
-	      ,CONCAT(DATE_FORMAT(STR_TO_DATE(A.VALID_START_DATE,'%Y%m%d'), '%Y-%m-%d'), ' ~ ', DATE_FORMAT(STR_TO_DATE(A.VALID_END_DATE,'%Y%m%d'), '%Y-%m-%d') ) AS GIGAN
-	      ,A.SUPPLY_RATE
-	      ,A.PRICE
-	      ,A.DC_MIN_QTY
-	      ,A.DC_SUPPLY_RATE
-	      ,A.DC_SUPPLY_PRICE
-	      ,A.VALID_YN
+	SELECT /* SupplyRate_Mysql.xml  supplyRate.getSupplyRateList */
+           A.BIZ_ENTITY_ID
+         , B.COMP_NM AS BIZ_ENTITY_NM
+         , A.PROD_NO
+         , D.PROD_NM
+         , A.BUYER_BIZ_ENTITY_ID
+         , C.COMP_NM AS BUYER_BIZ_ENTITY_NM
+         , A.VALID_START_DT
+         , A.VALID_END_DT
+         , CONCAT(DATE_FORMAT(str_to_date(A.VALID_START_DT, '%Y%m%d'), '%Y-%m-%d'), '~',DATE_FORMAT(str_to_date(A.VALID_END_DT, '%Y%m%d'), '%Y-%m-%d'))         AS VALID_DT
+         , A.CURRENCY
+         , FN_GET_CODE_NM('CURRENCY', A.CURRENCY, #LANG_CD#) AS CURRENCY_NM
+         , A.SUPPLY_RATE
+         , A.PRICE
+         , A.DC_MIN_QTY
+         , A.DC_SUPPLY_RATE
+         , A.DC_SUPPLY_PRICE
+         , A.VALID_YN
 	  FROM TB_SUPPLY_RATE A
-	      ,TB_COMPANY_MASTER C1
-	      ,TB_COMPANY_MASTER C2
-	 WHERE A.BIZ_ENTITY_ID = C1.BIZ_ENTITY_ID
-	   AND A.BUYER_BIZ_ENTITY_ID = C2.BIZ_ENTITY_ID
-	 <isNotEmpty property="COMP_ID">
-	   AND (A.BIZ_ENTITY_ID = #COMP_ID# OR A.BUYER_BIZ_ENTITY_ID = #COMP_ID#)
+	  LEFT OUTER JOIN TB_COMPANY_MASTER B ON A.BIZ_ENTITY_ID = B.BIZ_ENTITY_ID
+	  LEFT OUTER JOIN TB_COMPANY_MASTER C ON A.BUYER_BIZ_ENTITY_ID = C.BIZ_ENTITY_ID
+	  LEFT OUTER JOIN TB_PRODUCT_NAME D ON A.PROD_NO = D.PROD_NO AND D.LANG_CD = #LANG_CD#
+	 WHERE 1 = 1
+	 <isNotEmpty property="SEARCH_PROD_NM">
+	   AND D.PROD_NM LIKE CONCAT('%',#SEARCH_PROD_NM#,'%')
 	 </isNotEmpty>
-	 <isNotEmpty property="PROD_NO">
-	   AND A.PROD_NO = #PROD_NO#
+	 <isNotEmpty property="SEARCH_COMP_NM">
+	   AND (B.COMP_NM LIKE CONCAT('%',#SEARCH_COMP_NM#,'%') OR
+	        C.COMP_NM LIKE CONCAT('%',#SEARCH_COMP_NM#,'%'))
 	 </isNotEmpty>
-	 <isNotEmpty property="VALID_YN">
-	   AND A.VALID_YN = #VALID_YN#
+	 <isNotEmpty property="SEARCH_VALID_YN">
+	   AND A.VALID_YN = #SEARCH_VALID_YN#
 	 </isNotEmpty>
 	 <isNotEmpty property="SORT_COL">
 	 	<include refid="orderbySQL"/>
 	 </isNotEmpty>
 	 <isEmpty property="SORT_COL">
-	 ORDER BY SEQ DESC
+	 ORDER BY A.INSERT_DT DESC
 	 </isEmpty>
 	<isEqual property="EXCEL_YN" compareValue="N">
 	<include refid="pagingSuffixSQL"/>
 	</isEqual>
-</select>
-
-
-
-<select id="supplyRate.getSupplyRateDetail" parameterClass="Map" resultClass="ValueMap">
-	SELECT /* SupplyRate_Mysql.xml  "supplyRate.getSupplyRateDetail" */
-	       A.CURRENCY
-		  ,A.VALID_START_DATE
-		  ,A.VALID_END_DATE
-	      ,A.SUPPLY_RATE
-	      ,A.PRICE
-	      ,A.DC_MIN_QTY
-	      ,A.DC_SUPPLY_RATE
-	      ,A.DC_SUPPLY_PRICE
-	      ,A.VALID_YN
+	</select>
+ 
+	<!-- TB_SUPPLY_RATE 상세조회 -->
+	<select id="supplyRate.getSupplyRateDetail" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* SupplyRate_Mysql.xml  supplyRate.getSupplyRateDetail */
+           A.BIZ_ENTITY_ID
+         , B.COMP_NM AS BIZ_ENTITY_NM
+         , A.PROD_NO
+         , D.PROD_NM
+         , A.BUYER_BIZ_ENTITY_ID
+         , C.COMP_NM AS BUYER_BIZ_ENTITY_NM
+         , A.VALID_START_DT
+         , A.VALID_END_DT
+         , A.CURRENCY
+         , A.SUPPLY_RATE
+         , A.PRICE
+         , A.DC_MIN_QTY
+         , A.DC_SUPPLY_RATE
+         , A.DC_SUPPLY_PRICE
+         , A.VALID_YN
 	  FROM TB_SUPPLY_RATE A
-	 WHERE A.BIZ_ENTITY_ID = #BIZ_ENTITY_ID#
-	   AND A.PROD_NO = #PROD_NO#
-	   AND A.BUYER_BIZ_ENTITY_ID = #BUYER_BIZ_ENTITY_ID#
-</select>
-
-
-
-<insert id="supplyRate.insertSupplyRate" parameterClass="Map">
+	  LEFT OUTER JOIN TB_COMPANY_MASTER B ON A.BIZ_ENTITY_ID = B.BIZ_ENTITY_ID
+	  LEFT OUTER JOIN TB_COMPANY_MASTER C ON A.BUYER_BIZ_ENTITY_ID = C.BIZ_ENTITY_ID
+	  LEFT OUTER JOIN TB_PRODUCT_NAME D ON A.PROD_NO = D.PROD_NO AND D.LANG_CD = #LANG_CD#
+	  WHERE A.BIZ_ENTITY_ID = #SEARCH_BIZ_ENTITY_ID#
+	    AND A.PROD_NO = #SEARCH_PROD_NO#
+	    AND A.BUYER_BIZ_ENTITY_ID = #SEARCH_BUYER_BIZ_ENTITY_ID#
+	</select>
+	
+	<select id="supplyRate.getSupplyRateExistYn" parameterClass="Map" resultClass="java.lang.String">
+	SELECT /* DispProdOnMain_Mysql.xml  supplyRate.getSupplyRateExistYn */
+		   CASE WHEN count(*) = 0 THEN 'N' ELSE 'Y' END EXIST_YN
+	  FROM TB_SUPPLY_RATE
+	  WHERE BIZ_ENTITY_ID = #BIZ_ENTITY_ID#
+	    AND PROD_NO = #PROD_NO#
+	    AND BUYER_BIZ_ENTITY_ID = #BUYER_BIZ_ENTITY_ID#
+	</select>
+	
+	<insert id="supplyRate.insertSupplyRate" parameterClass="Map">
 	INSERT /* SupplyRate_Mysql.xml  supplyRate.insertSupplyRate */
 	  INTO TB_SUPPLY_RATE
 		(
-		BIZ_DT,
-		FR_CURRENCY,
-		TO_CURRENCY,
-		BASIC_EXT_RATE,
-		BIZ_EXT_RATE,
-		INSERT_USER_ID,
-		INSERT_DT)
+ 		   BIZ_ENTITY_ID
+		 , PROD_NO
+		 , BUYER_BIZ_ENTITY_ID
+		 , VALID_START_DT
+		 , VALID_END_DT
+		 , CURRENCY
+		 , SUPPLY_RATE
+		 , PRICE
+		 , DC_MIN_QTY
+		 , DC_SUPPLY_RATE
+		 , DC_SUPPLY_PRICE
+		 , VALID_YN
+		 , INSERT_USER_ID
+		 , INSERT_DT)
 		VALUES
 		(
-		#BIZ_DT#,
-		#FR_CURRENCY#,
-		#TO_CURRENCY#,
-		#BASIC_EXT_RATE#,
-		#BIZ_EXT_RATE#,
-		#LOGIN_ID#,
-		DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+ 		   #BIZ_ENTITY_ID#
+		 , #PROD_NO#
+		 , #BUYER_BIZ_ENTITY_ID#
+		 , #VALID_START_DT#
+		 , #VALID_END_DT#
+		 , #CURRENCY#
+		 , #SUPPLY_RATE#
+		 , #PRICE#
+		 , #DC_MIN_QTY#
+		 , #DC_SUPPLY_RATE#
+		 , #DC_SUPPLY_PRICE#
+		 , #VALID_YN#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 		)
+	</insert>
 	
-</insert>
-
-<update id="supplyRate.updateSupplyRate" parameterClass="Map">
-	UPDATE TB_SUPPLY_RATE /* SupplyRate_Mysql.xml  supplyRate.saveSupplyRate */
-	   SET BASIC_EXT_RATE 	= #BASIC_EXT_RATE#,
-		   BIZ_EXT_RATE 	= #BIZ_EXT_RATE#,
-		   UPDATE_USER_ID 	= #LOGIN_ID#,
-		   UPDATE_DT 		= DATE_FORMAT(now(), '%Y%m%d%H%i%s')
-	 WHERE BIZ_ENTITY_ID = #BIZ_ENTITY_ID#
-	   AND PROD_NO = #PROD_NO#
-	   AND BUYER_BIZ_ENTITY_ID = #BUYER_BIZ_ENTITY_ID#
-</update>
-
-<delete id="supplyRate.deleteSupplyRate" parameterClass="Map">
+	<update id="supplyRate.updateSupplyRate" parameterClass="Map">
+	UPDATE /* SupplyRate_Mysql.xml  supplyRate.updateSupplyRate */
+	       TB_SUPPLY_RATE
+	   SET VALID_START_DT               = #VALID_START_DT#
+		 , VALID_END_DT                 = #VALID_END_DT#
+		 , CURRENCY                     = #CURRENCY#
+		 , SUPPLY_RATE                  = #SUPPLY_RATE#
+		 , PRICE                        = #PRICE#
+		 , DC_MIN_QTY                   = #DC_MIN_QTY#
+		 , DC_SUPPLY_RATE               = #DC_SUPPLY_RATE#
+		 , DC_SUPPLY_PRICE              = #DC_SUPPLY_PRICE#
+		 , VALID_YN                     = #VALID_YN#
+	     , UPDATE_USER_ID               = #LOGIN_ID#
+	     , UPDATE_DT                    = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	  WHERE BIZ_ENTITY_ID = #SEARCH_BIZ_ENTITY_ID#
+	    AND PROD_NO = #SEARCH_PROD_NO#
+	    AND BUYER_BIZ_ENTITY_ID = #SEARCH_BUYER_BIZ_ENTITY_ID#
+	</update>
+	
+	<delete id="supplyRate.deleteSupplyRate" parameterClass="Map">
 	DELETE /* SupplyRate_Mysql.xml  supplyRate.deleteSupplyRate */
 	  FROM TB_SUPPLY_RATE
-	 WHERE BIZ_ENTITY_ID = #BIZ_ENTITY_ID#
-	   AND PROD_NO = #PROD_NO#
-	   AND BUYER_BIZ_ENTITY_ID = #BUYER_BIZ_ENTITY_ID#
-</delete>
-
-
-	
+	  WHERE BIZ_ENTITY_ID = #SEARCH_BIZ_ENTITY_ID#
+	    AND PROD_NO = #SEARCH_PROD_NO#
+	    AND BUYER_BIZ_ENTITY_ID = #SEARCH_BUYER_BIZ_ENTITY_ID#
+	</delete>
 </sqlMap>
