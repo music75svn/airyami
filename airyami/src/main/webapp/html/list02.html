@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Airyami</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />  
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes, target-densitydpi=medium-dpi">
+<!--<link type="text/css" rel="stylesheet" href="../css/shop/jquery.bxslider.css" />-->
+<link type="text/css" rel="stylesheet" href="../css/shop/common.css" />
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/jquery-ui.js"></script>
+<!--<script type="text/javascript" src="../js/jquery.bxslider.js"></script>-->
+<!--<script type="text/javascript" src="../js/common.js"></script>-->
+<script type="text/javascript">
+	$(document).ready(function () {        
+		$('#list').addClass('type_list	');
+		$('#btn_list').addClass('on');
+		$('#btn_album').click(function(){ 
+			$('#list').addClass('type_album');
+			$('#list').removeClass('type_list');
+			$('#btn_list').removeClass('on');	
+			$('#btn_album').addClass('on');	
+		});
+		$('#btn_list').click(function(){ 
+			$('#list').addClass('type_list');
+			$('#list').removeClass('type_album');
+			$('#btn_list').addClass('on');	
+			$('#btn_album').removeClass('on');	
+		});
+	});
+</script>
+</head>
+
+
+
+<body>
+<!-- wrap -->
+<div id="wrap">
+
+	<!-- header -->
+	<div id="header">
+		<ul class="member">
+			<li><a href="#">홍길동님</a> | </li>
+			<li><a href="#">장바구니(<em>10</em>)</a></li>
+		</ul>
+
+
+		<div class="top">
+			<h1><img src="../img/common/logo.png" alt="Airyami"></h1>
+
+			<fieldset>
+				<input type="text" placeholder="검색어를 입력하세요">
+				<a href="#"><img src="../img/common/sch_btn.png" alt="검색"></a>
+			</fieldset>
+
+			<ul>
+				<li><a href="#">제품 스토어</a> / </li>
+				<li id="biz">
+					<a href="#">비즈니스 센터</a> / 
+					<div>
+						<ul>
+							<li><a href="#">등록센터</a> | </li>
+							<li><a href="#">뉴스&amp;이벤트</a> | </li>
+							<li><a href="#">리포트&amp;도구</a></li>
+						</ul>
+					</div>
+				</li>
+				<li><a href="#">관리자 바로가기</a></li>
+			</ul>
+
+
+			<select class="select">
+				<option value="en-US">미국-영어</option>    
+				<option value="es-US">미국-스페인어</option>    
+				<option value="en-CA">캐나다-영어</option>    
+				<option value="fr-CA">캐나다-프랑스어</option>    
+				<option value="es-MX">멕시코</option>    
+				<option value="en-AU">호주</option>    
+				<option value="en-NZ">뉴질랜드</option>    
+				<option value="en-GB">영국</option>    
+				<option value="en-IE">아일랜드</option>    
+				<option value="nl-NL">네덜란드</option>    
+				<option value="de-DE">독일</option>    
+				<option value="de-AT">오스트리아</option>    
+				<option value="pl-PL">폴란드</option>    
+				<option value="en-SG">싱가폴</option>    
+				<option value="en-MY">말레이시아</option>    
+				<option value="ja-JP">일본</option>    
+				<option selected="selected" value="ko-KR">한국</option>    
+				<option value="zh-CN">중국</option>    
+				<option value="zh-TW">대만</option>    
+				<option value="zh-HK">홍콩</option>    
+			</select> 
+
+		</div>
+
+
+
+
+
+
+
+				
+
+		<ul id="gnb">
+			<li class="out"><a href="#">건강기능ㆍ일반 식품</a> | 
+				<div id="sub_a">
+					<div class="part2">
+						<h5><a href="#">비타민 &amp; 영양보충용식품</a></h5>
+						<ul>
+							<li><a href="#">- 특정영양식품</a>
+								<ul>
+									<li><a href="#">&middot; 혈행 및 콜레스테롤</a></li>
+									<li><a href="#">&middot; 뼈 &amp; 관절 건강</a></li>
+									<li><a href="#">&middot; 항산화 건강</a></li>
+									<li><a href="#">&middot; 장 건강</a></li>
+									<li><a href="#">&middot; 눈 건강</a></li>
+									<li><a href="#">&middot; 중년 남성 건강</a></li>
+									<li><a href="#">&middot; 면역건강</a></li>
+									<li><a href="#">&middot; 기억력 건강</a></li>
+									<li><a href="#">&middot; 중년 여성 건강</a></li>
+									<li><a href="#">&middot; 요로 건강</a></li>
+								</ul>
+							</li>
+							<li><a href="#">- 멀티비타민</a>
+								<ul>
+									<li><a href="#">&middot; 여성용</a></li>
+									<li><a href="#">&middot; 남성용</a></li>
+									<li><a href="#">&middot; 50대 이상</a></li>
+									<li><a href="#">&middot; 어린이</a></li>
+								</ul>
+							</li>
+							<li><a href="#">-알뜰 구성 팩</a></li>
+						</ul>
+					</div>
+
+					<div class="part2">
+						<h5><a href="#">일반 식품 &amp; 체중 관리 제품</a></h5>
+						<ul>
+							<li><a href="#">- 다이터트 &amp; 체중 조절</a>
+								<ul>									
+									<li><a href="#">&middot; 식이섬유</a></li>
+									<li><a href="#">&middot; 체지방 감소</a></li>
+								</ul>
+							</li>
+							<li><a href="#">- 일반식품</a></li>
+							<li><a href="#">- 알뜰 구성 팩</a></li>
+						</ul>
+					</div>
+				</div>	
+
+			</li>
+
+			<li class="out"><a href="#">스킨 테라피</a> | 
+				<div id="sub_b">
+					<div>
+						<h5><a href="#">스킨 테라피</a></h5>
+						<ul>
+							<li><a href="#">- 건성 피부 관리</a></li>
+							<li><a href="#">- 멜라루카 오일</a></li>
+							<li><a href="#">- 알뜰 구성 팩</a></li>
+						</ul>	
+					</div>
+					
+				</div>
+			</li>
+
+			<li class="out"><a href="#">뷰티</a> | 
+				<div id="sub_c">
+					<div>
+						<h5><a href="#">뷰티</a></h5>
+						<ul>
+							<li><a href="#">- 럭셔리 스킨 케어</a></li>
+							<li><a href="#">- 기초 관리</a>
+								<ul>
+									<li><a href="#">&middot; 중ㆍ건성용</a></li>
+									<li><a href="#">&middot; 중ㆍ지성용</a></li>
+								</ul>
+							</li>
+							<li><a href="#">- 에센스 &amp; 마스크</a></li>
+							<li><a href="#">- 럭셔리 헤어 케어</a>
+								<ul>
+									<li><a href="#">&middot; 샴푸 &amp; 컨디셔너</a></li>
+									<li><a href="#">&middot; 스타일링</a></li>
+									<li><a href="#">&middot; 트리트먼트</a></li>
+								</ul>
+							</li>
+							<li><a href="#">- BB 크림 &amp; 컨실러</a></li>
+							<li><a href="#">- 파운데이션 &amp; 파우더</a></li>
+							<li><a href="#">- 아이 컬러</a></li>
+							<li><a href="#">- 블러셔</a></li>
+							<li><a href="#">- 립</a></li>
+							<li><a href="#">- 뷰티 보조 도구</a></li>
+							<li><a href="#">- 알뜰 구성 팩</a></li>
+						</ul>
+					</div>
+				</div>
+			</li>
+
+			<li class="out"><a href="#">가정 생활용품</a> | 
+				<div id="sub_d">
+					<div>
+						<h5><a href="#">청소 및 세탁제품</a></h5>
+						<ul>
+							<li><a href="#">- 가정용 세정 제품</a>
+								<ul>
+									<li><a href="#">&middot; 다목적 세정 제품</a></li>
+									<li><a href="#">&middot; 욕실 청소 제품</a></li>
+									<li><a href="#">&middot; 살균 및 위생 제품</a></li>
+									<li><a href="#">&middot; 유리 청소 제품</a></li>
+									<li><a href="#">&middot; 얼룩 제거 제품</a></li>
+								</ul>
+							</li>
+							<li class="wide"><a href="#">- 주방 세제 &amp; 야채과일 세정제</a></li>
+							<li><a href="#">- 세탁 제품</a>
+								<ul>
+									<li><a href="#">&middot; 세탁세제</a></li>
+									<li><a href="#">&middot; 표백세제</a></li>
+									<li><a href="#">&middot; 섬유유연제</a></li>
+									<li><a href="#">&middot; 세탁전 얼룩제거제</a></li>
+								</ul>
+							</li>
+							<li><a href="#">- 알뜰 구성 팩</a></li>
+						</ul>
+					</div>
+				</div>
+			</li>
+
+			<li class="out"><a href="#">배스 &amp; 바디</a> | 
+				<div id="sub_e">
+					<div class="part3">
+						<h5><a href="#">바쓰 &amp; 바디</a></h5>						
+						<ul>
+							<li><a href="#">- 고급 비누</a></li>
+							<li><a href="#">- 바디 워시 &amp; 소품</a></li>
+							<li><a href="#">- 손 세정 제품</a></li>
+							<li><a href="#">- 남성용</a></li>
+							<li><a href="#">- 립밤</a></li>
+							<li><a href="#">- 알뜰 구성 팩</a></li>
+						</ul>
+
+						<h5><a href="#">페이셜 케어</a></h5>
+						<ul>
+							<li><a href="#">어휘니아 스킨 케어</a></li>
+						</ul>
+					</div>
+					<div class="part3">
+						<h5><a href="#">헤어 케어</a></h5>						
+						<ul>
+							<li><a href="#">- 샴푸 &amp; 컨디셔너</a>
+								<ul>
+									<li><a href="#">&middot; 가늘고 약한 지성 모발</a></li>
+									<li><a href="#">&middot; 악건성 &amp; 손상 모발</a></li>
+								</ul>
+							</li>							
+							<li><a href="#">- 스타일링</a>
+								<ul>
+									<li><a href="#">&middot; 프렙 스타일</a></li>
+									<li><a href="#">&middot; 피니시 스타일</a></li>
+								</ul>
+							</li>							
+							<li><a href="#">- 트리트먼트</a>
+								<ul>
+									<li><a href="#">&middot; 데일리 트리트먼트</a></li>
+									<li><a href="#">&middot; 인텐시브 트리트먼트</a></li>
+								</ul>
+							</li>							
+							<li><a href="#">- 알뜰 구성 팩</a></li>
+						</ul>
+					</div>
+					<div class="part3">
+						<h5><a href="#">스킨 케어</a></h5>						
+						<ul>
+							<li><a href="#">- 건성 피부 관리</a></li>
+							<li><a href="#">- 크림 &amp; 로션</a></li>
+							<li><a href="#">- 풋케어</a></li>
+						</ul>				
+
+
+
+						<h5><a href="#">구강케어</a></h5>						
+						<ul>
+							<li><a href="#">- 치약</a></li>
+							<li><a href="#">- 마우스 린스(가글액)</a></li>
+							<li><a href="#">- 구강 구취 제품</a></li>
+							<li><a href="#">- 칫솔 &amp; 기타</a></li>
+							<li><a href="#">- 알뜰 구성 팩</a></li>
+						</ul>
+					</div>
+				</div>
+			</li>
+
+			<li class="out"><a href="#">에센셜 오일</a>
+				<div id="sub_f">
+					<div>
+						<h5><a href="#">에센셜 오일</a></h5>						
+						<ul>
+							<li><a href="#">- 싱글 오일</a></li>
+							<li><a href="#">- 블렌드 오일</a></li>
+							<li><a href="#">- 캐리어 오일</a></li>
+							<li><a href="#">- 오일 팩</a></li>
+							<li><a href="#">- 액세서리</a></li>
+						</ul>
+					</div>
+				</div>
+			</li>
+
+		</ul>
+
+		<!--// gnb --> 
+
+
+
+	</div>
+
+	<!--// header -->
+
+
+
+
+
+
+
+
+	<div id="container">
+		
+		<!-- aside -->
+		<div id="aisde">
+			
+			<div class="lnb">
+				<ul>
+					<li><a href="#">비타민 &amp; 영양보충용식품</a></li>
+					<li><a href="#">식품 &amp; 체중 관심 제품</a></li>
+					<li><a href="#">청소 및 세탁 제품</a></li>
+					<li><a href="#">스킨 테라피</a></li>
+					<li><a href="#">구강 케어</a></li>
+					<li><a href="#">헤어 케어</a></li>
+					<li><a href="#">바스 &amp; 바디</a></li>
+					<li><a href="#">에센셜 오일</a></li>
+					<li><a href="#">뷰티</a></li>
+				</ul>			
+			</div>
+			
+			<div class="customer">
+				<ul>
+					<li><a href="#">우대회원의 혜택</a></li>
+					<li><a href="#">교환 및 환불규정</a></li>
+					<li><a href="#">마이페이지</a></li>
+					<li><a href="#">자주 묻는 질문(FAQ)</a></li>
+				</ul>
+			</div>
+		</div>
+		<!--// aside -->
+		
+
+		<!-- content -->
+		<div id="content">
+		
+			<!-- category -->
+			<div class="category">
+				
+				<!-- title -->
+				<h3>
+					<nav>제품 스토어 &gt; 건강기능 &middot; 일반식품</nav>
+					<span>비타민 &amp; 영양보충용식품</span>
+				</h3>
+				<!--// title -->
+				
+				<!-- left -->
+				<div class="left">
+					<dl>
+						<dt><a href="#">멀티비타민</a></dt>
+
+						<dd class="on"><a href="#">여성</a></dd>
+						<dd><a href="#">남성</a></dd>
+						<dd><a href="#">50대이상</a></dd>
+						<dd><a href="#">어린이</a></dd>
+					</dl>
+					
+					<dl>
+						<dt><a href="#">특정영약식품</a></dt>
+						
+						<dd><a href="#">혈행 및 콜레스테롤</a></dd>
+						<dd><a href="#">뼈 &amp; 관절 건강</a></dd>
+						<dd><a href="#">항산화 건강</a></dd>
+						<dd><a href="#">장 건강</a></dd>
+						<dd><a href="#">중년 남성 건강</a></dd>
+						<dd><a href="#">면역 건강</a></dd>
+						<dd><a href="#">기억력 건강</a></dd>
+						<dd><a href="#">중년 여성 건강</a></dd>
+						<dd><a href="#">요로 건강</a></dd>
+					</dl>
+				</div>
+				<!--// left -->
+				
+				<!-- right -->
+				<div class="right">					
+					<a href="#" class="btn_package">알뜰 구성 팩</a>
+					<a href="#" class="btn_allmenu">전 제품 보기</a>					
+				</div>
+				<!--// right -->
+				
+				
+			</div>
+			<!--// category -->
+		
+		
+			<!-- list -->
+			<div class="list">
+				<h4>인기제품 구매</h4>
+
+				<!-- sort -->
+				<div class="sort">
+					<ul class="sorting">
+						<li class="on"><a href="#">인기제품</a></li>
+						<li><a href="#">제품명</a></li>
+					</ul>
+
+					<select name="" id="">
+						<option value="">10개씩</option>
+						<option value="">20개씩</option>
+					</select>
+
+					<ul class="type">
+						<li><a href="#" id="btn_album" class="rollover"><img src="../img/product/sort_album_off.gif" alt="앨범보기"><img src="../img/product/sort_album_on.gif" alt="앨범보기" class="over"></a></li>
+						<li><a href="#" id="btn_list" class="rollover"><img src="../img/product/sort_list_off.gif" alt="리스트보기"><img src="../img/product/sort_list_on.gif" alt="리스트보기" class="over"></a></li>
+					</ul>
+				</div>
+				<!--// sort -->
+				
+			
+				
+				<!-- type  list--> 
+				<div id="list">
+					<ul class="list_title">
+						<li>제품</li>
+						<li>설명</li>
+					</ul>
+					
+					<!-- 상품 1개 -->
+					<div class="item" onclick="location.href='#';">
+						<dl>
+							<dt><img src="../img/product/list_img01.jpg" alt=""></dt>
+							<dd class="blank"></dd>
+							<dd>픽 퍼포먼스 팩 (우먼)</dd>
+							<dd>용량: 60 포</dd>
+							<dd>제품번호 : 860</dd>
+						</dl>
+						<p>여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민 여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민 여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민 여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민 여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민 여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민 여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민 여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민 여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민 여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민 </p>
+					</div>
+					<!--// 상품 1개 -->
+					
+					<!-- 상품 1개 -->
+					<div class="item" onclick="location.href='#';">
+						<dl>
+							<dt><img src="../img/product/list_img01.jpg" alt=""></dt>
+							<dd class="blank"></dd>
+							<dd>픽 퍼포먼스 팩 (우먼)</dd>
+							<dd>용량: 60 포</dd>
+							<dd>제품번호 : 860</dd>
+						</dl>
+						<p>여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민</p>
+					</div>
+					<!--// 상품 1개 -->
+					
+					<!-- 상품 1개 -->
+					<div class="item" onclick="location.href='#';">
+						<dl>
+							<dt><img src="../img/product/list_img01.jpg" alt=""></dt>
+							<dd class="blank"></dd>
+							<dd>픽 퍼포먼스 팩 (우먼)</dd>
+							<dd>용량: 60 포</dd>
+							<dd>제품번호 : 860</dd>
+						</dl>
+						<p>여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민</p>
+					</div>
+					<!--// 상품 1개 -->
+					
+					<!-- 상품 1개 -->
+					<div class="item" onclick="location.href='#';">
+						<dl>
+							<dt><img src="../img/product/list_img01.jpg" alt=""></dt>
+							<dd class="blank"></dd>
+							<dd>픽 퍼포먼스 팩 (우먼)</dd>
+							<dd>용량: 60 포</dd>
+							<dd>제품번호 : 860</dd>
+						</dl>
+						<p>여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민</p>
+					</div>
+					<!--// 상품 1개 -->
+					
+					<!-- 상품 1개 -->
+					<div class="item" onclick="location.href='#';">
+						<dl>
+							<dt><img src="../img/product/list_img01.jpg" alt=""></dt>
+							<dd class="blank"></dd>
+							<dd>픽 퍼포먼스 팩 (우먼)</dd>
+							<dd>용량: 60 포</dd>
+							<dd>제품번호 : 860</dd>
+						</dl>
+						<p>여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민</p>
+					</div>
+					<!--// 상품 1개 -->
+					
+					<!-- 상품 1개 -->
+					<div class="item" onclick="location.href='#';">
+						<dl>
+							<dt><img src="../img/product/list_img01.jpg" alt=""></dt>
+							<dd class="blank"></dd>
+							<dd>픽 퍼포먼스 팩 (우먼)</dd>
+							<dd>용량: 60 포</dd>
+							<dd>제품번호 : 860</dd>
+						</dl>
+						<p>여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민</p>
+					</div>
+					<!--// 상품 1개 -->
+					
+					<!-- 상품 1개 -->
+					<div class="item" onclick="location.href='#';">
+						<dl>
+							<dt><img src="../img/product/list_img01.jpg" alt=""></dt>
+							<dd class="blank"></dd>
+							<dd>픽 퍼포먼스 팩 (우먼)</dd>
+							<dd>용량: 60 포</dd>
+							<dd>제품번호 : 860</dd>
+						</dl>
+						<p>여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민</p>
+					</div>
+					<!--// 상품 1개 -->
+					
+					<!-- 상품 1개 -->
+					<div class="item" onclick="location.href='#';">
+						<dl>
+							<dt><img src="../img/product/list_img01.jpg" alt=""></dt>
+							<dd class="blank"></dd>
+							<dd>픽 퍼포먼스 팩 (우먼)</dd>
+							<dd>용량: 60 포</dd>
+							<dd>제품번호 : 860</dd>
+						</dl>
+						<p>여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민</p>
+					</div>
+					<!--// 상품 1개 -->
+					
+				</div>
+				<!--//  type  list--> 
+				
+				
+			</div>
+			<!--// list -->
+			
+			
+			<!-- page -->
+			<div class="page">
+				<a href="#"><img src="../img/product/btn_first.gif" alt="처음페이지"></a>
+				<a href="#"><img src="../img/product/btn_prev.gif" alt="이전페이지"></a>
+				<strong>1</strong>
+				<a href="#">2</a>
+				<a href="#">3</a>
+				<a href="#">4</a>
+				<a href="#">5</a>
+				<a href="#"><img src="../img/product/btn_next.gif" alt="다음페이지"></a>
+				<a href="#"><img src="../img/product/btn_last.gif" alt="마지막페이지"></a>
+			</div>
+			<!-- page -->
+			
+		
+		
+		</div>
+		<!--// content -->
+		
+	</div>
+
+
+
+
+
+
+
+
+</div>
+
+<!--// wrap -->
+
+
+
+
+
+<!-- footer -->
+
+<div id="footer">
+	<div class="inner">	
+		<a href="#wrap" id="top">맨위로 <img src="../img/common/btn_top.png" alt="맨위로"></a>
+		<ul>
+			<li><a href="#">회사소개</a> | </li>
+			<li><a href="#">이용약관</a> | </li>
+			<li><a href="#"><span>개인정보처리방침</span></a> | </li>
+			<li><a href="#">회원등록조회</a></li>
+		</ul>
+		
+		<div class="bottom">
+			<h5><img src="../img/common/logo_footer.gif" alt="airyami"></h5>
+			<p>
+				서울시 강남구 학동로 (논현동) 우편번호: 111-010 <br>
+				FAX: 02)0008-0000 / TEL: 1234-5678 / E-MAIL: honghong@airyami.com<br>
+				통신판매 번호: 강남-1234 사업자등록번호:123-45-67890 대표이사:홍길동 <br>
+				<span>© Copyright 2017 airyami of Korea Co., Ltd.</span>
+			</p>
+		</div>
+	</div>
+</div>
+
+<!--// footer -->
+
+
+
+
+
+</body>
+
+</html>
+

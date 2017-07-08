@@ -1,119 +1,37 @@
-<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
-
-
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Airyami</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />  
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes, target-densitydpi=medium-dpi">
+<link type="text/css" rel="stylesheet" href="../css/shop/common.css" />
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/jquery-ui.js"></script>
+<script type="text/javascript" src="../js/jquery.bxslider.js"></script>
+<!--<script type="text/javascript" src="../js/common.js"></script>-->
 <script type="text/javascript">
-
-//카테고리리스트 조회
-function fn_getHeadMenuList() {
-	
-	var inputParam = new Object();
-	inputParam.sid 			= "headMenuList";
-	inputParam.url 			= "/category/cateList.do";
-	
-	inputParam.callback		= fn_callBackHMenu;
-	
-	gfn_Transaction( inputParam );
-	
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-//콜백 함수
-function fn_callBackHMenu(sid, result, data){
-	
-	debugger;
-	if (!result.success) {
-		alert(result.msg);
-		return;
-	}
-
-	var innerhtml = "";	// 카테고리 전체 
-	var cateHtml_1 = "";	// 1레벨 카테고리별 내용
-	var cateHtml_2 = "";	// 2레벨 카테고리별 내용
-	var cateHtml_3 = "";	// 3레벨 카테고리별 내용
-	var cateHtml_4 = "";	// 4레벨 카테고리별 내용
-	var topCate = "";
-	
-	var list = result.ds_catelist;
-	for(var i = 0; i < list.length ;i++)
-	{
-		var cateInfo = list[i];
-		if(cateInfo.CATE_LEVEL ==1)	// 1레벨 이면
-		{
-			cateHtml_1  = "<li class=\"out\"><a href=\"#\">"+ cateInfo.CATE_NAME +"</a> | ";
-			cateHtml_1 += "<div id=\"sub_"+cateInfo.CATE_CODE+"\">";
-			cateHtml_1 += "cateHtml_2";
-			cateHtml_1 += "</div>";
-			cateHtml_1 += "</li>";
-		}
-		
-		if(cateInfo.CATE_LEVEL ==2)	// 2레벨 이면 
-		{
-			cateHtml_2 += "<div class=\"part2\">";
-			cateHtml_2 += "<h5><a href=\"#\">"+ cateInfo.CATE_NAME +"</a></h5>";
-			cateHtml_2 += "<ul>";
-			cateHtml_2 += "cateHtml_3";
-			cateHtml_2 += "</ul>";
-			cateHtml_2 += "</div>";
-		}
-		
-		if(cateInfo.CATE_LEVEL ==3)	// 3레벨 이면 
-		{
-			cateHtml_3 += "<li><a href=\"#\">- "+ cateInfo.CATE_NAME +"</a>";
-			cateHtml_3 += "<ul>";
-			cateHtml_3 += "cateHtml_4";
-			cateHtml_3 += "</ul>";
-			cateHtml_3 += "</li>";
-		}
-		
-		if(cateInfo.CATE_LEVEL ==4)	// 4레벨 이면 
-		{
-			cateHtml_4 += "<li><a href=\"#\">· "+ cateInfo.CATE_NAME +"</a></li>";
-		}
-		
-		
-		// 다음단계 레벨이 현재 보다 작아지면 정리해야한다.
-		var nextLevel = 1;
-		if( i+1 == list.length )
-			nextLevel = 1;
-		else
-			nextLevel = list[i+1].CATE_LEVEL;
-		
-		if( cateInfo.CATE_LEVEL <= nextLevel)
-			continue;
-		
-		
-		if(nextLevel <= 3){
-			cateHtml_3 = gfn_replaceAll(cateHtml_3, "cateHtml_4", cateHtml_4);
-			cateHtml_4 = "";
-		}
-		
-		if(nextLevel <= 2){
-			cateHtml_2 = gfn_replaceAll(cateHtml_2, "cateHtml_3", cateHtml_3);
-			cateHtml_3 = "";
-		}
-		
-		if(nextLevel == 1){
-			cateHtml_1 = gfn_replaceAll(cateHtml_1, "cateHtml_2", cateHtml_2);
-			cateHtml_2 = "";
-			cateHtml_3 = "";
-			cateHtml_4 = "";
-			innerhtml += cateHtml_1;
-		}
-		//-- 다음단계 레벨이 현재 보다 크면 정리해야한다.
-	}
-	
-	$("#gnb").html(innerhtml);
-	
-	alert($("#gnb").html());
-	
-
-	//fn_setLeftMenu(result.ds_left_list);
-}
-
+$(document).ready(function() {
+	$('.bxslider').bxSlider({
+	  pagerCustom: '#bx-pager'
+	});
+});
 </script>
-<!-- header -->
+</head>
+
+
+
+<body>
+<!-- wrap -->
+<div id="wrap">
+
+	<!-- header -->
 	<div id="header">
-		<span id="top_link"></span>
+		<ul class="member">
+			<li><a href="#">홍길동님</a> | </li>
+			<li><a href="#">장바구니(<em>10</em>)</a></li>
+		</ul>
+
 
 		<div class="top">
 			<h1><img src="../img/common/logo.png" alt="Airyami"></h1>
@@ -126,7 +44,7 @@ function fn_callBackHMenu(sid, result, data){
 			<ul>
 				<li><a href="#">제품 스토어</a> / </li>
 				<li id="biz">
-					<a href="#">비즈니스 센터</a> <c:choose><c:when test="${ds_userInfo.USER_TYPE != 'C'}">/</c:when></c:choose>
+					<a href="#">비즈니스 센터</a> / 
 					<div>
 						<ul>
 							<li><a href="#">등록센터</a> | </li>
@@ -135,15 +53,42 @@ function fn_callBackHMenu(sid, result, data){
 						</ul>
 					</div>
 				</li>
-				<span id="shortCut"></span>
+				<li><a href="#">관리자 바로가기</a></li>
 			</ul>
+			
 
 			<select class="select">
-				<option value="en-US">미국-영어</option> 
+				<option value="en-US">미국-영어</option>    
+				<option value="es-US">미국-스페인어</option>    
+				<option value="en-CA">캐나다-영어</option>    
+				<option value="fr-CA">캐나다-프랑스어</option>    
+				<option value="es-MX">멕시코</option>    
+				<option value="en-AU">호주</option>    
+				<option value="en-NZ">뉴질랜드</option>    
+				<option value="en-GB">영국</option>    
+				<option value="en-IE">아일랜드</option>    
+				<option value="nl-NL">네덜란드</option>    
+				<option value="de-DE">독일</option>    
+				<option value="de-AT">오스트리아</option>    
+				<option value="pl-PL">폴란드</option>    
+				<option value="en-SG">싱가폴</option>    
+				<option value="en-MY">말레이시아</option>    
+				<option value="ja-JP">일본</option>    
 				<option selected="selected" value="ko-KR">한국</option>    
 				<option value="zh-CN">중국</option>    
-			</select>
+				<option value="zh-TW">대만</option>    
+				<option value="zh-HK">홍콩</option>    
+			</select> 
+
 		</div>
+
+
+
+
+
+
+
+				
 
 		<ul id="gnb">
 			<li class="out"><a href="#">건강기능ㆍ일반 식품</a> | 
@@ -351,6 +296,181 @@ function fn_callBackHMenu(sid, result, data){
 		</ul>
 
 		<!--// gnb --> 
+
+
+
 	</div>
 
 	<!--// header -->
+
+
+
+
+
+
+
+	<!-- container -->
+	<div id="container">
+	
+		<!-- product -->
+		<div class="product">
+			<nav>제품 스토어 &gt; 건강기능 &middot;  일반식품 &gt; 멀티비타민 &gt; 여성</nav>
+			
+			<!-- top -->
+			<div class="top">
+				<!-- left -->
+				<div class="left">
+					<ul class="bxslider">
+					    <li><img src="../img/product/detail_img01.jpg" /></li>
+					    <li><img src="../img/product/detail_img01.jpg" /></li>
+					    <li><img src="../img/product/detail_img01.jpg" /></li>
+					    <li><img src="../img/product/detail_img01.jpg" /></li>
+					</ul>
+					<div id="bx-pager">
+					    <a data-slide-index="0" href=""><img src="../img/product/detail_img01.jpg" /></a>
+					    <a data-slide-index="1" href=""><img src="../img/product/detail_img01.jpg" /></a>
+					    <a data-slide-index="2" href=""><img src="../img/product/detail_img01.jpg" /></a>
+					    <a data-slide-index="3" href=""><img src="../img/product/detail_img01.jpg" /></a>
+					</div>
+				</div>
+				<!--// left -->
+				
+				<!-- right -->
+				<div class="right">
+					<h3>픽 퍼포먼스 팩(우먼)</h3>
+					<ul>
+						<li>
+							<span class="title">제품번호</span> 
+							<span class="txt">860</span>
+						</li>
+						<li>
+							<span class="title">소개</span> 
+							<span class="txt">여성이 원하는 균형잡힌 영양, 차원이 다른 멀티비타민</span>
+						</li>
+						<li>
+							<span class="title">옵션</span> 
+							<span class="txt">
+								<select name="" id="">
+									<option value="">591ml(대용량)</option>
+								</select>
+							</span>
+						</li>
+						<li>
+							<span class="title">수량</span> 
+								<select name="" id="">
+									<option value="">1</option>
+									<option value="">2</option>
+									<option value="">3</option>
+									<option value="">4</option>
+								</select>
+						</li>
+						<li>
+							<span class="title">일반가격</span> 
+							<span class="txt">54,000원</span>
+						</li>
+						<li>
+							<span class="title">할인</span> 
+							<span class="txt">4,000원</span>
+						</li>
+						<li>
+							<span class="title">우대회원</span> 
+							<span class="txt">2포인트</span>
+						</li>
+						<li class="total">
+							<span class="title">TOTAL</span> 
+							<span class="txt">50,000원</span>
+						</li>
+					</ul>
+					
+					<div class="btn_zone">
+						<a href="#"><img src="../img/product/btn_basket.gif" alt="장바구니"></a>
+						<a href="#"><img src="../img/product/btn_order.gif" alt="주문하기"></a>
+					</div>
+				</div>
+				<!--// right -->
+			</div>
+			<!--// top -->
+	
+			
+			
+			<dl>
+				<dt>제품정보</dt>
+				<dd>당신의 하루가 목표 달성을 위하여 숨가쁘게 돌아가거나, 업무를 마감해야 할 일들로 가득할 때, 
+멜라루카의 픽 퍼포먼스 팩은 과학적으로 조성된 핵심영양소를 통해 당신의 건강 전반을 증진시켜, 
+매일 당신이 최대한 능력을 발휘할 수 있도록 도와줍니다.</dd>
+			</dl>
+			
+			
+			<dl>
+				<dt>추천제품</dt>
+				<dd>
+					<ul>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><span>픽 퍼포먼스(맨)</span></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><span>픽 퍼포먼스(맨)</span></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><span>픽 퍼포먼스(맨)</span></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><span>픽 퍼포먼스(맨)</span></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><span>픽 퍼포먼스(맨)</span></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><span>픽 퍼포먼스(맨)</span></a></li>
+					</ul>
+				</dd>
+			</dl>
+			
+	
+	
+			
+		</div>
+		<!--// product -->
+		
+		
+	</div>
+	<!--// container -->
+
+
+
+
+
+
+
+
+</div>
+
+<!--// wrap -->
+
+
+
+
+
+<!-- footer -->
+
+<div id="footer">
+	<div class="inner">
+		<a href="#wrap" id="top">맨위로 <img src="../img/common/btn_top.png" alt="맨위로"></a>
+		<ul>
+			<li><a href="#">회사소개</a> | </li>
+			<li><a href="#">이용약관</a> | </li>
+			<li><a href="#"><span>개인정보처리방침</span></a> | </li>
+			<li><a href="#">회원등록조회</a></li>
+		</ul>
+		
+		<div class="bottom">
+			<h5><img src="../img/common/logo_footer.gif" alt="airyami"></h5>
+			<p>
+				서울시 강남구 학동로 (논현동) 우편번호: 111-010 <br>
+				FAX: 02)0008-0000 / TEL: 1234-5678 / E-MAIL: honghong@airyami.com<br>
+				통신판매 번호: 강남-1234 사업자등록번호:123-45-67890 대표이사:홍길동 <br>
+				<span>© Copyright 2017 airyami of Korea Co., Ltd.</span>
+			</p>
+		</div>
+	</div>
+</div>
+
+<!--// footer -->
+
+
+
+
+
+</body>
+
+</html>
+

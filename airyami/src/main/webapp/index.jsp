@@ -33,5 +33,13 @@ index.jsp 페이지
 <form id='login' action="/cop/bbs/addBBSMaster.do" method="post">
 <input type="submit" value="join"/>
 </form>
+
+디자인<br>
+<a href="/html/basic.html">basic.html</a><br>  
+<a href="/html/detail.html">detail.html</a><br>
+<a href="/html/list01.html">list01.html</a><br>  
+<a href="/html/list02.html">list02.html</a><br>  
+<a href="/html/main.html">main.html</a><br>  
+
 </body>
 </html>

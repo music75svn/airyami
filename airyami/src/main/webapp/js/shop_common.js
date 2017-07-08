@@ -66,15 +66,9 @@ function gfn_SetCommInit(){
 	
 	var site_id = "?";
 	
-	
 	$("td[id^='top_link'], span[id^='top_link'], div[id^='top_link']").each(function() {
-		
 		var commTag = "<ul class=\"member\">";
-		try{
-			alert(SES_USER_TYPE);
-			if(SES_USER_TYPE != "C")
-				commTag += "<li><a href=\""+ gfn_getApplication() +"/admin/main.do"+site_id+"\">Manager</a></li>";
-		}catch(e){};
+		
 		
 		if(!gfn_isNull(SES_USER_NAME)){
 			commTag += "<li><a href=\"#\">" + SES_USER_NAME + "</a> | </li>";
@@ -91,11 +85,22 @@ function gfn_SetCommInit(){
 		else
 			commTag += "<li><a href=\""+ gfn_getApplication() +"/login/login.do"+site_id+"\">로그인</a></li>";
 		
-		commTag += "<li><a href=\""+ gfn_getApplication() +"/shop/shopProductDetail.do?PROD_NO=CN00002\">상품상세</a></li>";
+		//commTag += "<li><a href=\""+ gfn_getApplication() +"/shop/shopProductDetail.do?PROD_NO=CN00002\">상품상세</a></li>";
 		//-- test를 위해 임시사용
 			
 		commTag += "</ul>";
 			
+		
+		$(this).html(commTag);
+	});
+	
+	// 바로가기
+	$("td[id^='shortCut'], span[id^='shortCut'], div[id^='shortCut']").each(function() {
+		var commTag = "";
+		try{
+			if(SES_USER_TYPE != "C")
+				commTag += "<li><a href=\"/admin/main.do\">Manager</a></li>";
+		}catch(e){};
 		
 		$(this).html(commTag);
 	});
