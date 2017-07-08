@@ -69,17 +69,22 @@ function gfn_SetCommInit(){
 	$("td[id^='top_link'], span[id^='top_link'], div[id^='top_link']").each(function() {
 		var commTag = "<ul class=\"member\">";
 		
+		try{
+			if(SES_USER_TYPE != "C")
+				commTag += "<li><a href=\"/admin/main.do\">Manager</a> | </li>";
+		}catch(e){};
+		
 		
 		if(!gfn_isNull(SES_USER_NAME)){
 			commTag += "<li><a href=\"#\">" + SES_USER_NAME + "</a> | </li>";
 		}
 		
-		commTag += "<li><a href=\"/shop/shopCartList.do\">" + "장바구니" + "(<em>" + 0 + "</em>)</a></li>";
+		commTag += "<li><a href=\"/shop/shopCartList.do\">" + "장바구니" + "(<em>" + 0 + "</em>)</a> | </li>";
 
 		// test를 위해 임시사용
 		
 		if(gfn_isLogin()){
-			commTag += "<li><a href=\""+ gfn_getApplication() +"/login/logout.do"+site_id+"\">로그아웃</a></li>";
+			commTag += "<li><a href=\""+ gfn_getApplication() +"/login/logout.do"+site_id+"\">로그아웃</a> | </li>";
 			commTag += "<li><a href=\""+ gfn_getApplication() +"/adminuser/adminUserChgPswd.do"+site_id+"&mode=M\">비밀번호 변경</a></li>";
 		}
 		else
@@ -95,12 +100,9 @@ function gfn_SetCommInit(){
 	});
 	
 	// 바로가기
-	$("td[id^='shortCut'], span[id^='shortCut'], div[id^='shortCut']").each(function() {
+	$("td[id^='shortCut'], span[id^='shortCut'], div[id^='shortCut'], li[id^='shortCut']").each(function() {
 		var commTag = "";
-		try{
-			if(SES_USER_TYPE != "C")
-				commTag += "<li><a href=\"/admin/main.do\">Manager</a></li>";
-		}catch(e){};
+		
 		
 		$(this).html(commTag);
 	});

@@ -20,7 +20,6 @@ function fn_getHeadMenuList() {
 //콜백 함수
 function fn_callBackHMenu(sid, result, data){
 	
-	debugger;
 	if (!result.success) {
 		alert(result.msg);
 		return;
@@ -104,9 +103,6 @@ function fn_callBackHMenu(sid, result, data){
 	
 	$("#gnb").html(innerhtml);
 	
-	alert($("#gnb").html());
-	
-
 	//fn_setLeftMenu(result.ds_left_list);
 }
 
@@ -135,7 +131,7 @@ function fn_callBackHMenu(sid, result, data){
 						</ul>
 					</div>
 				</li>
-				<span id="shortCut"></span>
+				<!-- <li id="shortCut"></li> -->
 			</ul>
 
 			<select class="select">
