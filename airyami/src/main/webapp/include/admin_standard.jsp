@@ -23,6 +23,8 @@
 <script type="text/javascript" src="/js/jquery.js"></script>
 <script type="text/javascript" src="/js/jquery-1.6.2.min.js" ></script>
 <script type="text/javascript" src="/js/jquery.min.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.js"></script>
+<script type="text/javascript" src="/js/jquery.bxslider.js"></script>
 
 <script type="text/javascript" src="/js/jquery.json-2.4.min.js" ></script>
 <script type="text/javascript" src="/js/jquery.form.js" ></script>

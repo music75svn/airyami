@@ -15,6 +15,7 @@
 <!-- for 공통함수 -->
 <script type="text/javascript" src="/js/jquery.min.js"></script>
 <script type="text/javascript" src="/js/jquery-ui.js"></script>
+<script type="text/javascript" src="/js/jquery.bxslider.js"></script>
 <script type="text/javascript" src="/js/constant.js"></script>
 <script type="text/javascript" src="/js/common.js"></script>
 

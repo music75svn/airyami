@@ -3570,7 +3570,7 @@ $.fn.toPrice = function(cipher) {
 	 };
 	 
  $.fn.getOnlyNumeric = function(data) {
-	 debugger;
+	 //debugger;
 	  var chrTmp, strTmp;
 	  var len, str;
 	  

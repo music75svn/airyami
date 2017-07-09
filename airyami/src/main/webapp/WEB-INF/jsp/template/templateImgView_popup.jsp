@@ -6,6 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
 <%@ include file="/include/title.jsp"%>
 <jsp:include page="/include/common.jsp"/>
+<link type="text/css" rel="stylesheet" href="../css/shop/common.css" />
 <%@ include file="/include/admin_standard.jsp"%>
 
 <script type="text/javascript">
@@ -116,9 +117,13 @@ function fn_setFileList(fileList){
 			imgTd = $("[name="+imgNm+"]");
 			
 			var fileLink = "";
-			fileLink += "<div name='FILE_INFO_" + fileList[idx].FILE_DTL_SEQ + "'>";
-			fileLink += "<img src=\"" + fileList[idx].THUMBNAIL_URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" onclick='javascript:gfn_changeImgView(\"IMG_VIEW\", \"" + gfn_replaceAll(fileList[idx].URL_PATH + fileList[idx].SAVE_FILE_NAME, "\\", "/") + "\")' style=\"width:20%\" height=\"50\"  border=\"0\"/>";
-			fileLink += "<div>";
+			fileLink += "<dl class=\"item\" name='FILE_INFO_" + fileList[idx].FILE_DTL_SEQ + "'>";
+			fileLink += "	<dt><a href=\"#\"><img src=\"" + fileList[idx].THUMBNAIL_URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" alt=\"\" onclick='javascript:gfn_changeImgView(\"IMG_VIEW\", \"" + gfn_replaceAll(fileList[idx].URL_PATH + fileList[idx].SAVE_FILE_NAME, "\\", "/") + "\")' style=\"width: 50px; height: auto;\"></a></dt>";
+			fileLink += "</dl>";
+			
+			//fileLink += "<div name='FILE_INFO_" + fileList[idx].FILE_DTL_SEQ + "'>";
+			//fileLink += "<img src=\"" + fileList[idx].THUMBNAIL_URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" onclick='javascript:gfn_changeImgView(\"IMG_VIEW\", \"" + gfn_replaceAll(fileList[idx].URL_PATH + fileList[idx].SAVE_FILE_NAME, "\\", "/") + "\")' style=\"width:20%\" height=\"50\"  border=\"0\"/>";
+			//fileLink += "<div>";
 			
 			imgTd.append(fileLink);
 		}
@@ -177,12 +182,29 @@ function gfn_changeImgView(imgViewOjbNm, src){
 			<tr>
 				<td colspan=3>
 					<div style="width=200px" height=200>
-						<img name="IMG_VIEW"></img>
+						<img name="IMG_VIEW" style="width: 150px; height: auto;"></img>
 					</div>
-					<img src='/images/btn/icon_pre_month.gif' style='cursor:hand' onclick='javascript:fn_changeList(-1)' />
+					<div class="list">
+						<div class="list_container">
+							<ul class="bxslider">
+								<li name="IMG_VIEWLIST">
+									<dl class="item">
+										<dt><a href="#"><img src="../img/product/list_img01.jpg" alt=""></a></dt>
+										<dd class="section">
+											<a href="#"><strong>건강기능식품</strong><span>No. 860</span></a>
+										</dd>
+										<dd class="title">
+											<a href="#">픽 퍼포먼스 팩(우먼)</a>
+										</dd>	
+									</dl>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<!-- <img src='/images/btn/icon_pre_month.gif' style='cursor:hand' onclick='javascript:fn_changeList(-1)' />
 					<div name="IMG_VIEWLIST" height=50>
 					</div>
-					<img src='/images/btn/icon_aft_month.gif' style='cursor:hand' onclick='javascript:fn_changeList(1)' />
+					<img src='/images/btn/icon_aft_month.gif' style='cursor:hand' onclick='javascript:fn_changeList(1)' /> -->
 				</td>
 			</tr>
 		</table>
