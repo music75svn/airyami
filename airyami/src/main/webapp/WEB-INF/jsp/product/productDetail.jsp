@@ -100,6 +100,10 @@ function fn_goSave(){
 		return;
 	}
 
+	if(!gfn_validationDateTerm($('#SALES_START_DT'), $('#SALES_END_DT'))){
+		return;
+	}
+	
 	if(!confirm("<spring:message code="common.save.msg"/>")){
 		return false;
 	}
@@ -221,7 +225,18 @@ function fn_selectSCate(cateCd, valueCateCd){
 
 ////////////////////////////////////////////////////////////////////////////////////
 //사용자 함수
-
+//date term validation 
+function gfn_validationDateTerm(fromObj, toObj){
+	if(fromObj.val() != '' && toObj.val() != ''){
+		if(fromObj.val() > toObj.val()){
+			alert('<spring:message code="errors.dateTerm"/>');
+			fromObj.focus();
+			return false;
+		}
+	}
+	
+	return true;
+}
 ////////////////////////////////////////////////////////////////////////////////////
 </script>
 

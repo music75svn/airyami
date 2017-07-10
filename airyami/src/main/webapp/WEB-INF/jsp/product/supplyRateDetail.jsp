@@ -72,18 +72,8 @@ function fn_goSave(){
 		return;
 	}
 	
-	// 법인일 경우 법인등록번호, 법인명 필수체크
-	if($('#BIZ_TYPE').val() == "2"){
-		if($('#BIZ_LICENSE_NO').val() == ""){
-			alert("<spring:message code="word.bizLicenseNo"/><spring:message code="common.required.msg"/>");
-			$('#BIZ_LICENSE_NO').focus();
-			return;
-		}
-		if($('#COMP_NM').val() == ""){
-			alert("<spring:message code="word.compNm"/><spring:message code="common.required.msg"/>");
-			$('#COMP_NM').focus();
-			return;
-		}
+	if(!gfn_validationDateTerm($('#VALID_START_DT'), $('#VALID_END_DT'))){
+		return;
 	}
 	
 	if(!confirm("<spring:message code="common.save.msg"/>")){
@@ -181,6 +171,18 @@ function fn_clearData(){
 	gfn_clearData($("#contents"));
 }
 
+//date term validation 
+function gfn_validationDateTerm(fromObj, toObj){
+	if(fromObj.val() != '' && toObj.val() != ''){
+		if(fromObj.val() > toObj.val()){
+			alert('<spring:message code="errors.dateTerm"/>');
+			fromObj.focus();
+			return false;
+		}
+	}
+	
+	return true;
+}
 ////////////////////////////////////////////////////////////////////////////////////
 </script>
 
@@ -276,7 +278,7 @@ function fn_clearData(){
 				<th colspan="2"><spring:message code="word.validDt"/></th>
 				<td colspan="3">
 					<input type="text" style="width:100px" maxlength="10" readonly name="VALID_START_DT" id="VALID_START_DT" isDate="Y" class="datepicker" title="<spring:message code="cop.ntceBgnde"/>" depends="required">
-					 ~ <input type="text" style="width:100px" maxlength="10" readonly name="VALID_END_DT" id=""VALID_END_DT"" isDate="Y" class="datepicker" title="<spring:message code="cop.ntceEndde"/>" depends="required">
+					 ~ <input type="text" style="width:100px" maxlength="10" readonly name="VALID_END_DT" id="VALID_END_DT" isDate="Y" class="datepicker" title="<spring:message code="cop.ntceEndde"/>" depends="required">
 				</td>
 			</tr>
 			<tr>
