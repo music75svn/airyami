@@ -30,7 +30,7 @@ function fn_callBackHMenu(sid, result, data){
 
 	var H_MENU_CD = $('#H_MENU_CD').val();
 	if(sid == "headMenuList"){
-		var innerhtml = "<h2><img src=\"/images/admin/hTitle_admin.gif\" alt=\"관리자 모드\"></h2><ul>";
+		var innerhtml = "<h2><img src=\"/images/admin/hTitle_admin.png\" alt=\"관리자 모드\"></h2><ul>";
 		
 		for(var i = 0 ; i < result.ds_head_list.length; i++){
 			if(H_MENU_CD == result.ds_head_list[i].MENU_CODE) {
@@ -54,13 +54,13 @@ function fn_callBackHMenu(sid, result, data){
 </script>
 <div id="header">
 	<div id="logo">
-		<h1><a href="#"><img src="/images/admin/airyamiLogo.jpg" alt="Airyami"></a></h1>
+		<h1><a href="#"><img src="/images/admin/airyamiLogo.png" alt="Airyami"></a></h1>
 		<span id="userLogo"></span>
 	</div>
 	<div id="top_link"></div>
 	<div id="gnb">
 	<!-- 
-		<h2><img src="/images/admin/hTitle_admin.gif" alt="관리자 모드"></h2>
+		<h2><img src="/images/admin/hTitle_admin.png" alt="관리자 모드"></h2>
 		<ul>
 			<li> <a href=""><span>시스템</span> </a> </li>
 			<li> <a href="" ><span>프로그램 관리</span> </a> </li>
