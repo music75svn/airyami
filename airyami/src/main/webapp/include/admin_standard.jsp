@@ -21,14 +21,16 @@
 	
 <!-- for 공통함수 -->
 <script type="text/javascript" src="/js/jquery.js"></script>
-<script type="text/javascript" src="/js/jquery-1.6.2.min.js" ></script>
-<script type="text/javascript" src="/js/jquery.min.js"></script>
-<script type="text/javascript" src="/js/jquery-ui.js"></script>
-<script type="text/javascript" src="/js/jquery.bxslider.js"></script>
+<!-- <script type="text/javascript" src="/js/jquery-1.6.2.min.js" ></script> -->
 
 <script type="text/javascript" src="/js/jquery.json-2.4.min.js" ></script>
 <script type="text/javascript" src="/js/jquery.form.js" ></script>
 <script type="text/javascript" src="/js/jquery-migrate-1.2.1.min.js" ></script>
+
+<script type="text/javascript" src="/js/jquery.min.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.js"></script>
+<script type="text/javascript" src="/js/jquery.bxslider.js"></script>
+
 
 <script type="text/javascript" src="/js/constant.js"></script>
 <script type="text/javascript" src="/js/common.js"></script>
@@ -39,7 +41,7 @@
 <!-- <script type="text/javascript" src="/js/map.js"></script> -->
 
 <!-- <script type="text/javascript" src="/js/uiScript.js"></script> -->
-<script src="http://code.jquery.com/ui/1.8.18/jquery-ui.min.js" ></script>
+<!-- <script src="http://code.jquery.com/ui/1.8.18/jquery-ui.min.js" ></script> -->
 <!-- <script type="text/javascript" src="/js/lib/modernizr.custom.js"></script> -->
 
 <script type="text/javascript">
