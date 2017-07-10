@@ -134,10 +134,10 @@ function go_sallerCompanyPop(){
 	gfn_commonGo("/user/companyFindListPop", inputParam, "Y");
 }
 
-function go_vendorCompanyPop(){
+function go_buyerCompanyPop(){
 	var inputParam				= {};
 	inputParam.POP_COMP_NM 	= $('#BUYER_BIZ_ENTITY_NM').val();
-	inputParam.sid 	= "findVendorCompany";
+	inputParam.sid 	= "findBuyerCompany";
 
 	gfn_commonGo("/user/companyFindListPop", inputParam, "Y");
 }
@@ -157,7 +157,7 @@ function fn_popCallBack(sid, data){
 	if(sid == "findSallerCompany"){
 		$('#BIZ_ENTITY_ID').val(data.BIZ_ENTITY_ID);
 		$('#BIZ_ENTITY_NM').val(data.BIZ_ENTITY_NM);
-	}else if(sid == "findVendorCompany"){
+	}else if(sid == "findBuyerCompany"){
 		$('#BUYER_BIZ_ENTITY_ID').val(data.BIZ_ENTITY_ID);
 		$('#BUYER_BIZ_ENTITY_NM').val(data.BIZ_ENTITY_NM);
 	}else if(sid == "findProd"){
@@ -171,7 +171,7 @@ function fn_popCallBack(sid, data){
 function fn_sallerCompanyNmChange() {
     $('#BIZ_ENTITY_ID').val('');
 }
-function fn_vendorCompanyNmChange() {
+function fn_buyerCompanyNmChange() {
     $('#BUYER_BIZ_ENTITY_ID').val('');
 }
 
@@ -237,11 +237,11 @@ function fn_clearData(){
 				</td>
 			</tr>
 			<tr>
-				<th colspan="2"><spring:message code="word.vendorEntity"/></th>
+				<th colspan="2"><spring:message code="word.buyerEntity"/></th>
 				<td colspan="3">
-					<input type="text" name="BUYER_BIZ_ENTITY_NM" id="BUYER_BIZ_ENTITY_NM" maxlength="20" title="<spring:message code="word.vendorEntity"/>" depends="" onChange="fn_vendorCompanyNmChange();" disabled/>
-					<button type="button" id="btnW_companyPop" onClick="javascript:go_vendorCompanyPop()" disabled><spring:message code="button.search"/></button>
-					<input type="text" name="BUYER_BIZ_ENTITY_ID" id="BUYER_BIZ_ENTITY_ID" maxlength="8" title="<spring:message code="word.vendorEntity"/>" depends="required" disabled/>
+					<input type="text" name="BUYER_BIZ_ENTITY_NM" id="BUYER_BIZ_ENTITY_NM" maxlength="20" title="<spring:message code="word.buyerEntity"/>" depends="" onChange="fn_buyerCompanyNmChange();" disabled/>
+					<button type="button" id="btnW_companyPop" onClick="javascript:go_buyerCompanyPop()" disabled><spring:message code="button.search"/></button>
+					<input type="text" name="BUYER_BIZ_ENTITY_ID" id="BUYER_BIZ_ENTITY_ID" maxlength="8" title="<spring:message code="word.buyerEntity"/>" depends="required" disabled/>
 				</td>
 			</tr>
 		</c:when>
@@ -263,11 +263,11 @@ function fn_clearData(){
 				</td>
 			</tr>
 			<tr>
-				<th colspan="2"><spring:message code="word.vendorEntity"/></th>
+				<th colspan="2"><spring:message code="word.buyerEntity"/></th>
 				<td colspan="3">
-					<input type="text" name="BUYER_BIZ_ENTITY_NM" id="BUYER_BIZ_ENTITY_NM" maxlength="20" title="<spring:message code="word.vendorEntity"/>" depends="" onChange="fn_vendorCompanyNmChange();"/>
-					<button type="button" id="btnW_companyPop" onClick="javascript:go_vendorCompanyPop()"><spring:message code="button.search"/></button>
-					<input type="text" name="BUYER_BIZ_ENTITY_ID" id="BUYER_BIZ_ENTITY_ID" maxlength="8" title="<spring:message code="word.vendorEntity"/>" depends="required" readOnly/>
+					<input type="text" name="BUYER_BIZ_ENTITY_NM" id="BUYER_BIZ_ENTITY_NM" maxlength="20" title="<spring:message code="word.buyerEntity"/>" depends="" onChange="fn_buyerCompanyNmChange();"/>
+					<button type="button" id="btnW_companyPop" onClick="javascript:go_buyerCompanyPop()"><spring:message code="button.search"/></button>
+					<input type="text" name="BUYER_BIZ_ENTITY_ID" id="BUYER_BIZ_ENTITY_ID" maxlength="8" title="<spring:message code="word.buyerEntity"/>" depends="required" readOnly/>
 				</td>
 			</tr>
 		</c:when>

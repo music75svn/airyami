@@ -196,7 +196,7 @@ function fn_goCreate(){
 					<th cid="ROWNUM" cClass="num" cType="NUM"><spring:message code="word.num"/></th>
 					<th cid="BIZ_ENTITY_NM" alg="left"><spring:message code="word.sallerEntity"/></th>
 					<th cid="PROD_NM" alg=""left""><spring:message code="word.prodNm"/></th>
-					<th cid="BUYER_BIZ_ENTITY_NM" alg=""left""><spring:message code="word.vendorEntity"/></th>
+					<th cid="BUYER_BIZ_ENTITY_NM" alg=""left""><spring:message code="word.buyerEntity"/></th>
 					<th cid="VALID_DT" alg="center"><spring:message code="word.validDt"/></th>
 					<th cid="CURRENCY_NM" alg="center"><spring:message code="word.currency"/></th>
 					<th cid="SUPPLY_RATE" alg="center"><spring:message code="word.supplyRate"/></th>
