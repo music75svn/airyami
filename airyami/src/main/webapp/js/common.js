@@ -215,7 +215,18 @@ function gfn_validationForm(formObj){
 	return true;
 }
 
-
+//date term validation 
+function gfn_validationDateTerm(fromObj, toObj){
+	if(fromObj.val() != '' && toObj.val() != ''){
+		if(fromObj.val() > toObj.val()){
+			alert('<spring:message code="errors.dateTerm"/>');
+			fromObj.focus();
+			return false;
+		}
+	}
+	
+	return true;
+}
 
 
 
