@@ -347,4 +347,52 @@
 	   AND A.USE_YN = 'Y'
 	 ORDER BY CATE_ORDER
 	</select>
+	
+	<!-- TB_SALES_LIMIT_PROD 제품 판매한정수량 & 품절여부 조회 -->
+	<select id="product.getSalesLimitProdDetail" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* Product_Mysql.xml  product.getSalesLimitProdDetail */
+           A.PROD_NO
+         , A.SALES_LIMIT_TYPE            
+         , A.VALID_START_DT
+         , A.VALID_END_DT
+		 , A.SALES_LIMIT_CNT
+         , A.SOLD_OUT_YN
+	  FROM TB_SALES_LIMIT_PROD A
+	 WHERE A.PROD_NO= #PROD_NO#
+	</select>
+	
+	<!-- TB_SALES_LIMIT_PROD 제품 판매한정수량 & 품절여부 저장 -->
+	<insert id="product.saveSalesLimitProd" parameterClass="Map">
+	INSERT /* Product_Mysql.xml  product.saveSalesLimitProd */
+	  INTO TB_SALES_LIMIT_PROD
+		(
+		   PROD_NO
+		 , SALES_LIMIT_TYPE
+		 , VALID_START_DT
+		 , VALID_END_DT
+		 , SALES_LIMIT_CNT
+		 , SOLD_OUT_YN
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+		   #PROD_NO#
+		 , #SALES_LIMIT_TYPE#
+		 , #VALID_START_DT#
+		 , #VALID_END_DT#
+		 , #SALES_LIMIT_CNT#
+		 , #SOLD_OUT_YN#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	ON DUPLICATE KEY UPDATE
+		   SALES_LIMIT_TYPE = #SALES_LIMIT_TYPE#
+		 , VALID_START_DT = #VALID_START_DT#
+		 , VALID_END_DT = #VALID_END_DT#
+		 , SALES_LIMIT_CNT = #SALES_LIMIT_CNT#
+		 , SOLD_OUT_YN = #SOLD_OUT_YN#
+		 , UPDATE_USER_ID = #LOGIN_ID#
+		 , UPDATE_DT = DATE_FORMAT(now(), '%Y%m%d%H%i%s'
+		)
+	</insert>
 </sqlMap>

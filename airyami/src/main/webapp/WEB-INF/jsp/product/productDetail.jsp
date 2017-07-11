@@ -144,7 +144,15 @@ function fn_goBack(){
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출
-function go_CompanyPop(){
+function fn_popSalesLimit(){
+	var inputParam				= {};
+	inputParam.PROD_NO 	= $('#PROD_NO').val();
+	inputParam.sid 	= "popSalesLimit";
+
+	gfn_commonGo("/product/salesLimitProdPop", inputParam, "Y");
+}
+
+function fn_popCompany(){
 	var inputParam				= {};
 	inputParam.POP_COMP_NM 	= $('#SELLER_BIZ_ENTITY_NM').val();
 	inputParam.sid 	= "findCompany";
@@ -437,7 +445,7 @@ function fn_selectSCate(cateCd, valueCateCd){
 				<th colspan="2"><spring:message code="word.sellerBizEntity"/></th>
 				<td>
 					<input type="text" name="SELLER_BIZ_ENTITY_NM" id="SELLER_BIZ_ENTITY_NM" maxlength="20" title="<spring:message code="word.bizEntityId"/>" depends="" onChange="fn_companyNmChange();"/>
-					<button type="button" id="btnW_companyPop" onClick="javascript:go_CompanyPop()"><spring:message code="button.search"/></button>
+					<button type="button" id="btnW_companyPop" onClick="javascript:fn_popCompany()"><spring:message code="button.search"/></button>
 					<input type="text" name="SELLER_BIZ_ENTITY_ID" id="SELLER_BIZ_ENTITY_ID" maxlength="8" title="<spring:message code="word.bizEntityId"/>" depends="required" readOnly/>
 				</td>
 			</tr>
@@ -516,6 +524,11 @@ function fn_selectSCate(cateCd, valueCateCd){
 			</c:when>
 		</c:choose>
 			<div class="right"><button type="button" id="btnW_save" onClick="javascript:fn_goSave()"><spring:message code="button.save"/></button></div>
+		<c:choose>
+			<c:when test="${MODE=='DETAIL'}">
+			<div class="right"><button type="button" id="btnW_limit" onClick="javascript:fn_popSalesLimit()"><spring:message code="button.salesLimit"/></button></div>
+			</c:when>
+		</c:choose>
 		</div>
 
 	</div> 

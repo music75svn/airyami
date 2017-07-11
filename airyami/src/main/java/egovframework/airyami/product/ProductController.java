@@ -597,4 +597,81 @@ public class ProductController {
     	
     	return "/product/productImgDiv";
     }
+    
+    /**
+     * 제품 판매한정수량 & 품절여부 팝업 이동 
+     */
+    @RequestMapping(value="/product/salesLimitProdPop.do")
+    public String salesLimitProdPop(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params);	// 전달받은 내용 다른 페이지에 전달할때 사용
+    	
+    	// 한정판매수량유형
+    	params.put( "CODE_GROUP_ID", "SALES_LIMIT_TYPE" ); //한정판매수량유형
+    	List<ValueMap> salesLimitType = commCodeService.selectCommCode(params);
+    	model.put("ds_salesLimitType", salesLimitType);
+    	
+    	return "/product/salesLimitProdPop";
+    }
+    
+    /**
+     * 제품 판매한정수량 & 품절여부 상세조회 
+     */
+    @RequestMapping(value="/product/getSalesLimitProdDetail.do")
+    public String getSalesLimitProdDetail(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		ValueMap ds_detail = cmmService.getCommDbMap(params, "product.getSalesLimitProdDetail");
+    		result.put("ds_detail", ds_detail);
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
+    }
+    
+    /**
+     * 제품 판매한정수량 & 품절여부 저장 
+     */
+    @RequestMapping(value="/product/saveSalesLimitProd.do")
+    public String saveSalesLimitProd(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		cmmService.insertCommDb(params, "product.saveSalesLimitProd");
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
+    }
 }
