@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="account">
+
+<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+	
+	<select id="account.getAccountCount" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT /* Account_Mysql.xml  account.getAccountCount */
+	       COUNT(1) 
+	  FROM TB_BANK_ACCOUNT A
+	 WHERE 1 = 1
+	   AND A.BIZ_ENTITY_ID = #SEARCH_BIZ_ENTITY_ID#
+	</select>
+	
+	<select id="account.getAccountList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingPrefixSQL"/>
+	</isEqual>
+	SELECT /* Account_Mysql.xml  account.getAccountList */
+		   A.BIZ_ENTITY_ID
+		 , A.SEQ
+		 , A.BANK_NM
+		 , FN_GET_CODE_NM('COUNTRY_CODE', A.COUNTRY, #LANG_CD#) AS COUNTRY
+		 , A.ACCT_NO  
+		 , FN_GET_CODE_NM('CURRENCY', A.CURRENCY, #LANG_CD#) AS CURRENCY         
+		 , A.VALID_YN
+	  FROM TB_BANK_ACCOUNT A
+	 WHERE 1 = 1
+	   AND A.BIZ_ENTITY_ID = #SEARCH_BIZ_ENTITY_ID#
+	 <isNotEmpty property="SORT_COL">
+	 	<include refid="orderbySQL"/>
+	 </isNotEmpty>
+	 <isEmpty property="SORT_COL">
+	 ORDER BY A.INSERT_DT DESC
+	 </isEmpty>
+	<isEqual property="EXCEL_YN" compareValue="N">
+	<include refid="pagingSuffixSQL"/>
+	</isEqual>
+	</select>
+ 
+	<!-- TB_BANK_ACCOUNT 상세조회 -->
+	<select id="account.getAccountDetail" parameterClass="Map" resultClass="ValueMap">
+	SELECT /* Account_Mysql.xml  account.getAccountDetail */
+		   A.BIZ_ENTITY_ID   
+		 , A.SEQ 
+		 , A.BANK_NM
+		 , A.COUNTRY  
+		 , A.ACCT_NO         
+		 , A.CURRENCY     
+		 , A.IMG_FILE    
+		 , A.VALID_YN
+	  FROM TB_BANK_ACCOUNT A
+	  WHERE A.BIZ_ENTITY_ID = #SEARCH_BIZ_ENTITY_ID#
+	    AND SEQ = #SEARCH_SEQ#
+	</select>
+	
+	<select id="account.getAccountSeq" parameterClass="Map" resultClass="java.lang.String">
+	SELECT /* Account_Mysql.xml  account.getAccountSeq */
+		   IFNULL(MAX(SEQ)+1, '1') AS SEQ
+	  FROM TB_BANK_ACCOUNT
+	 WHERE BIZ_ENTITY_ID = #BIZ_ENTITY_ID#
+	</select>
+	
+	<insert id="account.insertAccount" parameterClass="Map">
+	INSERT /* Account_Mysql.xml  account.insertAccount */
+	  INTO TB_BANK_ACCOUNT
+		(
+ 		   BIZ_ENTITY_ID   
+		 , SEQ 
+		 , BANK_NM        
+		 , COUNTRY  
+		 , ACCT_NO         
+		 , CURRENCY     
+		 , IMG_FILE    
+		 , VALID_YN
+		 , INSERT_USER_ID
+		 , INSERT_DT)
+		VALUES
+		(
+ 		   #BIZ_ENTITY_ID#  
+		 , #SEQ#
+		 , #BANK_NM#     
+		 , #COUNTRY#
+		 , #ACCT_NO#   
+		 , #CURRENCY# 
+		 , #IMG_FILE#
+		 , #VALID_YN#
+		 , #LOGIN_ID#
+		 , DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+	
+	<update id="account.updateAccount" parameterClass="Map">
+	UPDATE /* Account_Mysql.xml  account.updateAccount */
+	       TB_BANK_ACCOUNT
+	   SET BANK_NM			= #BANK_NM#
+		 , COUNTRY			= #COUNTRY#
+		 , ACCT_NO			= #ACCT_NO#
+		 , CURRENCY			= #CURRENCY#
+		 , IMG_FILE			= #IMG_FILE#
+		 , VALID_YN			= #VALID_YN#
+	     , UPDATE_USER_ID	= #LOGIN_ID#
+	     , UPDATE_DT		= DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	 WHERE BIZ_ENTITY_ID	= #BIZ_ENTITY_ID#
+	   AND SEQ = #SEQ#
+	</update>
+	
+	<delete id="account.deleteAccount" parameterClass="Map">
+	DELETE /* Account_Mysql.xml  account.deleteAccount */
+	  FROM TB_BANK_ACCOUNT
+	 WHERE BIZ_ENTITY_ID = #BIZ_ENTITY_ID#
+	   AND SEQ = #SEQ#
+	</delete>
+</sqlMap>
