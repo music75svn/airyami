@@ -1018,7 +1018,7 @@ table {
 .adminBoardIn .tblLi table th{border-top:1px solid #ccc;border-left:1px solid #ccc;min-height:20px;padding:8px 5px;text-align:center;line-height:150%;}
 .adminBoardIn .tblLi table td{border-top:1px solid #ccc;border-left:1px solid #ccc;min-height:20px;padding:8px 5px;background:#fff;text-align:center;line-height:150%;}
 
-.datepicker{background:#FFF url(/images/admin/icon_calendar.gif) right top no-repeat;cursor:pointer;}
+.datepicker{width:94px; background:#FFF url(/images/admin/icon_calendar.gif) right top no-repeat;cursor:pointer;}
 
 /* 우편번호찾기 */
 .findPostBox{position:fixed;top:50%;left:50%;z-index:60;width:400px;height:500px;margin-left:-200px;margin-top:-250px;border:1px solid #767676;background:#fff;}
@@ -1233,7 +1233,22 @@ button.btn4W span{display: block;padding-right: 10px;padding-left:10px;height: 2
 #admin_leftmenu .menu-contents li a:hover {text-decoration:underline;}
 #admin_leftmenu .menu-title:last-child {border-top:0px;}
 
+/*관리자 상품등록 팝업*/
+.product .top .slider{ float: left; width: 100%; }
+.product .top .slider .slider-for *{margin:0 auto;}
+.product .top .slider .slider-for img{ max-width: 300px !important; max-height: 260px !important;  margin:30px auto 40px; }
+.product .top .slider .slider-nav{ width:70%; height: 67px; margin:0 auto !important; padding: 0 5%; text-align: center; overflow: hidden;}
+.product .top .slider .slider-nav img{ display: inline-block; width: 65px; height: 65px; margin:0 5px; border:1px solid #f8f8f8 !important; line-height: 65px; }
+.product .top .slider .slider-nav img.active{/*  display: inline-block; width: 65px; height: 65px; margin:0 5px; border:1px solid #eee !important;  */}
+.product .top .slider .slider-nav img{ max-width: 50px; max-height: 50px; margin: 0 auto; cursor: pointer; }
 
+.product .top .slider .slider-nav .slick-prev{ position: absolute; left: 0; top: 7px; display: inline-block; width: 20px; height: 40px; background: url(../../img/product/detail_left.gif) left top no-repeat; text-indent: -9999px; overflow: hidden;}
+.product .top .slider .slider-nav .slick-next{ position: absolute; right: 0; top: 7px; display: inline-block; width: 20px; height: 40px; background:url(../../img/product/detail_right.gif) left top no-repeat; text-indent: -9999px; overflow: hidden;}
+/*
+.product .top .slider .slider-nav .slick-prev{ position:absolute; left: 90px !important; top:400px;  display: inline-block; width: 20px; height: 40px; border: 1px solid #000; background:#00f url(../../img/product/detail_left.gif) left top no-repeat;}
+.product .top .slider .slider-nav .slick-next { position:absolute; right: 90px !important;top:400px;  display: inline-block; width: 20px; height: 40px; border: 1px solid #000; background:#ff0 url(../../img/product/detail_right.gif) left top no-repeat;}
+*/
+.product .top .slider .slick-dots{ display: none !important;  }
 
 
 
