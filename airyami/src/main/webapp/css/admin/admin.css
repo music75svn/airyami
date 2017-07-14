@@ -41,7 +41,8 @@ pre{white-space:pre-line;}
 input[type=text],
 input[type=password],
 textarea{ padding:5px 5px 4px 5px; border:1px solid #d5d5d5;max-width:98%;}
-select{ border:1px solid #d5d5d5; padding:4px; vertical-align:top; height:27px;}
+select{border:1px solid #d5d5d5; padding:4px; vertical-align:top; height:27px; }
+/*select{padding-right:25px !important; background:#fff url(../../images/admin/btnDown.gif)right center no-repeat; border:1px solid #d5d5d5; padding:4px; vertical-align:top; height:27px; -webkit-appearance:none;}*/
 #title{width:98%;}
 
 input[type="submit"], input[type="button"], button, textarea, input[type="text"], input[type="date"], input[type="email"], input[type="password"]  {
@@ -221,17 +222,18 @@ body.popup{ background:none;  background:#FFF;  }
 
 
 
-#search{width:987px; margin:0 auto 20px; padding:0px 5px; border:1px solid #e6e6e6; border-radius:3px; background:#f6f6f6; text-align:center; vertical-align:top; }
-#search dl{ padding:15px 45px; display:inline-block;*display:inline;*zoom:1; margin:2px auto; text-align:left;  vertical-align:top;}
-#search dt{ display:inline; margin:3px 0; line-height:18px; font-weight:bold; color:#8d8d8d;  vertical-align:top;}
-#search dt{ display:inline-block; width:70px; margin:5px 3px 0 10px;  font-weight:bold; color:#8d8d8d; line-height:20px;text-align:center;  }
-#search dd{ display:inline-block; margin:3px 0;min-width:290px; line-height:18px;  vertical-align:top;text-align:left; }
+#search{overflow:hidden; display:table; width:987px; margin:0 auto 20px; padding:0px 5px; border:1px solid #e6e6e6; border-radius:3px; background:#f6f6f6; text-align:center; vertical-align:top; }
+#search dl{ display:table-cell; padding:10px 0px 13px; margin:2px auto; width:86%; text-align:left; vertical-align:top;}
+#search dt{ display:inline-block; width:100px; padding:0 10px 0 0; margin:3px 5px 3px 10px; font-weight:bold; color:#8d8d8d; line-height:25px; vertical-align:middle; text-align:right;}
+#search dd{ display:inline-block; margin:0; min-width:290px; line-height:25px; vertical-align:middle; text-align:left; }
 #search dd input[type=text]{ display:inline-block; margin:0; padding:5px 5px 4px 5px; border:1px solid #d5d5d5; }
 #search dd select{margin:0 2px 0 0; padding:2px; border:1px solid #d5d5d5; }
 #search dd input[type=submit]{ display:inline-block; margin:0; padding:5px 19px 5px 19px;height:27px;line-height:27px; border:0; border-radius:3px;  background:#155eae; color:#FFF; font:11px/13px NanumGothic; cursor:pointer; }
-#search input[type=submit]{ display:inline-block; margin:35px; padding:5px 19px 5px 19px; height:27px;line-height:27px; border:0; border-radius:3px; background:#155eae; color:#FFF; font:11px/13px NanumGothic; cursor:pointer; }
+#search input[type=submit]{ display:inline-block; margin:20% 10px; padding:5px 19px 5px 19px; height:27px;line-height:27px; border:0; border-radius:3px; background:#155eae; color:#FFF; font:11px/13px NanumGothic; cursor:pointer; }
 *:first-child+html #search dd input[type=submit]{ display:inline-block; margin:0; padding:4px 5px 3px; border:0; background:#155eae; color:#FFF; font-weight:bold; line-height:12px; }
-#search dd button.cal {width:25px; height:25px;}
+#search dd button.cal img {vertical-align:top;}
+#search .search_btn { display:table-cell; padding:15px 0px; margin:2px auto; width:11%; vertical-align:middle; height:inherit;}
+#search .search_btn input[type=submit]{ display:inline-block; margin:10px; padding:5px 19px 5px 19px; height:27px;line-height:27px; border:0; border-radius:3px; background:#155eae; color:#FFF; font:11px/13px NanumGothic; cursor:pointer; }
 
 #multi_search{ float:left; width:858px; margin:0 auto 20px; padding:4px 5px; border:1px solid #dad8d7; background:#fff; text-align:left; vertical-align:top; }
 #multi_search .item{ float:left; height:30px; margin:0 30px 0 0; line-height:30px; word-break:keep-all; white-space:nowrap; }
@@ -1130,6 +1132,28 @@ table {
 .dTypeListTbl .writer{display:inline-block;padding:0px 15px 0px 15px;min-height:24px;width:auto;border-top:0;background:url(/images/admin/line_gubun.gif) no-repeat left  4px;font-size:12px;}
 
 
+/*화면 50프로 차지 타입*/
+.hTypeListTbl:first-child {margin-right:20px;}
+.hTypeListTbl table .num{width:10%;font-size:12px;text-align:center;}
+.hTypeListTbl table .subject{width:auto;}
+.hTypeListTbl table .date{width:15%;font-size:12px;text-align:center;}
+.hTypeListTbl table .hit{width:15%;font-size:12px;text-align:center;}
+.hTypeListTbl table .writer{width:15%;font-size:12px;text-align:center;}
+.hTypeListTbl{float:left; position:relative;margin-top:10px;margin-bottom:10px;width:48%;min-width:280px;}
+.hTypeListTbl table{width:100%;table-layout:fixed;border-bottom:1px solid #b4b4b4;border-top:2px solid #26aea2;}
+.hTypeListTbl table caption{display:none;}
+.hTypeListTbl table thead th{padding:10px 0;background:#f7f7f6;color:#535353;vertical-align:middle;font-size:12px;border-right:1px solid #e1e1e1;}
+.hTypeListTbl table thead th:first-child {border-left:1px solid #e1e1e1;}
+.hTypeListTbl table tbody td{padding:10px 5px;vertical-align:middle;border-top:1px solid #e1e1e1;color:#535353;line-height:150%; border-right:1px solid #e1e1e1;}
+.hTypeListTbl table tbody td:first-child {border-left:1px solid #e1e1e1;}
+.hTypeListTbl table tbody .subject a{width:auto;max-width:99%;height:22px;display:inline-block;margin-bottom:-4px;overflow:hidden;text-overflow:ellipsis;color:#393939;white-space:nowrap;}
+.hTypeListTbl table .notice{background:#fafafa;}
+.hTypeListTbl table .notice .num::after{position:absolute;margin-left:-30px;display:inline-block;padding:0px 10px;background:#868686;content:/*attr(title)*/'공지';text-align:center;color:#fff;font-size:11px;}
+.hTypeListTbl table tbody .daptxt  .subject  a{max-width:90%;padding-left:47px;background:url(/images/admin/icon_dap.gif) no-repeat left top;}
+
+
+
+
 /* FAQ타입 */
 .faqTbl{position:relative;margin-top:10px;margin-bottom:30px;width:100%;min-width:280px;border-top:1px solid #858585;}
 .faqTbl ul{width:100%;border-bottom:1px solid #b4b4b4;}
@@ -1449,7 +1473,23 @@ button.btn4W{display: inline-block;width:auto;background: #fff;border:1px solid 
 button.btn4W span{display: block;padding-right: 10px;padding-left:10px;height: 26px;color: #767676;font-size: 12px;line-height: 26px;text-align: center;overflow:hidden;white-space:nowrap;/*text-overflow:ellipsis;*/}
 
 
-
+/*관리자 레프트 메뉴 css*/
+#admin_leftmenu {width:235px; background:#5d5d5d; outline:none;}
+#admin_leftmenu a {font-size:13px; color:#fff;}
+#admin_leftmenu .menu-title {
+    margin-left:20px;
+    margin-right:20px;
+    padding:14px 19px 14px 15px; 
+    background:url(../../images/admin/arrow_right.png)no-repeat left center; 
+    font-size:13px; color:#fff; 
+    border-top:1px solid #7e7e7e; 
+    border-bottom:1px solid #333333;
+    }
+#admin_leftmenu .menu-title.ui-state-active {background:url(../../images/admin/arrow_down.png)no-repeat left center !important;}
+#admin_leftmenu .menu-contents ul {padding:10px; background:#959595;font-size:13px; color:#fff;}
+#admin_leftmenu .menu-contents li {line-height:24px; }
+#admin_leftmenu .menu-contents li a {padding:14px 19px 14px 35px; background:url(../../images/admin/arrow_right2.png)no-repeat 20px center; font-size:13px; color:#fff;}
+#admin_leftmenu .menu-contents li a:hover {text-decoration:underline;}
 
 
 
