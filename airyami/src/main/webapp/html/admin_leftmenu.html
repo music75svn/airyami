@@ -1,0 +1,81 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>에어야미 관리자 사이드 메뉴</title>
+<link rel="stylesheet" href="../css/admin/admin.css" type="text/css">
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/jquery-ui.js"></script>
+<script type="text/javascript">
+// 관리자 사이드메뉴
+$(document).ready(function(){
+	var icons = {
+	  header: "ui-icon-circle-arrow-e",
+	  activeHeader: "ui-icon-circle-arrow-s"
+	};
+	$( "#admin_leftmenu" ).accordion({
+	  heightStyle: "content",
+	  // event: "mouseover",
+	  collapsible: true,
+	  active: false,
+	  icons: icons
+	});
+	$( "#toggle" ).button().on( "click", function() {
+	  if ( $( "#admin_leftmenu" ).accordion( "option", "icons" ) ) {
+		$( "#admin_leftmenu" ).accordion( "option", "icons", null );
+	  } else {
+		$( "#admin_leftmenu" ).accordion( "option", "icons", icons );
+	  }
+	});
+  });
+</script>
+
+</head>
+
+<body>
+	<div id="wrap">
+		<div id="admin_leftmenu">
+			<div class="menu-title">주문</div>
+			<div class="menu-contents">
+				<ul>
+					<li><a href="#">고객 주문 조회</a></li>
+				</ul>
+			</div>
+			<div class="menu-title">상품대금</div>
+			<div class="menu-contents">
+				<ul>
+					<li><a href="#">하위 메뉴 1-1</a></li>
+					<li><a href="#">하위 메뉴 1-2</a></li>
+					<li><a href="#">하위 메뉴 1-3</a></li>
+				</ul>
+			</div>
+			<div class="menu-title">PACKING&amp;택배</div>
+			<div class="menu-contents">
+				<ul>
+					<li><a href="#">하위 메뉴 1-1</a></li>
+					<li><a href="#">하위 메뉴 1-2</a></li>
+					<li><a href="#">하위 메뉴 1-3</a></li>
+				</ul>
+			</div>
+			<div class="menu-title">REPORT</div>
+			<div class="menu-contents">
+				<ul>
+					<li><a href="#">하위 메뉴 1-1</a></li>
+					<li><a href="#">하위 메뉴 1-2</a></li>
+					<li><a href="#">하위 메뉴 1-3</a></li>
+				</ul>
+			</div>
+			<div class="menu-title">사용자 관리</div>
+			<div class="menu-contents">
+				<ul>
+					<li><a href="#">웹 카테고리</a></li>
+					<li><a href="#">먹거리 카테고리</a></li>
+					<li><a href="#">여행 카테고리</a></li>
+				</ul>
+			</div>
+		</div>
+        
+   
+	</div>
+</body>
+</html>

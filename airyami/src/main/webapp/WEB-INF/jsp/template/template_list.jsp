@@ -221,6 +221,13 @@ function fn_popImgView(){
 	gfn_commonGo("/template/templateImgView_popup", inputParam, "Y");
 }
 
+function fn_popImgView2(){
+	var inputParam = {}; //gfn_makeInputData($("#srchForm"));
+	inputParam.PROD_NO = "CN00001";
+	
+	gfn_commonGo("/template/templateImgView_popup2", inputParam, "Y");
+}
+
 
 //엑셀버튼
 function fn_excel() {
@@ -400,6 +407,7 @@ function fn_userNmChange() {
 		<span id="pagingNav"></span>
 		
 		<div class="btn_zone">
+			<button type="button" id="btnBack" onClick="javascript:fn_popImgView2()">이미지View</button>
 			<button type="button" id="btnBack" onClick="javascript:fn_popImgView()">이미지View</button>
 			<button type="button" id="btnBack" onClick="javascript:fn_popInsertForm2()">이미지등록new</button>
 			<button type="button" id="btnBack" onClick="javascript:fn_popInsertForm()">이미지등록old</button>

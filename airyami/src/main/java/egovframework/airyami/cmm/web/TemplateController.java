@@ -643,6 +643,28 @@ public class TemplateController {
     	return "/template/templateImgView_popup";
     }
     
+    /**
+     * popup 호출 
+     */
+    @RequestMapping(value="/template/templateImgView_popup2.do")
+    public String goTemplateImgView_popup2(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param 1111:: " + params);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	params.put( "CODE_GROUP_ID", "LANG" ); //코드 대분류
+    	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_LANG", code_LANG);
+    	
+    	params.put( "CODE_GROUP_ID", "IMG_TYPE" ); //이미지타입
+    	List<ValueMap> code_IMG_TYPE = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_IMG_TYPE", code_IMG_TYPE);
+    	
+    	return "/template/templateImgView_popup2";
+    }
+    
     
     
     

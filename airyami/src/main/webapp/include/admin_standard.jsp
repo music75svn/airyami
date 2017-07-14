@@ -17,7 +17,7 @@
 <link href="<c:url value='/'/>css/common.css" rel="stylesheet" type="text/css" >
 <link href="<c:url value='/'/>css/admin/admin.css" rel="stylesheet" type="text/css" >
 <!-- 달력관련 -->
-<link rel="stylesheet" href="/js/lib/DatePicker/themes/base/jquery.ui.all.css"  media="screen" />
+<!-- <link rel="stylesheet" href="/js/lib/DatePicker/themes/base/jquery.ui.all.css"  media="screen" /> -->
 	
 <!-- for 공통함수 -->
 <script type="text/javascript" src="/js/jquery.js"></script>

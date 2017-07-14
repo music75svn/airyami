@@ -4,14 +4,20 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes, target-densitydpi=medium-dpi" />
 <%@ include file="/include/title.jsp"%>
 <jsp:include page="/include/common.jsp"/>
+<link type="text/css" rel="stylesheet" href="../css/shop/common.css" />
 <%@ include file="/include/admin_standard.jsp"%>
 
 <script type="text/javascript">
 
 $(function() {  //onready
 	//여기에 최초 실행될 자바스크립트 코드를 넣어주세요
+	$('.bxslider').bxSlider({
+	  pagerCustom: '#bx-pager'
+	});
+	
 	gfn_OnLoad();
 	
 	//alert("5000 + 10000000 = " + (5000 + 10000000));
@@ -25,8 +31,7 @@ var g_fileList = null;
 
 //화면내 초기화 부분
 function fn_init(){
-	debugger;
-	fn_initFileList();
+	//fn_initFileList();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -72,12 +77,18 @@ function fn_callBack(sid, result, data){
 ////////////////////////////////////////////////////////////////////////////////////
 // 사용자 함수
 function fn_initFileList(){
-	imgNm = "IMG_VIEWLIST";
-	imgTd = $("[name="+imgNm+"]");
+	debugger;
 	
-	if(!gfn_isNull(imgTd))
-		imgTd.empty();
+	imgNm = "IMG_MAIN";
+	imgMain = $("[name="+imgNm+"]");
 	
+	if(!gfn_isNull(imgMain))
+		imgMain.empty();
+	
+	var initHtml = "<ul class=\"bxslider\" name=\"IMG_VIEW\"></ul>"
+				 + "<div id=\"bx-pager\" name=\"IMG_VIEWLIST\"></div>";
+	
+	imgMain.append(initHtml);
 }
 
 function fn_changeList(addIndex){
@@ -102,29 +113,39 @@ function fn_setFileList(fileList){
 	debugger;
 	
 	var imgNm = "";
+	var imgListNm = "";
 	var imgTd = null;
+	var imgListTd = null;
 	
-	var firstIdx = $("#IMG_FIRST_INDEX").val();
-	var listSize = $("#IMG_LIST_SIZE").val();
+	//var firstIdx = $("#IMG_FIRST_INDEX").val();
+	//var listSize = $("#IMG_LIST_SIZE").val();
 	
 	if(!gfn_isNull(fileList)) // filelist가 있을 경우 file 리스트 표시
  	{
-		//for(var idx = 0; idx < fileList.length; idx++){
-		for(var idx = firstIdx; idx < firstIdx + listSize && idx < fileList.length ; idx++){
+		imgNm = "IMG_VIEW";	// (대)상품보기용
+		imgTd = $("[name="+imgNm+"]");
+		
+		imgListNm = "IMG_VIEWLIST";	// (대)리스트 보기용
+		imgListTd = $("[name="+imgListNm+"]");
 			
-			imgNm = "IMG_VIEWLIST";	// (대)상품보기용
-			imgTd = $("[name="+imgNm+"]");
+		for(var idx = 0; idx < fileList.length; idx++){
+		//for(var idx = firstIdx; idx < firstIdx + listSize && idx < fileList.length ; idx++){
+			var fileInfo = "";
+			//fileInfo += "<li style=\"float: left; list-style: none; position: relative; width: 638px;\"><img src=\"" + fileList[idx].URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" /></li>";
+			fileInfo += "<li><img src=\"" + fileList[idx].URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" /></li>";
+			imgTd.append(fileInfo);
 			
-			var fileLink = "";
-			fileLink += "<div name='FILE_INFO_" + fileList[idx].FILE_DTL_SEQ + "'>";
-			fileLink += "<img src=\"" + fileList[idx].THUMBNAIL_URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" onclick='javascript:gfn_changeImgView(\"IMG_VIEW\", \"" + gfn_replaceAll(fileList[idx].URL_PATH + fileList[idx].SAVE_FILE_NAME, "\\", "/") + "\")' style=\"width:20%\" height=\"50\"  border=\"0\"/>";
-			fileLink += "<div>";
-			
-			imgTd.append(fileLink);
+			var fileListLink = "";
+			fileListLink += "<a data-slide-index=\"" + idx + "\" href=\"\"><img src=\"" + fileList[idx].THUMBNAIL_URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" /></a>";
+			imgListTd.append(fileListLink);
 		}
+		//gfn_changeImgView("IMG_VIEW", gfn_replaceAll(fileList[firstIdx].URL_PATH + fileList[firstIdx].SAVE_FILE_NAME, "\\", "/"));
 		
+		debugger;
 		
-		gfn_changeImgView("IMG_VIEW", gfn_replaceAll(fileList[firstIdx].URL_PATH + fileList[firstIdx].SAVE_FILE_NAME, "\\", "/"));
+		$('.bxslider').bxSlider({
+		  pagerCustom: '#bx-pager'
+		});
  	}
 }
 
@@ -176,13 +197,34 @@ function gfn_changeImgView(imgViewOjbNm, src){
 			</tr>
 			<tr>
 				<td colspan=3>
-					<div style="width=200px" height=200>
-						<img name="IMG_VIEW"></img>
+					<!-- product -->
+					<div class="product">
+						<!-- top -->
+						<div class="top">
+							<!-- center -->
+							<div class="center" name="IMG_MAIN">
+								<ul class="bxslider" name="IMG_VIEW">
+								    <li><img src="../img/product/detail_img01.jpg" /></li>
+								    <li><img src="../img/product/detail_img01.jpg" /></li>
+								    <li><img src="../img/product/detail_img01.jpg" /></li>
+								    <li><img src="../img/product/detail_img01.jpg" /></li>
+								    <li><img src="../img/product/detail_img01.jpg" /></li>
+								    <li><img src="../img/product/detail_img01.jpg" /></li>
+								</ul>
+								<div id="bx-pager" name="IMG_VIEWLIST">
+								    <a data-slide-index="0" href=""><img src="../img/product/detail_img01.jpg" /></a>
+								    <a data-slide-index="1" href=""><img src="../img/product/detail_img01.jpg" /></a>
+								    <a data-slide-index="2" href=""><img src="../img/product/detail_img01.jpg" /></a>
+								    <a data-slide-index="3" href=""><img src="../img/product/detail_img01.jpg" /></a>
+								    <a data-slide-index="4" href=""><img src="../img/product/detail_img01.jpg" /></a>
+								    <a data-slide-index="5" href=""><img src="../img/product/detail_img01.jpg" /></a>
+								</div>
+							</div>
+							<!--// center -->
+						</div>
+						<!--// top -->
 					</div>
-					<img src='/images/btn/icon_pre_month.gif' style='cursor:hand' onclick='javascript:fn_changeList(-1)' />
-					<div name="IMG_VIEWLIST" height=50>
-					</div>
-					<img src='/images/btn/icon_aft_month.gif' style='cursor:hand' onclick='javascript:fn_changeList(1)' />
+					<!--// product -->
 				</td>
 			</tr>
 		</table>
