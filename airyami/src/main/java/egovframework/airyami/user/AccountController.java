@@ -15,8 +15,11 @@
  */
 package egovframework.airyami.user;
 
+import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -35,7 +38,9 @@ import egovframework.airyami.cmm.service.CmmService;
 import egovframework.airyami.cmm.service.CommCodeService;
 import egovframework.airyami.cmm.service.FileService;
 import egovframework.airyami.cmm.util.CommonUtils;
+import egovframework.airyami.cmm.util.Constants;
 import egovframework.airyami.cmm.util.PageInfo;
+import egovframework.airyami.cmm.util.ThumbnailUtil;
 import egovframework.airyami.cmm.util.ValueMap;
 import egovframework.com.cmm.EgovMessageSource;
 import egovframework.com.cmm.service.EgovProperties;
@@ -249,6 +254,55 @@ public class AccountController {
 	    		MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest)request;
 		    	final Map<String, MultipartFile> files = multiRequest.getFileMap();
 		    	log.info("files ::  " + files);
+		    	
+		    	if(!files.isEmpty()){
+		            String storePathString = "";	// 실제 이미지 저장될곳
+		            String sUrlPath = "";
+		            
+		    		Iterator<Entry<String, MultipartFile>> itr = files.entrySet().iterator();
+		    		MultipartFile file;
+		            String filePath = "";
+		            int idx = 0;
+		            
+		            String mainFolderId = (String)params.get("BIZ_ENTITY_ID");
+		            
+		    		while(itr.hasNext()) {
+		                idx++;
+		                
+		                Entry<String, MultipartFile> entry = itr.next();
+		                
+		                file = entry.getValue();
+		                String originalFileName = file.getOriginalFilename();
+		                
+		                if("".equals(originalFileName)) {
+		                	continue;
+		                }
+		                
+		                // 이미지파일 기본정보 추출
+		                int index = originalFileName.lastIndexOf(".");
+		                String fileExt = originalFileName.substring(index + 1);
+		                String newName = CommonUtils.getTimeStamp()+"_"+idx+"."+fileExt;
+		                
+		                
+		                storePathString = EgovProperties.getProperty("Globals.acctFileStorePath") + mainFolderId + File.separator;
+		                sUrlPath = File.separator + "upload" + File.separator + "acctimg" + File.separator + mainFolderId + File.separator+newName;
+		                
+		            	if(!"".equals(originalFileName)) {
+		            		filePath = storePathString + newName;
+		            		
+		            		//디렉토리 생성
+		            		File desti = new File(storePathString);
+		            		if(!desti.exists())
+		            			desti.mkdir();        		
+		            		
+		            		// 파일복사
+		            		file.transferTo(new File(filePath));
+		            	}
+		            	params.put("IMG_FILE", sUrlPath);
+		            }
+				}else{
+					params.put("IMG_FILE", "");
+				}
     		}
     		if("CREATE".equals(params.get("PROC_MODE"))){
     			// 시컨스조회

@@ -141,6 +141,7 @@ function fn_clickRow(rowObj){
 	$("#ACCT_NO").val(ACCT_NO);
 	$("#CURRENCY").val(CURRENCY);
 	$("#VALID_YN").val(VALID_YN);
+	$("#ACC_IMG").attr("src", IMG_FILE);
 	
 	$("#PROC_MODE").val("UPDATE");
 }
@@ -152,6 +153,8 @@ function fn_new(){
 	$("#ACCT_NO").val("");
 	$("#CURRENCY").val("");
 	$("#VALID_YN").val("");
+	$("#IMG_FILE").val("");
+	$("#ACC_IMG").attr("src", "/images/no_photo.gif");
 	
 	$("#PROC_MODE").val("CREATE");
 }
@@ -176,9 +179,6 @@ function fn_new(){
 			<!-- total 총건수 -->
 	        <span id="totCnt"></span>
 		    <!--// total 총건수 -->
-			<!-- 출력건수 -->
-			<div class="tablelistQuantity" id="pageUnit"></div>
-			<!--// 출력건수 -->
 		</div>
 		<!-- //출력건수및 리스트 페이지당 갯수 -->
 		</form>
@@ -268,6 +268,7 @@ function fn_new(){
 			<tr>
 				<th><spring:message code="word.acctImgFile"/></th>
 				<td>
+					<img src="/images/no_photo.gif" alt="" name="ACC_IMG" id="ACC_IMG" style="width:120px; height: auto;">
 			        <input type="file" name="IMG_FILE" id="IMG_FILE" style="width:500px" title="<spring:message code="word.acctImgFile"/>" depends=""/>
 				</td>
 			</tr>

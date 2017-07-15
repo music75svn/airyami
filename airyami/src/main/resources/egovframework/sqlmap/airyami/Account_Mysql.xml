@@ -74,8 +74,8 @@
 		 , BANK_NM        
 		 , COUNTRY  
 		 , ACCT_NO         
-		 , CURRENCY     
-		 , IMG_FILE    
+		 , CURRENCY
+		 , IMG_FILE
 		 , VALID_YN
 		 , INSERT_USER_ID
 		 , INSERT_DT)
@@ -101,7 +101,9 @@
 		 , COUNTRY			= #COUNTRY#
 		 , ACCT_NO			= #ACCT_NO#
 		 , CURRENCY			= #CURRENCY#
+	<isNotEmpty property="IMG_FILE">
 		 , IMG_FILE			= #IMG_FILE#
+	</isNotEmpty>
 		 , VALID_YN			= #VALID_YN#
 	     , UPDATE_USER_ID	= #LOGIN_ID#
 	     , UPDATE_DT		= DATE_FORMAT(now(), '%Y%m%d%H%i%s')
