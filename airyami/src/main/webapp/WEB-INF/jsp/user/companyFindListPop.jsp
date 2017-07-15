@@ -109,7 +109,7 @@ function fn_clickRow(rowObj){
 			<input type="hidden" name="SORT_COL" id="SORT_COL" value="A.INSERT_DT DESC"/>
 			<input type="hidden" name="SORT_ACC" id="SORT_ACC" />
 			<input type="hidden" name="SEARCH_POP_YN" id="Y" />
-			<input type="hidden" name=POP_COMP_NM id="POP_COMP_NM" value='<c:out value="${POP_COMP_NM}"/>'/>
+			<input type="hidden" name="POP_COMP_NM" id="POP_COMP_NM" value='<c:out value="${POP_COMP_NM}"/>'/>
 			<input type="hidden" name="sid" id="sid" value='<c:out value="${sid}"/>'/>
 		<div id="search" style="width:100%">
 			<dl>
