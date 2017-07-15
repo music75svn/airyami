@@ -28,9 +28,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import egovframework.airyami.cmm.service.CmmService;
 import egovframework.airyami.cmm.service.CommCodeService;
+import egovframework.airyami.cmm.service.FileService;
 import egovframework.airyami.cmm.util.CommonUtils;
 import egovframework.airyami.cmm.util.PageInfo;
 import egovframework.airyami.cmm.util.ValueMap;
@@ -68,6 +71,10 @@ public class AccountController {
 	/** CmmService */
     @Resource(name = "cmmService")
     private CmmService cmmService;
+    
+    /** FileService */
+    @Resource(name = "fileService")
+    private FileService fileService;
     
     /** EgovMessageSource */
 	@Resource(name = "egovMessageSource")
@@ -235,6 +242,14 @@ public class AccountController {
     	ValueMap result = new ValueMap();
     	
     	try{
+    		if("CREATE".equals(params.get("PROC_MODE")) || "UPDATE".equals(params.get("PROC_MODE"))){
+	    		/*
+	    		 * 통장이미지 저장
+	    		 */
+	    		MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest)request;
+		    	final Map<String, MultipartFile> files = multiRequest.getFileMap();
+		    	log.info("files ::  " + files);
+    		}
     		if("CREATE".equals(params.get("PROC_MODE"))){
     			// 시컨스조회
     			String seq = cmmService.getCommDbString(params, "account.getAccountSeq");

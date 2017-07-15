@@ -2,7 +2,7 @@
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <html lang="ko">
 <head>
-<meta http-equiv="Content-Type" content="text/html;application/json; charset=utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
 <%@ include file="/include/title.jsp"%>
 <%@ include file="/include/admin_standard.jsp"%>
@@ -59,9 +59,9 @@ function fn_save(){
 	var inputParam = new Object();
 	inputParam.sid 				= "saveAccount";
 	inputParam.url 				= "/account/saveAccount.do";
-	inputParam.data 			= gfn_makeInputData($("#dataForm"));
+	inputParam.form 			= $("#dataForm");
 	
-	gfn_Transaction( inputParam );
+	gfn_TransactionMultipart( inputParam );
 }
 
 //저장
@@ -185,7 +185,7 @@ function fn_new(){
 		
 		<!-- table list -->
 		<div class="aTypeListTbl">
-		<table id="tb_list" summary="<spring:message code="word.productList"/>">
+		<table id="tb_list" summary="<spring:message code="button.companyAccountAdm"/>">
 			<caption>리스트</caption>
 			<colgroup>
 				<col width="5%"/>
@@ -213,7 +213,7 @@ function fn_new(){
 		<!--// table list -->
 		<span id="pagingNav"></span>
 		</form>
-		<form id="dataForm" name="dataForm" method="post" action="<c:url value='/commCode/codeList.do'/>" onsubmit="return false;">
+		<form id="dataForm" name="dataForm" method="post" enctype="multipart/form-data" action="<c:url value='/account/saveAccount.do'/>" onsubmit="return false;">
 			<input type="hidden" name="BIZ_ENTITY_ID" id="BIZ_ENTITY_ID" value='<c:out value="${BIZ_ENTITY_ID}"/>'/>
 			<input type="hidden" name="SEQ" id="SEQ" value=''/>
 			<input type="hidden" name="PROC_MODE" id="PROC_MODE" value='CREATE'/>
