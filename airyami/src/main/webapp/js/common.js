@@ -239,6 +239,7 @@ fa_POP_STYLE["/board/ArticleHistoryList"] = "width=700,height=660,center=true,sc
 fa_POP_STYLE["/exchangeRate/exchangeRateDetailPop"] = "width=600,height=400,center=true,scrollbars=false,status=yes";
 fa_POP_STYLE["/category/goInsertCate"] = "width=600,height=500,center=true,scrollbars=false,status=yes";
 fa_POP_STYLE["/product/productImgPop"] = "width=800,height=750,center=true,scrollbars=false,status=yes";
+fa_POP_STYLE["/account/accountListPop"] = "width=800,height=750,center=true,scrollbars=false,status=yes";
 
 //fa_POP_STYLE["/MCS/MCS0011P"] = "status=yes,scrollbars=yes,resizable=yes,top=50,left=400,width=830,height=760";
 //==============================================================================================

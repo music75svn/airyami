@@ -126,7 +126,15 @@ function fn_goBack(){
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 팝업 호출
-function go_UserPop(){
+function fn_popAccountAdm(){
+	var inputParam				= {};
+	inputParam.BIZ_ENTITY_ID 	= $('#BIZ_ENTITY_ID').val();
+	inputParam.sid 	= "popAccount";
+
+	gfn_commonGo("/account/accountListPop", inputParam, "Y");
+}
+
+function fn_popUser(){
 	var inputParam				= {};
 	inputParam.POP_USER_NM 	= $('#COMP_CEO_NM').val();
 	inputParam.sid 	= "findUser";
@@ -235,7 +243,7 @@ function fn_clearData(){
 				<th colspan="2"><spring:message code="word.compCeoId"/></th>
 				<td colspan="3">
 					<input type="text" name="COMP_CEO_NM" id="COMP_CEO_NM" maxlength="20" title="<spring:message code="word.compCeoId"/>" depends="" onChange="fn_userNmChange();"/>
-					<button type="button" id="btnW_userPop" onClick="javascript:go_UserPop()"><spring:message code="button.search"/></button>
+					<button type="button" id="btnW_userPop" onClick="javascript:fn_popUser()"><spring:message code="button.search"/></button>
 					<input type="text" name="COMP_CEO_ID" id="COMP_CEO_ID" maxlength="20" title="<spring:message code="word.compCeoId"/>" depends="" readOnly/>
 				</td>
 			</tr>
@@ -321,8 +329,12 @@ function fn_clearData(){
 			</c:when>
 		</c:choose>
 			<div class="right"><button type="button" id="btnW_save" onClick="javascript:fn_goSave()"><spring:message code="button.save"/></button></div>
+		<c:choose>
+			<c:when test="${MODE=='DETAIL'}">
+			<div class="right"><button type="button" id="btnW_limit" onClick="javascript:fn_popAccountAdm()"><spring:message code="button.companyAccountAdm"/></button></div>
+			</c:when>
+		</c:choose>
 		</div>
-
 	</div> 
 </div>
 

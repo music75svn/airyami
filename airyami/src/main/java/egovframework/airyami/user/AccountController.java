@@ -97,7 +97,7 @@ public class AccountController {
     	List<ValueMap> currencyList = commCodeService.selectCommCode(params);
     	model.put("ds_currencyList", currencyList);
     	
-    	return "/account/accountListPop";
+    	return "/user/accountListPop";
     }
     
     /**
