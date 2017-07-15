@@ -14,6 +14,7 @@ $(document).ready(function(){
 	  icons: icons
 	});
 	$( "#toggle" ).button().on( "click", function() {
+		alert($("#H_MENU_CD").val());
 	  if ( $( "#admin_leftmenu" ).accordion( "option", "icons" ) ) {
 		$( "#admin_leftmenu" ).accordion( "option", "icons", null );
 	  } else {
@@ -66,7 +67,7 @@ function fn_setLeftMenu(menu_list) {
 	var menuHtml_1 = "";	// 1레벨 카테고리별 내용
 	var menuHtml_2 = "";	// 2레벨 카테고리별 내용
 	
-	var L_MENU_CD = $("#L_MENU_CD").val();
+	var H_MENU_CD = $("#H_MENU_CD").val();
 	
 	for(var i = 0 ; i < menu_list.length; i++){
 		
@@ -74,9 +75,10 @@ function fn_setLeftMenu(menu_list) {
 		var menuInfo = menu_list[i];
 		if(menuInfo.MENU_LEVEL ==1)	// 1레벨 이면
 		{
+			var 
 			
 			menuHtml_1  = "<div class=\"menu-title\">"+ menuInfo.MENU_NAME +"</div>";
-			menuHtml_1 += "<div class=\"menu-contents\"><ul>";
+			menuHtml_1 += "<div class=\"menu-contents\" id=\""+ menuInfo.UPPER_MENU_CODE +"\"><ul>";
 			menuHtml_1 += "menuHtml_2";
 			menuHtml_1 += "</ul></div>";
 			menuHtml_1 += "</div>";
@@ -84,7 +86,7 @@ function fn_setLeftMenu(menu_list) {
 		
 		if(menuInfo.MENU_LEVEL ==2)	// 2레벨 이면 
 		{
-			var linkUrl = menuInfo.LINK_URL + "?H_MENU_CD=" + $("#H_MENU_CD").val() + "&L_MENU_CD=" + menuInfo.MENU_CODE + "&MENUON=Y&MENU_TYPE="+ menuInfo.MENU_TYPE +"&" + menuInfo.LINK_PARAM;
+			var linkUrl = menuInfo.LINK_URL + "?H_MENU_CD=" + menuInfo.UPPER_MENU_CODE + "&L_MENU_CD=" + menuInfo.MENU_CODE + "&MENUON=Y&MENU_TYPE="+ menuInfo.MENU_TYPE +"&" + menuInfo.LINK_PARAM;
 			menuHtml_2 += "<li><a href=\"" + linkUrl + "\">"+ menuInfo.MENU_NAME +"</a></li>";
 		}
 		
@@ -106,15 +108,10 @@ function fn_setLeftMenu(menu_list) {
 	
 	$("#admin_leftmenu").html(innerhtml);
 	
-	//
-	$( "#admin_leftmenu" ).accordion({
-	  heightStyle: "content",
-	  // event: "mouseover",
-	  collapsible: true,
-	  active: false,
-	  icons: icons
-	});
-	//--
+	debugger;
+	
+	//$("#"+H_MENU_CD).css("display", "");
+	
 }
 function fn_setLeftMenu_back(menu_list) {
 

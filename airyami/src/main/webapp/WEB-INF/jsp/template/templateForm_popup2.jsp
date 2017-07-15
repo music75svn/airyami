@@ -60,6 +60,8 @@ function fn_insert(){
 	inputParam.url 				= "/template/saveImg.do";
 	inputParam.form 			= $("#dataForm");
 	
+	debugger;
+	
 	gfn_TransactionMultipart(inputParam);
 	
 }

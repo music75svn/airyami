@@ -6,17 +6,32 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />  
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes, target-densitydpi=medium-dpi">
 <link type="text/css" rel="stylesheet" href="../css/shop/common.css" />
+<link type="text/css" rel="stylesheet" href="../css/shop/slick.css" />
 <script type="text/javascript" src="../js/jquery.min.js"></script>
 <script type="text/javascript" src="../js/jquery-ui.js"></script>
-<script type="text/javascript" src="../js/jquery.bxslider.js"></script>
-<!--<script type="text/javascript" src="../js/common.js"></script>-->
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/slick.js"></script>
 <script type="text/javascript">
-$(document).ready(function() {
-	$('.bxslider').bxSlider({
-	  pagerCustom: '#bx-pager'
+$(document).on('ready', function() {
+   	$('.slider-for').slick({
+		slidesToShow: 1,
+ 		slidesToScroll: 1,
+  		arrows: false,
+  		fade: true,
+  		asNavFor: '.slider-nav'		
+  	});
+	$('.slider-nav').slick({
+  		slidesToShow: 4,
+  		slidesToScroll: 1,
+  		asNavFor: '.slider-for',
+  		dots: true,
+  		centerMode: true,
+  		focusOnSelect: true
 	});
 });
 </script>
+
+
 </head>
 
 
@@ -25,7 +40,7 @@ $(document).ready(function() {
 <!-- wrap -->
 <div id="wrap">
 
-	<!-- header -->
+	<!-- header-pc -->
 	<div id="header">
 		<ul class="member">
 			<li><a href="#">홍길동님</a> | </li>
@@ -55,7 +70,7 @@ $(document).ready(function() {
 				</li>
 				<li><a href="#">관리자 바로가기</a></li>
 			</ul>
-			
+
 
 			<select class="select">
 				<option value="en-US">미국-영어</option>    
@@ -89,7 +104,7 @@ $(document).ready(function() {
 
 
 				
-
+		<!-- gnb -->
 		<ul id="gnb">
 			<li class="out"><a href="#">건강기능ㆍ일반 식품</a> | 
 				<div id="sub_a">
@@ -294,14 +309,196 @@ $(document).ready(function() {
 			</li>
 
 		</ul>
-
 		<!--// gnb --> 
-
-
-
 	</div>
+	<!--// header-pc -->
 
-	<!--// header -->
+	<!-- header-mobile -->
+	<div id="m_header">
+		<div class="top">
+			<span class="btn_menu"><a href="#"><img src="../img/common/m_btn_menu.png" alt="menu"></a></span>
+			<h1><a href="../html/main.html"><img src="../img/common/m_logo.png" alt="Airyami"></a></h1>
+			<span class="btn_basket"><a href="#"><img src="../img/common/m_btn_basket.png" alt="basket"></a></span>
+		</div>	
+		<div class="search">
+			<fieldset>
+				<input type="text" placeholder="검색어를 입력하세요">
+				<a href="#"><img src="../img/common/sch_btn.png" alt="검색"></a>
+			</fieldset>
+		</div>
+	</div>
+	<!--// header-mobile -->
+
+	<!-- aside -->
+	<div id="left_bg"></div>
+	<nav id="menu">
+		<div class="menu_header">
+		    <h2>전체메뉴</h2>
+		    <a href="javascript:;" id="btn_basket">장바구니</a>
+		    <a href="javascript:;" id="menu_close">X<!--  <img src="../img/common/m_btn_close.png" alt=""> --></a>
+
+			<div class="name">
+				<span>홍길동</span>님
+				<a href="#" class="logout">로그아웃</a>
+			</div>
+		</div>
+
+
+		<div class="menu_body">
+			<ul>
+				<li class="done"><a href="#">제품스토어</a>
+					<ul>
+						<li class="more"><a href="#">건강기능ㆍ일반 식품</a>
+							<ul>
+								<li class="more"><a href="#">비타민 &amp; 영양보충용식품</a>
+									<ul>
+										<li><a href="#">- 특정영양식품</a></li>
+										<li><a href="#">- 멀티비타민</a></li>
+										<li><a href="#">-알뜰 구성 팩</a></li>
+									</ul>
+								</li>
+								<li class="more"><h5><a href="#">일반 식품 &amp; 체중 관리 제품</a></h5>
+									<ul>
+										<li><a href="#">- 다이터트 &amp; 체중 조절</a></li>
+										<li><a href="#">- 일반식품</a></li>
+										<li><a href="#">- 알뜰 구성 팩</a></li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+
+						<li class="more"><a href="#">스킨 테라피</a>
+							<ul>
+								<li class="more"><h5><a href="#">스킨 테라피</a></h5>
+									<ul>
+										<li><a href="#">- 건성 피부 관리</a></li>
+										<li><a href="#">- 멜라루카 오일</a></li>
+										<li><a href="#">- 알뜰 구성 팩</a></li>
+									</ul>	
+								</li>
+							</ul>
+						</li>
+
+						<li class="more"><a href="#">뷰티</a>
+							<ul>
+								<li class="more"><a href="#">뷰티</a>
+									<ul>
+										<li><a href="#">- 럭셔리 스킨 케어</a></li>
+										<li><a href="#">- 기초 관리</a></li>
+										<li><a href="#">- 에센스 &amp; 마스크</a></li>
+										<li><a href="#">- 럭셔리 헤어 케어</a></li>
+										<li><a href="#">- BB 크림 &amp; 컨실러</a></li>
+										<li><a href="#">- 파운데이션 &amp; 파우더</a></li>
+										<li><a href="#">- 아이 컬러</a></li>
+										<li><a href="#">- 블러셔</a></li>
+										<li><a href="#">- 립</a></li>
+										<li><a href="#">- 뷰티 보조 도구</a></li>
+										<li><a href="#">- 알뜰 구성 팩</a></li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+
+						<li class="more"><a href="#">가정 생활용품</a>
+							<ul>
+								<li class="more"><a href="#">청소 및 세탁제품</a>
+									<ul>
+										<li><a href="#">- 가정용 세정 제품</a></li>
+										<li><a href="#">- 주방 세제 &amp; 야채과일 세정제</a></li>
+										<li><a href="#">- 세탁 제품</a></li>
+										<li><a href="#">- 알뜰 구성 팩</a></li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+
+						<li class="more"><a href="#">배스 &amp; 바디</a>
+							<ul>
+								<li class="more"><a href="#">바쓰 &amp; 바디</a>
+									<ul>
+										<li><a href="#">- 고급 비누</a></li>
+										<li><a href="#">- 바디 워시 &amp; 소품</a></li>
+										<li><a href="#">- 손 세정 제품</a></li>
+										<li><a href="#">- 남성용</a></li>
+										<li><a href="#">- 립밤</a></li>
+										<li><a href="#">- 알뜰 구성 팩</a></li>
+									</ul>
+								</li>
+								<li class="more"><a href="#">페이셜 케어</a>
+									<ul>
+										<li><a href="#">어휘니아 스킨 케어</a></li>
+									</ul>
+								</li>
+							
+								<li class="more"><a href="#">헤어 케어</a>
+									<ul>
+										<li><a href="#">- 샴푸 &amp; 컨디셔너</a></li>							
+										<li><a href="#">- 스타일링</a></li>							
+										<li><a href="#">- 트리트먼트</a></li>							
+										<li><a href="#">- 알뜰 구성 팩</a></li>
+									</ul>
+								</li>
+								
+								<li class="more"><a href="#">스킨 케어</a>
+									<ul>
+										<li><a href="#">- 건성 피부 관리</a></li>
+										<li><a href="#">- 크림 &amp; 로션</a></li>
+										<li><a href="#">- 풋케어</a></li>
+									</ul>				
+								</li>
+
+								<li class="more"><a href="#">구강케어</a>
+									<ul>
+										<li><a href="#">- 치약</a></li>
+										<li><a href="#">- 마우스 린스(가글액)</a></li>
+										<li><a href="#">- 구강 구취 제품</a></li>
+										<li><a href="#">- 칫솔 &amp; 기타</a></li>
+										<li><a href="#">- 알뜰 구성 팩</a></li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+
+						<li><a href="#">에센셜 오일</a>
+							<ul>
+								<li class="more"><a href="#">에센셜 오일</a>
+									<ul>
+										<li><a href="#">- 싱글 오일</a></li>
+										<li><a href="#">- 블렌드 오일</a></li>
+										<li><a href="#">- 캐리어 오일</a></li>
+										<li><a href="#">- 오일 팩</a></li>
+										<li><a href="#">- 액세서리</a></li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+
+					</ul>
+				</li>
+				<li><a href="#">비지니스 센터</a></li>
+				<li><a href="#">마이페이지</a></li>
+				<li><a href="#">고객지원</a></li>
+			</ul>
+
+
+		</div>
+
+
+		<div class="menu_bottom">
+			<ul>
+				<li><a href="#"><img src="../img/common/m_aside_btn01.png" alt="추천상품"></a></li>
+				<li><a href="#"><img src="../img/common/m_aside_btn02.png" alt="인기상품"></a></li>
+				<li><a href="#"><img src="../img/common/m_aside_btn03.png" alt="신규상품"></a></li>
+			</ul>
+		</div>
+
+ 
+
+	</nav>
+	<!--// aside -->
+
+
+
 
 
 
@@ -314,13 +511,47 @@ $(document).ready(function() {
 	
 		<!-- product -->
 		<div class="product">
-			<nav>제품 스토어 &gt; 건강기능 &middot;  일반식품 &gt; 멀티비타민 &gt; 여성</nav>
+			<nav><span>제품 스토어 &gt; 건강기능 &middot;  일반식품 &gt; 멀티비타민 &gt; </span>여성</nav>
 			
 			<!-- top -->
 			<div class="top">
-				<!-- left -->
+
+
+								
+
+
+				<div class="slider">
+					<div class="slider-for">
+				    	<div><img src="../img/product/detail_img01.jpg"></div>
+				    	<div><img src="http://placehold.it/350x300?text=2"></div>
+				    	<div><img src="http://placehold.it/350x300?text=3"></div>
+				    	<div><img src="http://placehold.it/350x300?text=4"></div>
+				    	<div><img src="http://placehold.it/350x300?text=5"></div>
+				    	<div><img src="http://placehold.it/350x300?text=6"></div>
+				    	<div><img src="http://placehold.it/350x300?text=7"></div>
+				    </div>
+
+				    <div class="slider-nav">
+				    	<div><img src="../img/product/detail_img01.jpg"></div>
+				    	<div><img src="http://placehold.it/350x300?text=2"></div>
+				    	<div><img src="http://placehold.it/350x300?text=3"></div>
+				    	<div><img src="http://placehold.it/350x300?text=4"></div>
+				    	<div><img src="http://placehold.it/350x300?text=5"></div>
+				    	<div><img src="http://placehold.it/350x300?text=6"></div>
+				    	<div><img src="http://placehold.it/350x300?text=7"></div>
+				    </div>
+				</div>
+
+
+
+			
+				<!-- left 
 				<div class="left">
 					<ul class="bxslider">
+					    <li><img src="../img/product/detail_img01.jpg" /></li>
+					    <li><img src="../img/product/detail_img01.jpg" /></li>
+					    <li><img src="../img/product/detail_img01.jpg" /></li>
+					    <li><img src="../img/product/detail_img01.jpg" /></li>
 					    <li><img src="../img/product/detail_img01.jpg" /></li>
 					    <li><img src="../img/product/detail_img01.jpg" /></li>
 					    <li><img src="../img/product/detail_img01.jpg" /></li>
@@ -331,6 +562,10 @@ $(document).ready(function() {
 					    <a data-slide-index="1" href=""><img src="../img/product/detail_img01.jpg" /></a>
 					    <a data-slide-index="2" href=""><img src="../img/product/detail_img01.jpg" /></a>
 					    <a data-slide-index="3" href=""><img src="../img/product/detail_img01.jpg" /></a>
+					    <a data-slide-index="4" href=""><img src="../img/product/detail_img01.jpg" /></a>
+					    <a data-slide-index="5" href=""><img src="../img/product/detail_img01.jpg" /></a>
+					    <a data-slide-index="6" href=""><img src="../img/product/detail_img01.jpg" /></a>
+					    <a data-slide-index="7" href=""><img src="../img/product/detail_img01.jpg" /></a>
 					</div>
 				</div>
 				<!--// left -->
@@ -339,6 +574,7 @@ $(document).ready(function() {
 				<div class="right">
 					<h3>픽 퍼포먼스 팩(우먼)</h3>
 					<ul>
+						<li class="m_pro"><img src="../img/product/detail_img01.jpg" /></li>
 						<li>
 							<span class="title">제품번호</span> 
 							<span class="txt">860</span>
@@ -405,12 +641,12 @@ $(document).ready(function() {
 				<dt>추천제품</dt>
 				<dd>
 					<ul>
-						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><span>픽 퍼포먼스(맨)</span></a></li>
-						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><span>픽 퍼포먼스(맨)</span></a></li>
-						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><span>픽 퍼포먼스(맨)</span></a></li>
-						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><span>픽 퍼포먼스(맨)</span></a></li>
-						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><span>픽 퍼포먼스(맨)</span></a></li>
-						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><span>픽 퍼포먼스(맨)</span></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><p><span>픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) </span>No.860 | 60캡슐</p></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><p><span>픽 퍼포먼스(맨)</span>No.860 | 60캡슐</p></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><p><span>픽 퍼포먼스(맨)</span>No.860 | 60캡슐</p></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><p><span>픽 퍼포먼스(맨)</span>No.860 | 60캡슐</p></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><p><span>픽 퍼포먼스(맨)</span>No.860 | 60캡슐</p></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><p><span>픽 퍼포먼스(맨)</span>No.860 | 60캡슐</p></a></li>
 					</ul>
 				</dd>
 			</dl>
