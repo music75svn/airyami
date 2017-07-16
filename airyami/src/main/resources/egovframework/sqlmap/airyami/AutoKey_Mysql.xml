@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="autokey">
+
+
+	<select id="autokey.checkKey" parameterClass="Map" resultClass="java.lang.Integer">
+	SELECT COUNT(1)
+	  FROM TB_AUTO_KEY 
+	 WHERE KEY_KIND = #KEY_KIND#
+	</select>
+	
+	<select id="autokey.selectForKey" parameterClass="Map" resultClass="java.math.BigDecimal">
+	SELECT KEY_NUM + 1 
+	  FROM TB_AUTO_KEY 
+	 WHERE KEY_KIND = #KEY_KIND# 
+	 FOR UPDATE
+	</select>
+	
+	<update id="autokey.updateKey" parameterClass="Map" >
+	UPDATE TB_AUTO_KEY
+		SET
+		  KEY_NUM  			= #KEY_NUM#
+		 ,UPDATE_USER_ID 	= #LOGIN_ID# 	
+		 ,UPDATE_DT        	= DATE_FORMAT(now(), '%Y%m%d')
+	WHERE KEY_KIND = #KEY_KIND#
+	</update>
+	
+	<insert id="autokey.insertKey" parameterClass="map">
+	INSERT INTO	tb_auto_key(
+	    KEY_KIND
+	   ,KEY_NUM
+	   ,INSERT_USER_ID
+	   ,INSERT_DT
+	   )
+	VALUES
+	  (
+	    #KEY_KIND#
+	   ,#KEY_NUM#
+	   ,#LOGIN_ID#
+	   ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	  )
+	
+	</insert>
+	
+</sqlMap>

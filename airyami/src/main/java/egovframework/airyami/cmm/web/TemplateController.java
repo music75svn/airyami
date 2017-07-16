@@ -665,6 +665,23 @@ public class TemplateController {
     	return "/template/templateImgView_popup2";
     }
     
+    /**
+     * 첨부파일 등록 팝업 호출 
+     */
+    @RequestMapping(value="/template/templateFormAttachFile_popup.do")
+    public String goTemplateFormAttach_popup(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.info("param 1111:: " + params);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	params.put( "CODE_GROUP_ID", "LANG" ); //코드 대분류
+    	List<ValueMap> code_LANG = commCodeService.selectCommCode(params);
+    	model.put("ds_cd_LANG", code_LANG);
+    	
+    	return "/template/templateFormAttachFile_popup";
+    }
     
     
     
@@ -672,6 +689,36 @@ public class TemplateController {
     
     
     
+    /**
+     * 첨부파일 조회시 셈플  
+     */
+    @RequestMapping(value="/template/selectFileInfo.do")
+    public String selectFileInfo(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	ValueMap ds_detail = cmmService.getCommDbMap(params, "product.getProductDetail");
+    	result.put("ds_detail", ds_detail);
+    	
+		
+		// 첨부파일조회
+		if(ds_detail != null)  {// 
+			ds_detail.put("FILE_MST_SEQ", "3");	// TEST CODE 실제 코딩에선 제외해야 한다.
+			List<ValueMap> fileList = fileService.selectFileList(ds_detail); // ds_detail에 FILE_MST_SEQ 존재
+			log.debug("fileList = " + fileList);
+			ds_detail.put("fileList", fileList);
+	    }
+    	
+		result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	return null;
+    }
     
     
     
@@ -694,20 +741,21 @@ public class TemplateController {
     	final Map<String, MultipartFile> files = multiRequest.getFileMap();
     	log.info("files ::  " + files);
     	
-    	
+    	// 파일 삭제
+    	if( !CommonUtils.isNull((String)params.get("FILE_MST_SEQ")) & !CommonUtils.isNull((String)params.get("FILE_DEL_DTL_SEQ")) ){
+    		fileService.deleteFileByMst((String)params.get("FILE_MST_SEQ"), (String)params.get("FILE_DEL_DTL_SEQ"));
+    	}
     	
     	if(!files.isEmpty()){
-    		ValueMap ds_boardInfo = null;
-    		params.put("BOARD_ID", "5555");
-    		// FILE MST  정보 또는 커뮤니티 정보
-    		if(!CommonUtils.isNull((String)params.get("BOARD_ID"))){
-    			//ds_boardInfo = boardMasterService.getBoardMaster(params);
-    		}
+    		// 파일 체크 정보 
+    		ValueMap ds_fileCheckInfo = null;
+    		//ds_fileCheckInfo.put("FILE_ALLOW_EXT", "txt,jpg,*"); 
+    		//ds_fileCheckInfo.put("FILE_LIMIT_SIZE", 1000000);
+    		//-- 파일 체크 정보 
 			ValueMap parseResult = null;
 			
-			
 			// FILE_MST_SEQ 는 처음 인서트일경우에는 null을 넣으면 된다.
-			parseResult = fileService.attachFiles(files, (String)params.get("FILE_MST_SEQ"), params, ds_boardInfo);
+			parseResult = fileService.attachFiles(files, (String)params.get("FILE_MST_SEQ"), params, ds_fileCheckInfo);
 			params.put("FILE_MST_SEQ", (BigDecimal)parseResult.get("FILE_MST_SEQ"));
 			log.debug("result :: " + result);
 //			success = parseResult.getBoolean("success");

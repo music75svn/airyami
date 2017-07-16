@@ -206,6 +206,13 @@ function fn_popInsertForm(){
 	gfn_commonGo("/template/templateForm_popup", inputParam, "Y");
 }
 
+function fn_popAttachFile(){
+	var inputParam = {}; //gfn_makeInputData($("#srchForm"));
+	inputParam.PROD_NO = "CN00001";
+	
+	gfn_commonGo("/template/templateFormAttachFile_popup", inputParam, "Y");
+}
+
 function fn_popInsertForm2(){
 	var inputParam = {}; //gfn_makeInputData($("#srchForm"));
 	inputParam.PROD_NO = "CN00001";
@@ -409,6 +416,7 @@ function fn_userNmChange() {
 		<div class="btn_zone">
 			<button type="button" id="btnBack" onClick="javascript:fn_popImgView2()">이미지View</button>
 			<button type="button" id="btnBack" onClick="javascript:fn_popImgView()">이미지View</button>
+			<button type="button" id="btnBack" onClick="javascript:fn_popAttachFile()">첨부파일등록</button>
 			<button type="button" id="btnBack" onClick="javascript:fn_popInsertForm2()">이미지등록new</button>
 			<button type="button" id="btnBack" onClick="javascript:fn_popInsertForm()">이미지등록old</button>
 			<button type="button" id="btnBack" onClick="javascript:fn_sendMail()">메일테스트</button>

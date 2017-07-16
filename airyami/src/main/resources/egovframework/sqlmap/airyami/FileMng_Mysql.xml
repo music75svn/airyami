@@ -18,7 +18,7 @@
 	</update>
 	
 	<insert id="file.insertFile" parameterClass="map">
-	INSERT INTO tb_file(
+	INSERT INTO TB_FILE(
 	    FILE_MST_SEQ
 	   ,FILE_DTL_SEQ
 	   ,ATTACH_FILE_KIND_C
@@ -28,12 +28,8 @@
 	   ,ORG_FILE_NAME
 	   ,FILE_EXT
 	   ,FILE_SIZE
-	   ,REG_ID
-	   ,REG_DT
-	   ,REG_TM
-	   ,MOD_ID
-	   ,MOD_DT
-	   ,MOD_TM)
+	   ,INSERT_DT
+	   ,INSERT_USER_ID)
 	VALUES
 	  (
 	    #FILE_MST_SEQ#
@@ -45,14 +41,8 @@
 	   ,#ORG_FILE_NAME#
 	   ,#FILE_EXT#
 	   ,#FILE_SIZE#
-	   <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
-	   <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
-	   ,DATE_FORMAT(now(), '%Y%m%d')
-	   ,DATE_FORMAT(now(), '%H%i%s')
-	   <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
-	   <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
-	   ,DATE_FORMAT(now(), '%Y%m%d')
-	   ,DATE_FORMAT(now(), '%H%i%s')
+	   ,#LOGIN_ID#
+	   ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 	   )
 	
 	</insert>
@@ -68,14 +58,8 @@
 		  ,ORG_FILE_NAME
 		  ,FILE_EXT
 		  ,FILE_SIZE
-		  <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
-	      <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
-	      ,DATE_FORMAT(now(), '%Y%m%d')
-	      ,DATE_FORMAT(now(), '%H%i%s')
-	      <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
-	      <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
-	      ,DATE_FORMAT(now(), '%Y%m%d')
-	      ,DATE_FORMAT(now(), '%H%i%s')
+		  ,#LOGIN_ID#
+	   	  ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')	
 	  FROM TB_FILE
 	 WHERE FILE_MST_SEQ = #FILE_MST_SEQ#
 	</insert>
@@ -85,14 +69,10 @@
 	SELECT NULL
 	      ,FILE_MST_SEQ
 		  ,FILE_DTL_SEQ
-		  <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
-	      <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
-	      ,DATE_FORMAT(now(), '%Y%m%d')
-	      ,DATE_FORMAT(now(), '%H%i%s')
-	      <isNotEmpty property="LOGIN_ID">	, #LOGIN_ID# 	</isNotEmpty>
-	      <isEmpty property="LOGIN_ID"> 	, 'GUEST'		</isEmpty>
-	      ,DATE_FORMAT(now(), '%Y%m%d')
-	      ,DATE_FORMAT(now(), '%H%i%s')
+		  ,#LOGIN_ID#
+	      ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	      ,#LOGIN_ID#
+	      ,DATE_FORMAT(now(), '%Y%m%d%H%i%s')
 	  FROM TB_FILE
 	 WHERE FILE_MST_SEQ = #FILE_MST_SEQ#
 	 <isNotEmpty property="FILE_DTL_SEQ">
@@ -111,12 +91,10 @@
 		 ,ORG_FILE_NAME
 		 ,FILE_EXT
 		 ,FILE_SIZE
-		 ,REG_ID
-		 ,REG_DT
-		 ,REG_TM
-		 ,MOD_ID
-		 ,MOD_DT
-		 ,MOD_TM
+		 ,INSERT_DT
+		 ,INSERT_USER_ID
+		 ,UPDATE_DT
+		 ,UPDATE_USER_ID
 	  FROM TB_FILE
 	 WHERE FILE_MST_SEQ = #FILE_MST_SEQ#
 	 <isNotEmpty property="FILE_DTL_SEQ">

@@ -110,7 +110,7 @@ public class DownloadController {
     		
     		
     		// log 남기기..
-    		fileService.insertFileDownLoadLog(params);
+    		//fileService.insertFileDownLoadLog(params);
     		
     		File file = new File(strSavePath);
     		model.addAttribute("downloadFile", file);

@@ -3,6 +3,7 @@ package egovframework.airyami.cmm.service.impl;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -14,7 +15,6 @@ import javax.annotation.Resource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -90,7 +90,7 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
 		return result;
     }
     
-    public ValueMap attachFiles(Map<String, MultipartFile> files, String strMasterId, Map<String, Object> paramMap, ValueMap ds_boardInfo){
+    public ValueMap attachFiles(Map<String, MultipartFile> files, String strMasterId, Map<String, Object> paramMap, ValueMap ds_fileCheckInfo){
 		// TODO Auto-generated method stub
 		ValueMap result = new ValueMap();
 		BigDecimal masterId = null;
@@ -103,17 +103,17 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
 			boolean checkFileSize = true;
 			boolean checkFileExtension = true;
 			
-			log.debug("ds_boardInfo :: " + ds_boardInfo);
+			log.debug("ds_fileCheckInfo :: " + ds_fileCheckInfo);
 			// validation 체크
-			if(ds_boardInfo != null){
-				log.debug("FILE_ALLOW_EXT :: " + (String)ds_boardInfo.get("FILE_ALLOW_EXT"));
-				log.debug("FILE_LIMIT_SIZE :: " + ds_boardInfo.getInteger("FILE_LIMIT_SIZE"));
-				if( !CommonUtils.isNull( ds_boardInfo.getInteger("FILE_LIMIT_SIZE").toString() ) ){
-					if(Long.parseLong( ds_boardInfo.getInteger("FILE_LIMIT_SIZE").toString()) > 0)
-						checkFileSize = FileUtil.checkFileSize(files, Long.parseLong(ds_boardInfo.get("FILE_LIMIT_SIZE").toString()));
+			if(ds_fileCheckInfo != null){
+				log.debug("FILE_ALLOW_EXT :: " + (String)ds_fileCheckInfo.get("FILE_ALLOW_EXT"));
+				log.debug("FILE_LIMIT_SIZE :: " + ds_fileCheckInfo.getInteger("FILE_LIMIT_SIZE"));
+				if( !CommonUtils.isNull( ds_fileCheckInfo.getInteger("FILE_LIMIT_SIZE").toString() ) ){
+					if(Long.parseLong( ds_fileCheckInfo.getInteger("FILE_LIMIT_SIZE").toString()) > 0)
+						checkFileSize = FileUtil.checkFileSize(files, Long.parseLong(ds_fileCheckInfo.get("FILE_LIMIT_SIZE").toString()));
 				}
-				if( !CommonUtils.isNull((String)ds_boardInfo.get("FILE_ALLOW_EXT")) && !"*".equals((String)ds_boardInfo.get("FILE_ALLOW_EXT"))){
-					checkFileExtension = FileUtil.checkFileExtension(files, (String)ds_boardInfo.get("FILE_ALLOW_EXT"));
+				if( !CommonUtils.isNull((String)ds_fileCheckInfo.get("FILE_ALLOW_EXT")) && !"*".equals((String)ds_fileCheckInfo.get("FILE_ALLOW_EXT"))){
+					checkFileExtension = FileUtil.checkFileExtension(files, (String)ds_fileCheckInfo.get("FILE_ALLOW_EXT"));
 				}
 					
 				if(!checkFileExtension || !checkFileSize){
@@ -122,13 +122,6 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
 					}else if(!checkFileSize){
 						result.put("message", egovMessageSource.getMessage("fail.common.file.size"));
 					}
-	//				if("Y".equals(boardManagementInfo.getCategory_yn())){
-	//		    		AdminBoardCategory boardCategory = new AdminBoardCategory();
-	//		    		boardCategory.setSite_id(adminBoard.getSite_id());
-	//		    		boardCategory.setBoard_id(adminBoard.getBoard_id());
-	//		    		List boardCategoryList = adminBoardCategoryService.selectBoardCategory(boardCategory);
-	//		    		model.addAttribute("boardCategoryList", boardCategoryList);
-	//	        	}
 					
 					return result;
 				
@@ -294,9 +287,13 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
         		mainFolderId += sSeparator + (String)paramMap.get("BOARD_ID");
         }
         
+        
         if(CommonUtils.isNull(mainFolderId))
         	mainFolderId = "etc";
         
+        Calendar cal = Calendar.getInstance();
+
+        mainFolderId += File.separator + cal.YEAR + cal.MARCH + cal.DATE;
         
         while(itr.hasNext()) {
             idx++;
