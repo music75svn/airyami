@@ -152,7 +152,7 @@
 		VALUES
 		(
 		   #PO_NO#
-		 , #CUSTOMER_ID#
+		 , #LOGIN_ID#
          , #PARTNER_BIZ_ENTITY_ID#
          , #PHONE_COUNTRY_NO#
          , #PHONE_NO#
@@ -351,4 +351,28 @@
 	 WHERE USER_ID                = #LOGIN_ID#
 	   AND SEQ                    = #SEQ#
 	</update>
+	
+	<select id="shop.getPoHeaderList" parameterClass="Map" resultClass="ValueMap">
+		SELECT /* ShopProduct.xml  shop.getPoHeaderList */
+		       MAX(PROD_NO) AS PROD_NO
+		     , SUPPLY_COUNTRY 
+			 , SUPPLY_CURRENCY 
+		  FROM TB_PRODUCT_MASTER  
+		 WHERE PROD_NO IN (
+			SELECT PROD_NO
+			  FROM TB_CUSTOMER_PR
+			  WHERE CUSTOMER_ID = #LOGIN_ID#
+		<isNotEmpty prepend="AND" property="prNoArr" >
+			<iterate prepend="PR_NO IN" property="prNoArr" open="(" close=")" conjunction=",">
+			      #prNoArr[]# 
+			</iterate>
+		</isNotEmpty>
+		)
+		GROUP BY SUPPLY_COUNTRY, SUPPLY_CURRENCY
+	</select>
+	
+	<!-- UNIT PRICE 조회  FN_GET_UNIT_PRICE 함수사용 -->
+	<select id="shop.getUnitPrice" parameterClass="Map" resultClass="java.lang.String" remapResults="true">
+		SELECT FN_GET_UNIT_PRICE(#PROD_NO#, #CUSTOMER_ID#, #CURRENCY#, #QTY#) FROM DUAL
+	</select>
 </sqlMap>

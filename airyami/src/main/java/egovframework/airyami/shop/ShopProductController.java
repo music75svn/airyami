@@ -15,8 +15,6 @@
  */
 package egovframework.airyami.shop;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,17 +26,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import egovframework.airyami.cmm.service.CmmService;
 import egovframework.airyami.cmm.service.CommCodeService;
 import egovframework.airyami.cmm.service.FileService;
+import egovframework.airyami.cmm.service.ShopService;
 import egovframework.airyami.cmm.util.CommonUtils;
 import egovframework.airyami.cmm.util.PageInfo;
 import egovframework.airyami.cmm.util.ValueMap;
@@ -74,6 +68,10 @@ public class ShopProductController {
 	/** CmmService */
     @Resource(name = "cmmService")
     private CmmService cmmService;
+    
+	/** ShopService */
+    @Resource(name = "shopService")
+    private ShopService shopService;
     
     /** FileService */
     @Resource(name = "fileService")
@@ -477,93 +475,7 @@ public class ShopProductController {
     	boolean success = true;
     	ValueMap result = new ValueMap();
     	
-		// Transaction Setting
-		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
-
-		TransactionStatus status = transactionManager.getTransaction(def);
-    	
-    	try{
-    		String[] prNoList = ((String) params.get("prods[PR_NO]")).split("@@");
-
-    		// PO_NO 발번
-			String poNo = cmmService.getCommDbString(params, "shop.getPoNo");
-			params.put("PO_NO", poNo);
-			
-			long totPoAMt = 0;
-			
-    		for(int i = 0; i < prNoList.length; i++){
-    			if(prNoList[i] != null && !"".equals(prNoList[i])){
-	    			String prNo = prNoList[i].split("=")[1];
-	    			log.debug("prNO : "+prNo);
-	    			params.put("PR_NO", prNo);
-	    			
-	    			// PR_NO로 장바구니 정보 조회
-	    			ValueMap shopCartInfo = cmmService.getCommDbMap(params, "shop.getShopCartInfo");
-	    			params.put("SEQ", i+1001);
-	    			params.put("PROD_NO", shopCartInfo.get("PROD_NO"));
-	    			params.put("ORG_PRICE", shopCartInfo.get("ORG_PRICE"));
-	    			params.put("UNIT_PRICE", shopCartInfo.get("ORG_PRICE")); // TODO UNIT_PRICE 다른방법으로 조회해야함
-	    			params.put("PO_QTY", shopCartInfo.get("PR_QTY"));
-	    			params.put("SELLER_BIZ_ENTITY_ID", shopCartInfo.get("SELLER_BIZ_ENTITY_ID"));
-	    			float poAmt = (Integer)params.get("PO_QTY") * (Float)params.get("UNIT_PRICE");
-	    			totPoAMt += poAmt;
-	    			params.put("PO_AMT", poAmt);
-	    			
-	        		// TB_CUSTOMER_PO_DETAIL 등록
-	        		cmmService.insertCommDb(params, "shop.insertCustomerPoDetail");
-	        		
-	        		// 장바구니 삭제
-	        		cmmService.deleteCommDb(params, "shop.deleteCart");
-    			}
-    		}
-    		params.put("TOT_PO_AMT", totPoAMt);
-    		
-    		// 추천인 회사 아이디 조회
-    		String partnerBizEntityId = cmmService.getCommDbString(params, "shop.getPartnerBizEntityId");
-    		params.put("PARTNER_BIZ_ENTITY_ID", partnerBizEntityId);
-    		
-    		params.put("CURRENCY", "KRW"); // TODO CURRENCY 다른방법으로 조회해야함
-    		
-    		// 환율조회
-    		ValueMap exchangeRateInfo = cmmService.getCommDbMap(params, "shop.getExchangeRateInfo");
-    		params.put("BASIC_EXT_RATE", exchangeRateInfo.get("BASIC_EXT_RATE"));
-    		params.put("BIZ_EXT_RATE", exchangeRateInfo.get("BIZ_EXT_RATE"));
-    		
-    		// TB_CUSTOMER_PO_HEADER 등록
-			cmmService.insertCommDb(params, "shop.insertCustomerPoHeader");
-    		
-			// 배송지 등록
-    		cmmService.insertCommDb(params, "shop.insertCustomerPoShipToAddress");
-    		
-    		// 배송관리에 PREV_SHIP_TO_ADDR_YN 플레그 Y로 변경
-    		if(!"".equals(params.get("SHIP_TO_SEQ"))){
-    			// 모두 이전 배송지 'N'로 변경
-    			cmmService.updateCommDb(params, "shop.updatePrevAll_N");
-    			
-    			if("D".equals(params.get("SHIP_TO_SEQ"))){
-    				// 직접입력한 배송지 등록
-    				String seq = cmmService.getCommDbString(params, "shop.getCustShipToAddrSeq");
-    				params.put("SEQ", seq);
-    				cmmService.insertCommDb(params, "shop.insertCustShipToAddr");
-    			}else{
-    				// 선택된 배송지 'Y'로 변경
-    				cmmService.updateCommDb(params, "shop.updatePrev_Y");
-    			}
-    		}
-    		
-    		// 사용자 정보에 마지막 주문일 세팅
-    		params.put("USER_ID", params.get("LOGIN_ID"));
-    		cmmService.updateCommDb(params, "user.updateLastOrderDate");
-    		
-    		transactionManager.commit(status);
-    	}
-    	catch(Exception e){
-    		transactionManager.rollback(status);
-    		success = false;
-    		e.printStackTrace();
-    		System.out.println(e.getMessage());
-    	}
+    	shopService.savePurchase(params);
     	
     	result.put("success", success);
     	response.setContentType("text/xml;charset=UTF-8");
