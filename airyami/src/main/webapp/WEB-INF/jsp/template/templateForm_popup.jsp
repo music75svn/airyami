@@ -16,23 +16,6 @@
 
 $(function() {  //onready
 	//여기에 최초 실행될 자바스크립트 코드를 넣어주세요
-	/* $('.slider-for').slick({
-		slidesToShow: 1,
- 		slidesToScroll: 1,
-  		arrows: false,
-  		fade: true,
-  		asNavFor: '.slider-nav'		
-  	});
-	$('.slider-nav').slick({
-  		slidesToShow: 4,
-  		slidesToScroll: 1,
-  		asNavFor: '.slider-for',
-  		dots: true,
-  		centerMode: true,
-  		focusOnSelect: true
-	}); */
-	
-	//return;
 	
 	gfn_OnLoad();
 	
@@ -47,7 +30,7 @@ var g_fileList = null;
 
 //화면내 초기화 부분
 function fn_init(){
-	//fn_initFileList();
+	fn_initFileList();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -62,6 +45,58 @@ function fn_srch(){
 	gfn_Transaction( inputParam );
 }
 
+function fn_selectImgListByImgType(){
+	fn_srch();
+}
+
+// 상품이미지 등록
+function fn_insertProdImg(){
+	if(!confirm("<spring:message code="common.save.msg"/>")){
+		return;
+	}
+	
+	
+	var inputParam = new Object();
+	inputParam.sid 				= "insertProdImg";
+	inputParam.url 				= "/template/saveImg.do";
+	inputParam.form 			= $("#dataForm");
+	
+	gfn_TransactionMultipart(inputParam);
+	
+}
+
+// 상품이미지 삭제
+function fn_deleteProdImg(){
+	var curImg = $(".slick-current", $("[name=IMG_VIEW]")).children();
+	var curListImg = $(".slick-current", $("[name=IMG_VIEWLIST]")).children();
+		
+	if(gfn_isNull(curImg))
+		return;
+	
+	if(!confirm("삭제하시겠습니까?"))
+		return;
+	
+	
+	var fileDtlSeq = curImg.attr("dtlSeq");
+	
+	var fileDelDtlSeq = $("#FILE_DEL_DTL_SEQ").val();
+	fileDelDtlSeq += fileDtlSeq + "|";
+	
+	$("#FILE_DEL_DTL_SEQ").val(fileDelDtlSeq);
+	
+	var inputParam = new Object();
+	inputParam.sid 				= "deleteProdImg";
+	inputParam.url 				= "/template/saveImg.do";
+	inputParam.form 			= $("#dataForm");
+	
+	
+	gfn_TransactionMultipart(inputParam);
+	
+	$("#FILE_DEL_DTL_SEQ").val("");
+	
+	//curImg.remove();
+	//curListImg.remove();
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 //콜백 함수
@@ -90,13 +125,15 @@ function fn_callBack(sid, result, data){
 	if(sid == "deleteProdImg"){
 		fn_srch();
 	}
+	if(sid == "insertProdImg"){
+		fn_srch();
+	}
 	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 사용자 함수
 function fn_initFileList(){
-	debugger;
 	
 	imgNm = "IMG_MAIN";
 	imgMain = $("[name="+imgNm+"]");
@@ -108,6 +145,24 @@ function fn_initFileList(){
 				 + "<div class= \"slider-nav\" name=\"IMG_VIEWLIST\"></div>";
 	
 	imgMain.append(initHtml);
+	
+	
+	// 파일리스트
+	var fileTd = $("[name=FILE_LIST_INFO]");
+	
+	if(!gfn_isNull(fileTd))
+		fileTd.empty();
+	
+	var fileCnt = parseInt($("#FILE_CNT").val())
+	
+	for(var idx=0; idx < fileCnt; idx++) // file리스트에 없는 항목은 input box 생성
+	{
+		var fileLink = "";
+		fileLink += "<div name='FILE_INFO_" + idx + "'>";
+		fileLink += "<input type='file' id='file_" + idx + "' name='file_" + idx + "' value='파일찾기' title=첨부파일찾기' size='70' onchange='fnFileUploadCheck(this.value," + idx + ");'/>";
+		fileLink += "</div>";
+		fileTd.append(fileLink);
+	}
 }
 
 function fn_changeList(addIndex){
@@ -160,7 +215,6 @@ function fn_setFileList(fileList){
 			imgListTd.append(fileListLink);
 		}
 		
-		debugger;
 		$('.slider-for').slick({
 			slidesToShow: 1,
 	 		slidesToScroll: 1,
@@ -179,72 +233,23 @@ function fn_setFileList(fileList){
  	}
 }
 
-function fn_insertProdImg(){
-	if(!confirm("<spring:message code="common.save.msg"/>")){
-		return;
-	}
-	
-	
-	var inputParam = new Object();
-	inputParam.sid 				= "insertCate";
-	inputParam.url 				= "/template/saveImg.do";
-	inputParam.form 			= $("#dataForm");
-	
-	
-	return;
-	
-	gfn_TransactionMultipart(inputParam);
-	
-}
-
-
-function fn_deleteProdImg(){
-	var curImg = $(".slick-current", $("[name=IMG_VIEW]")).children();
-	var curListImg = $(".slick-current", $("[name=IMG_VIEWLIST]")).children();
-		
-	if(gfn_isNull(curImg))
-		return;
-	
-	if(!confirm("삭제하시겠습니까?"))
-		return;
-	
-	debugger;
-	
-	var fileDtlSeq = curImg.attr("dtlSeq");
-	
-	var fileDelDtlSeq = $("#FILE_DEL_DTL_SEQ").val();
-	fileDelDtlSeq += fileDtlSeq + "|";
-	
-	$("#FILE_DEL_DTL_SEQ").val(fileDelDtlSeq);
-	
-	var inputParam = new Object();
-	inputParam.sid 				= "deleteProdImg";
-	inputParam.url 				= "/template/saveImg.do";
-	inputParam.form 			= $("#dataForm");
-	
-	debugger;
-	
-	gfn_TransactionMultipart(inputParam);
-	
-	//curImg.remove();
-	//curListImg.remove();
-}
 
 
 
 </script>
 </head>
 <body class="popup">
-<h1>상품이미지View 샘플<a onClick="self.close();" class="close">X</a></h1>
+<h1>상품이미지등록 샘플<a onClick="self.close();" class="close">X</a></h1>
 
 <div class="content">
-	<h4>상품 View</h4>	
+	<h4>상품 등록</h4>	
 	<form id="dataForm" name="dataForm" method="post" action="/test/fileInsert.do" enctype="multipart/form-data" onsubmit="return false;">
 		<input type="hidden" name="PROD_NO" id="PROD_NO" value="${PROD_NO}"/>
 		<input type="hidden" name="SEARCH_PROD_NO" id="SEARCH_PROD_NO" value="${PROD_NO}"/>
 		<input type="hidden" name="IMG_FIRST_INDEX" id="IMG_FIRST_INDEX" value="0"/>
 		<input type="hidden" name="IMG_LIST_LENGTH" id="IMG_LIST_LENGTH" value="0"/>
 		<input type="hidden" name="IMG_LIST_SIZE" id="IMG_LIST_SIZE" value="4"/>
+		<input type="hidden" id="FILE_CNT" name="FILE_CNT" value='5'/>
 		<input type="hidden" id="FILE_DEL_DTL_SEQ" name="FILE_DEL_DTL_SEQ" value='${FILE_DEL_DTL_SEQ}'/>
 		<!-- <form id="dataForm" name="dataForm" method="post" action="#" onsubmit="return false;"> -->
 		<table summary=" 등록" cellspacing="0" border="0" class="tbl_list_type2">
@@ -255,11 +260,7 @@ function fn_deleteProdImg(){
 			</colgroup>
 			<tr>
 				<th colspan=2>상품명</th>
-				<td><input type="text" name="CATE_CODE" id="CATE_CODE" size=30  value="자동생성" readonly/></td>
-			</tr>
-			<tr>
-				<th colspan=2>카테고리순서</th>
-				<td><input type="text" name="CATE_ORDER" id="CATE_ORDER" size=72 value="자동생성 - 위치변경은 카테고리수정에서 변경" readonly/></td>
+				<td><input type="text" name="PROD_NM" id="PROD_NM" size=30  value="자동생성" readonly/></td>
 			</tr>
 			<tr>
 				<th colspan=2>카테고리순서</th>
@@ -304,6 +305,8 @@ function fn_deleteProdImg(){
 						<!--// top -->
 					</div>
 					<!--// product -->
+					<div id="FILE_LIST_INFO" name="FILE_LIST_INFO">
+					</div>
 				</td>
 			</tr>
 		</table>
