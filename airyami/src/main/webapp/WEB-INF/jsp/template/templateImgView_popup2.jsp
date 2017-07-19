@@ -232,24 +232,24 @@ function gfn_changeImgView(imgViewOjbNm, src){
 							<!-- center -->
 							<div class="slider" name="IMG_MAIN">
 								<div class="slider-for">
-						    	<div><img src="../img/product/detail_img01.jpg"></div>
-						    	<div><img src="http://placehold.it/350x300?text=2"></div>
-						    	<div><img src="http://placehold.it/350x300?text=3"></div>
-						    	<div><img src="http://placehold.it/350x300?text=4"></div>
-						    	<div><img src="http://placehold.it/350x300?text=5"></div>
-						    	<div><img src="http://placehold.it/350x300?text=6"></div>
-						    	<div><img src="http://placehold.it/350x300?text=7"></div>
-						    </div>
-		
-						    <div class="slider-nav">
-						    	<div><img src="../img/product/detail_img01.jpg"></div>
-						    	<div><img src="http://placehold.it/350x300?text=2"></div>
-						    	<div><img src="http://placehold.it/350x300?text=3"></div>
-						    	<div><img src="http://placehold.it/350x300?text=4"></div>
-						    	<div><img src="http://placehold.it/350x300?text=5"></div>
-						    	<div><img src="http://placehold.it/350x300?text=6"></div>
-						    	<div><img src="http://placehold.it/350x300?text=7"></div>
-						    </div>
+							    	<div><img src="../img/product/detail_img01.jpg"></div>
+							    	<div><img src="http://placehold.it/350x300?text=2"></div>
+							    	<div><img src="http://placehold.it/350x300?text=3"></div>
+							    	<div><img src="http://placehold.it/350x300?text=4"></div>
+							    	<div><img src="http://placehold.it/350x300?text=5"></div>
+							    	<div><img src="http://placehold.it/350x300?text=6"></div>
+							    	<div><img src="http://placehold.it/350x300?text=7"></div>
+							    </div>
+			
+							    <div class="slider-nav">
+							    	<div><img src="../img/product/detail_img01.jpg"></div>
+							    	<div><img src="http://placehold.it/350x300?text=2"></div>
+							    	<div><img src="http://placehold.it/350x300?text=3"></div>
+							    	<div><img src="http://placehold.it/350x300?text=4"></div>
+							    	<div><img src="http://placehold.it/350x300?text=5"></div>
+							    	<div><img src="http://placehold.it/350x300?text=6"></div>
+							    	<div><img src="http://placehold.it/350x300?text=7"></div>
+							    </div>
 							</div>
 							<!--// center -->
 						</div>
