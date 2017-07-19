@@ -378,6 +378,6 @@
 	
 	<!-- 한장수량 조회  FN_GET_LIMIT_PROD_VALID 함수사용 -->
 	<select id="shop.getLimitProdValid" parameterClass="Map" resultClass="java.lang.String" remapResults="true">
-		SELECT FN_GET_LIMIT_PROD_VALID(#PROD_NO#, #QTY#) FROM DUAL
+		SELECT FN_GET_LIMIT_PROD_VALID(#PROD_NO#, #PR_QTY#) FROM DUAL
 	</select>
 </sqlMap>
