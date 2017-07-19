@@ -139,9 +139,6 @@ public class ShopServiceImpl extends AbstractServiceImpl implements ShopService
 		    				// 한정판매에 판매완료로 세팅
 		        			cmmDAO.updateCommDb(poDetailMap, "product.updateSalesLimitProdSoldOut");
 		    			}
-		        		
-		        		// 테스트때문에 주석 풀어야함 장바구니 삭제
-		        		cmmDAO.deleteCommDb(poDetailMap, "shop.deleteCart");
 	    			}
 	    		}
 	
@@ -176,6 +173,15 @@ public class ShopServiceImpl extends AbstractServiceImpl implements ShopService
 			// 사용자 정보에 마지막 주문일 세팅
 			params.put("USER_ID", params.get("LOGIN_ID"));
 			cmmDAO.updateCommDb(params, "user.updateLastOrderDate");
+			
+			ValueMap poDetailMap = new ValueMap();
+    		for(int j = 0; j < prNoArr.size(); j++){
+    			String prNo = prNoArr.get(j);
+    			poDetailMap.put("PR_NO", prNo);
+    			// 장바구니 삭제
+        		cmmDAO.deleteCommDb(poDetailMap, "shop.deleteCart");
+    		}
+    		
 		
 		}
     	catch(Exception e){
