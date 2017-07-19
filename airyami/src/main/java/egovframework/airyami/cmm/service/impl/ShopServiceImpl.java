@@ -140,8 +140,8 @@ public class ShopServiceImpl extends AbstractServiceImpl implements ShopService
 		        			cmmDAO.updateCommDb(poDetailMap, "product.updateSalesLimitProdSoldOut");
 		    			}
 		        		
-		        		// TODO 테스트때문에 주석 풀어야함 장바구니 삭제
-		        		//cmmDAO.deleteCommDb(params, "shop.deleteCart");
+		        		// 테스트때문에 주석 풀어야함 장바구니 삭제
+		        		cmmDAO.deleteCommDb(params, "shop.deleteCart");
 	    			}
 	    		}
 	
