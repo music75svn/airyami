@@ -141,7 +141,7 @@ public class ShopServiceImpl extends AbstractServiceImpl implements ShopService
 		    			}
 		        		
 		        		// 테스트때문에 주석 풀어야함 장바구니 삭제
-		        		cmmDAO.deleteCommDb(params, "shop.deleteCart");
+		        		cmmDAO.deleteCommDb(poDetailMap, "shop.deleteCart");
 	    			}
 	    		}
 	
