@@ -16,6 +16,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import egovframework.airyami.cmm.service.ShopService;
+import egovframework.airyami.cmm.util.CommonUtils;
 import egovframework.airyami.cmm.util.ValueMap;
 import egovframework.rte.fdl.cmmn.AbstractServiceImpl;
 
@@ -36,11 +37,13 @@ public class ShopServiceImpl extends AbstractServiceImpl implements ShopService
     /*
      * 구매
      */
-	public void savePurchase(Map<String, Object> params) throws Exception {
+	public String savePurchase(Map<String, Object> params) throws Exception {
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
 
 		TransactionStatus status = transactionManager.getTransaction(def);
+		
+		String returnVal = "";
 		
 		try{
 		
@@ -85,13 +88,24 @@ public class ShopServiceImpl extends AbstractServiceImpl implements ShopService
 	    			String prNo = prNoArr.get(j);
 	    			poDetailMap.put("PR_NO", prNo);
 	    			
-	    			// TODO 한정판매 validation
-	    			
 	    			// PR_NO로 장바구니 정보 조회
 	    			ValueMap shopCartInfo = cmmDAO.getCommDbMap(poDetailMap, "shop.getShopCartInfo");
 	    			
 	    			if(shopCartInfo.get("SUPPLY_COUNTRY").equals(poHeaderMap.get("SUPPLY_COUNTRY")) &&
 	    				shopCartInfo.get("SUPPLY_CURRENCY").equals(poHeaderMap.get("SUPPLY_CURRENCY"))){
+	    				
+		    			// 한정판매 validation(Y:판매가능, N:판매불가능, F:판매가능하나 마지막임)
+		    			String limitFlag = cmmDAO.getCommDbString(shopCartInfo, "shop.getLimitProdValid");
+		    			
+		    			log.debug("limitFlag : "+limitFlag);
+		    			
+		    			if("N".equals(limitFlag)){
+		    				// 한정판매에 적용
+		    				returnVal = "SOLD_OUT";
+		    				
+		    				return returnVal;
+		    			}
+	    				
 	    				poDetailMap.put("PO_NO", poHeaderMap.get("PO_NO"));
 	    				poDetailMap.put("SEQ", ++seq);
 	    				poDetailMap.put("PROD_NO", shopCartInfo.get("PROD_NO"));
@@ -118,9 +132,13 @@ public class ShopServiceImpl extends AbstractServiceImpl implements ShopService
 		    			log.debug("music75 totPoAMt1 : "+totPoAMt);
 		    			poDetailMap.put("PO_AMT", poAmt);
 		    			
-		    			
 		        		// TB_CUSTOMER_PO_DETAIL 등록
 		        		cmmDAO.insertCommDb(poDetailMap, "shop.insertCustomerPoDetail");
+		        		
+		        		if("F".equals(limitFlag)){
+		    				// 한정판매에 판매완료로 세팅
+		        			cmmDAO.updateCommDb(poDetailMap, "product.updateSalesLimitProdSoldOut");
+		    			}
 		        		
 		        		// TODO 테스트때문에 주석 풀어야함 장바구니 삭제
 		        		//cmmDAO.deleteCommDb(params, "shop.deleteCart");
@@ -165,5 +183,7 @@ public class ShopServiceImpl extends AbstractServiceImpl implements ShopService
     		e.printStackTrace();
     		System.out.println(e.getMessage());
     	}
+		
+		return returnVal;
 	}
 }

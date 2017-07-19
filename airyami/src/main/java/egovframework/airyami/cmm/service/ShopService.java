@@ -27,5 +27,5 @@ public interface ShopService {
 	/*
 	 * 메뉴 클릭시 접속 로그 남기기
 	 */
-	void savePurchase( Map<String,Object> paramMap )  throws Exception;
+	String savePurchase( Map<String,Object> paramMap )  throws Exception;
 }

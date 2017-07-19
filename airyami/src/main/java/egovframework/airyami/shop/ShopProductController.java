@@ -475,7 +475,12 @@ public class ShopProductController {
     	boolean success = true;
     	ValueMap result = new ValueMap();
     	
-    	shopService.savePurchase(params);
+    	String returnVal = shopService.savePurchase(params);
+    	
+    	if("SOLD_OUT".equals(returnVal)){
+    		result.put("msg", egovMessageSource.getMessage("fail.soldOut.msg", CommonUtils.getLocale(request)) );
+	    	throw new Exception();
+    	}
     	
     	result.put("success", success);
     	response.setContentType("text/xml;charset=UTF-8");

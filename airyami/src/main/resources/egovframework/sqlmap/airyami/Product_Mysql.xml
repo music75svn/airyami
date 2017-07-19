@@ -395,4 +395,13 @@
 		 , UPDATE_DT = DATE_FORMAT(now(), '%Y%m%d%H%i%s'
 		)
 	</insert>
+	
+	<update id="product.updateSalesLimitProdSoldOut" parameterClass="Map">
+	UPDATE /* Product_Mysql.xml  product.updateSalesLimitProdSoldOut */
+	       TB_SALES_LIMIT_PROD
+	   SET SOLD_OUT_YN            = 'Y'
+	     , UPDATE_USER_ID         = #LOGIN_ID#
+	     , UPDATE_DT              = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+	 WHERE PROD_NO                = #PROD_NO#
+	</update>
 </sqlMap>
