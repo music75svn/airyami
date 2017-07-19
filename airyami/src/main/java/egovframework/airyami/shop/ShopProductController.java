@@ -475,13 +475,19 @@ public class ShopProductController {
     	boolean success = true;
     	ValueMap result = new ValueMap();
     	
-    	String returnVal = shopService.savePurchase(params);
-    	
-    	if("SOLD_OUT".equals(returnVal)){
-    		result.put("msg", egovMessageSource.getMessage("fail.soldOut.msg", CommonUtils.getLocale(request)) );
-	    	throw new Exception();
+    	try{
+	    	String returnVal = shopService.savePurchase(params);
+	    	
+	    	if("SOLD_OUT".equals(returnVal)){
+	    		result.put("msg", egovMessageSource.getMessage("fail.soldOut.msg", CommonUtils.getLocale(request)) );
+		    	throw new Exception();
+	    	}
     	}
-    	
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
     	result.put("success", success);
     	response.setContentType("text/xml;charset=UTF-8");
     	response.getWriter().println(CommonUtils.setJsonResult(result));
