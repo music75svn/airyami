@@ -10,10 +10,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -62,8 +64,11 @@ public class CateMenuMngController {
     private CmmService cmmService; 
     
     /** Transaction */    
-    @Resource(name="txManager")
-    PlatformTransactionManager transactionManager;
+//    @Resource(name="txManager")
+//    PlatformTransactionManager transactionManager;
+    
+    @Autowired
+    private DataSourceTransactionManager transactionManager;
     
     /**
      * 카테고리 목록조회 페이지 이동 
@@ -366,6 +371,10 @@ public class CateMenuMngController {
     		
     		// 테이블 입력
     		cmmService.insertCommDb(params, "cateTree.insertCate");
+    		
+    		if(1==1)
+    			throw new Exception();
+    		
     		cmmService.insertCommDb(params, "cateTree.insertCateNm");
     		
     		transactionManager.commit(status);
@@ -377,6 +386,8 @@ public class CateMenuMngController {
     		success = false;
     		e.printStackTrace();
     		System.out.println(e.getMessage());
+    		
+    		throw e;
     	}
 		//*****************************************************************************
 		// 화면 출력 데이터 셋팅

@@ -129,17 +129,17 @@ public class CmmServiceImpl extends AbstractServiceImpl implements CmmService
 	 * 공통 서비스 등록
 	 */
 	public void insertCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
-		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		//DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		//def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
 
-		TransactionStatus status = transactionManager.getTransaction(def);
+		//TransactionStatus status = transactionManager.getTransaction(def);
 		
 		try{
 			// TODO Auto-generated method stub
 			cmmDAO.insertCommDb(paramMap, sql);
 		}
     	catch(Exception e){
-    		transactionManager.rollback(status);
+    	//	transactionManager.rollback(status);
     		e.printStackTrace();
     		System.out.println(e.getMessage());
     	}

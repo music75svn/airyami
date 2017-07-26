@@ -123,7 +123,8 @@ public class CmmDAO extends EgovAbstractDAO {
 	 */
 	public void insertCommDb( Map<String,Object> paramMap, String sql )  throws Exception{
 		// TODO Auto-generated method stub
-		 getSqlMapClientTemplate().insert(sql, paramMap);
+		 //getSqlMapClientTemplate().insert(sql, paramMap);
+		 getSqlMapClientTemplate().update(sql, paramMap);
 	}
 	
 	/**

@@ -7,7 +7,8 @@
     <!-- 홈페이지의 주요기능인 협업(게시판, 일정관리)기능 작동과정에서 Exception 발생시 후처리를 위한 AOP설정  -->
 	<aop:config>
 		<!-- <aop:pointcut id="serviceMethod" expression="execution(* egovframework.let..impl.*Impl.*(..)) or execution(* egovframework.com..impl.*Impl.*(..))" /> -->
-		<aop:pointcut id="serviceMethod" expression="execution(* egovframework.airyami..impl.*Impl.*(..)) or 
+		<aop:pointcut id="serviceMethod" expression="execution(* egovframework.airyami..impl.*Impl.*(..)) or
+													 execution(* egovframework.airyami..*Controller.*(..)) or 
 		                                             execution(* egovframework.let..impl.*Impl.*(..)) or 
 		                                             execution(* egovframework.com..impl.*Impl.*(..))" />
 
