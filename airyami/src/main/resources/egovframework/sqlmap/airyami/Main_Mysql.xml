@@ -68,6 +68,6 @@
 	   AND B.SEEN_CUSTOMER_YN = 'Y'
 	   AND E.IMG_TYPE_CD = 'M'
 	 ORDER BY A.INSERT_DT DESC
-	 LIMIT 4;
+	 LIMIT 3;
 	</select>
 </sqlMap>
