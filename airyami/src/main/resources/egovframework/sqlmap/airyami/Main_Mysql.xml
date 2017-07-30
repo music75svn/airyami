@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="main">
+
+<typeAlias alias="ValueMap" type="egovframework.airyami.cmm.util.ValueMap"/>
+	
+	<select id="main.getRecommandList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	SELECT /* Main_Mysql.xml  main.getRecommandList */
+           B.PROD_NO
+         , C.PROD_NM
+         , C.PRODUCT_EXPL_TEXT
+         , D.CATE_NAME
+         , E.URL_PATH
+         , E.SAVE_FILE_NAME
+	  FROM TB_DISP_PROD_ON_MAIN A
+	  LEFT JOIN TB_PRODUCT_MASTER B ON A.PROD_NO = B.PROD_NO
+	  LEFT JOIN TB_PRODUCT_NAME C ON B.PROD_NO = C.PROD_NO AND C.LANG_CD = #LANG_CD#
+	  LEFT JOIN TB_CATEGORY_NM D ON B.PROD_LCATE_CD = D.CATE_CODE AND D.LANG_CD = #LANG_CD#
+	  LEFT JOIN TB_PRODUCT_IMAGE E ON B.PROD_NO = E.PROD_NO AND E.LANG_CD = #LANG_CD#
+	 WHERE A.DISPLAY_TYPE_CD = 'R'
+	   AND str_to_date(A.VALID_START_DT, '%Y%m%d') &lt;= now()
+	   AND str_to_date(A.VALID_END_DT, '%Y%m%d') &gt;= now()
+	   AND B.SEEN_CUSTOMER_YN = 'Y'
+	   AND E.IMG_TYPE_CD = 'M'
+	 ORDER BY A.INSERT_DT DESC
+	 LIMIT 4;
+	</select>
+	
+	<select id="main.getPopularList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	SELECT /* Main_Mysql.xml  main.getPopularList */
+           B.PROD_NO
+         , C.PROD_NM
+         , C.PRODUCT_EXPL_TEXT
+         , D.CATE_NAME
+         , E.URL_PATH
+         , E.SAVE_FILE_NAME
+	  FROM TB_DISP_PROD_ON_MAIN A
+	  LEFT JOIN TB_PRODUCT_MASTER B ON A.PROD_NO = B.PROD_NO
+	  LEFT JOIN TB_PRODUCT_NAME C ON B.PROD_NO = C.PROD_NO AND C.LANG_CD = #LANG_CD#
+	  LEFT JOIN TB_CATEGORY_NM D ON B.PROD_LCATE_CD = D.CATE_CODE AND D.LANG_CD = #LANG_CD#
+	  LEFT JOIN TB_PRODUCT_IMAGE E ON B.PROD_NO = E.PROD_NO AND E.LANG_CD = #LANG_CD#
+	 WHERE A.DISPLAY_TYPE_CD = 'P'
+	   AND str_to_date(A.VALID_START_DT, '%Y%m%d') &lt;= now()
+	   AND str_to_date(A.VALID_END_DT, '%Y%m%d') &gt;= now()
+	   AND B.SEEN_CUSTOMER_YN = 'Y'
+	   AND E.IMG_TYPE_CD = 'M'
+	 ORDER BY A.INSERT_DT DESC
+	 LIMIT 4;
+	</select>
+	
+	<select id="main.getNewList" parameterClass="Map" resultClass="ValueMap" remapResults="true">
+	SELECT /* Main_Mysql.xml  main.getNewList */
+           B.PROD_NO
+         , C.PROD_NM
+         , C.PRODUCT_EXPL_TEXT
+         , D.CATE_NAME
+         , E.URL_PATH
+         , E.SAVE_FILE_NAME
+	  FROM TB_DISP_PROD_ON_MAIN A
+	  LEFT JOIN TB_PRODUCT_MASTER B ON A.PROD_NO = B.PROD_NO
+	  LEFT JOIN TB_PRODUCT_NAME C ON B.PROD_NO = C.PROD_NO AND C.LANG_CD = #LANG_CD#
+	  LEFT JOIN TB_CATEGORY_NM D ON B.PROD_LCATE_CD = D.CATE_CODE AND D.LANG_CD = #LANG_CD#
+	  LEFT JOIN TB_PRODUCT_IMAGE E ON B.PROD_NO = E.PROD_NO AND E.LANG_CD = #LANG_CD#
+	 WHERE A.DISPLAY_TYPE_CD = 'R'
+	   AND str_to_date(A.VALID_START_DT, '%Y%m%d') &lt;= now()
+	   AND str_to_date(A.VALID_END_DT, '%Y%m%d') &gt;= now()
+	   AND B.SEEN_CUSTOMER_YN = 'Y'
+	   AND E.IMG_TYPE_CD = 'M'
+	 ORDER BY A.INSERT_DT DESC
+	 LIMIT 4;
+	</select>
+</sqlMap>

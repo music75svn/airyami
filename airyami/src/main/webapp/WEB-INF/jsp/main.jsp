@@ -20,7 +20,14 @@ $(function() {  //onready
 
 // 화면내 초기화 부분
 function fn_init(){
-	// 체크박스 초기화
+	// 메인 전시 조회
+	var inputParam = new Object();
+	inputParam.sid 				= "getMainDisplay";
+	inputParam.url 				= "/main/getMainDisplay.do";
+	inputParam.data 			= gfn_makeInputData($("#dataForm"));
+	//inputParam.callback			= "fn_callBack";
+	
+	gfn_Transaction( inputParam );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -60,6 +67,20 @@ function fn_callBack(sid, result){
 		gfn_displayTotCnt(result.totCnt);
 		
 		gfn_addPaging(result.pageInfo, 'gfn_clickPageNo');
+	}else if(sid == "getMainDisplay"){
+		var recommandDIVStr = '';
+		for(var i = 0; i < result.ds_recommandList.length; i++){
+			recommandDIVStr += '<li class="item">';
+			recommandDIVStr += '<span class="icon"><img src="../img/main/icon_recom02.png" alt="추천"></span>';
+			recommandDIVStr += '<a href="#">';
+			recommandDIVStr += '	<p><img src="'+result.ds_recommandList[i].URL_PATH+result.ds_recommandList[i].SAVE_FILE_NAME+'" alt=""></p>';
+			recommandDIVStr += '	<span>'+result.ds_recommandList[i].CATE_NAME+' <em>No.'+result.ds_recommandList[i].PROD_NO+'</em></span>';
+			recommandDIVStr += '	<strong>'+result.ds_recommandList[i].PROD_NM+'</strong>';
+			recommandDIVStr += '</a>';
+			recommandDIVStr += '</li>';
+		}
+		
+		$("#recommandDIV").html(recommandDIVStr); 
 	}
 	
 }
@@ -96,44 +117,7 @@ function fn_callBack(sid, result){
 			<h2><img src="../img/main/icon_recom01.png" alt=""><span>AIRYAMI</span> 추천상품</h2>
 			<span class="more"><a href="#">더보기+</a></span>
 
-			<ul>
-
-				<li class="item">
-					<span class="icon"><img src="../img/main/icon_recom02.png" alt="추천"></span>
-					<a href="#">
-						<p><img src="../img/main/product_img01.jpg" alt=""></p>
-						<span>스킨 테라피 <em>No.6617</em></span>
-						<strong>리뉴 인텐시브 스킨 로션 대용량 리뉴 인텐시브 스킨 로션 대용량 리뉴 인텐시브 스킨 로션 대용량 </strong>
-					</a>
-				</li>
-
-				<li class="item">
-					<span class="icon"><img src="../img/main/icon_recom02.png" alt="추천"></span>
-					<a href="#">
-						<p><img src="../img/main/product_img02.jpg" alt=""></p>
-						<span>가정 생활용품 <em>No.3854</em></span>
-						<strong>레몬브라이트</strong>
-					</a>
-				</li>
-
-				<li class="item">
-					<span class="icon"><img src="../img/main/icon_recom02.png" alt="추천"></span>
-					<a href="#">
-						<p><img src="../img/main/product_img03.jpg" alt=""></p>
-						<span>뷰티 <em>No.3031</em></span>
-						<strong>세이벨라 립 컬렉션 3종</strong>
-					</a>
-				</li>
-
-				<li class="item">
-					<span class="icon"><img src="../img/main/icon_recom02.png" alt="추천"></span>
-					<a href="#">
-						<p><img src="../img/main/product_img04.jpg" alt=""></p>
-						<span>스킨 테라피 <em>No.9279</em></span>
-						<strong>레몬 100% 에센셜 오일</strong>
-					</a>
-				</li>
-			</ul>
+			<ul id="recommandDIV"></ul>
 
 		</div>
 		<!--// 추천상품 -->

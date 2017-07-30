@@ -21,4 +21,5 @@
 	<sqlMap resource="egovframework/sqlmap/airyami/SupplyRate_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/DispProdOnMain_Mysql.xml"/>
 	<sqlMap resource="egovframework/sqlmap/airyami/Account_Mysql.xml"/>
+	<sqlMap resource="egovframework/sqlmap/airyami/Main_Mysql.xml"/>
 </sqlMapConfig>
