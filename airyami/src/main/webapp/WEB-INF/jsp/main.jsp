@@ -72,7 +72,7 @@ function fn_callBack(sid, result){
 		for(var i = 0; i < result.ds_recommandList.length; i++){
 			recommandDIVStr += '<li class="item">';
 			recommandDIVStr += '<span class="icon"><img src="../img/main/icon_recom02.png" alt="추천"></span>';
-			recommandDIVStr += '<a href="#">';
+			recommandDIVStr += '<a href="/shop/shopProductDetail.do?PROD_NO='+result.ds_recommandList[i].PROD_NO+'">';
 			recommandDIVStr += '	<p><img src="'+result.ds_recommandList[i].URL_PATH+result.ds_recommandList[i].SAVE_FILE_NAME+'" alt=""></p>';
 			recommandDIVStr += '	<span>'+result.ds_recommandList[i].CATE_NAME+' <em>No.'+result.ds_recommandList[i].PROD_NO+'</em></span>';
 			recommandDIVStr += '	<strong>'+result.ds_recommandList[i].PROD_NM+'</strong>';
