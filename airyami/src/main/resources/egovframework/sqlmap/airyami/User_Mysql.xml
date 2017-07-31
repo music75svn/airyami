@@ -144,6 +144,12 @@
 	 WHERE A.USER_ID= #SEARCH_USER_ID#
 	</select>
 	
+	<select id="user.selectCartCnt" parameterClass="Map" resultClass="java.lang.Integer">
+		SELECT COUNT(*) 
+		  FROM TB_CUSTOMER_PR 
+		 WHERE CUSTOMER_ID = #LOGIN_ID#
+	</select>
+	
 	<select id="user.getUserExistYn" parameterClass="Map" resultClass="java.lang.String">
 	SELECT /* User_Mysql.xml  user.getUserExistYn */
 		   CASE WHEN count(*) = 0 THEN 'N' ELSE 'Y' END EXIST_YN

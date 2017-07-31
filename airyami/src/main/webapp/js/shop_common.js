@@ -21,6 +21,10 @@ function gfn_OnLoad(bNeedLogin){
 		if( !gfn_isNull(SES_USER_ID) ){
 			fn_getHeadMenuList();
 		}
+		// 장바구니 갯수  등.. 초기에 필요한 정보 조회하기
+		if( !gfn_isNull(SES_USER_ID) ){
+			fn_selectInitInfo();
+		}
 	}catch(e){}
 }
 
@@ -79,7 +83,7 @@ function gfn_SetCommInit(){
 			commTag += "<li><a href=\"#\">" + SES_USER_NAME + "</a> | </li>";
 		}
 		
-		commTag += "<li><a href=\"/shop/shopCartList.do\">" + "장바구니" + "(<em>" + 0 + "</em>)</a> | </li>";
+		commTag += "<li><a href=\"/shop/shopCartList.do\">" + "장바구니" + "(<em id='h_cartCnt'>" + 0 + "</em>)</a> | </li>";
 
 		// test를 위해 임시사용
 		

@@ -16,8 +16,32 @@ function fn_getHeadMenuList() {
 	
 }
 
+function fn_selectInitInfo() {
+	
+	var inputParam = new Object();
+	inputParam.sid 			= "selectInitInfo";
+	inputParam.url 			= "/CMM/selectInitInfo.do";
+	
+	inputParam.callback		= fn_callBackInitInfo;
+	
+	gfn_Transaction( inputParam );
+	
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 //콜백 함수
+function fn_callBackInitInfo(sid, result, data){
+	if (!result.success) {
+		alert(result.msg);
+		return;
+	}
+	
+	//debugger;
+	if(!gfn_isNull(result.ds_initInfo.cartCnt))
+		$("#h_cartCnt").html(result.ds_initInfo.cartCnt);
+}
+
+
 function fn_callBackHMenu(sid, result, data){
 	
 	if (!result.success) {

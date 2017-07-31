@@ -194,5 +194,42 @@ public class CmmController {
     	response.getWriter().println(CommonUtils.setJsonResult(result));
     	
     	return null;
-    } 
+    }
+    
+    
+    /**
+     * 초기 정보 조회
+     * 1. 장바구니 갯수 
+     */
+    @RequestMapping(value="/CMM/selectInitInfo.do")
+    public String selectInitInfo(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	log.debug("param :: " + params);
+    	
+    	boolean success = true;
+    	ValueMap result = new ValueMap();
+    	
+    	try{
+    		// 1. 장바구니 갯수
+    		ValueMap ds_initInfo = new ValueMap(); 
+    		int cartCnt = cmmService.getCommDbInt(params, "user.selectCartCnt");
+    		ds_initInfo.put("cartCnt", cartCnt);
+    		
+    		
+    		result.put("ds_initInfo", ds_initInfo);
+    	}
+    	catch(Exception e){
+    		success = false;
+    		e.printStackTrace();
+    		System.out.println(e.getMessage());
+    	}
+    	
+    	result.put("success", success);
+    	response.setContentType("text/xml;charset=UTF-8");
+    	response.getWriter().println(CommonUtils.setJsonResult(result));
+    	
+    	
+    	return null;
+    }
 }
