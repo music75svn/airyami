@@ -171,7 +171,7 @@ function fn_callBack(sid, result){
 		<div class="recommend">
 
 			<h2><img src="../img/main/icon_recom01.png" alt=""><span>AIRYAMI</span> 추천상품</h2>
-			<span class="more"><a href="#">더보기+</a></span>
+			<span class="more"><a href="/main/recommandProdList.do">더보기+</a></span>
 
 			<ul id="recommandDIV"></ul>
 
@@ -183,68 +183,21 @@ function fn_callBack(sid, result){
 		<!-- 인기상품 -->
 		<div class="top_pro">
 			<h3><img src="../img/main/icon_top01.png" alt=""> 인기상품</h3>
-			<span class="more"><a href="#">더보기 +</a></span>
+			<span class="more"><a href="/main/popularProdList.do">더보기 +</a></span>
 
-			<dl id="popularDIV">
-				<dt>
-					<a href="#">
-						<p class="photo">
-							<span><img src="../img/main/icon_top02.png" alt="인기상품"></span>
-							<img src="../img/main/product_img01.jpg" alt="">
-						</p>
-						<div class="desc">
-							<span class="red">인기 1위 상품</span>
-							<p class="txt">당신의 피부에서 느껴지는 감촉을 바꿔보세요. 당신의 피부에서 느껴지는 감촉을 바꿔보세요.
-								<span class="sm">당신의 피부도 달라질 수 있습니다.</span>
-							</p>
-
-							<span class="cate">스킨 테라피 <em>No.6617</em></span>
-							<strong class="title">리뉴 인텐시브 스킨 로션 대용량</strong>
-						</div>
-					</a>
-				</dt>
-				
-				<dd class="first">
-					<a href="#">
-						<p><img src="../img/main/product_img02.jpg" alt=""></p>
-						<div>
-							<span class="cate">가정 생활용품 <em>No.3854</em></span>
-							<strong class="title">레몬브라이트</strong>
-						</div>
-					</a>
-				</dd>
-				<dd>
-					<a href="#">
-						<p><img src="../img/main/product_img03.jpg" alt=""></p>
-						<div>
-							<span class="cate">뷰티 <em>No.3031</em></span>
-							<strong class="title">세이벨라 립 컬렉션 3종</strong>
-						</div>
-					</a>
-				</dd>
-				<dd>
-					<a href="#">
-						<p><img src="../img/main/product_img04.jpg" alt=""></p>
-						<div>
-							<span class="cate">스킨 테라피 <em>No.9279</em></span>
-							<strong class="title">레몬 100% 에센셜 오일</strong>
-						</div>
-					</a>
-				</dd>
-			</dl>
-		</div>
+			<dl id="popularDIV"></div>
 		<!--// 인기상품 -->
 
 		<!-- new arrival -->
 		<div class="arrival">
-			<a href="#"><img src="../img/main/banner_new.gif" alt="New arrival"></a>
+			<a href=""><img src="../img/main/banner_new.gif" alt="New arrival"></a>
 		</div>
 		<!--// new Allival -->
 
 		<!-- 신규상품 -->
 		<div class="new_pro">
 			<h3><img src="../img/main/icon_new01.png" alt=""> 신규상품</h3>
-			<span class="more"><a href="#">더보기 +</a></span>
+			<span class="more"><a href="/main/newProdList.do">더보기 +</a></span>
 
 			<ul id="newDIV"></ul>
 		</div>
