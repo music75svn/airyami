@@ -6,8 +6,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html;application/json; charset=utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-<%@ include file="/include/title.jsp"%>
 <%@ include file="/include/shop_standard.jsp"%>
+<%@ include file="/include/title.jsp"%>
 <jsp:include page="/include/common.jsp"/>
 
 <script type="text/javascript">
@@ -127,7 +127,7 @@ function fn_clearData(){
 <div id="wrap">
 
 <!--  header -->
-<%@ include file="/layout/shop/header.jsp"%>
+<%@ include file="/layout/shop_header.jsp"%>
 <!--//  header --> 
 
 <!-- container -->
@@ -204,7 +204,7 @@ function fn_clearData(){
 
 
 <!--  footer -->
-<%@ include file="/layout/footer.jsp"%>
+<%@ include file="/layout/shop_footer.jsp"%>
 <!--  //footer -->
 	
 </div>
