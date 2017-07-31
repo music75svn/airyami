@@ -114,4 +114,43 @@ public class MainController {
     	
     	return null;
     }
+    
+    /**
+     * 추천상품 목록 호출 
+     */
+    @RequestMapping(value="/main/recommandProdList.do")
+    public String recommandProdList(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	return "/main/recommandProdList";
+    }
+    
+    /**
+     * 인기상품 목록 호출 
+     */
+    @RequestMapping(value="/main/popularProdList.do")
+    public String popularProdList(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	return "/main/popularProdList";
+    }
+    
+    /**
+     * 신구상품 목록 호출 
+     */
+    @RequestMapping(value="/main/newProdList.do")
+    public String newProdList(HttpServletRequest request, HttpServletResponse response, 
+    		ModelMap model) throws Exception {
+    	
+    	Map<String,Object> params = CommonUtils.getRequestMap(request);
+    	CommonUtils.setModelByParams(model, params, request);
+    	
+    	return "/main/newProdList";
+    }
 }
