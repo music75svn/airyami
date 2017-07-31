@@ -80,7 +80,63 @@ function fn_callBack(sid, result){
 			recommandDIVStr += '</li>';
 		}
 		
-		$("#recommandDIV").html(recommandDIVStr); 
+		$("#recommandDIV").html(recommandDIVStr);
+		
+		var newDIVStr = '';
+		for(var i = 0; i < result.ds_newList.length; i++){
+			if(i == 0){
+				newDIVStr += '<li class="first">';
+			}else{
+				newDIVStr += '<li>';
+			}
+			newDIVStr += '<a href="/shop/shopProductDetail.do?PROD_NO='+result.ds_newList[i].PROD_NO+'">';
+			newDIVStr += '	<p><img src="'+result.ds_newList[i].URL_PATH+result.ds_newList[i].SAVE_FILE_NAME+'" alt=""></p>';
+			newDIVStr += '	<div>';
+			newDIVStr += '		<span class="new_item">NEW ITEM</span>';
+			newDIVStr += '		<span class="cate">'+result.ds_recommandList[i].CATE_NAME+' <em>No.'+result.ds_recommandList[i].PROD_NO+'</em></span>';
+			newDIVStr += '		<strong class="title">'+result.ds_recommandList[i].PROD_NM+'</strong>';
+			newDIVStr += '	</div>';
+			newDIVStr += '</a>';
+			newDIVStr += '</li>';
+		}
+		$("#newDIV").html(newDIVStr);
+		
+		var popularDIVStr = '';
+		for(var i = 0; i < result.ds_popularList.length; i++){
+			if(i == 0){
+				popularDIVStr += '	<dt>';
+				popularDIVStr += '		<a href="/shop/shopProductDetail.do?PROD_NO='+result.ds_popularList[i].PROD_NO+'">';
+				popularDIVStr += '			<p class="photo">';
+				popularDIVStr += '				<span><img src="../img/main/icon_top02.png" alt="인기상품"></span>';
+				popularDIVStr += '				<img src="'+result.ds_popularList[i].URL_PATH+result.ds_popularList[i].SAVE_FILE_NAME+'" alt="">';
+				popularDIVStr += '			</p>';
+				popularDIVStr += '			<div class="desc">';
+				popularDIVStr += '				<span class="red">인기 1위 상품</span>';
+				popularDIVStr += '				<p class="txt">'+result.ds_popularList[i].PRODUCT_EXPL_TEXT+'</p>';
+	
+				popularDIVStr += '				<span class="cate">'+result.ds_popularList[i].CATE_NAME+' <em>No.'+result.ds_popularList[i].PROD_NO+'</em></span>';
+				popularDIVStr += '				<strong class="title">'+result.ds_popularList[i].PROD_NM+'</strong>';
+				popularDIVStr += '			</div>';
+				popularDIVStr += '		</a>';
+				popularDIVStr += '	</dt>';
+			}else{
+				if(i == 1){
+					popularDIVStr += '<dd class="first">';
+				}else{
+					popularDIVStr += '<dd>';
+				}
+				popularDIVStr += '<a href="/shop/shopProductDetail.do?PROD_NO='+result.ds_popularList[i].PROD_NO+'">';
+				popularDIVStr += '	<p><img src="'+result.ds_popularList[i].URL_PATH+result.ds_popularList[i].SAVE_FILE_NAME+'" alt=""></p>';
+				popularDIVStr += '		<div>';
+				popularDIVStr += '			<span class="cate">'+result.ds_popularList[i].CATE_NAME+' <em>No.'+result.ds_popularList[i].PROD_NO+'</em></span>';
+				popularDIVStr += '			<strong class="title">'+result.ds_popularList[i].PROD_NM+'</strong>';
+				popularDIVStr += '		</div>';
+				popularDIVStr += '	</a>';
+				popularDIVStr += '</dd>';
+			}
+		}
+		$("#popularDIV").html(popularDIVStr);
+		
 	}
 	
 }
@@ -129,7 +185,7 @@ function fn_callBack(sid, result){
 			<h3><img src="../img/main/icon_top01.png" alt=""> 인기상품</h3>
 			<span class="more"><a href="#">더보기 +</a></span>
 
-			<dl>
+			<dl id="popularDIV">
 				<dt>
 					<a href="#">
 						<p class="photo">
@@ -190,38 +246,7 @@ function fn_callBack(sid, result){
 			<h3><img src="../img/main/icon_new01.png" alt=""> 신규상품</h3>
 			<span class="more"><a href="#">더보기 +</a></span>
 
-			<ul>
-				<li class="first">
-					<a href="#">
-						<p><img src="../img/main/product_img02.jpg" alt=""></p>
-						<div>
-							<span class="new_item">NEW ITEM</span>
-							<span class="cate">가정 생활용품 <em>No.3854</em></span>
-							<strong class="title">레몬브라이트</strong>
-						</div>
-					</a>
-				</li>
-				<li>
-					<a href="#">
-						<p><img src="../img/main/product_img03.jpg" alt=""></p>
-						<div>
-							<span class="new_item">NEW ITEM</span>
-							<span class="cate">뷰티 <em>No.3031</em></span>
-							<strong class="title">세이벨라 립 컬렉션 3종</strong>
-						</div>
-					</a>
-				</li>
-				<li>
-					<a href="#">
-						<p><img src="../img/main/product_img04.jpg" alt=""></p>
-						<div>
-							<span class="new_item">NEW ITEM</span>
-							<span class="cate">스킨 테라피 <em>No.9279</em></span>
-							<strong class="title">레몬 100% 에센셜 오일</strong>
-						</div>
-					</a>
-				</li>
-			</ul>
+			<ul id="newDIV"></ul>
 		</div>
 		<!--// 신규상품 -->
 	</div> 
