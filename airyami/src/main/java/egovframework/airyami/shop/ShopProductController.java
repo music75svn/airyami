@@ -121,7 +121,7 @@ public class ShopProductController {
     			log.debug("fileList = " + fileList);
     			ds_detail.put("fileList", fileList);			
     	    }
-    		
+    		log.debug("ds_detail = " + ds_detail);
     		result.put("ds_detail", ds_detail);
     	}
     	catch(Exception e){

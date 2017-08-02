@@ -126,7 +126,8 @@
 	<select id="product.getProductDetail" parameterClass="Map" resultClass="ValueMap">
 	SELECT /* Product_Mysql.xml  product.getProductDetail */
            A.PROD_NO
-         , B.PROD_NM    
+         , B.PROD_NM
+         , B.PRODUCT_EXPL_TEXT
          , A.BRAND_CD            
          , A.PROD_LCATE_CD
          , A.PROD_MCATE_CD      
@@ -146,9 +147,11 @@
          , A.SELLER_BIZ_ENTITY_ID
          , C.COMP_NM AS SELLER_BIZ_ENTITY_NM
          , A.MAKE_COUNTRY        
-         , A.SUPPLY_COUNTRY      
-         , A.SUPPLY_CURRENCY     
-         , A.ORG_PRICE           
+         , A.SUPPLY_COUNTRY
+		 , FN_GET_CODE_NM('CURRENCY', A.SUPPLY_CURRENCY, #LANG_CD#) AS SUPPLY_CURRENCY_NM      
+         , A.SUPPLY_CURRENCY
+         , A.ORG_PRICE
+         , FN_GET_UNIT_PRICE(A.PROD_NO, #LOGIN_ID#, A.SUPPLY_CURRENCY, 1) AS SALE_PRICE
          , A.DUTY_FREE_YN        
          , A.VOLUME_UNIT         
          , A.VOLUME              

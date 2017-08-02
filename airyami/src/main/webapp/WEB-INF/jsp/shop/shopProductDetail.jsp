@@ -12,6 +12,9 @@
 
 <script type="text/javascript">
 $(function() {  //onready
+   	$('.bxslider').bxSlider({
+	  	pagerCustom: '#bx-pager'
+	});
 	//여기에 최초 실행될 자바스크립트 코드를 넣어주세요
 	gfn_OnLoad();
 	
@@ -44,7 +47,7 @@ function fn_srch(){
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 콜백 함수
-function fn_callBack(sid, result, data){
+function fn_callBack(sid, result){
 	if (!result.success) {
 		alert(result.msg);
 		return;
@@ -52,34 +55,16 @@ function fn_callBack(sid, result, data){
 	
 	// fn_srch
 	if(sid == "getProductDetail"){
-		gfn_setDetails(result.ds_detail, $("#contents"));	// 지역내 상세 내용 셋업
+		$("#CATEGORY_NM_DIV").html(result.ds_detail.CATEGORY_NM);
+		$("#PROD_NO_DIV").html(result.ds_detail.PROD_NO);
+		$("#PROD_NM_DIV").html(result.ds_detail.PROD_NM);
+		$("#PRODUCT_EXPL_TEXT_DIV").html(result.ds_detail.PRODUCT_EXPL_TEXT);
+		$("#ORIGINAL_PRICE_DIV").html(result.ds_detail.ORG_PRICE+result.ds_detail.SUPPLY_CURRENCY_NM);
+		$("#SALE_PRICE_DIV").html(result.ds_detail.SALE_PRICE+result.ds_detail.SUPPLY_CURRENCY_NM);
+		$("#TOTAL_PRICE_DIV").html(result.ds_detail.SALE_PRICE+result.ds_detail.SUPPLY_CURRENCY_NM);
+		$("#SALE_PRICE").val(result.ds_detail.SALE_PRICE);
+		$("#CURRENCY").val(result.ds_detail.SUPPLY_CURRENCY_NM);
 		
-		if(!gfn_isNull(result.ds_detail.PROD_MCATE_CD)){
-			fn_selectLCate(result.ds_detail.PROD_LCATE_CD, result.ds_detail.PROD_MCATE_CD);
-		}
-		if(!gfn_isNull(result.ds_detail.PROD_SCATE_CD)){
-			fn_selectMCate(result.ds_detail.PROD_MCATE_CD, result.ds_detail.PROD_SCATE_CD);
-		}
-		if(!gfn_isNull(result.ds_detail.PROD_DCATE_CD)){
-			fn_selectSCate(result.ds_detail.PROD_SCATE_CD, result.ds_detail.PROD_DCATE_CD);
-		}
-		
-		for(var i = 0; i < result.ds_langNameList.length; i++){
-			$('#PROD_NM_'+result.ds_langNameList[i].LANG_CD).val(result.ds_langNameList[i].PROD_NM);
-			$('#PROD_SHORT_NM_'+result.ds_langNameList[i].LANG_CD).val(result.ds_langNameList[i].PROD_SHORT_NM);
-			$('#PRODUCT_EXPL_TEXT_'+result.ds_langNameList[i].LANG_CD).val(result.ds_langNameList[i].PRODUCT_EXPL_TEXT);
-		}
-		
-		if(!gfn_isNull(result.ds_detail)){
-			if(!gfn_isNull(result.ds_detail.fileList)){
-				$("#IMG_FIRST_INDEX").val(0);
-				$("#IMG_LIST_LENGTH").val(result.ds_detail.fileList.length);
-				g_fileList = result.ds_detail.fileList;
-				dfn_initFileList();
-				dfn_setFileList(result.ds_detail.fileList);// fileList 셋업
-			}
-			
-		}
 	}else if(sid = "saveCart"){
 		// 저장
 		alert("<spring:message code="success.request.msg"/>");
@@ -98,15 +83,15 @@ function fn_callBack(sid, result, data){
 // 장바구니버튼 클릭
 function fn_goCart(){
 	
-	if(!gfn_validationForm($("#cartForm"))){
+	if(!gfn_validationForm($("#dataForm"))){
 		return;
 	}
 	
-	var inputParam = gfn_makeInputData($("#cartForm"));
+	var inputParam = gfn_makeInputData($("#dataForm"));
 	inputParam.sid 				= "saveCart";
 	inputParam.url 				= "/shop/saveCart.do";
 	
-	inputParam.data 			= gfn_makeInputData($("#cartForm"));
+	inputParam.data 			= gfn_makeInputData($("#dataForm"));
 	gfn_Transaction( inputParam );
 }
 
@@ -117,7 +102,10 @@ function fn_clearData(){
 
 ////////////////////////////////////////////////////////////////////////////////////
 //사용자 함수
-
+function calTotal(){
+	var totalPrice = $("#SALE_PRICE").val() * $("#PR_QTY").val();
+	$("#TOTAL_PRICE_DIV").html(totalPrice+$("#CURRENCY").val());
+}
 ////////////////////////////////////////////////////////////////////////////////////
 </script>
 
@@ -129,79 +117,96 @@ function fn_clearData(){
 <!--  header -->
 <%@ include file="/layout/shop_header.jsp"%>
 <!--//  header --> 
-
-<!-- container -->
-<div id="container">
-  
-	<div id="contents">
-		<h3><spring:message code="word.productDetail"/></h3>
-		<form id="findForm" name="findForm">
-			<ppe:makeHidden var="${findParams}" filter="FIND_"/>
-		</form>
-		<form id="dataForm" name="dataForm" method="post" action="#" onsubmit="return false;">
-			<input type="hidden" name="SEARCH_PROD_NO" id="SEARCH_PROD_NO" value='<c:out value="${PROD_NO}"/>'/>
-			<input type="hidden" name="MODE" id="MODE" value='<c:out value="${MODE}"/>'/>
-			<input type="hidden" name="PROC_MODE" id="PROC_MODE" value=''/>
-			<input type="hidden" name="IMG_FIRST_INDEX" id="IMG_FIRST_INDEX" value="0"/>
-			<input type="hidden" name="IMG_LIST_LENGTH" id="IMG_LIST_LENGTH" value="0"/>
-			<input type="hidden" name="IMG_LIST_SIZE" id="IMG_LIST_SIZE" value="4"/>
-		<table summary="<spring:message code="word.productDetail"/>" cellspacing="0" border="0" class="tbl_list_type2">
-			<colgroup>
-			<col width="50%">
-			<col width="3">
-			<col width="10%">
-			<col width="10%">
-			<col width="30%">
-			</colgroup>
-			<tr>
-				<th rowspan="50">
-					<iframe width="400px" height="450px" src="/product/productImgView.do?PROD_NO=<c:out value="${PROD_NO}"/>" frameborder="0"></iframe>
-				</th>
-				<td rowspan="50"></td>
-				<th colspan="2"><spring:message code="word.prodNo"/></th>
-				<td>
-					<input type="text" name="PROD_NO" id="PROD_NO" disabled />
-				</td>
-			</tr>
-			<tr>
-				<th colspan="2"><spring:message code="word.brand"/></th>
-				<td>
-			        <select id="BRAND_CD" name="BRAND_CD" title="<spring:message code="word.brand"/>" depends="required" style="width:150px">
-						<option value=""><spring:message code="word.select"/></option>
-                        <c:forEach var="brandList" items="${ds_brandList}">
-                            <option value="${brandList.CD}">${brandList.CD_NM}</option>
-                        </c:forEach>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<th colspan="2"><spring:message code="word.orgPrice"/></th>
-				<td>
-			        <input type="text" name="ORG_PRICE" id="ORG_PRICE" isNum="Y" class="onlynum2" maxlength="12" style="width:80px" title="<spring:message code="word.orgPrice"/>" depends="required"/>
-			        <select id="SUPPLY_CURRENCY" name="SUPPLY_CURRENCY" title="<spring:message code="word.supplyCurrency"/>" depends="required" style="width:100px">
-						<option value=""><spring:message code="word.select"/></option>
-                        <c:forEach var="supplyCurrencyList" items="${ds_supplyCurrencyList}">
-                            <option value="${supplyCurrencyList.CD}">${supplyCurrencyList.CD_NM}</option>
-                        </c:forEach>
-					</select>
-				</td>
-			</tr>
-		</table>
-		</form>
-		
-		<div class="btn_zone">
-			<div class="right">
-			<form id="cartForm" name="cartForm" method="post" onsubmit="return false;">
-				<input type="hidden" name="SEARCH_PROD_NO" id="SEARCH_PROD_NO" value='<c:out value="${PROD_NO}"/>'/>
-				<input type="text" name="PR_QTY" id="PR_QTY" isNum="Y" value="1" class="onlynum2" maxlength="4" style="width:80px" title="<spring:message code="word.qty"/>" depends="required"/>
-				<button type="button" id="btnW_cart" onClick="javascript:fn_goCart()"><spring:message code="button.cart"/>
-			</form>
-			</button></div>
+<form id="dataForm" name="dataForm" method="post" action="#" onsubmit="return false;">
+	<input type="hidden" name="SEARCH_PROD_NO" id="SEARCH_PROD_NO" value='<c:out value="${PROD_NO}"/>'/>
+	<input type="hidden" name="PROD_NO" id="PROD_NO"/>
+	<input type="hidden" name="MODE" id="MODE" value='<c:out value="${MODE}"/>'/>
+	<input type="hidden" name="PROC_MODE" id="PROC_MODE" value=''/>
+	<input type="hidden" name="SALE_PRICE" id="SALE_PRICE" value=''/>
+	<input type="hidden" name="CURRENCY" id="CURRENCY" value=''/>
+	<!-- container -->
+	<div id="container">
+	
+		<!-- product -->
+		<div class="product">
+			<nav><span id="CATEGORY_NM_DIV"></span></nav>
+			
+			<!-- top -->
+			<div class="top">
+				<!-- left -->
+				<div class="left">
+					<iframe width="600px" height="480px" src="/product/productImgView.do?PROD_NO=<c:out value="${PROD_NO}"/>" frameborder="0"></iframe>
+				</div>
+				<!--// left -->
+				
+				<!-- right -->
+				<div class="right">
+					<h3 id="PROD_NM_DIV"></h3>
+					<ul>
+						<li class="m_pro"><img src="../img/product/detail_img01.jpg" /></li>
+						<li>
+							<span class="title">제품번호</span> 
+							<span class="txt" id="PROD_NO_DIV"></span>
+						</li>
+						<li>
+							<span class="title">수량</span> 
+								<input type="text" name="PR_QTY" id="PR_QTY" isNum="Y" value="1" maxlength="4" style="width:80px" title="<spring:message code="word.qty"/>" depends="required" onChange="calTotal();"/>
+						</li>
+						<li>
+							<span class="title">원가</span> 
+							<span class="txt" id="ORIGINAL_PRICE_DIV"></span>
+						</li>
+						<li>
+							<span class="title">판매가격</span> 
+							<span class="txt" id="SALE_PRICE_DIV"></span>
+						</li>
+						<li class="total">
+							<span class="title">TOTAL</span>
+							<span class="txt" id="TOTAL_PRICE_DIV"></span>
+						</li>
+					</ul>
+					
+					<div class="btn_zone">
+						<a href="javascript:fn_goCart()"><img src="../img/product/btn_basket.gif" alt="장바구니"></a>
+					</div>
+				</div>
+				<!--// right -->
+			</div>
+			<!--// top -->
+	
+			
+			
+			<dl>
+				<dt>제품정보</dt>
+				<dd id="PRODUCT_EXPL_TEXT_DIV"></dd>
+			</dl>
+			
+			
+			<dl style="display:none">
+				<dt>추천제품</dt>
+				<dd>
+					<ul>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><p><span>픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) 픽 퍼포먼스(맨) </span>No.860 | 60캡슐</p></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><p><span>픽 퍼포먼스(맨)</span>No.860 | 60캡슐</p></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><p><span>픽 퍼포먼스(맨)</span>No.860 | 60캡슐</p></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><p><span>픽 퍼포먼스(맨)</span>No.860 | 60캡슐</p></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><p><span>픽 퍼포먼스(맨)</span>No.860 | 60캡슐</p></a></li>
+						<li><a href="#"><img src="../img/product/product_img.jpg" alt=""><p><span>픽 퍼포먼스(맨)</span>No.860 | 60캡슐</p></a></li>
+					</ul>
+				</dd>
+			</dl>
+			
+	
+	
+			
 		</div>
-
-	</div> 
+		<!--// product -->
+		
+		
+	</div>
+	<!--// container -->
 </div>
-
+</form>
 
 <!--  footer -->
 <%@ include file="/layout/shop_footer.jsp"%>
