@@ -782,6 +782,8 @@ body.login{ float:left; position:relative; background:#e6e4e4 url(/images/admin/
 
 
 
+
+
 /* 검색건수 및 출력건수선택 */
 .tableInfoArea{position:relative;margin-top:30px;}
 .tableInfoArea .txt{font-size:15px;color:#606060;}
@@ -1211,10 +1213,9 @@ button.btnW span{display: block;margin-left: 3px;padding-right: 3px;height: 37px
 button.btn4W{display: inline-block;width:auto;background: #fff;border:1px solid #d0d0d0;border-radius:3px;vertical-align:middle;max-width:98%;}
 button.btn4W span{display: block;padding-right: 10px;padding-left:10px;height: 26px;color: #767676;font-size: 12px;line-height: 26px;text-align: center;overflow:hidden;white-space:nowrap;/*text-overflow:ellipsis;*/}
 
-
 /*관리자 레프트 메뉴 css*/
 #admin_leftmenu {float:left; width:235px; min-height:570px; background:#5d5d5d; border-right:3px solid #9e9e9e; box-sizing:border-box;}
-#admin_leftmenu > div {outline:none;}
+#admin_leftmenu > div {outline:none; border:0; border-radius:0;}
 #admin_leftmenu a {font-size:13px; color:#fff;}
 #admin_leftmenu .menu-title {
     margin-left:20px;
@@ -1224,14 +1225,20 @@ button.btn4W span{display: block;padding-right: 10px;padding-left:10px;height: 2
     font-size:13px; color:#fff; 
     border-top:1px solid #7e7e7e; 
     border-bottom:1px solid #333333;
+    border-right:0;
+    border-left:0;
+    border-radius:0;
     }
+#admin_leftmenu .menu-title span {display:none;}
 #admin_leftmenu .menu-title:first-child {border-top:0px;}
-#admin_leftmenu .menu-title.ui-state-active {background:url(../../images/admin/arrow_down.png)no-repeat left center !important;}
+#admin_leftmenu .menu-title.ui-accordion-header-active {background:url(../../images/admin/arrow_down.png)no-repeat left center !important; border:0;border-top:1px solid #7e7e7e; border-bottom:1px solid #333333;}
+#admin_leftmenu .menu-title.ui-accordion-header-active:first-child {border-top:0px;}
 #admin_leftmenu .menu-contents ul {padding:10px; background:#959595;font-size:13px; color:#fff;}
 #admin_leftmenu .menu-contents li {line-height:24px; }
 #admin_leftmenu .menu-contents li a {padding:14px 19px 14px 35px; background:url(../../images/admin/arrow_right2.png)no-repeat 20px center; font-size:13px; color:#fff;}
 #admin_leftmenu .menu-contents li a:hover {text-decoration:underline;}
 #admin_leftmenu .menu-title:last-child {border-top:0px;}
+
 
 /*관리자 상품등록 팝업*/
 .product .top .slider{ float: left; width: 100%; }
