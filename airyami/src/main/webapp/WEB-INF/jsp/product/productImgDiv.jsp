@@ -4,10 +4,13 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes, target-densitydpi=medium-dpi">
 <%@ include file="/include/title.jsp"%>
 <jsp:include page="/include/common.jsp"/>
 <link type="text/css" rel="stylesheet" href="../css/shop/common.css" />
+<link type="text/css" rel="stylesheet" href="../css/shop/slick.css" />
 <%@ include file="/include/admin_standard.jsp"%>
+<script type="text/javascript" src="../js/slick.js"></script>
 
 <script type="text/javascript">
 
@@ -26,7 +29,7 @@ var g_fileList = null;
 
 //화면내 초기화 부분
 function fn_init(){
-	fn_initFileList();
+	//fn_initFileList();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -44,6 +47,7 @@ function fn_srch(){
 function fn_selectImgListByImgType(){
 	fn_srch();
 }
+
 ////////////////////////////////////////////////////////////////////////////////////
 //콜백 함수
 function fn_callBack(sid, result, data){
@@ -72,14 +76,20 @@ function fn_callBack(sid, result, data){
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-// 사용자 함수
+//사용자 함수
 function fn_initFileList(){
-	imgNm = "IMG_VIEWLIST";
-	imgTd = $("[name="+imgNm+"]");
+	//debugger;
 	
-	if(!gfn_isNull(imgTd))
-		imgTd.empty();
+	imgNm = "IMG_MAIN";
+	imgMain = $("[name="+imgNm+"]");
 	
+	if(!gfn_isNull(imgMain))
+		imgMain.empty();
+	
+	var initHtml = "<div class=\"slider-for\" name=\"IMG_VIEW\"></div>"
+				 + "<div class= \"slider-nav\" name=\"IMG_VIEWLIST\"></div>";
+	
+	imgMain.append(initHtml);
 }
 
 function fn_changeList(addIndex){
@@ -101,33 +111,55 @@ function fn_changeList(addIndex){
 
 function fn_setFileList(fileList){
 	
+	//debugger;
+	
 	var imgNm = "";
+	var imgListNm = "";
 	var imgTd = null;
+	var imgListTd = null;
 	
-	var firstIdx = $("#IMG_FIRST_INDEX").val();
-	var listSize = $("#IMG_LIST_SIZE").val();
-	
-	debugger;
+	//var firstIdx = $("#IMG_FIRST_INDEX").val();
+	//var listSize = $("#IMG_LIST_SIZE").val();
 	
 	if(!gfn_isNull(fileList)) // filelist가 있을 경우 file 리스트 표시
- 	{
-		//for(var idx = 0; idx < fileList.length; idx++){
-		for(var idx = firstIdx; idx < firstIdx + listSize && idx < fileList.length ; idx++){
+	{
+		imgNm = "IMG_VIEW";	// (대)상품보기용
+		imgTd = $("[name="+imgNm+"]");
+		
+		imgListNm = "IMG_VIEWLIST";	// (대)리스트 보기용
+		imgListTd = $("[name="+imgListNm+"]");
 			
-			imgNm = "IMG_VIEWLIST";	// (대)상품보기용
-			imgTd = $("[name="+imgNm+"]");
+		for(var idx = 0; idx < fileList.length; idx++){
+		//for(var idx = firstIdx; idx < firstIdx + listSize && idx < fileList.length ; idx++){
+			var fileInfo = "";
+			//fileInfo += "<li style=\"float: left; list-style: none; position: relative; width: 638px;\"><img src=\"" + fileList[idx].URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" /></li>";
+			fileInfo += "<div><img src=\"" + fileList[idx].URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" /></div>";
+			imgTd.append(fileInfo);
 			
-			var fileLink = "";
-			fileLink += "<dl class=\"item\" name='FILE_INFO_" + fileList[idx].FILE_DTL_SEQ + "'>";
-			fileLink += "	<dt><a href=\"#\"><img src=\"" + fileList[idx].THUMBNAIL_URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" alt=\"\" onclick='javascript:gfn_changeImgView(\"IMG_VIEW\", \"" + gfn_replaceAll(fileList[idx].URL_PATH + fileList[idx].SAVE_FILE_NAME, "\\", "/") + "\")' style=\"width: 50px; height: auto;\"></a></dt>";
-			fileLink += "</dl>";
-			
-			imgTd.append(fileLink);
+			var fileListLink = "";
+			fileListLink += "<div><img src=\"" + fileList[idx].THUMBNAIL_URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" /></div>";
+			/* fileListLink += "<a data-slide-index=\"" + idx + "\" href=\"\"><img src=\"" + fileList[idx].THUMBNAIL_URL_PATH + fileList[idx].SAVE_FILE_NAME + "\" /></a>"; */
+			imgListTd.append(fileListLink);
 		}
+		//gfn_changeImgView("IMG_VIEW", gfn_replaceAll(fileList[firstIdx].URL_PATH + fileList[firstIdx].SAVE_FILE_NAME, "\\", "/"));
 		
-		
-		gfn_changeImgView("IMG_VIEW", gfn_replaceAll(fileList[firstIdx].URL_PATH + fileList[firstIdx].SAVE_FILE_NAME, "\\", "/"));
- 	}
+		//debugger;
+		$('.slider-for').slick({
+			slidesToShow: 1,
+	 		slidesToScroll: 1,
+	  		arrows: false,
+	  		fade: true,
+	  		asNavFor: '.slider-nav'		
+	  	});
+		$('.slider-nav').slick({
+	  		slidesToShow: 4,
+	  		slidesToScroll: 1,
+	  		asNavFor: '.slider-for',
+	  		dots: true,
+	  		centerMode: true,
+	  		focusOnSelect: true
+		});
+	}
 }
 
 function gfn_changeImgView(imgViewOjbNm, src){
@@ -168,20 +200,37 @@ function gfn_changeImgView(imgViewOjbNm, src){
 			</tr>
 			<tr>
 				<td colspan=3>
-					<div style="width=200px" height=200>
-						<img name="IMG_VIEW"></img>
-					</div>
-					<div class="list">
-						<div class="list_container">
-							<ul class="bxslider">
-								<li name="IMG_VIEWLIST">
-								</li>
-							</ul>
+					<!-- product -->
+					<div class="product">
+						<!-- top -->
+						<div class="top">
+							<!-- center -->
+							<div class="slider" name="IMG_MAIN">
+								<div class="slider-for">
+							    	<div><img src="../img/product/detail_img01.jpg"></div>
+							    	<div><img src="http://placehold.it/350x300?text=2"></div>
+							    	<div><img src="http://placehold.it/350x300?text=3"></div>
+							    	<div><img src="http://placehold.it/350x300?text=4"></div>
+							    	<div><img src="http://placehold.it/350x300?text=5"></div>
+							    	<div><img src="http://placehold.it/350x300?text=6"></div>
+							    	<div><img src="http://placehold.it/350x300?text=7"></div>
+							    </div>
+			
+							    <div class="slider-nav">
+							    	<div><img src="../img/product/detail_img01.jpg"></div>
+							    	<div><img src="http://placehold.it/350x300?text=2"></div>
+							    	<div><img src="http://placehold.it/350x300?text=3"></div>
+							    	<div><img src="http://placehold.it/350x300?text=4"></div>
+							    	<div><img src="http://placehold.it/350x300?text=5"></div>
+							    	<div><img src="http://placehold.it/350x300?text=6"></div>
+							    	<div><img src="http://placehold.it/350x300?text=7"></div>
+							    </div>
+							</div>
+							<!--// center -->
 						</div>
+						<!--// top -->
 					</div>
-					
-					<!-- <img src='/images/btn/icon_pre_month.gif' style='cursor:hand' onclick='javascript:fn_changeList(-1)' />
-					<img src='/images/btn/icon_aft_month.gif' style='cursor:hand' onclick='javascript:fn_changeList(1)' /> -->
+					<!--// product -->
 				</td>
 			</tr>
 		</table>

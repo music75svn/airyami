@@ -510,7 +510,7 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
 //            fvo.put( "LANG_CD",  langCd);
             fvo.put( "LANG_CD",  localLangCd);
             fvo.put( "FILE_DTL_SEQ",  detailId);
-            fvo.put( "IMG_TYPE_CD",  fileType);
+            //fvo.put( "IMG_TYPE_CD",  fileType);
             fvo.put( "SAVE_FILE_NAME", newName );
             fvo.put( "ORG_FILE_NAME", originalFileName );
             fvo.put( "FILE_PATH", filePath);
@@ -535,6 +535,7 @@ public class FileServiceImpl extends AbstractServiceImpl implements FileService
             	ValueMap aFile = listFileVO.get(i);
                 aFile.put( "LOGIN_ID", userId );
                 aFile.put( "LOCAL_LANG", paramMap.get("LOCAL_LANG") );
+                aFile.put( "IMG_TYPE_CD", paramMap.get("IMG_TYPE_CD") );
                 
                 log.info( "fileService::" + listFileVO.toString() );
                 log.info( "aFile::" + aFile );

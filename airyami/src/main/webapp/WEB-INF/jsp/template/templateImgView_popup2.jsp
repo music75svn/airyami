@@ -62,7 +62,9 @@ function fn_srch(){
 	gfn_Transaction( inputParam );
 }
 
-
+function fn_selectImgListByImgType(){
+	fn_srch();
+}
 ////////////////////////////////////////////////////////////////////////////////////
 //콜백 함수
 function fn_callBack(sid, result, data){

@@ -41,6 +41,7 @@ index.jsp 페이지
 <a href="/html/list02.html">list02.html</a><br>  
 <a href="/html/main.html">main.html</a><br>  
 <a href="/html/admin_leftmenu.html">admin_menu.html</a><br>  
+<a href="/html/partner01.html">01고객주문조회.html</a><br>  
 
 </body>
 </html>

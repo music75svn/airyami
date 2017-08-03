@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta http-equiv="Content-Type" content="text/html;application/json; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+
+<title>고객주문조회</title>
+
+<link rel="stylesheet" href="../css/admin/admin.css" type="text/css">
+<!-- 달력관련 -->
+<link rel="stylesheet" href="/js/lib/DatePicker/themes/base/jquery.ui.all.css"  media="screen" />
+	
+<!-- for 공통함수 -->
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/jquery-1.6.2.min.js" ></script>
+<script type="text/javascript" src="/js/jquery.min.js"></script>
+
+<script type="text/javascript" src="/js/jquery.json-2.4.min.js" ></script>
+<script type="text/javascript" src="/js/jquery.form.js" ></script>
+<script type="text/javascript" src="/js/jquery-migrate-1.2.1.min.js" ></script>
+
+<script type="text/javascript" src="/js/constant.js"></script>
+<script type="text/javascript" src="/js/common.js"></script>
+<script type="text/javascript" src="/js/airyami_common.js"></script>
+
+<script type="text/javascript" src="/js/date.js"></script>
+<script type="text/javascript" src="/js/paging.js"></script>
+<!-- <script type="text/javascript" src="/js/map.js"></script> -->
+
+<!-- <script type="text/javascript" src="/js/uiScript.js"></script> -->
+<script src="http://code.jquery.com/ui/1.8.18/jquery-ui.min.js" ></script>
+<!-- <script type="text/javascript" src="/js/lib/modernizr.custom.js"></script> -->
+
+</head>
+
+<body>
+<!-- wrap -->
+	<div id="wrap">
+
+	<!--  header -->
+
+
+
+		<div id="header">
+			<div id="logo">
+				<h1><a href="#"><img src="../images/admin/airyami_logo_p.png" alt="Airyami_partner"></a></h1>
+				<span id="userLogo"></span>
+			</div>
+			<div id="top_link"></div>
+			<div id="gnb">
+			<!-- 
+				<h2><img src="/images/admin/hTitle_admin.gif" alt="관리자 모드"></h2>
+				<ul>
+					<li> <a href=""><span>시스템</span> </a> </li>
+					<li> <a href="" ><span>프로그램 관리</span> </a> </li>
+					<li> <a href="" ><span>아이디어 등록실</span> </a> </li>
+					<li> <a href="" ><span>무한상상 전시관</span> </a> </li>
+					<li> <a href="" ><span>알림방</span> </a> </li>
+					<li> <a href="" ><span>무한상상 운영</span> </a> </li>
+					<li> <a href="" class="on"><span>장비 관리</span> </a> </li>
+				</ul>
+				-->
+			</div>
+		</div>
+		<!--//  header --> 
+
+		<!-- container -->
+		<div id="container">
+			<!-- menu -->
+
+			<!--// menu -->
+
+			<!-- 고객주문조회 테이블 시작 -->  
+			<div id="contents">
+				<h3>고객주문조회</h3>
+				<div class="btn_zone topbtn">
+					<button type="button" id="">주문상세내역</button>
+					<button type="button" id="">후불지정</button>
+					<button type="button" id="">주문진척조회</button>
+					<button type="button" id="">우편수령확인</button>
+				</div>
+				<form id="srchForm" name="srchForm" method="post" action="">
+					<input type="hidden" name="pageNo" id="pageNo" value="1"/>
+					<input type="hidden" name="EXCEL_YN" id="EXCEL_YN" />
+					<input type="hidden" name="SORT_COL" id="SORT_COL" value="CODE_GROUP_ID ASC, SORT_ORDER ASC"/>
+					<input type="hidden" name="SORT_ACC" id="SORT_ACC" />
+				
+				<div id="search">
+					<dl>
+						<dt>
+							<label for="condition" id="SCD1">검색조건</label>
+						</dt>
+						<dd>
+							<input type="radio" name="condition" id="" class="datepicker">(파트너)전체고객&nbsp;&nbsp;
+							<input type="radio" name="condition" id="" class="datepicker">고객지정
+						</dd>
+						<dt>
+							<label for="" id="SDT1">검색기간</label>
+						</dt>
+						<dd>
+							<input type="text" size="8" name="FROM_DT" id="" class="datepicker">
+							<button type="button" class="cal"><img src="../images/admin/icon_calendar.gif" alt="달력"></button>
+							~&nbsp;
+							<input type="text" size="8" name="FROM_DT" id="" class="datepicker">
+							<button type="button" class="cal"><img src="../images/admin/icon_calendar.gif" alt="달력"></button>
+						</dd><br>
+						<dt>
+							<label for="post" id="">검색범위</label>
+						</dt>
+						<dd>
+							<select id="" name="post" title="그룹코드">
+								<option>우편미수령</option>
+								<option>우편기수령</option>
+								<option>전체</option>
+							</select>
+						</dd>
+						<dt>
+							<label for="customer" id="">고객</label>
+						</dt>
+						<dd>
+							<select id="" name="customer" title="고객">
+								<option>홍길동 1*7-****-9952 상해</option>
+								<option>홍길동 1*7-****-9952 상해</option>
+								<option>홍길동 1*7-****-9952 상해</option>
+							</select>
+						</dd>
+					</dl>
+					<div class="search_btn"><input type="submit" value="검색" onclick="javascript:gfn_fn_srch(); return false;"/></div>
+				</div>
+				</form>
+				
+				<div class="tableInfoArea">
+					<!-- total 총건수 -->
+					<span id="totCnt">100</span>
+					<!--// total 총건수 -->
+					<!-- 출력건수 -->
+					<div class="tablelistQuantity" id="pageUnit">100</div>
+					<!--// 출력건수 -->
+				</div>
+				<!-- //출력건수및 리스트 페이지당 갯수 -->
+				
+				<!-- table list -->
+				<div class="aTypeListTbl">
+					<table id="" summary="고객주문조회 목록">
+						<caption>고객주문조회 리스트</caption>
+						<colgroup>
+							<col width="3%"/>
+							<col width="3%"/>
+							<col width="8%"/>
+							<col width="10%"/>
+							<col width="5%"/>
+							<col width="15%"/>
+							<col width="5%"/>
+							<col width="5%"/>
+							<col width="5%"/>
+							<col width="8%"/>
+							<col width="5%"/>
+							<col width="8%"/>
+							<col width="7%"/>
+							<col width="4%"/>
+							<col width="5%"/>
+							<col width="8%"/>
+							<col width="5%"/>
+							<col width="5%"/>
+						</colgroup>
+						<thead> 
+							<tr>
+								<th>선택</th>
+								<th>No</th>
+								<th>고객명</th>
+								<th>전화번호</th>
+								<th>주거<br>도시</th>
+								<th>주문번호</th>
+								<th>고객<br>주문<br>시간</th>
+								<th>공급<br>국가</th>
+								<th>화폐</th>
+								<th>상품대금</th>
+								<th>운송비</th>
+								<th>대금<br>합계</th>
+								<th>(고객)<br>대금이체<br>완료여부</th>
+								<th colspan="2">(파트너)<br>후불지정여부</th>
+								<th>(파트너)<br>대금수금<br>완료여부</th>
+								<th>주문<br>진척</th>
+								<th>직배송<br>요청<br>여부</th>
+							</tr> 
+						</thead> 
+						<tbody>
+							<tr style="text-align: center">
+								<td><input type="checkbox"></td>
+								<td>1</td>
+								<td>홍길동</td>
+								<td>000-0000-0000</td>
+								<td>북경</td>
+								<td>CPO17072510035</td>
+								<td>10:35</td>
+								<td>한국</td>
+								<td>RMB</td>
+								<td>3,500.35</td>
+								<td>300.00</td>
+								<td>3,800.35</td>
+								<td>N</td>
+								<td>Y</td>
+								<td>선불</td>
+								<td>N</td>
+								<td>통관완료</td>
+								<td>N</td>                        
+							</tr>
+							<tr style="text-align: center">
+								<td><input type="checkbox"></td>
+								<td>2</td>
+								<td>홍길동</td>
+								<td>000-0000-0000</td>
+								<td>북경</td>
+								<td>CPO17072510035</td>
+								<td>10:35</td>
+								<td>한국</td>
+								<td>RMB</td>
+								<td>3,500.35</td>
+								<td>300.00</td>
+								<td>3,800.35</td>
+								<td>N</td>
+								<td>Y</td>
+								<td>선불</td>
+								<td>N</td>
+								<td>통관완료</td>
+								<td>N</td>                        
+							</tr>
+							<tr style="text-align: center">
+								<td><input type="checkbox"></td>
+								<td>3</td>
+								<td>홍길동</td>
+								<td>000-0000-0000</td>
+								<td>북경</td>
+								<td>CPO17072510035</td>
+								<td>10:35</td>
+								<td>한국</td>
+								<td>RMB</td>
+								<td>3,500.35</td>
+								<td>300.00</td>
+								<td>3,800.35</td>
+								<td>N</td>
+								<td>Y</td>
+								<td>선불</td>
+								<td>N</td>
+								<td>통관완료</td>
+								<td>N</td>                        
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<!--// table list -->
+				<span id="pagingNav"></span>
+
+			</div> 
+		</div>
+
+
+		<!--  footer -->
+		<div id="footer">
+				Copyright (c) 2017. all rights reserved.
+		</div>
+
+		<!--  //footer -->
+
+	</div>
+	<!-- wrap -->
+</body>
+</html>
